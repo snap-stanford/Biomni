@@ -6,7 +6,7 @@ Biomni is a general-purpose biomedical AI agent designed to autonomously execute
 
 **Biomni-E1: An unified environment for biomedical agent**
 
-Biomni employs an action discovery agent to systematically mine essential tools, databases, and protocols from tens of thousands of publications across 25 biomedical domains. These resources are then expectly curated to create the first unified agentic environment (Biomni-E1). This comprehensive mapping of the biomedical action space enables AI agent to access a wide range of specialized tools and knowledge. It enables a wide range of novel capabilities across subfields of biomedicine.
+Biomni employs an action discovery agent to systematically mine essential tools, databases, and protocols from tens of thousands of publications across 25 biomedical domains. These resources are then expertly curated to create the first unified agentic environment (Biomni-E1). This comprehensive mapping of the biomedical action space enables AI agent to access a wide range of specialized tools and knowledge. It enables a wide range of novel capabilities across subfields of biomedicine.
 
 **Biomni-A1: A General-Purpose Agent Architecture**
 
