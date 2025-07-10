@@ -482,4 +482,126 @@ description = [
             },
         ],
     },
+    {
+        "description": "Query drug-drug interactions from DDInter database to identify potential interactions, mechanisms, and severity levels between specified drugs.",
+        "name": "query_drug_interactions",
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "List of drug names to query for interactions",
+                "name": "drug_names",
+                "type": "List[str]",
+            }
+        ],
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Filter results by specific interaction types",
+                "name": "interaction_types",
+                "type": "List[str]",
+            },
+            {
+                "default": None,
+                "description": "Filter results by severity levels (Major, Moderate, Minor)",
+                "name": "severity_levels",
+                "type": "List[str]",
+            },
+            {
+                "default": None,
+                "description": "Path to data lake directory containing DDInter data",
+                "name": "data_lake_path",
+                "type": "str",
+            },
+        ],
+    },
+    {
+        "description": "Analyze safety of a drug combination for potential interactions using DDInter database with comprehensive risk assessment and clinical recommendations.",
+        "name": "check_drug_combination_safety",
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "List of drugs to analyze for combination safety",
+                "name": "drug_list",
+                "type": "List[str]",
+            }
+        ],
+        "optional_parameters": [
+            {
+                "default": True,
+                "description": "Include interaction mechanism descriptions in results",
+                "name": "include_mechanisms",
+                "type": "bool",
+            },
+            {
+                "default": True,
+                "description": "Include management recommendations in results",
+                "name": "include_management",
+                "type": "bool",
+            },
+            {
+                "default": None,
+                "description": "Path to data lake directory containing DDInter data",
+                "name": "data_lake_path",
+                "type": "str",
+            },
+        ],
+    },
+    {
+        "description": "Analyze interaction mechanisms between two specific drugs providing detailed mechanistic insights and clinical significance assessment.",
+        "name": "analyze_interaction_mechanisms",
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Pair of drug names to analyze (drug1, drug2)",
+                "name": "drug_pair",
+                "type": "Tuple[str, str]",
+            }
+        ],
+        "optional_parameters": [
+            {
+                "default": True,
+                "description": "Include detailed mechanistic information in analysis",
+                "name": "detailed_analysis",
+                "type": "bool",
+            },
+            {
+                "default": None,
+                "description": "Path to data lake directory containing DDInter data",
+                "name": "data_lake_path",
+                "type": "str",
+            },
+        ],
+    },
+    {
+        "description": "Find alternative drugs that don't interact with contraindicated drugs using DDInter database for safer therapeutic substitutions.",
+        "name": "find_alternative_drugs_ddinter",
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Drug to find alternatives for",
+                "name": "target_drug",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "List of drugs to avoid interactions with",
+                "name": "contraindicated_drugs",
+                "type": "List[str]",
+            },
+        ],
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Limit search to specific therapeutic class",
+                "name": "therapeutic_class",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Path to data lake directory containing DDInter data",
+                "name": "data_lake_path",
+                "type": "str",
+            },
+        ],
+    },
 ]
