@@ -19,6 +19,8 @@ dependencies:
       - langchain_openai
       - langchain_anthropic
       - langchain_community
+      - langchain-google-genai
+      - langchain_ollama
       - openai
       - beautifulsoup4
       - lxml
