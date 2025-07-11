@@ -3,9 +3,9 @@ from typing import Literal, Optional
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_ollama import ChatOllama
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 SourceType = Literal["OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini"]
 
