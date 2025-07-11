@@ -1079,8 +1079,8 @@ def decode_behavior_from_neural_trajectories(neural_data, behavioral_data, n_com
         Research log summarizing the steps taken and results
 
     """
-    import os
     import json
+    import os
 
     import matplotlib.pyplot as plt
     import numpy as np
