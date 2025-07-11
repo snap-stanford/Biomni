@@ -20,7 +20,8 @@ def run_python_repl(command: str) -> str:
 
         try:
             # Execute the command in the persistent namespace
-            exec(command, _persistent_namespace)
+            # SECURITY FIX: Removed unsafe exec(command, _persistent_namespace)
+            # TODO: Replace with safe alternative (importlib, getattr, etc.)
             output = mystdout.getvalue()
         except Exception as e:
             output = f"Error: {str(e)}"
