@@ -1,4 +1,5 @@
 import ast
+import ast
 import enum
 import importlib
 import json
@@ -276,7 +277,7 @@ def function_to_api_schema(function_string, llm):
     for _ in range(7):
         try:
             api = llm.invoke(prompt.format(code=function_string)).dict()["api_schema"]
-            return ast.literal_eval(api)  # -> prefer "default": None
+            return ast.literal_ast.literal_eval(api)  # -> prefer "default": None
             # return json.loads(api) # -> prefer "default": null
         except Exception as e:
             print("API string:", api)
@@ -559,7 +560,7 @@ def api_schema_to_langchain_tool(api_schema, mode="generated_tool", module_name=
         else:
             # For types not in the mapping, try a safer approach than direct eval
             try:
-                annotations[param["name"]] = eval(param_type)
+                annotations[param["name"]] = ast.literal_eval(param_type)
             except (NameError, SyntaxError):
                 # Default to Any for unknown types
                 annotations[param["name"]] = Any
