@@ -1080,7 +1080,7 @@ def decode_behavior_from_neural_trajectories(neural_data, behavioral_data, n_com
 
     """
     import os
-    import pickle
+    import json
 
     import matplotlib.pyplot as plt
     import numpy as np
@@ -1204,7 +1204,7 @@ def decode_behavior_from_neural_trajectories(neural_data, behavioral_data, n_com
 
     results_file = os.path.join(output_dir, "neural_decoding_results.pkl")
     with open(results_file, "wb") as f:
-        pickle.dump(results, f)
+        json.dump(results, f)
 
     # Also save a CSV with the first few predicted vs. actual values for easier inspection
     try:
