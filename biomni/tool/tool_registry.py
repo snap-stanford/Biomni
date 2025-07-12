@@ -18,6 +18,7 @@ class ToolRegistry:
         self.document_df = pd.DataFrame(docs, columns=["docid", "document_content"])
         try:
             from biomni.tool.tooluniverse_registry import ToolUniverseRegistry
+
             TOOLUNIVERSE_AVAILABLE = True
         except ImportError:
             TOOLUNIVERSE_AVAILABLE = False
