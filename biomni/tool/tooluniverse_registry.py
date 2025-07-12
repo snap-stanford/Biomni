@@ -2,7 +2,7 @@
 ToolUniverseRegistry: Adapter for integrating ToolUniverse tools into Biomni's tool registry.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from tooluniverse import ToolUniverse
 
