@@ -1,9 +1,12 @@
 import json
+
 from biomni.agent.base_agent import base_agent
 from biomni.tool.tooluniverse_registry import ToolUniverseRegistry
 
+
 class ToolUniverseAgent(base_agent):
     """Agent that exposes all ToolUniverse tools as callable tools in the Biomni agent pipeline."""
+
     def __init__(self, llm="gpt-4", cheap_llm=None):
         super().__init__(llm, cheap_llm, tools=None)
         self.tu_registry = ToolUniverseRegistry()

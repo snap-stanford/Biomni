@@ -2,6 +2,8 @@
 ToolUniverseRegistry: Adapter for integrating ToolUniverse tools into Biomni's tool registry.
 """
 
+from typing import Any, Dict, List
+
 from tooluniverse import ToolUniverse
 
 from typing import Any
@@ -11,6 +13,7 @@ class ToolUniverseRegistry:
     Adapter for integrating ToolUniverse tools into Biomni's tool registry.
     Loads available tools, exposes their schemas, and allows invocation by name.
     """
+
     def __init__(self) -> None:
         """Initialize and load all ToolUniverse tools."""
         self.tooluni = ToolUniverse()
@@ -24,7 +27,7 @@ class ToolUniverseRegistry:
             List of tool schema dicts with name, description, etc.
         """
         schemas = []
-        for name, desc in zip(self.tool_name_list, self.tool_desc_list):
+        for name, desc in zip(self.tool_name_list, self.tool_desc_list, strict=False):
             schema = {
                 "name": name,
                 "description": desc,
