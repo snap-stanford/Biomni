@@ -6,7 +6,6 @@ from typing import Any, Dict, List
 
 from tooluniverse import ToolUniverse
 
-from typing import Any
 
 class ToolUniverseRegistry:
     """
