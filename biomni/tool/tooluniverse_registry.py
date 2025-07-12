@@ -4,7 +4,7 @@ ToolUniverseRegistry: Adapter for integrating ToolUniverse tools into Biomni's t
 
 from tooluniverse import ToolUniverse
 
-from typing import List, Dict, Any
+from typing import Any
 
 class ToolUniverseRegistry:
     """
@@ -17,7 +17,7 @@ class ToolUniverseRegistry:
         self.tooluni.load_tools()
         self.tool_name_list, self.tool_desc_list = self.tooluni.refresh_tool_name_desc()
 
-    def get_tool_schemas(self) -> List[Dict[str, Any]]:
+    def get_tool_schemas(self) -> list[dict[str, Any]]:
         """
         Return all ToolUniverse tool schemas, mapped to Biomni's format.
         Returns:

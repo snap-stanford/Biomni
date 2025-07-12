@@ -1,10 +1,11 @@
-import pickle
 
+import pickle
 import pandas as pd
+from biomni.tool.tooluniverse_registry import ToolUniverseRegistry
 
 
 class ToolRegistry:
-    def __init__(self, tools):
+    def __init__(self, tools, include_tooluniverse=False):
         self.tools = []
         self.next_id = 0
 
@@ -12,18 +13,13 @@ class ToolRegistry:
             for tool in j:
                 self.register_tool(tool)
 
+        if include_tooluniverse:
+            self._load_tooluniverse_tools()
+
         docs = []
         for tool_id in range(len(self.tools)):
             docs.append([int(tool_id), self.get_tool_by_id(int(tool_id))])
         self.document_df = pd.DataFrame(docs, columns=["docid", "document_content"])
-        try:
-            from biomni.tool.tooluniverse_registry import ToolUniverseRegistry
-            TOOLUNIVERSE_AVAILABLE = True
-        except ImportError:
-            TOOLUNIVERSE_AVAILABLE = False
-        self.include_tooluniverse = include_tooluniverse
-        if self.include_tooluniverse and TOOLUNIVERSE_AVAILABLE:
-            self._load_tooluniverse_tools()
 
         # self.langchain_tools = {}
         # for module, api_list in tools.items():
@@ -36,6 +32,8 @@ class ToolRegistry:
             self.next_id += 1
         else:
             raise ValueError("Invalid tool format")
+
+    def _load_tooluniverse_tools(self):
         tu_registry = ToolUniverseRegistry()
         for schema in tu_registry.get_tool_schemas():
             self.register_tool(schema)
