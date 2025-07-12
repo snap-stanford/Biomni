@@ -1,0 +1,33 @@
+name: biomni_e1
+channels:
+  - conda-forge
+  - defaults
+  - bioconda
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - numpy==2.1
+      - pandas
+      - matplotlib
+      - scipy
+      - statsmodels
+      - scikit-learn
+      - gradio
+      - langchain
+      - langgraph==0.3.18
+      - langchain_openai
+      - langchain_anthropic
+      - langchain_community
+      - openai
+      - beautifulsoup4
+      - lxml
+      - tqdm
+      - seaborn
+      - networkx
+      - requests
+      - pyyaml
+      - jupyter
+      - notebook
+      - ipykernel
+      - pytest
