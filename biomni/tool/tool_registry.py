@@ -2,15 +2,20 @@ import pickle
 
 import pandas as pd
 
+from biomni.tool.tooluniverse_registry import ToolUniverseRegistry
+
 
 class ToolRegistry:
-    def __init__(self, tools):
+    def __init__(self, tools, include_tooluniverse=False):
         self.tools = []
         self.next_id = 0
 
         for j in tools.values():
             for tool in j:
                 self.register_tool(tool)
+
+        if include_tooluniverse:
+            self._load_tooluniverse_tools()
 
         docs = []
         for tool_id in range(len(self.tools)):
@@ -28,6 +33,11 @@ class ToolRegistry:
             self.next_id += 1
         else:
             raise ValueError("Invalid tool format")
+
+    def _load_tooluniverse_tools(self):
+        tu_registry = ToolUniverseRegistry()
+        for schema in tu_registry.get_tool_schemas():
+            self.register_tool(schema)
 
     def validate_tool(self, tool):
         required_keys = ["name", "description", "required_parameters"]
