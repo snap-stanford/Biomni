@@ -39,6 +39,7 @@ class A1:
         llm="claude-sonnet-4-20250514",
         use_tool_retriever=True,
         timeout_seconds=600,
+        include_tooluniverse=False,
     ):
         """Initialize the biomni agent.
 
@@ -91,7 +92,7 @@ class A1:
         self.use_tool_retriever = use_tool_retriever
 
         if self.use_tool_retriever:
-            self.tool_registry = ToolRegistry(module2api)
+            self.tool_registry = ToolRegistry(module2api, include_tooluniverse=include_tooluniverse)
             self.retriever = ToolRetriever()
 
         # Add timeout parameter

@@ -31,3 +31,4 @@ dependencies:
       - notebook
       - ipykernel
       - pytest
+      - tooluniverse

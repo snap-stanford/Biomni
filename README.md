@@ -123,6 +123,37 @@ Experience Biomni through our no-code web interface at **[biomni.stanford.edu](h
 - [ ] A tutorial on baseline agents
 - [x] Biomni A1+E1 release
 
+## ToolUniverse Integration
+
+Biomni now supports integration with [ToolUniverse](https://github.com/mims-harvard/ToolUniverse), a large collection of community-maintained tools for LLM agents.
+
+### Enabling ToolUniverse
+
+1. Ensure `tooluniverse` is installed (see `biomni_env/environment.yml`).
+2. Use the `ToolUniverseAgent` to access all ToolUniverse tools:
+
+```python
+from biomni.agent.tooluniverse_agent import ToolUniverseAgent
+agent = ToolUniverseAgent(llm="gpt-4")
+log, result = agent.go("tool_name", arg1=..., arg2=...)
+print(result)
+```
+
+3. Or, include ToolUniverse tools in the main agent pipeline:
+
+```python
+from biomni.agent.a1 import A1
+agent = A1(include_tooluniverse=True)
+# Now ToolUniverse tools are available in the agent's tool registry and can be called as other tools.
+```
+
+### How it works
+- ToolUniverse tools are loaded and registered via an adapter.
+- You can call any ToolUniverse tool by name and arguments using the `.go()` method (ToolUniverseAgent) or as part of the main agent pipeline (A1 with `include_tooluniverse=True`).
+- ToolUniverse tools can be optionally included in the main tool registry for other agents.
+
+See the [ToolUniverse documentation](https://github.com/mims-harvard/ToolUniverse/blob/main/README_USAGE.md) for available tools and usage details.
+
 ## Note
 - This release was frozen as of April 15 2025, so it differs from the current web platform.
 - Biomni itself is Apache 2.0-licensed, but certain integrated tools, databases, or software may carry more restrictive commercial licenses. Review each component carefully before any commercial use.
