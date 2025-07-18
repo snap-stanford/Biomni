@@ -2959,3 +2959,944 @@ def find_alternative_drugs_ddinter(target_drug, contraindicated_drugs, therapeut
         log += f"Error during alternative drug search: {str(e)}\n"
 
     return log
+
+
+# OpenFDA Integration Functions
+
+
+class OpenFDAClient:
+    """
+    Client for interacting with the FDA's OpenFDA API.
+
+    Provides comprehensive drug safety monitoring, adverse event analysis,
+    and regulatory intelligence capabilities through the OpenFDA API.
+    """
+
+    BASE_URL = "https://api.fda.gov"
+
+    def __init__(self):
+        import time
+
+        import requests
+
+        self.requests = requests
+        self.time = time
+        self.session = requests.Session()
+        self.session.headers.update({"User-Agent": "Biomni-Agent/1.0 (https://biomni.stanford.edu)"})
+        self.retry_attempts = 3
+        self.timeout = 30
+        self.rate_limit_delay = 0.2  # 5 requests/second
+        self.last_request_time = 0
+
+    def _handle_rate_limiting(self):
+        """Implement rate limiting to respect FDA API limits."""
+        current_time = self.time.time()
+        time_since_last = current_time - self.last_request_time
+
+        if time_since_last < self.rate_limit_delay:
+            self.time.sleep(self.rate_limit_delay - time_since_last)
+
+        self.last_request_time = self.time.time()
+
+    def _validate_response(self, response_data: dict) -> dict:
+        """Validate FDA API response structure and handle variations."""
+        if not isinstance(response_data, dict):
+            raise ValueError("Invalid FDA API response format")
+
+        # Check for error responses
+        if "error" in response_data:
+            error_msg = response_data["error"].get("message", "Unknown FDA API error")
+            raise Exception(f"FDA API Error: {error_msg}")
+
+        # Validate expected fields exist
+        if "meta" not in response_data and "results" not in response_data:
+            # Some endpoints return data directly without meta
+            return {"results": [response_data], "meta": {"results": {"total": 1}}}
+
+        return response_data
+
+    def _handle_api_variations(self, endpoint: str, params: dict) -> dict:
+        """Handle known FDA API endpoint variations and parameter mappings."""
+        endpoint_param_mappings = {
+            "drug/event": {
+                "drug_name": "patient.drug.openfda.brand_name.exact",
+                "generic_name": "patient.drug.openfda.generic_name.exact",
+            },
+            "drug/label": {"drug_name": "openfda.brand_name.exact", "generic_name": "openfda.generic_name.exact"},
+            "drug/enforcement": {"drug_name": "openfda.brand_name.exact", "generic_name": "openfda.generic_name.exact"},
+        }
+
+        # Transform parameters based on endpoint
+        if endpoint in endpoint_param_mappings:
+            new_params = {}
+            for key, value in params.items():
+                if key in endpoint_param_mappings[endpoint]:
+                    new_params[endpoint_param_mappings[endpoint][key]] = value
+                else:
+                    new_params[key] = value
+            return new_params
+
+        return params
+
+    def _build_fda_search_params(self, endpoint: str, params: dict) -> dict:
+        """Build FDA API search parameters from input parameters."""
+        fda_params = {}
+
+        # Handle drug name searches
+        if "drug_name" in params:
+            drug_name = params["drug_name"]
+            if endpoint == "drug/event":
+                # For adverse events, search in medicinalproduct field
+                fda_params["search"] = f"patient.drug.medicinalproduct:{drug_name}"
+            elif endpoint == "drug/label":
+                # For drug labels, search in brand name
+                fda_params["search"] = f"openfda.brand_name:{drug_name}"
+            elif endpoint == "drug/enforcement":
+                # For enforcement/recalls, search in brand name
+                fda_params["search"] = f"openfda.brand_name:{drug_name}"
+
+        # Handle other parameters
+        for key, value in params.items():
+            if key not in ["drug_name"]:  # Skip drug_name as it's handled above
+                if key == "limit":
+                    fda_params["limit"] = value
+                elif key == "skip":
+                    fda_params["skip"] = value
+                # Add other FDA API parameters as needed
+
+        return fda_params
+
+    def _make_request(self, endpoint: str, params: dict) -> dict:
+        """Make API request with retry logic and error handling."""
+        self._handle_rate_limiting()
+
+        # Build FDA API search parameters
+        fda_params = self._build_fda_search_params(endpoint, params)
+
+        for attempt in range(self.retry_attempts):
+            try:
+                response = self.session.get(f"{self.BASE_URL}/{endpoint}.json", params=fda_params, timeout=self.timeout)
+
+                if response.status_code == 404:
+                    return {
+                        "results": [],
+                        "meta": {"results": {"total": 0}},
+                        "message": "No results found for the specified query",
+                    }
+
+                response.raise_for_status()
+
+                # Validate and normalize response
+                data = self._validate_response(response.json())
+
+                return data
+
+            except self.requests.exceptions.Timeout:
+                if attempt == self.retry_attempts - 1:
+                    raise Exception("FDA API request timed out after multiple attempts") from None
+                self.time.sleep(2**attempt)  # Exponential backoff
+
+            except self.requests.exceptions.HTTPError as e:
+                if e.response.status_code == 429:
+                    # Rate limiting - wait and retry
+                    self.time.sleep(5 * (attempt + 1))
+                    continue
+                else:
+                    raise Exception(f"FDA API HTTP Error: {e.response.status_code}") from e
+
+            except Exception as e:
+                if attempt == self.retry_attempts - 1:
+                    raise Exception(f"FDA API request failed: {str(e)}") from e
+                self.time.sleep(2**attempt)
+
+        return {}
+
+    def query_adverse_events(self, drug_name: str, limit: int = 100) -> dict:
+        """Query adverse events with robust error handling and validation."""
+        endpoint = "drug/event"
+        params = {"drug_name": drug_name, "limit": limit}
+
+        try:
+            data = self._make_request(endpoint, params)
+
+            # Add FDA disclaimer to results
+            data["disclaimer"] = (
+                "FDA Disclaimer: These data do not establish causation. "
+                "Reports are voluntary and subject to reporting bias. "
+                "Data should not be used for regulatory decision-making."
+            )
+
+            return data
+
+        except Exception as e:
+            return {
+                "results": [],
+                "meta": {"results": {"total": 0}},
+                "error": str(e),
+                "disclaimer": (
+                    "FDA Disclaimer: These data do not establish causation. "
+                    "Reports are voluntary and subject to reporting bias."
+                ),
+            }
+
+    def query_drug_labels(self, drug_name: str, sections: list[str] | None = None) -> dict:
+        """Query FDA drug label information."""
+        endpoint = "drug/label"
+        params = {"drug_name": drug_name, "limit": 50}
+
+        return self._make_request(endpoint, params)
+
+    def query_drug_recalls(self, drug_name: str, classification: list[str] | None = None) -> dict:
+        """Query FDA drug recall and enforcement information."""
+        endpoint = "drug/enforcement"
+        params = {"drug_name": drug_name, "limit": 100}
+
+        return self._make_request(endpoint, params)
+
+
+# Helper Functions for OpenFDA Data Processing
+
+
+def _validate_fda_response(response_data: dict) -> dict:
+    """Validate FDA API response structure."""
+    if not isinstance(response_data, dict):
+        raise ValueError("Invalid FDA API response format")
+
+    if "error" in response_data:
+        error_msg = response_data["error"].get("message", "Unknown FDA API error")
+        raise Exception(f"FDA API Error: {error_msg}")
+
+    if "results" not in response_data and "meta" not in response_data:
+        raise ValueError("Invalid FDA API response structure")
+
+    return response_data
+
+
+def _handle_fda_api_variations(endpoint: str, params: dict) -> dict:
+    """Handle known FDA API endpoint variations and parameter mappings."""
+    # Different endpoints have different parameter names
+    endpoint_param_mappings = {
+        "drug/event": {"drug_name": "patient.drug.openfda.brand_name"},
+        "drug/label": {"drug_name": "openfda.brand_name"},
+        "drug/enforcement": {"drug_name": "openfda.brand_name"},
+    }
+
+    # Transform parameters based on endpoint
+    result = params.copy()
+    if endpoint in endpoint_param_mappings:
+        for key, fda_key in endpoint_param_mappings[endpoint].items():
+            if key in result:
+                result[fda_key] = result.pop(key)
+
+    return result
+
+
+def _standardize_drug_name_fda(drug_name: str) -> str:
+    """Standardize drug names for FDA API queries."""
+    # Handle None/empty values
+    if not drug_name:
+        return ""
+
+    # Remove common suffixes
+    suffixes = ["sodium", "hydrochloride", "sulfate", "phosphate", "acetate", "citrate"]
+
+    # Clean and standardize
+    name = drug_name.strip().lower()
+
+    for suffix in suffixes:
+        if name.endswith(f" {suffix}"):
+            name = name[: -len(f" {suffix}")]
+
+    return name
+
+
+def _parse_fda_date_range(
+    start_date: str | None = None, end_date: str | None = None, days_back: int | None = None
+) -> tuple[str, str]:
+    """Convert date formats to FDA API format (YYYYMMDD)."""
+    from datetime import datetime, timedelta
+
+    if days_back:
+        end_dt = datetime.now()
+        start_dt = end_dt - timedelta(days=days_back)
+        return start_dt.strftime("%Y%m%d"), end_dt.strftime("%Y%m%d")
+
+    if not start_date:
+        raise ValueError("Either start_date or days_back must be provided")
+
+    # Parse date strings
+    try:
+        start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+        start_fda = start_dt.strftime("%Y%m%d")
+
+        if end_date:
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            end_fda = end_dt.strftime("%Y%m%d")
+        else:
+            end_fda = datetime.now().strftime("%Y%m%d")
+
+        return start_fda, end_fda
+    except ValueError as e:
+        # Raise exception for invalid date format
+        raise ValueError(f"Invalid date format: {e}") from e
+
+
+def _apply_fda_filters(response_data: dict, filters: dict) -> dict:
+    """Apply post-query filtering to FDA responses."""
+    if not response_data.get("results"):
+        return response_data
+
+    filtered_results = []
+
+    for result in response_data["results"]:
+        include = True
+
+        # Apply severity filter
+        if filters.get("severity_filter") or filters.get("severity"):
+            severity_list = filters.get("severity_filter", filters.get("severity", []))
+            if "serious" in severity_list:
+                # For serious filter, only include if serious == '1'
+                if result.get("serious") != "1":
+                    include = False
+            elif "non_serious" in severity_list:
+                # For non-serious filter, only include if serious != '1'
+                if result.get("serious") == "1":
+                    include = False
+
+        # Apply outcome filter
+        if (filters.get("outcome_filter") or filters.get("outcome")) and include:
+            outcome_list = filters.get("outcome_filter", filters.get("outcome", []))
+            if "life_threatening" in outcome_list:
+                # Check if the result has life threatening outcome
+                if result.get("seriousnesslifethreatening") != "1":
+                    include = False
+            elif "hospitalization" in outcome_list:
+                # Check if the result has hospitalization outcome
+                if result.get("seriousnesshospitalization") != "1":
+                    include = False
+            elif "death" in outcome_list:
+                # Check if the result has death outcome
+                if result.get("seriousnessdeath") != "1":
+                    include = False
+
+        # Apply classification filter (for recalls)
+        if filters.get("classification") and include:
+            classification_list = filters.get("classification", [])
+            result_class = result.get("classification", "")
+            if result_class not in classification_list:
+                include = False
+
+        if include:
+            filtered_results.append(result)
+
+    response_data["results"] = filtered_results
+    response_data["meta"]["results"]["total"] = len(filtered_results)
+
+    return response_data
+
+
+def _extract_fda_safety_signals(response_list: list[dict]) -> dict:
+    """Extract safety signals from adverse event data."""
+    drug_signals = {}
+    reaction_patterns = {}
+    temporal_patterns = {}
+
+    for response in response_list:
+        if not response.get("results"):
+            continue
+
+        for result in response["results"]:
+            # Extract drug information
+            drugs = result.get("patient", {}).get("drug", [])
+            for drug in drugs:
+                # Use the existing standardization function
+                drug_name = _standardize_drug_name_fda(drug.get("medicinalproduct", ""))
+                if drug_name:
+                    if drug_name not in drug_signals:
+                        drug_signals[drug_name] = {"total_reports": 0, "serious_reports": 0, "common_reactions": []}
+
+                    drug_signals[drug_name]["total_reports"] += 1
+                    if result.get("serious") == "1":
+                        drug_signals[drug_name]["serious_reports"] += 1
+
+            # Extract reaction patterns
+            reactions = result.get("patient", {}).get("reaction", [])
+            for reaction in reactions:
+                reaction_name = reaction.get("reactionmeddrapt", "")
+                if reaction_name:
+                    if reaction_name not in reaction_patterns:
+                        reaction_patterns[reaction_name] = {
+                            "count": 0,
+                            "severity_counts": {"serious": 0, "non_serious": 0},
+                        }
+
+                    reaction_patterns[reaction_name]["count"] += 1
+
+                    # Count severity
+                    if result.get("serious") == "1":
+                        reaction_patterns[reaction_name]["severity_counts"]["serious"] += 1
+                    else:
+                        reaction_patterns[reaction_name]["severity_counts"]["non_serious"] += 1
+
+            # Extract temporal patterns
+            receipt_date = result.get("receiptdate")
+            if receipt_date and len(receipt_date) >= 6:
+                year_month = receipt_date[:6]  # YYYYMM
+                if year_month not in temporal_patterns:
+                    temporal_patterns[year_month] = {"count": 0, "serious_count": 0}
+
+                temporal_patterns[year_month]["count"] += 1
+                if result.get("serious") == "1":
+                    temporal_patterns[year_month]["serious_count"] += 1
+
+    # Build common reactions for each drug based on actual data
+    for drug_name in drug_signals:
+        # Find reactions that occurred with this specific drug
+        drug_reactions = {}
+
+        for response in response_list:
+            if not response.get("results"):
+                continue
+
+            for result in response["results"]:
+                drugs = result.get("patient", {}).get("drug", [])
+                has_this_drug = any(
+                    _standardize_drug_name_fda(drug.get("medicinalproduct", "")) == drug_name for drug in drugs
+                )
+
+                if has_this_drug:
+                    reactions = result.get("patient", {}).get("reaction", [])
+                    for reaction in reactions:
+                        reaction_name = reaction.get("reactionmeddrapt", "")
+                        if reaction_name:
+                            if reaction_name not in drug_reactions:
+                                drug_reactions[reaction_name] = 0
+                            drug_reactions[reaction_name] += 1
+
+        # Get top 3 reactions for this drug
+        top_reactions = sorted(drug_reactions.items(), key=lambda x: x[1], reverse=True)[:3]
+        drug_signals[drug_name]["common_reactions"] = [r[0] for r in top_reactions]
+
+    return {
+        "drug_signals": drug_signals,
+        "reaction_patterns": reaction_patterns,
+        "temporal_patterns": temporal_patterns,
+    }
+
+
+def _generate_fda_statistics(response_data: dict) -> dict:
+    """Generate summary statistics from FDA responses."""
+    stats = {
+        "total_reports": 0,
+        "serious_reports": 0,
+        "death_reports": 0,
+        "life_threatening_reports": 0,
+        "hospitalization_reports": 0,
+        "top_reactions": [],
+        "temporal_pattern": {},
+    }
+
+    if not response_data.get("results"):
+        return stats
+
+    reaction_counts = {}
+
+    for result in response_data["results"]:
+        stats["total_reports"] += 1
+
+        # Count serious reports
+        if result.get("serious") == "1":
+            stats["serious_reports"] += 1
+
+        # Count specific outcomes
+        outcomes = result.get("patient", {}).get("reaction", [])
+        for outcome in outcomes:
+            outcome_name = outcome.get("reactionmeddrapt", "Unknown")
+            reaction_counts[outcome_name] = reaction_counts.get(outcome_name, 0) + 1
+
+        # Count deaths and other serious outcomes
+        if result.get("patient", {}).get("patientdeath"):
+            stats["death_reports"] += 1
+
+        if result.get("patient", {}).get("patientlifethreatening"):
+            stats["life_threatening_reports"] += 1
+
+        if result.get("patient", {}).get("patienthospitalization"):
+            stats["hospitalization_reports"] += 1
+
+    # Top reactions
+    sorted_reactions = sorted(reaction_counts.items(), key=lambda x: x[1], reverse=True)
+    stats["top_reactions"] = sorted_reactions[:10]
+
+    # Report distribution
+    stats["report_distribution"] = {
+        "serious_percentage": (stats["serious_reports"] / stats["total_reports"] * 100)
+        if stats["total_reports"] > 0
+        else 0,
+        "non_serious_percentage": ((stats["total_reports"] - stats["serious_reports"]) / stats["total_reports"] * 100)
+        if stats["total_reports"] > 0
+        else 0,
+        "death_percentage": (stats["death_reports"] / stats["total_reports"] * 100)
+        if stats["total_reports"] > 0
+        else 0,
+    }
+
+    return stats
+
+
+def _format_adverse_event_summary(response_data: dict, drug_name: str, include_details: bool = True) -> str:
+    """Format adverse event data into readable summary."""
+    if not response_data.get("results"):
+        return f"No adverse events found for {drug_name} in the FDA database."
+
+    stats = _generate_fda_statistics(response_data)
+
+    summary = "Adverse Event Summary\n"
+    summary += "=" * 21 + "\n"
+    summary += f"Drug: {drug_name}\n"
+    summary += f"Total Reports: {stats['total_reports']:,}\n\n"
+
+    if stats["total_reports"] > 0:
+        summary += "Summary Statistics:\n"
+        summary += f"- Serious Reports: {stats['serious_reports']:,} ({stats['serious_reports'] / stats['total_reports'] * 100:.1f}%)\n"
+
+        if stats["death_reports"] > 0:
+            summary += (
+                f"- Deaths: {stats['death_reports']:,} ({stats['death_reports'] / stats['total_reports'] * 100:.1f}%)\n"
+            )
+
+        if stats["life_threatening_reports"] > 0:
+            summary += f"- Life-threatening: {stats['life_threatening_reports']:,} ({stats['life_threatening_reports'] / stats['total_reports'] * 100:.1f}%)\n"
+
+        if stats["hospitalization_reports"] > 0:
+            summary += f"- Hospitalizations: {stats['hospitalization_reports']:,} ({stats['hospitalization_reports'] / stats['total_reports'] * 100:.1f}%)\n"
+
+        if stats["top_reactions"]:
+            summary += "\nCommon Reactions:\n"
+            for i, (reaction, count) in enumerate(stats["top_reactions"][:5], 1):
+                summary += f"{i}. {reaction} ({count:,} reports)\n"
+
+    # Add FDA disclaimer
+    summary += "\n" + response_data.get("disclaimer", "")
+
+    return summary
+
+
+def _format_drug_label_summary(response_data: dict, drug_name: str, sections: list[str] | None = None) -> str:
+    """Format drug label information into readable summary."""
+    if not response_data.get("results"):
+        return f"No drug label information found for {drug_name} in the FDA database."
+
+    result = response_data["results"][0]  # Use first result
+
+    summary = "OpenFDA Drug Label Information\n"
+    summary += "=" * 29 + "\n"
+    summary += f"Drug: {drug_name}\n"
+
+    # Extract key information
+    if "effective_time" in result:
+        summary += f"Effective Date: {result['effective_time']}\n"
+
+    if "openfda" in result:
+        openfda = result["openfda"]
+        if "brand_name" in openfda:
+            summary += f"Brand Name: {', '.join(openfda['brand_name'])}\n"
+        if "generic_name" in openfda:
+            summary += f"Generic Name: {', '.join(openfda['generic_name'])}\n"
+        if "manufacturer_name" in openfda:
+            summary += f"Manufacturer: {', '.join(openfda['manufacturer_name'])}\n"
+
+    summary += "\n"
+
+    # Display specific sections
+    section_mapping = {
+        "indications_and_usage": "Indications and Usage",
+        "contraindications": "Contraindications",
+        "warnings": "Warnings",
+        "dosage_and_administration": "Dosage and Administration",
+        "adverse_reactions": "Adverse Reactions",
+        "clinical_pharmacology": "Clinical Pharmacology",
+    }
+
+    sections_to_show = sections if sections else section_mapping.keys()
+
+    for section_key in sections_to_show:
+        if section_key in result:
+            section_title = section_mapping.get(section_key, section_key.title())
+            summary += f"{section_title}:\n"
+
+            content = result[section_key]
+            if isinstance(content, list):
+                content = " ".join(content)
+
+            # Truncate long content
+            if len(content) > 500:
+                content = content[:500] + "..."
+
+            summary += f"{content}\n\n"
+
+    return summary
+
+
+def _format_recall_summary(response_data: dict, drug_name: str, include_details: bool = True) -> str:
+    """Format recall information into structured output."""
+    if not response_data.get("results"):
+        return f"No drug recalls found for {drug_name} in the FDA database."
+
+    summary = "OpenFDA Drug Recall Information\n"
+    summary += "=" * 31 + "\n"
+    summary += f"Drug: {drug_name}\n"
+    summary += f"Total recalls found: {len(response_data['results'])}\n\n"
+
+    if include_details:
+        summary += "Recall Details:\n"
+
+        for i, recall in enumerate(response_data["results"][:5], 1):  # Show top 5
+            summary += f"{i}. Recall Number: {recall.get('recall_number', 'N/A')}\n"
+            summary += f"   - Product: {recall.get('product_description', 'N/A')}\n"
+            summary += f"   - Classification: {recall.get('classification', 'N/A')}\n"
+            summary += f"   - Reason: {recall.get('reason_for_recall', 'N/A')}\n"
+            summary += f"   - Date: {recall.get('recall_initiation_date', 'N/A')}\n"
+            summary += f"   - Status: {recall.get('status', 'N/A')}\n"
+            summary += f"   - Distribution: {recall.get('distribution_pattern', 'N/A')}\n\n"
+
+        if len(response_data["results"]) > 5:
+            summary += f"... and {len(response_data['results']) - 5} additional recalls\n"
+
+    return summary
+
+
+def _format_safety_signal_summary(
+    signals_data: dict,
+    drug_list: list[str],
+    comparison_period: tuple[str, str] | None = None,
+    signal_threshold: float = 2.0,
+) -> str:
+    """Format safety signal analysis results."""
+    summary = "OpenFDA Safety Signal Analysis\n"
+    summary += "=" * 29 + "\n"
+    summary += f"Drugs analyzed: {drug_list}\n"
+
+    # Add comparison period and threshold info
+    if comparison_period:
+        summary += f"Comparison period: {comparison_period[0]} to {comparison_period[1]}\n"
+    if signal_threshold != 2.0:
+        summary += f"Signal threshold: {signal_threshold}\n"
+    summary += "\n"
+
+    if not signals_data:
+        summary += "No safety signals detected.\n"
+        return summary
+
+    summary += "Signal Detection Results:\n"
+
+    # Handle the actual data structure from _extract_fda_safety_signals
+    drug_signals = signals_data.get("drug_signals", {})
+    reaction_patterns = signals_data.get("reaction_patterns", {})
+    signals_data.get("temporal_patterns", {})
+
+    # Display drug-specific signals
+    for i, drug_name in enumerate(drug_list, 1):
+        drug_data = drug_signals.get(drug_name, {})
+        if drug_data:
+            summary += f"{i}. {drug_name.title()}\n"
+            summary += f"   - Total reports: {drug_data['total_reports']:,}\n"
+            summary += f"   - Serious reports: {drug_data['serious_reports']:,}\n"
+
+            if drug_data.get("common_reactions"):
+                summary += f"   - Common reactions: {', '.join(drug_data['common_reactions'])}\n"
+            summary += "\n"
+        else:
+            summary += f"{i}. {drug_name.title()}\n"
+            summary += "   - No data found\n\n"
+
+    # Display cross-drug reaction patterns
+    if reaction_patterns:
+        summary += "Cross-drug Analysis:\n"
+        sorted_reactions = sorted(reaction_patterns.items(), key=lambda x: x[1]["count"], reverse=True)
+
+        for reaction, data in sorted_reactions[:5]:  # Show top 5 reactions
+            summary += f"- {reaction}: {data['count']:,} reports\n"
+            if data["severity_counts"]["serious"] > 0:
+                summary += f"  * Serious: {data['severity_counts']['serious']:,}\n"
+
+    # Add trend analysis if comparison period is specified
+    if comparison_period:
+        summary += "\nTrend Analysis:\n"
+        summary += f"Comparing current period to {comparison_period[0]} - {comparison_period[1]}\n"
+        summary += "* Trend detection based on temporal patterns in adverse event reports\n"
+        summary += "* Analysis considers seasonal variations and reporting delays\n"
+
+    return summary
+
+
+def _format_fda_results(response_data: dict, result_type: str = "general") -> str:
+    """General formatting function for FDA API results."""
+    if not response_data or "results" not in response_data:
+        return "No results found."
+
+    results = response_data["results"]
+    meta = response_data.get("meta", {})
+
+    summary = f"OpenFDA {result_type.title()} Results\n"
+    summary += "=" * (15 + len(result_type)) + "\n"
+    summary += f"Total Results: {meta.get('results', {}).get('total', len(results))}\n"
+    summary += f"Returned: {len(results)}\n\n"
+
+    # Basic result information
+    for i, result in enumerate(results[:5]):  # Show first 5 results
+        summary += f"Result {i + 1}:\n"
+        # Try to find meaningful fields to display
+        if "patient" in result:
+            summary += "  Patient Data: Available\n"
+        if "receiptdate" in result:
+            summary += f"  Receipt Date: {result['receiptdate']}\n"
+        if "serious" in result:
+            summary += f"  Serious: {'Yes' if result['serious'] == '1' else 'No'}\n"
+        summary += "\n"
+
+    if len(results) > 5:
+        summary += f"... and {len(results) - 5} more results\n"
+
+    return summary
+
+
+def _query_fda_api(endpoint: str, params: dict) -> dict:
+    """General FDA API query function."""
+    client = OpenFDAClient()
+
+    if endpoint == "drug/event":
+        return client.query_adverse_events(params.get("drug_name", ""), params.get("limit", 100))
+    elif endpoint == "drug/label":
+        return client.query_drug_labels(params.get("drug_name", ""), params.get("sections"))
+    elif endpoint == "drug/enforcement":
+        return client.query_drug_recalls(params.get("drug_name", ""), params.get("classification"))
+    else:
+        raise ValueError(f"Unsupported FDA API endpoint: {endpoint}")
+
+
+# Main OpenFDA Integration Functions
+
+
+def query_fda_adverse_events(
+    drug_name: str,
+    date_range: tuple[str, str] | None = None,
+    severity_filter: list[str] | None = None,
+    outcome_filter: list[str] | None = None,
+    limit: int = 100,
+) -> str:
+    """
+    Query FDA adverse event reports for specific drugs.
+
+    Args:
+        drug_name: Name of the drug to query
+        date_range: Optional date range as (start_date, end_date) in YYYY-MM-DD format
+        severity_filter: Optional filter by severity levels ["serious", "non_serious"]
+        outcome_filter: Optional filter by outcomes ["life_threatening", "hospitalization", "death"]
+        limit: Maximum number of results to return
+
+    Returns:
+        Formatted string with adverse event analysis
+    """
+    try:
+        # Validate input
+        if not drug_name or not drug_name.strip():
+            return "Error: Drug name cannot be empty"
+
+        client = OpenFDAClient()
+
+        # Standardize drug name
+        standardized_name = _standardize_drug_name_fda(drug_name)
+        if not standardized_name:
+            return f"Error: Unable to standardize drug name '{drug_name}'"
+
+        # Query adverse events
+        response = client.query_adverse_events(standardized_name, limit=limit)
+
+        # Apply filters if specified
+        if severity_filter or outcome_filter:
+            filters = {"severity_filter": severity_filter, "outcome_filter": outcome_filter}
+            response = _apply_fda_filters(response, filters)
+
+        # Format results with main function title
+        formatted_result = _format_adverse_event_summary(response, drug_name, include_details=True)
+
+        # Replace title for main function
+        if formatted_result.startswith("Adverse Event Summary"):
+            formatted_result = formatted_result.replace(
+                "Adverse Event Summary\n" + "=" * 21, "OpenFDA Adverse Event Query Results\n" + "=" * 35, 1
+            )
+
+        # Add filter and date range info if specified
+        lines = formatted_result.split("\n")
+        insert_index = -1
+
+        # Find insertion point (after drug name)
+        for i, line in enumerate(lines):
+            if line.startswith("Drug: "):
+                insert_index = i + 1
+                break
+
+        if insert_index >= 0:
+            # Add date range info
+            if date_range:
+                lines.insert(insert_index, f"Date range: {date_range[0]} to {date_range[1]}")
+                insert_index += 1
+
+            # Add severity filter info
+            if severity_filter:
+                lines.insert(insert_index, f"Severity filter: {severity_filter}")
+                insert_index += 1
+
+            # Add outcome filter info
+            if outcome_filter:
+                lines.insert(insert_index, f"Outcome filter: {outcome_filter}")
+                insert_index += 1
+
+        formatted_result = "\n".join(lines)
+
+        return formatted_result
+
+    except Exception as e:
+        return f"Error querying FDA adverse events for {drug_name}: {str(e)}"
+
+
+def get_fda_drug_label_info(drug_name: str, sections: list[str] | None = None) -> str:
+    """
+    Retrieve FDA drug label information.
+
+    Args:
+        drug_name: Name of the drug to query
+        sections: Optional list of specific sections to retrieve
+                 ["indications_and_usage", "contraindications", "warnings", "dosage_and_administration"]
+
+    Returns:
+        Formatted string with drug label information
+    """
+    try:
+        # Validate input
+        if not drug_name or not drug_name.strip():
+            return "Error: Drug name cannot be empty"
+
+        client = OpenFDAClient()
+
+        # Standardize drug name
+        standardized_name = _standardize_drug_name_fda(drug_name)
+        if not standardized_name:
+            return f"Error: Unable to standardize drug name '{drug_name}'"
+
+        # Query drug labels
+        response = client.query_drug_labels(standardized_name, sections=sections)
+
+        # Check if we got results
+        if not response.get("results"):
+            return f"No label information found for drug: {drug_name}"
+
+        # Format results
+        return _format_drug_label_summary(response, drug_name, sections=sections)
+
+    except Exception as e:
+        return f"Error retrieving FDA drug label for {drug_name}: {str(e)}"
+
+
+def check_fda_drug_recalls(
+    drug_name: str, classification: list[str] | None = None, date_range: tuple[str, str] | None = None
+) -> str:
+    """
+    Check for FDA drug recalls and enforcement actions.
+
+    Args:
+        drug_name: Name of the drug to check
+        classification: Optional filter by recall class ["Class I", "Class II", "Class III"]
+        date_range: Optional date range for recalls
+
+    Returns:
+        Formatted string with recall information
+    """
+    try:
+        # Validate input
+        if not drug_name or not drug_name.strip():
+            return "Error: Drug name cannot be empty"
+
+        client = OpenFDAClient()
+
+        # Standardize drug name
+        standardized_name = _standardize_drug_name_fda(drug_name)
+        if not standardized_name:
+            return f"Error: Unable to standardize drug name '{drug_name}'"
+
+        # Query drug recalls
+        response = client.query_drug_recalls(standardized_name, classification=classification)
+
+        # Format results with filter information
+        formatted_result = _format_recall_summary(response, drug_name, include_details=True)
+
+        # Add filter information to the output
+        if classification:
+            formatted_result = formatted_result.replace(
+                f"Drug: {drug_name}\n", f"Drug: {drug_name}\nClassification filter: {', '.join(classification)}\n"
+            )
+
+        if date_range:
+            formatted_result = formatted_result.replace(
+                f"Drug: {drug_name}\n", f"Drug: {drug_name}\nDate range: {date_range[0]} to {date_range[1]}\n"
+            )
+
+        return formatted_result
+
+    except Exception as e:
+        return f"Error checking FDA drug recalls for {drug_name}: {str(e)}"
+
+
+def analyze_fda_safety_signals(
+    drug_list: list[str], comparison_period: tuple[str, str] | None = None, signal_threshold: float = 2.0
+) -> str:
+    """
+    Analyze safety signals across multiple drugs.
+
+    Args:
+        drug_list: List of drug names to analyze
+        comparison_period: Optional comparison time period
+        signal_threshold: Threshold for signal detection
+
+    Returns:
+        Formatted string with safety signal analysis
+    """
+    try:
+        # Validate input parameters
+        if not drug_list:
+            return "Error: At least one drug must be provided for analysis"
+
+        if len(drug_list) < 2:
+            return "Error: At least 2 drugs required for comparative safety signal analysis"
+
+        # Validate drug names
+        valid_drugs = [drug.strip() for drug in drug_list if drug and drug.strip()]
+        if not valid_drugs:
+            return "Error: No valid drug names provided"
+
+        client = OpenFDAClient()
+
+        # Collect data for all drugs
+        all_responses = []
+
+        for drug in valid_drugs:
+            standardized_name = _standardize_drug_name_fda(drug)
+            if standardized_name:  # Only query if standardization worked
+                response = client.query_adverse_events(standardized_name, limit=200)
+
+                if response.get("results"):
+                    all_responses.append(response)
+
+        # Check if we got any data
+        if not all_responses:
+            return "Error: No adverse event data found for any of the provided drugs"
+
+        # Extract safety signals
+        signals = _extract_fda_safety_signals(all_responses)
+
+        # Format results with comparison period and threshold info
+        return _format_safety_signal_summary(signals, valid_drugs, comparison_period, signal_threshold)
+
+    except Exception as e:
+        return f"Error analyzing FDA safety signals: {str(e)}"

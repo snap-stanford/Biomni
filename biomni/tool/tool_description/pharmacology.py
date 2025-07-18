@@ -610,4 +610,114 @@ description = [
             },
         ],
     },
+    {
+        "description": "Query FDA adverse event reports for specific drugs from the OpenFDA database to identify potential safety signals, reaction patterns, and regulatory intelligence.",
+        "name": "query_fda_adverse_events",
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Name of the drug to query for adverse events",
+                "name": "drug_name",
+                "type": "str",
+            },
+        ],
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Optional date range as (start_date, end_date) in YYYY-MM-DD format",
+                "name": "date_range",
+                "type": "Tuple[str, str]",
+            },
+            {
+                "default": None,
+                "description": "Optional filter by severity levels ['serious', 'non_serious']",
+                "name": "severity_filter",
+                "type": "List[str]",
+            },
+            {
+                "default": None,
+                "description": "Optional filter by outcomes ['life_threatening', 'hospitalization', 'death']",
+                "name": "outcome_filter",
+                "type": "List[str]",
+            },
+            {
+                "default": 100,
+                "description": "Maximum number of results to return",
+                "name": "limit",
+                "type": "int",
+            },
+        ],
+    },
+    {
+        "description": "Retrieve FDA drug label information including indications, contraindications, warnings, and dosage information from the OpenFDA database.",
+        "name": "get_fda_drug_label_info",
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Name of the drug to query for label information",
+                "name": "drug_name",
+                "type": "str",
+            },
+        ],
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Optional list of specific sections to retrieve ['indications_and_usage', 'contraindications', 'warnings', 'dosage_and_administration']",
+                "name": "sections",
+                "type": "List[str]",
+            },
+        ],
+    },
+    {
+        "description": "Check for FDA drug recalls and enforcement actions from the OpenFDA database to identify safety concerns and regulatory actions.",
+        "name": "check_fda_drug_recalls",
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Name of the drug to check for recalls",
+                "name": "drug_name",
+                "type": "str",
+            },
+        ],
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Optional filter by recall class ['Class I', 'Class II', 'Class III']",
+                "name": "classification",
+                "type": "List[str]",
+            },
+            {
+                "default": None,
+                "description": "Optional date range for recalls as (start_date, end_date)",
+                "name": "date_range",
+                "type": "Tuple[str, str]",
+            },
+        ],
+    },
+    {
+        "description": "Analyze safety signals across multiple drugs using OpenFDA adverse event data to identify patterns and comparative risk profiles.",
+        "name": "analyze_fda_safety_signals",
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "List of drug names to analyze for safety signals",
+                "name": "drug_list",
+                "type": "List[str]",
+            },
+        ],
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Optional comparison time period as (start_date, end_date)",
+                "name": "comparison_period",
+                "type": "Tuple[str, str]",
+            },
+            {
+                "default": 2.0,
+                "description": "Threshold for signal detection",
+                "name": "signal_threshold",
+                "type": "float",
+            },
+        ],
+    },
 ]
