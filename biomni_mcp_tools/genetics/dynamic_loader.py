@@ -1,6 +1,7 @@
 import importlib
 import yaml
-from typing import Any, Callable, Dict
+from typing import Any  # keep this if Any is used
+from collections.abc import Callable
 
 class ToolLoader:
     def __init__(self, config_path: str):
@@ -23,5 +24,5 @@ class ToolLoader:
         module = importlib.import_module(module_path)
         return getattr(module, func_name)
 
-    def get_tool(self, name: str) -> Dict[str, Any]:
+    def get_tool(self, name: str) -> dict[str, Any]:
         return self.tools.get(name)

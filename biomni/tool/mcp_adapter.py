@@ -1,7 +1,8 @@
 import yaml
 import importlib
 from types import ModuleType
-from typing import Callable, Dict
+from collections.abc import Callable
+from typing import Any  # If needed for type hints
 
 class MCPAdapter:
     def __init__(self, config_path: str):
@@ -19,6 +20,7 @@ class MCPAdapter:
                 # Register local tool
                 func = self._import_func(tool['import_path'])
                 self.tools[tool['name']] = func
+
 
     def _import_func(self, import_path: str) -> Callable:
         module_path, func_name = import_path.rsplit('.', 1)
