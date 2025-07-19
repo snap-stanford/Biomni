@@ -53,7 +53,46 @@ For the latest update, install from the github source version, or do:
 pip install git+https://github.com/snap-stanford/Biomni.git@main
 ```
 
-Lastly, configure your API keys in bash profile `~/.bashrc`:
+Lastly, configure your API keys using one of the following methods:
+
+#### Option 1: Using .env file (Recommended)
+
+Create a `.env` file in your project directory:
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit the .env file with your actual API keys
+```
+
+Your `.env` file should look like:
+
+```env
+# Required: Anthropic API Key for Claude models
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# Optional: OpenAI API Key (if using OpenAI models)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Optional: AWS Bedrock Configuration (if using AWS Bedrock models)
+AWS_BEARER_TOKEN_BEDROCK=your_bedrock_api_key_here
+AWS_REGION=us-east-1
+
+# Optional: Custom model serving configuration
+# CUSTOM_MODEL_BASE_URL=http://localhost:8000/v1
+# CUSTOM_MODEL_API_KEY=your_custom_api_key_here
+
+# Optional: Biomni data path (defaults to ./data)
+# BIOMNI_DATA_PATH=/path/to/your/data
+
+# Optional: Timeout settings (defaults to 600 seconds)
+# BIOMNI_TIMEOUT_SECONDS=600
+```
+
+#### Option 2: Using shell environment variables
+
+Alternatively, configure your API keys in bash profile `~/.bashrc`:
 
 ```bash
 export ANTHROPIC_API_KEY="YOUR_API_KEY"

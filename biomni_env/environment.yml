@@ -35,3 +35,4 @@ dependencies:
       - pytest
       - transformers
       - sentencepiece
+      - python-dotenv

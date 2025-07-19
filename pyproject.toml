@@ -12,7 +12,7 @@ authors = [
     {name = "Biomni Team", email = "kexinh@cs.stanford.edu"}
 ]
 requires-python = ">=3.11"
-dependencies = ["pydantic", "langchain"]
+dependencies = ["pydantic", "langchain", "python-dotenv"]
 
 [project.urls]
 Homepage = "https://github.com/snap-stanford/biomni"
