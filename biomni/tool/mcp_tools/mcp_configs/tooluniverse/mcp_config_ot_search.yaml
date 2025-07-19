@@ -1,0 +1,46 @@
+# OpenTargets Search and Discovery
+mcp_servers:
+  tooluniverse_opentargets_search:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: OpenTargets_get_similar_entities_by_disease_efoId
+        description: "Get Similar Entities By Disease EFO ID"
+        parameters:
+          efoId: {type: str, required: true, description: "EFO ID of the disease"}
+          threshold: {type: float, required: true, description: "Similarity threshold"}
+          size: {type: int, required: true, description: "Number of results to return"}
+      - biomni_name: OpenTargets_get_similar_entities_by_drug_chemblId
+        description: "Get Similar Entities By Drug Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+          threshold: {type: float, required: true, description: "Similarity threshold"}
+          size: {type: int, required: true, description: "Number of results to return"}
+      - biomni_name: OpenTargets_get_similar_entities_by_target_ensemblID
+        description: "Get Similar Entities By Target Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+          threshold: {type: float, required: true, description: "Similarity threshold"}
+          size: {type: int, required: true, description: "Number of results to return"}
+      - biomni_name: OpenTargets_search_category_counts_by_query_string
+        description: "Search Category Counts By Query String"
+        parameters:
+          queryString: {type: str, required: true, description: "Search query string"}
+      - biomni_name: OpenTargets_get_disease_id_description_by_name
+        description: "Get Disease ID Description By Name"
+        parameters:
+          diseaseName: {type: str, required: true, description: "Diseasename"}
+      - biomni_name: OpenTargets_get_drug_id_description_by_name
+        description: "Get Drug ID Description By Name"
+        parameters:
+          drugName: {type: str, required: true, description: "Drugname"}
+      - biomni_name: OpenTargets_multi_entity_search_by_query_string
+        description: "Multi Entity Search By Query String"
+        parameters:
+          queryString: {type: str, required: true, description: "Search query string"}
+          entityNames: {type: list, required: true, description: "Entitynames"}
+          page: {type: dict, required: true, description: "Pagination parameters"}
+      - biomni_name: OpenTargets_get_target_id_description_by_name
+        description: "Get Target ID Description By Name"
+        parameters:
+          targetName: {type: str, required: true, description: "Targetname"}

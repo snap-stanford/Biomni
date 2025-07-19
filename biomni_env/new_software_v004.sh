@@ -1,1 +1,1 @@
-pip install transformers sentencepiece langchain-google-genai langchain_ollama
+pip install transformers sentencepiece langchain-google-genai langchain_ollama mcp hyperimpute

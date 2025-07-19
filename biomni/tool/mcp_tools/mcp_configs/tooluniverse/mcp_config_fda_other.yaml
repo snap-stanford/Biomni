@@ -1,0 +1,161 @@
+# FDA Other Functions
+mcp_servers:
+  tooluniverse_fda_other:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: FDA_get_drug_names_by_accessories
+        description: "Get Drug Names By Accessories"
+        parameters:
+          accessory_name: {type: str, required: true, description: "Accessory Name"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_accessories_info_by_drug_name
+        description: "Get Accessories Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_effective_time
+        description: "Get Drug Names By Effective Time"
+        parameters:
+          effective_time: {type: str, required: true, description: "Effective Time"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_effective_time_by_drug_name
+        description: "Get Effective Time By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_dear_health_care_provider_letter_info_by_drug_name
+        description: "Get Dear Health Care Provider Letter Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_dear_health_care_provider_letter_info
+        description: "Get Drug Names By Dear Health Care Provider Letter Info"
+        parameters:
+          letter_info: {type: str, required: true, description: "Letter Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_health_claim
+        description: "Get Drug Names By Health Claim"
+        parameters:
+          health_claim: {type: str, required: true, description: "Health Claim"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_health_claims_by_drug_name
+        description: "Get Health Claims By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_retrieve_drug_name_by_device_use
+        description: "Retrieve Drug Name By Device Use"
+        parameters:
+          intended_use_of_the_device: {type: str, required: true, description: "Intended Use Of The Device"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_retrieve_device_use_by_drug_name
+        description: "Retrieve Device Use By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_labor_and_delivery_info
+        description: "Get Drug Name By Labor And Delivery Info"
+        parameters:
+          labor_and_delivery_info: {type: str, required: true, description: "Labor And Delivery Info"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_labor_and_delivery_info_by_drug_name
+        description: "Get Labor And Delivery Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_microbiology
+        description: "Get Drug Name By Microbiology"
+        parameters:
+          microbiology_info: {type: str, required: true, description: "Microbiology Info"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_microbiology_info_by_drug_name
+        description: "Get Microbiology Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_principal_display_panel
+        description: "Get Drug Name By Principal Display Panel"
+        parameters:
+          display_panel_content: {type: str, required: true, description: "Display Panel Content"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_principal_display_panel_by_drug_name
+        description: "Get Principal Display Panel By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_contact_for_questions_info_by_drug_name
+        description: "Get Contact For Questions Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_recent_changes_by_drug_name
+        description: "Get Recent Changes By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_spl_indexing_data_elements
+        description: "Get Drug Names By SPL Indexing Data Elements"
+        parameters:
+          spl_indexing_data_elements: {type: str, required: true, description: "Spl Indexing Data Elements"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_spl_indexing_data_elements_by_drug_name
+        description: "Get SPL Indexing Data Elements By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_spl_unclassified_section_by_drug_name
+        description: "Get SPL Unclassified Section By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_stop_use_info
+        description: "Get Drug Name By Stop Use Info"
+        parameters:
+          stop_use_info: {type: str, required: true, description: "Stop Use Info"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_stop_use_info_by_drug_name
+        description: "Get Stop Use Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_when_using_info
+        description: "Get When Using Info"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_do_not_use_info_by_drug_name
+        description: "Get Do Not Use Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}

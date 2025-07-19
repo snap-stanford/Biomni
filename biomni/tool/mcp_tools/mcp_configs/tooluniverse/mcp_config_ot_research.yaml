@@ -1,0 +1,46 @@
+# OpenTargets Research and Publications
+mcp_servers:
+  tooluniverse_opentargets_research:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: OpenTargets_get_biological_mouse_models_by_ensemblID
+        description: "Get Biological Mouse Models By Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_chemical_probes_by_target_ensemblID
+        description: "Get Chemical Probes By Target Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_drug_pharmacogenomics_data
+        description: "Drug Pharmacogenomics Data"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+          page: {type: dict, required: true, description: "Pagination parameters"}
+      - biomni_name: OpenTargets_get_publications_by_disease_efoId
+        description: "Get Publications By Disease EFO ID"
+        parameters:
+          entityId: {type: str, required: true, description: "Entityid"}
+          additionalIds: {type: list, required: true, description: "Additionalids"}
+          startYear: {type: int, required: true, description: "Startyear"}
+          startMonth: {type: int, required: true, description: "Startmonth"}
+          endYear: {type: int, required: true, description: "Endyear"}
+          endMonth: {type: int, required: true, description: "Endmonth"}
+      - biomni_name: OpenTargets_get_publications_by_target_ensemblID
+        description: "Get Publications By Target Ensembl ID"
+        parameters:
+          entityId: {type: str, required: true, description: "Entityid"}
+          additionalIds: {type: list, required: true, description: "Additionalids"}
+          startYear: {type: int, required: true, description: "Startyear"}
+          startMonth: {type: int, required: true, description: "Startmonth"}
+          endYear: {type: int, required: true, description: "Endyear"}
+          endMonth: {type: int, required: true, description: "Endmonth"}
+      - biomni_name: OpenTargets_get_publications_by_drug_chemblId
+        description: "Get Publications By Drug Chembl ID"
+        parameters:
+          entityId: {type: str, required: true, description: "Entityid"}
+          additionalIds: {type: list, required: true, description: "Additionalids"}
+          startYear: {type: int, required: true, description: "Startyear"}
+          startMonth: {type: int, required: true, description: "Startmonth"}
+          endYear: {type: int, required: true, description: "Endyear"}
+          endMonth: {type: int, required: true, description: "Endmonth"}

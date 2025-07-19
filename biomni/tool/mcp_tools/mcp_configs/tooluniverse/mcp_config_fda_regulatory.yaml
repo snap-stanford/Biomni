@@ -1,0 +1,63 @@
+# FDA Regulatory and Identification
+mcp_servers:
+  tooluniverse_fda_regulatory:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: FDA_get_manufacturer_name_NDC_number_by_drug_name
+        description: "Get Manufacturer Name NDC Number By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_application_number_NDC_number
+        description: "Get Drug Names By Application Number NDC Number"
+        parameters:
+          application_manufacturer_or_NDC_info: {type: str, required: true, description: "Application Manufacturer Or Ndc Info"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_SPL_ID
+        description: "Get Drug Name By SPL ID"
+        parameters:
+          field_info: {type: str, required: true, description: "Field Info"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_document_id
+        description: "Get Drug Name By Document ID"
+        parameters:
+          document_id: {type: str, required: true, description: "Document Id"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_document_id_by_drug_name
+        description: "Get Document ID By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_reference
+        description: "Get Drug Name By Reference"
+        parameters:
+          reference: {type: str, required: true, description: "Reference"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_reference_info_by_drug_name
+        description: "Get Reference Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_set_id
+        description: "Get Drug Name By Set ID"
+        parameters:
+          set_id: {type: str, required: true, description: "Set Id"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_brand_name_generic_name
+        description: "Get Brand Name Generic Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+      - biomni_name: FDA_get_drug_generic_name
+        description: "Get Drug Generic Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}

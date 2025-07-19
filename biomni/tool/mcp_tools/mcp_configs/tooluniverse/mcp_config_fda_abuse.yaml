@@ -1,0 +1,56 @@
+# FDA Abuse and Dependence
+mcp_servers:
+  tooluniverse_fda_abuse:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: FDA_get_drug_names_by_abuse_info
+        description: "Get Drug Names By Abuse Info"
+        parameters:
+          abuse_info: {type: str, required: true, description: "Abuse Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_abuse_info_by_drug_name
+        description: "Get Abuse Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_controlled_substance_DEA_schedule
+        description: "Get Drug Names By Controlled Substance DEA Schedule"
+        parameters:
+          controlled_substance_schedule: {type: str, required: true, description: "Controlled Substance Schedule"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_controlled_substance_DEA_schedule_info_by_drug_name
+        description: "Get Controlled Substance DEA Schedule Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_dependence_info
+        description: "Get Drug Name By Dependence Info"
+        parameters:
+          dependence_info: {type: str, required: true, description: "Dependence Info"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_dependence_info_by_drug_name
+        description: "Get Dependence Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_abuse_dependence_info
+        description: "Get Drug Names By Abuse Dependence Info"
+        parameters:
+          abuse_info: {type: str, required: true, description: "Abuse Info"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_abuse_dependence_info_by_drug_name
+        description: "Get Abuse Dependence Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}

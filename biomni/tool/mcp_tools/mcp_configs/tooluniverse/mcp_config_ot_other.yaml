@@ -1,0 +1,46 @@
+# OpenTargets Other Functions
+mcp_servers:
+  tooluniverse_opentargets_other:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: OpenTargets_get_diseases_phenotypes_by_target_ensembl
+        description: "Get Diseases Phenotypes By Target Ensembl"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_associated_phenotypes_by_disease_efoId
+        description: "Get Associated Phenotypes By Disease EFO ID"
+        parameters:
+          efoId: {type: str, required: true, description: "EFO ID of the disease"}
+      - biomni_name: OpenTargets_get_drug_chembId_by_generic_name
+        description: "Get Drug Chemb ID By Generic Name"
+        parameters:
+          drugName: {type: str, required: true, description: "Drugname"}
+      - biomni_name: OpenTargets_get_target_synonyms_by_ensemblID
+        description: "Get Target Synonyms By Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_parent_child_molecules_by_drug_chembl_ID
+        description: "Get Parent Child Molecules By Drug Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+      - biomni_name: OpenTargets_get_approved_indications_by_drug_chemblId
+        description: "Get Approved Indications By Drug Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+      - biomni_name: OpenTargets_get_drug_description_by_chemblId
+        description: "Get Drug Description By Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+      - biomni_name: OpenTargets_get_drug_synonyms_by_chemblId
+        description: "Get Drug Synonyms By Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+      - biomni_name: OpenTargets_get_drug_trade_names_by_chemblId
+        description: "Get Drug Trade Names By Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+      - biomni_name: OpenTargets_get_gene_ontology_terms_by_goID
+        description: "Get Gene Ontology Terms By Go ID"
+        parameters:
+          goIds: {type: list, required: true, description: "Goids"}

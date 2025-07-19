@@ -1,0 +1,70 @@
+# FDA Clinical Information
+mcp_servers:
+  tooluniverse_fda_clinical:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: FDA_get_drug_names_by_clinical_pharmacology
+        description: "Get Drug Names By Clinical Pharmacology"
+        parameters:
+          clinical_pharmacology: {type: str, required: true, description: "Clinical Pharmacology"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_clinical_pharmacology_by_drug_name
+        description: "Get Clinical Pharmacology By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_clinical_studies
+        description: "Get Drug Names By Clinical Studies"
+        parameters:
+          clinical_studies: {type: str, required: true, description: "Clinical Studies"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_clinical_studies_info_by_drug_name
+        description: "Get Clinical Studies Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_contraindications
+        description: "Get Drug Names By Contraindications"
+        parameters:
+          contraindication_info: {type: str, required: true, description: "Contraindication Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_contraindications_by_drug_name
+        description: "Get Contraindications By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_indication
+        description: "Get Drug Names By Indication"
+        parameters:
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_indications_by_drug_name
+        description: "Get Indications By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_nonclinical_toxicology_info
+        description: "Get Drug Names By Nonclinical Toxicology Info"
+        parameters:
+          toxicology_info: {type: str, required: true, description: "Toxicology Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_nonclinical_toxicology_info_by_drug_name
+        description: "Get Nonclinical Toxicology Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}

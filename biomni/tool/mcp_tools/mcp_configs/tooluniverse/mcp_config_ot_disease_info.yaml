@@ -1,0 +1,30 @@
+# OpenTargets Disease Information
+mcp_servers:
+  tooluniverse_opentargets_disease_info:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: OpenTargets_get_disease_ancestors_parents_by_efoId
+        description: "Get Disease Ancestors Parents By EFO ID"
+        parameters:
+          efoId: {type: str, required: true, description: "EFO ID of the disease"}
+      - biomni_name: OpenTargets_get_disease_descendants_children_by_efoId
+        description: "Get Disease Descendants Children By EFO ID"
+        parameters:
+          efoId: {type: str, required: true, description: "EFO ID of the disease"}
+      - biomni_name: OpenTargets_get_disease_locations_by_efoId
+        description: "Get Disease Locations By EFO ID"
+        parameters:
+          efoId: {type: str, required: true, description: "EFO ID of the disease"}
+      - biomni_name: OpenTargets_get_disease_synonyms_by_efoId
+        description: "Get Disease Synonyms By EFO ID"
+        parameters:
+          efoId: {type: str, required: true, description: "EFO ID of the disease"}
+      - biomni_name: OpenTargets_get_disease_description_by_efoId
+        description: "Get Disease Description By EFO ID"
+        parameters:
+          efoId: {type: str, required: true, description: "EFO ID of the disease"}
+      - biomni_name: OpenTargets_get_disease_therapeutic_areas_by_efoId
+        description: "Get Disease Therapeutic Areas By EFO ID"
+        parameters:
+          efoId: {type: str, required: true, description: "EFO ID of the disease"}
