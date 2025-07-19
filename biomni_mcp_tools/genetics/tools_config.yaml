@@ -1,0 +1,11 @@
+# Example config for genetics MCP server
+# Each tool entry defines: name, import path, endpoint, input schema
+
+tools:
+  - name: get_rna_seq_archs4
+    import_path: biomni_mcp_tools.get_rna_seq_archs4.tool.get_rna_seq_archs4
+    endpoint: /get_rna_seq_archs4
+    input_schema:
+      gene_name: str
+      K: int
+  # Add more tools here as needed
