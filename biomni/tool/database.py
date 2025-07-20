@@ -5,7 +5,7 @@ import time
 from typing import Any
 
 import requests
-from anthropic import Anthropic
+from anthropic import Anthropic, AnthropicBedrock
 from Bio.Blast import NCBIWWW, NCBIXML
 from Bio.Seq import Seq
 
@@ -50,15 +50,38 @@ def _query_claude_for_api(prompt, schema, system_template, api_key=None, model="
     """
     # Get API key
     api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
-    if api_key is None:
+    aws_access_key = os.environ.get("AWS_ACCESS_KEY_ID")
+    aws_secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+    aws_region = os.environ.get("AWS_REGION", "us-east-1")
+    aws_session_token = os.environ.get("AWS_SESSION_TOKEN")
+    
+    if api_key is None or aws_access_key is None:
         return {
             "success": False,
             "error": "No API key provided. Set ANTHROPIC_API_KEY environment variable or provide api_key parameter.",
         }
 
+
     try:
         # Initialize Anthropic client
-        client = Anthropic(api_key=api_key)
+        if api_key:
+            client = Anthropic(api_key=api_key)
+        else:
+            # Build kwargs for AnthropicBedrock, making aws_session_token optional
+            bedrock_kwargs = {
+                'aws_access_key': aws_access_key,
+                'aws_secret_key': aws_secret_key,
+                'aws_region': aws_region,
+            }
+            
+            # Only add aws_session_token if it's not None
+            if aws_session_token is not None:
+                bedrock_kwargs['aws_session_token'] = aws_session_token
+            
+            client = AnthropicBedrock(**bedrock_kwargs)
+
+            if model == "claude-3-5-haiku-20241022":
+                model = "anthropic.claude-3-5-haiku-20241022-v1:0"
 
         if schema is not None:
             # Format the system prompt with the schema

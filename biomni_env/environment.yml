@@ -21,6 +21,7 @@ dependencies:
       - langchain_community
       - langchain-google-genai
       - langchain_ollama
+      - langchain_aws
       - openai
       - beautifulsoup4
       - lxml
