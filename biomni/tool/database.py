@@ -58,7 +58,7 @@ def _query_claude_for_api(prompt, schema, system_template, api_key=None, model="
     if api_key is None and aws_access_key is None:
         return {
             "success": False,
-            "error": "No API key provided. Set ANTHROPIC_API_KEY environment variable or provide api_key parameter.",
+            "error": "No API key provided. Set ANTHROPIC_API_KEY or AWS_ACCESS_KEY_ID environment variable or provide api_key parameter.",
         }
 
     try:
