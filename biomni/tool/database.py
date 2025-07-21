@@ -54,7 +54,7 @@ def _query_claude_for_api(prompt, schema, system_template, api_key=None, model="
     aws_secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
     aws_region = os.environ.get("AWS_REGION", "us-east-1")
     aws_session_token = os.environ.get("AWS_SESSION_TOKEN")
-    
+
     if api_key is None and aws_access_key is None:
         return {
             "success": False,
