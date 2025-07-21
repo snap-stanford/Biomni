@@ -61,7 +61,6 @@ def _query_claude_for_api(prompt, schema, system_template, api_key=None, model="
             "error": "No API key provided. Set ANTHROPIC_API_KEY environment variable or provide api_key parameter.",
         }
 
-
     try:
         # Initialize Anthropic client
         if api_key:
@@ -69,15 +68,15 @@ def _query_claude_for_api(prompt, schema, system_template, api_key=None, model="
         else:
             # Build kwargs for AnthropicBedrock, making aws_session_token optional
             bedrock_kwargs = {
-                'aws_access_key': aws_access_key,
-                'aws_secret_key': aws_secret_key,
-                'aws_region': aws_region,
+                "aws_access_key": aws_access_key,
+                "aws_secret_key": aws_secret_key,
+                "aws_region": aws_region,
             }
-            
+
             # Only add aws_session_token if it's not None
             if aws_session_token is not None:
-                bedrock_kwargs['aws_session_token'] = aws_session_token
-            
+                bedrock_kwargs["aws_session_token"] = aws_session_token
+
             client = AnthropicBedrock(**bedrock_kwargs)
 
             if model == "claude-3-5-haiku-20241022":
