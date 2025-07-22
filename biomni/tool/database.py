@@ -2697,6 +2697,89 @@ def query_monarch(
 
     return api_result
 
+# OpenFDA integration
+def query_openfda(
+    prompt=None,
+    endpoint=None,
+    api_key=None,
+    model="claude-3-5-haiku-20241022",
+    max_results=100,
+    verbose=True,
+):
+    """Query the OpenFDA API using natural language or a direct endpoint.
+
+    Parameters
+    ----------
+    prompt (str, optional): Natural language query about drugs, adverse events, recalls, etc.
+    endpoint (str, optional): Direct OpenFDA API endpoint or full URL
+    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
+    model (str): Anthropic model to use for prompt-to-endpoint conversion
+    max_results (int): Maximum number of results to return (if supported by endpoint)
+    verbose (bool): Whether to return detailed results
+
+    Returns
+    -------
+    dict: Dictionary containing the query results or error information
+
+    Examples
+    --------
+    - Natural language: query_openfda("Find adverse events for Lipitor")
+    - Direct endpoint: query_openfda(endpoint="https://api.fda.gov/drug/event.json?search=patient.drug.medicinalproduct:lipitor")
+    """
+    base_url = "https://api.fda.gov"
+
+    if prompt is None and endpoint is None:
+        return {"error": "Either a prompt or an endpoint must be provided"}
+
+    # If using prompt, use Claude to generate the endpoint
+    if prompt:
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "openfda.pkl")
+        if os.path.exists(schema_path):
+            with open(schema_path, "rb") as f:
+                openfda_schema = pickle.load(f)
+        else:
+            openfda_schema = None
+
+        system_template = """
+        You are a biomedical informatics expert specialized in using the OpenFDA API.\n\nBased on the user's natural language request, determine the appropriate OpenFDA API endpoint and parameters.\n\nOPENFDA API SCHEMA:\n{schema}\n\nYour response should be a JSON object with the following fields:\n1. \"full_url\": The complete URL to query (including the base URL \"https://api.fda.gov\" and any parameters)\n2. \"description\": A brief description of what the query is doing\n\nSPECIAL NOTES:\n- For drug event queries, use /drug/event.json?search=...\n- For drug label queries, use /drug/label.json?search=...\n- For recall queries, use /drug/enforcement.json?search=...\n- Use max_results to limit the number of returned items if supported (limit=)\n- Always URL-encode search terms\n- Return ONLY the JSON object with no additional text.\n        """
+        claude_result = _query_claude_for_api(
+            prompt=prompt,
+            schema=openfda_schema,
+            system_template=system_template,
+            api_key=api_key,
+            model=model,
+        )
+        if not claude_result["success"]:
+            return claude_result
+        query_info = claude_result["data"]
+        endpoint = query_info.get("full_url", "")
+        description = query_info.get("description", "")
+        if not endpoint:
+            return {
+                "error": "Failed to generate a valid endpoint from the prompt",
+                "claude_response": claude_result.get("raw_response", "No response"),
+            }
+    else:
+        # Use provided endpoint directly
+        if endpoint.startswith("/"):
+            endpoint = f"{base_url}{endpoint}"
+        elif not endpoint.startswith("http"):
+            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        description = "Direct query to OpenFDA API"
+
+    # Add max_results as a query parameter if not already present
+    if "?" in endpoint:
+        if "limit=" not in endpoint:
+            endpoint += f"&limit={max_results}"
+    else:
+        endpoint += f"?limit={max_results}"
+
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
+        return _format_query_results(api_result["result"])
+
+    return api_result
 
 def query_gwas_catalog(
     prompt=None,

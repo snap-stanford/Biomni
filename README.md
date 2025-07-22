@@ -35,6 +35,12 @@ Biomni now supports the [Monarch Initiative](https://monarchinitiative.org/) as 
 
 See [docs/monarch_integration.md](docs/monarch_integration.md) for usage examples and details.
 
+## 🏥 New: OpenFDA Integration
+
+Biomni now supports the [OpenFDA](https://open.fda.gov/) API as a first-class biomedical data source. Query OpenFDA using natural language or direct API endpoints for drug adverse events, labels, recalls, and more.
+
+See [docs/openfda_integration.md](docs/openfda_integration.md) for usage examples and details.
+
 ## Quick Start
 
 ### Installation
