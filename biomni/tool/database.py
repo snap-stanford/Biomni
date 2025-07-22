@@ -2613,6 +2613,7 @@ def query_opentarget(
 
     return api_result
 
+
 # Monarch Initiative integration
 def query_monarch(
     prompt=None,
@@ -2697,6 +2698,7 @@ def query_monarch(
 
     return api_result
 
+
 # OpenFDA integration
 def query_openfda(
     prompt=None,
@@ -2780,6 +2782,7 @@ def query_openfda(
         return _format_query_results(api_result["result"])
 
     return api_result
+
 
 def query_gwas_catalog(
     prompt=None,
