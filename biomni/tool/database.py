@@ -1,4 +1,3 @@
-
 import json
 import os
 import pickle
@@ -10,9 +9,9 @@ from anthropic import Anthropic
 from Bio.Blast import NCBIWWW, NCBIXML
 from Bio.Seq import Seq
 
-from biomni.utils import parse_hpo_obo
 # Import Gemini utility
 from biomni.tool.gemini_utils import _query_gemini_for_api
+from biomni.utils import parse_hpo_obo
 
 
 # Function to map HPO terms to names

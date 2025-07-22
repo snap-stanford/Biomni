@@ -1,6 +1,8 @@
-import os
 import json
+import os
+
 import requests
+
 
 def _query_gemini_for_api(prompt, schema, system_template, api_key=None, model="gemini-2.5-flash"):
     """Helper function to query Gemini for generating API calls based on natural language prompts.
@@ -18,8 +20,8 @@ def _query_gemini_for_api(prompt, schema, system_template, api_key=None, model="
     dict: Dictionary with 'success', 'data' (if successful), 'error' (if failed), and optional 'raw_response'
     """
     try:
+        from langchain_core.messages import HumanMessage, SystemMessage
         from langchain_google_genai import ChatGoogleGenerativeAI
-        from langchain_core.messages import SystemMessage, HumanMessage
     except ImportError as e:
         return {"success": False, "error": f"langchain_google_genai not installed: {e}"}
 
@@ -62,7 +64,7 @@ def _query_gemini_for_api(prompt, schema, system_template, api_key=None, model="
         return {
             "success": False,
             "error": f"Failed to parse Gemini's response: {str(e)}",
-            "raw_response": gemini_text if 'gemini_text' in locals() else "No content found",
+            "raw_response": gemini_text if "gemini_text" in locals() else "No content found",
         }
     except Exception as e:
         return {"success": False, "error": f"Error querying Gemini: {str(e)}"}
