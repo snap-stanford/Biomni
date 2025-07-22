@@ -14,7 +14,7 @@ def test_openfda_direct_endpoint():
 def test_openfda_prompt_drug_event():
     # Test prompt for adverse events
     prompt = "Find adverse events for Lipitor, limit 1"
-    result = query_openfda(prompt=prompt, max_results=1, verbose=False)
+    result = query_openfda(prompt=prompt, max_results=1, verbose=False, model="gemini-2.5-flash")
     assert isinstance(result, dict)
     assert result.get("success", True)
     assert "results" in str(result).lower() or "error" not in result
@@ -23,7 +23,7 @@ def test_openfda_prompt_drug_event():
 def test_openfda_prompt_drug_label():
     # Test prompt for drug label
     prompt = "Get the drug label for Lipitor, limit 1"
-    result = query_openfda(prompt=prompt, max_results=1, verbose=False)
+    result = query_openfda(prompt=prompt, max_results=1, verbose=False, model="gemini-2.5-flash")
     assert isinstance(result, dict)
     assert result.get("success", True)
     assert "results" in str(result).lower() or "error" not in result

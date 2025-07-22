@@ -1,3 +1,4 @@
+
 import json
 import os
 import pickle
@@ -10,6 +11,8 @@ from Bio.Blast import NCBIWWW, NCBIXML
 from Bio.Seq import Seq
 
 from biomni.utils import parse_hpo_obo
+# Import Gemini utility
+from biomni.tool.gemini_utils import _query_gemini_for_api
 
 
 # Function to map HPO terms to names
@@ -2733,7 +2736,7 @@ def query_openfda(
     if prompt is None and endpoint is None:
         return {"error": "Either a prompt or an endpoint must be provided"}
 
-    # If using prompt, use Claude to generate the endpoint
+    # If using prompt, use Claude or Gemini to generate the endpoint
     if prompt:
         schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "openfda.pkl")
         if os.path.exists(schema_path):
@@ -2744,23 +2747,43 @@ def query_openfda(
 
         system_template = """
         You are a biomedical informatics expert specialized in using the OpenFDA API.\n\nBased on the user's natural language request, determine the appropriate OpenFDA API endpoint and parameters.\n\nOPENFDA API SCHEMA:\n{schema}\n\nYour response should be a JSON object with the following fields:\n1. \"full_url\": The complete URL to query (including the base URL \"https://api.fda.gov\" and any parameters)\n2. \"description\": A brief description of what the query is doing\n\nSPECIAL NOTES:\n- For drug event queries, use /drug/event.json?search=...\n- For drug label queries, use /drug/label.json?search=...\n- For recall queries, use /drug/enforcement.json?search=...\n- Use max_results to limit the number of returned items if supported (limit=)\n- Always URL-encode search terms\n- Return ONLY the JSON object with no additional text.\n        """
-        claude_result = _query_claude_for_api(
-            prompt=prompt,
-            schema=openfda_schema,
-            system_template=system_template,
-            api_key=api_key,
-            model=model,
-        )
-        if not claude_result["success"]:
-            return claude_result
-        query_info = claude_result["data"]
-        endpoint = query_info.get("full_url", "")
-        description = query_info.get("description", "")
-        if not endpoint:
-            return {
-                "error": "Failed to generate a valid endpoint from the prompt",
-                "claude_response": claude_result.get("raw_response", "No response"),
-            }
+        # Select LLM for prompt translation
+        if model and model.startswith("gemini"):
+            gemini_result = _query_gemini_for_api(
+                prompt=prompt,
+                schema=openfda_schema,
+                system_template=system_template,
+                api_key=api_key,  # Should be GOOGLE_API_KEY
+                model=model,
+            )
+            if not gemini_result["success"]:
+                return gemini_result
+            query_info = gemini_result["data"]
+            endpoint = query_info.get("full_url", "")
+            description = query_info.get("description", "")
+            if not endpoint:
+                return {
+                    "error": "Failed to generate a valid endpoint from the prompt",
+                    "gemini_response": gemini_result.get("raw_response", "No response"),
+                }
+        else:
+            claude_result = _query_claude_for_api(
+                prompt=prompt,
+                schema=openfda_schema,
+                system_template=system_template,
+                api_key=api_key,
+                model=model,
+            )
+            if not claude_result["success"]:
+                return claude_result
+            query_info = claude_result["data"]
+            endpoint = query_info.get("full_url", "")
+            description = query_info.get("description", "")
+            if not endpoint:
+                return {
+                    "error": "Failed to generate a valid endpoint from the prompt",
+                    "claude_response": claude_result.get("raw_response", "No response"),
+                }
     else:
         # Use provided endpoint directly
         if endpoint.startswith("/"):
