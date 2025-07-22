@@ -1,6 +1,7 @@
 import pytest
 from biomni.tool.database import query_openfda
 
+
 def test_openfda_direct_endpoint():
     # Test direct endpoint for drug event
     endpoint = "https://api.fda.gov/drug/event.json?search=patient.drug.medicinalproduct:lipitor&limit=1"
@@ -8,6 +9,7 @@ def test_openfda_direct_endpoint():
     assert isinstance(result, dict)
     assert result.get("success", True)  # May not have 'success' if no error
     assert "results" in str(result).lower() or "error" not in result
+
 
 def test_openfda_prompt_drug_event():
     # Test prompt for adverse events
@@ -17,6 +19,7 @@ def test_openfda_prompt_drug_event():
     assert result.get("success", True)
     assert "results" in str(result).lower() or "error" not in result
 
+
 def test_openfda_prompt_drug_label():
     # Test prompt for drug label
     prompt = "Get the drug label for Lipitor, limit 1"
@@ -24,6 +27,7 @@ def test_openfda_prompt_drug_label():
     assert isinstance(result, dict)
     assert result.get("success", True)
     assert "results" in str(result).lower() or "error" not in result
+
 
 def test_openfda_invalid():
     # Test invalid prompt
