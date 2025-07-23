@@ -73,6 +73,8 @@ class react:
 
         # When wrapping tools with timeout
         self.tools = self._add_timeout_to_tools(self.tools)
+        self.prompt = ""
+        self.system_prompt = ""
 
     def _add_timeout_to_tools(self, tools):
         """Apply timeout wrapper to all tool functions using multiprocessing."""

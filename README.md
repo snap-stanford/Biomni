@@ -57,7 +57,7 @@ Lastly, configure your API keys using one of the following methods:
 
 <details>
 <summary>Click to expand</summary>
-  
+
 #### Option 1: Using .env file (Recommended)
 
 Create a `.env` file in your project directory:
