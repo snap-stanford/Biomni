@@ -26,7 +26,20 @@
 
 ## Overview
 
+
 Biomni is a general-purpose biomedical AI agent designed to autonomously execute a wide range of research tasks across diverse biomedical subfields. By integrating cutting-edge large language model (LLM) reasoning with retrieval-augmented planning and code-based execution, Biomni helps scientists dramatically enhance research productivity and generate testable hypotheses.
+
+## 🧬 New: Monarch Initiative Integration
+
+Biomni now supports the [Monarch Initiative](https://monarchinitiative.org/) as a first-class biomedical data source. Query Monarch using natural language or direct API endpoints for genes, diseases, and phenotypes.
+
+See [docs/monarch_integration.md](docs/monarch_integration.md) for usage examples and details.
+
+## 🏥 New: OpenFDA Integration
+
+Biomni now supports the [OpenFDA](https://open.fda.gov/) API as a first-class biomedical data source. Query OpenFDA using natural language or direct API endpoints for drug adverse events, labels, recalls, and more.
+
+See [docs/openfda_integration.md](docs/openfda_integration.md) for usage examples and details.
 
 ## Quick Start
 

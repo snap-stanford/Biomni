@@ -1246,4 +1246,92 @@ description = [
             }
         ],
     },
+    {
+        "description": "Query the Monarch Initiative API using natural language or a direct endpoint for genes, diseases, phenotypes, and more.",
+        "name": "query_monarch",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Direct Monarch API endpoint or full URL",
+                "name": "endpoint",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
+                "name": "api_key",
+                "type": "str",
+            },
+            {
+                "default": "claude-3-5-haiku-20241022",
+                "description": "Anthropic model to use for prompt-to-endpoint conversion",
+                "name": "model",
+                "type": "str",
+            },
+            {
+                "default": 5,
+                "description": "Maximum number of results to return (if supported by endpoint)",
+                "name": "max_results",
+                "type": "int",
+            },
+            {
+                "default": True,
+                "description": "Whether to return detailed results",
+                "name": "verbose",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Natural language query about genes, diseases, phenotypes, etc.",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Query the OpenFDA API using natural language or a direct endpoint for drugs, adverse events, recalls, and more.",
+        "name": "query_openfda",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Direct OpenFDA API endpoint or full URL",
+                "name": "endpoint",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
+                "name": "api_key",
+                "type": "str",
+            },
+            {
+                "default": "claude-3-5-haiku-20241022",
+                "description": "Anthropic model to use for prompt-to-endpoint conversion",
+                "name": "model",
+                "type": "str",
+            },
+            {
+                "default": 100,
+                "description": "Maximum number of results to return (if supported by endpoint)",
+                "name": "max_results",
+                "type": "int",
+            },
+            {
+                "default": True,
+                "description": "Whether to return detailed results",
+                "name": "verbose",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Natural language query about drugs, adverse events, recalls, etc.",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    },
 ]
