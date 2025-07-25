@@ -1,0 +1,31 @@
+# OpenTargets Drug Information and Safety
+mcp_servers:
+  tooluniverse_opentargets_drug_safety:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: OpenTargets_get_drug_warnings_by_chemblId
+        description: "Get Drug Warnings By Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+      - biomni_name: OpenTargets_get_drug_mechanisms_of_action_by_chemblId
+        description: "Get Drug Mechanisms Of Action By Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+      - biomni_name: OpenTargets_get_drug_withdrawn_blackbox_status_by_chemblId
+        description: "Get Drug Withdrawn Blackbox Status By Chembl ID"
+        parameters:
+          chemblId: {type: list, required: true, description: "ChEMBL ID of the drug"}
+      - biomni_name: OpenTargets_get_drug_indications_by_chemblId
+        description: "Get Drug Indications By Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+      - biomni_name: OpenTargets_get_drug_adverse_events_by_chemblId
+        description: "Get Drug Adverse Events By Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+          page: {type: dict, required: true, description: "Pagination parameters"}
+      - biomni_name: OpenTargets_get_drug_approval_status_by_chemblId
+        description: "Get Drug Approval Status By Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}

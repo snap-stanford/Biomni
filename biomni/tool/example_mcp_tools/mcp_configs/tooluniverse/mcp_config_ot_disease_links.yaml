@@ -1,0 +1,38 @@
+# OpenTargets Disease-Target-Drug Links
+mcp_servers:
+  tooluniverse_opentargets_disease_links:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: OpenTargets_get_associated_targets_by_disease_efoId
+        description: "Get Associated Targets By Disease EFO ID"
+        parameters:
+          efoId: {type: str, required: true, description: "EFO ID of the disease"}
+      - biomni_name: OpenTargets_target_disease_evidence
+        description: "Target Disease Evidence"
+        parameters:
+          efoId: {type: str, required: true, description: "EFO ID of the disease"}
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_associated_drugs_by_disease_efoId
+        description: "Get Associated Drugs By Disease EFO ID"
+        parameters:
+          efoId: {type: str, required: true, description: "EFO ID of the disease"}
+          size: {type: int, required: true, description: "Number of results to return"}
+      - biomni_name: OpenTargets_get_known_drugs_by_drug_chemblId
+        description: "Get Known Drugs By Drug Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+      - biomni_name: OpenTargets_get_associated_drugs_by_target_ensemblID
+        description: "Get Associated Drugs By Target Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+          size: {type: int, required: true, description: "Number of results to return"}
+          cursor: {type: str, required: true, description: "Cursor"}
+      - biomni_name: OpenTargets_get_associated_diseases_by_drug_chemblId
+        description: "Get Associated Diseases By Drug Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}
+      - biomni_name: OpenTargets_get_associated_targets_by_drug_chemblId
+        description: "Get Associated Targets By Drug Chembl ID"
+        parameters:
+          chemblId: {type: str, required: true, description: "ChEMBL ID of the drug"}

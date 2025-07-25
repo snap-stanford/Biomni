@@ -1,0 +1,30 @@
+# HPO Phenotype and Ontology
+mcp_servers:
+  tooluniverse_hpo:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: get_joint_associated_diseases_by_HPO_ID_list
+        description: "Get Joint Associated Diseases By HPO ID List"
+        parameters:
+          HPO_ID_list: {type: list, required: true, description: "List of HPO IDs"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          offset: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: get_phenotype_by_HPO_ID
+        description: "Get Phenotype By HPO ID"
+        parameters:
+          id: {type: str, required: true, description: "ID to search for"}
+      - biomni_name: get_HPO_ID_by_phenotype
+        description: "Get HPO ID By Phenotype"
+        parameters:
+          query: {type: str, required: true, description: "Search query string"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          offset: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: OpenTargets_get_diseases_phenotypes_by_target_ensembl
+        description: "Get Diseases Phenotypes By Target Ensembl"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_associated_phenotypes_by_disease_efoId
+        description: "Get Associated Phenotypes By Disease EFO ID"
+        parameters:
+          efoId: {type: str, required: true, description: "EFO ID of the disease"}

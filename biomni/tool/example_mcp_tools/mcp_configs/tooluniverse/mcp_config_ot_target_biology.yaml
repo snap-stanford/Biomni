@@ -1,0 +1,47 @@
+# OpenTargets Target Biology and Function
+mcp_servers:
+  tooluniverse_opentargets_target_biology:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: OpenTargets_get_target_gene_ontology_by_ensemblID
+        description: "Get Target Gene Ontology By Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_target_homologues_by_ensemblID
+        description: "Get Target Homologues By Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_target_safety_profile_by_ensemblID
+        description: "Get Target Safety Profile By Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_target_genomic_location_by_ensemblID
+        description: "Get Target Genomic Location By Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_target_subcellular_locations_by_ensemblID
+        description: "Get Target Subcellular Locations By Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_target_tractability_by_ensemblID
+        description: "Get Target Tractability By Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_target_classes_by_ensemblID
+        description: "Get Target Classes By Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_target_enabling_packages_by_ensemblID
+        description: "Get Target Enabling Packages By Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+      - biomni_name: OpenTargets_get_target_interactions_by_ensemblID
+        description: "Get Target Interactions By Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}
+          page: {type: dict, required: true, description: "Pagination parameters"}
+      - biomni_name: OpenTargets_get_target_constraint_info_by_ensemblID
+        description: "Get Target Constraint Info By Ensembl ID"
+        parameters:
+          ensemblId: {type: str, required: true, description: "Ensembl ID of the target"}

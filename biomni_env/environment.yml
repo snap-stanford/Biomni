@@ -35,4 +35,7 @@ dependencies:
       - pytest
       - transformers
       - sentencepiece
+      - hyperimpute
+      - mcp
+      - tooluniverse
       - python-dotenv

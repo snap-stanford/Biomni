@@ -1,0 +1,62 @@
+# FDA Patient Information
+mcp_servers:
+  tooluniverse_fda_patient_info:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: FDA_get_drug_names_by_information_for_owners_or_caregivers
+        description: "Get Drug Names By Information For Owners Or Caregivers"
+        parameters:
+          field_info: {type: str, required: true, description: "Field Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_information_for_owners_or_caregivers_by_drug_name
+        description: "Get Information For Owners Or Caregivers By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_info_for_patients_by_drug_name
+        description: "Get Info For Patients By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_retrieve_drug_names_by_patient_medication_info
+        description: "Retrieve Drug Names By Patient Medication Info"
+        parameters:
+          patient_info: {type: str, required: true, description: "Patient Info"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_retrieve_patient_medication_info_by_drug_name
+        description: "Retrieve Patient Medication Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_medication_guide
+        description: "Get Drug Names By Medication Guide"
+        parameters:
+          medguide_info: {type: str, required: true, description: "Medguide Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_medication_guide_info_by_drug_name
+        description: "Get Medication Guide Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_from_patient_package_insert
+        description: "Get Drug Name From Patient Package Insert"
+        parameters:
+          patient_package_insert: {type: str, required: true, description: "Patient Package Insert"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_patient_package_insert_from_drug_name
+        description: "Get Patient Package Insert From Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}

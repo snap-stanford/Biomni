@@ -1,0 +1,56 @@
+# FDA Pharmacology
+mcp_servers:
+  tooluniverse_fda_pharmacology:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: FDA_get_drug_names_by_animal_pharmacology_info
+        description: "Get Drug Names By Animal Pharmacology Info"
+        parameters:
+          pharmacology_info: {type: str, required: true, description: "Pharmacology Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_animal_pharmacology_info_by_drug_name
+        description: "Get Animal Pharmacology Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_pharmacodynamics
+        description: "Get Drug Name By Pharmacodynamics"
+        parameters:
+          pharmacodynamics: {type: str, required: true, description: "Pharmacodynamics"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_pharmacodynamics_by_drug_name
+        description: "Get Pharmacodynamics By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_pharmacogenomics
+        description: "Get Drug Name By Pharmacogenomics"
+        parameters:
+          pharmacogenomics: {type: str, required: true, description: "Pharmacogenomics"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_pharmacogenomics_info_by_drug_name
+        description: "Get Pharmacogenomics Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_pharmacokinetics
+        description: "Get Drug Names By Pharmacokinetics"
+        parameters:
+          pharmacokinetics_info: {type: str, required: true, description: "Pharmacokinetics Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_pharmacokinetics_by_drug_name
+        description: "Get Pharmacokinetics By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}

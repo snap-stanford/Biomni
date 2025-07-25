@@ -1,0 +1,83 @@
+# FDA Special Populations
+mcp_servers:
+  tooluniverse_fda_populations:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: FDA_get_drug_names_by_geriatric_use
+        description: "Get Drug Names By Geriatric Use"
+        parameters:
+          geriatric_use: {type: str, required: true, description: "Geriatric Use"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_geriatric_use_info_by_drug_name
+        description: "Get Geriatric Use Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_info_for_nursing_mothers
+        description: "Get Drug Names By Info For Nursing Mothers"
+        parameters:
+          nursing_mothers_info: {type: str, required: true, description: "Nursing Mothers Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_info_for_nursing_mothers_by_drug_name
+        description: "Get Info For Nursing Mothers By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_pediatric_use
+        description: "Get Drug Names By Pediatric Use"
+        parameters:
+          pediatric_use_info: {type: str, required: true, description: "Pediatric Use Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_pediatric_use_info_by_drug_name
+        description: "Get Pediatric Use Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_pregnancy_effects_info
+        description: "Get Drug Names By Pregnancy Effects Info"
+        parameters:
+          pregnancy_info: {type: str, required: true, description: "Pregnancy Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_pregnancy_effects_info_by_drug_name
+        description: "Get Pregnancy Effects Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_pregnancy_or_breastfeeding_info
+        description: "Get Drug Name By Pregnancy Or Breastfeeding Info"
+        parameters:
+          pregnancy_info: {type: str, required: true, description: "Pregnancy Info"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_pregnancy_or_breastfeeding_info_by_drug_name
+        description: "Get Pregnancy Or Breastfeeding Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_population_use
+        description: "Get Drug Names By Population Use"
+        parameters:
+          population_use: {type: str, required: true, description: "Population Use"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_population_use_info_by_drug_name
+        description: "Get Population Use Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}

@@ -1,0 +1,63 @@
+# FDA Drug Composition and Mechanism
+mcp_servers:
+  tooluniverse_fda_composition:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: FDA_get_active_ingredient_info_by_drug_name
+        description: "Get Active Ingredient Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_active_ingredient
+        description: "Get Drug Names By Active Ingredient"
+        parameters:
+          active_ingredient: {type: str, required: true, description: "Active Ingredient"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_name_by_inactive_ingredient
+        description: "Get Drug Name By Inactive Ingredient"
+        parameters:
+          inactive_ingredient: {type: str, required: true, description: "Inactive Ingredient"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_inactive_ingredient_info_by_drug_name
+        description: "Get Inactive Ingredient Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_mechanism_of_action_by_drug_name
+        description: "Get Mechanism Of Action By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_mechanism_of_action
+        description: "Get Drug Names By Mechanism Of Action"
+        parameters:
+          mechanism_info: {type: str, required: true, description: "Mechanism Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_ingredient
+        description: "Get Drug Names By Ingredient"
+        parameters:
+          ingredient_name: {type: str, required: true, description: "Ingredient Name"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_ingredients_by_drug_name
+        description: "Get Ingredients By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_purpose_info_by_drug_name
+        description: "Get Purpose Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}

@@ -1,0 +1,45 @@
+# FDA Overdose and Toxicology
+mcp_servers:
+  tooluniverse_fda_toxicology:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: FDA_get_drugs_by_carcinogenic_mutagenic_fertility
+        description: "Get Drugs By Carcinogenic Mutagenic Fertility"
+        parameters:
+          carcinogenic_info: {type: str, required: true, description: "Carcinogenic Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_carcinogenic_mutagenic_fertility_by_drug_name
+        description: "Get Carcinogenic Mutagenic Fertility By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_nonteratogenic_effects
+        description: "Get Drug Names By Nonteratogenic Effects"
+        parameters:
+          nonteratogenic_effects: {type: str, required: true, description: "Nonteratogenic Effects"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_nonteratogenic_effects_by_drug_name
+        description: "Get Nonteratogenic Effects By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_teratogenic_effects
+        description: "Get Drug Names By Teratogenic Effects"
+        parameters:
+          teratogenic_effects: {type: str, required: true, description: "Teratogenic Effects"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_teratogenic_effects_by_drug_name
+        description: "Get Teratogenic Effects By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}

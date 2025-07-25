@@ -1,0 +1,70 @@
+# FDA Drug Interactions and Testing
+mcp_servers:
+  tooluniverse_fda_interactions:
+    command: ["python", "-m", "biomni.tool.tooluniverse_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: FDA_get_drug_name_by_info_on_conditions_for_doctor_consultation
+        description: "Get Drug Name By Info On Conditions For Doctor Consultation"
+        parameters:
+          condition: {type: str, required: true, description: "Condition"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_info_on_conditions_for_doctor_consultation_by_drug_name
+        description: "Get Info On Conditions For Doctor Consultation By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_consulting_doctor_pharmacist_info
+        description: "Get Drug Names By Consulting Doctor Pharmacist Info"
+        parameters:
+          interaction_info: {type: str, required: true, description: "Interaction Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_info_on_consulting_doctor_pharmacist_by_drug_name
+        description: "Get Info On Consulting Doctor Pharmacist By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_lab_test_interference
+        description: "Get Drug Names By Lab Test Interference"
+        parameters:
+          lab_test_interference: {type: str, required: true, description: "Lab Test Interference"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_lab_test_interference_info_by_drug_name
+        description: "Get Lab Test Interference Info By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_drug_interactions
+        description: "Get Drug Names By Drug Interactions"
+        parameters:
+          interaction_term: {type: str, required: true, description: "Interaction Term"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_interactions_by_drug_name
+        description: "Get Drug Interactions By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_drug_names_by_lab_tests
+        description: "Get Drug Names By Lab Tests"
+        parameters:
+          lab_test_info: {type: str, required: true, description: "Lab Test Info"}
+          indication: {type: str, required: true, description: "Indication"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
+      - biomni_name: FDA_get_lab_tests_by_drug_name
+        description: "Get Lab Tests By Drug Name"
+        parameters:
+          drug_name: {type: str, required: true, description: "Name of the drug to search for"}
+          limit: {type: int, required: true, description: "Maximum number of results to return"}
+          skip: {type: int, required: true, description: "Number of results to skip"}
