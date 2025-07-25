@@ -85,7 +85,9 @@ IMPORTANT GUIDELINES:
         # Get the selected resources
         selected_resources = {
             "tools": [
-                resources["tools"][i] for i in selected_indices.get("tools", []) if i < len(resources.get("tools", []))
+                resources["tools"][i]
+                for i in selected_indices.get("tools", [])
+                if i < len(resources.get("tools", []))
             ],
             "data_lake": [
                 resources["data_lake"][i]
@@ -129,20 +131,28 @@ IMPORTANT GUIDELINES:
         tools_match = re.search(r"TOOLS:\s*\[(.*?)\]", response, re.IGNORECASE)
         if tools_match and tools_match.group(1).strip():
             with contextlib.suppress(ValueError):
-                selected_indices["tools"] = [int(idx.strip()) for idx in tools_match.group(1).split(",") if idx.strip()]
+                selected_indices["tools"] = [
+                    int(idx.strip())
+                    for idx in tools_match.group(1).split(",")
+                    if idx.strip()
+                ]
 
         data_lake_match = re.search(r"DATA_LAKE:\s*\[(.*?)\]", response, re.IGNORECASE)
         if data_lake_match and data_lake_match.group(1).strip():
             with contextlib.suppress(ValueError):
                 selected_indices["data_lake"] = [
-                    int(idx.strip()) for idx in data_lake_match.group(1).split(",") if idx.strip()
+                    int(idx.strip())
+                    for idx in data_lake_match.group(1).split(",")
+                    if idx.strip()
                 ]
 
         libraries_match = re.search(r"LIBRARIES:\s*\[(.*?)\]", response, re.IGNORECASE)
         if libraries_match and libraries_match.group(1).strip():
             with contextlib.suppress(ValueError):
                 selected_indices["libraries"] = [
-                    int(idx.strip()) for idx in libraries_match.group(1).split(",") if idx.strip()
+                    int(idx.strip())
+                    for idx in libraries_match.group(1).split(",")
+                    if idx.strip()
                 ]
 
         return selected_indices

@@ -10,7 +10,9 @@ import numpy as np
 import pandas as pd
 
 
-def run_diffdock_with_smiles(pdb_path, smiles_string, local_output_dir, gpu_device=0, use_gpu=True):
+def run_diffdock_with_smiles(
+    pdb_path, smiles_string, local_output_dir, gpu_device=0, use_gpu=True
+):
     try:
         summary = []
 
@@ -73,7 +75,9 @@ def run_diffdock_with_smiles(pdb_path, smiles_string, local_output_dir, gpu_devi
         )
 
         # Execute the Docker command
-        result = subprocess.run(run_command, check=False, capture_output=True, text=True)
+        result = subprocess.run(
+            run_command, check=False, capture_output=True, text=True
+        )
 
         # Check for errors
         if result.returncode != 0:
@@ -181,7 +185,9 @@ def run_autosite(pdb_file, output_dir, spacing=1.0):
 
 
 # Function to get TxGNN predictions and return a summarized string output
-def retrieve_topk_repurposing_drugs_from_disease_txgnn(disease_name, data_lake_path, k=5):
+def retrieve_topk_repurposing_drugs_from_disease_txgnn(
+    disease_name, data_lake_path, k=5
+):
     """This function computes TxGNN model predictions for drug repurposing. It takes in the paths to the data,
     the disease name, and returns a summary of the top K predicted drugs with their sigmoid-transformed scores.
 
@@ -211,7 +217,9 @@ def retrieve_topk_repurposing_drugs_from_disease_txgnn(disease_name, data_lake_p
 
     # Step 2: Fuzzy match the disease name to find the closest match
     possible_diseases = result.keys()
-    matched_disease = get_close_matches(disease_name, possible_diseases, n=1, cutoff=0.6)
+    matched_disease = get_close_matches(
+        disease_name, possible_diseases, n=1, cutoff=0.6
+    )
 
     if not matched_disease:
         return f"Error: No matching disease found for '{disease_name}'. Please try a different name."
@@ -222,13 +230,20 @@ def retrieve_topk_repurposing_drugs_from_disease_txgnn(disease_name, data_lake_p
     disease_predictions = result[matched_disease]
 
     # Step 4: Apply the sigmoid function to the raw prediction scores
-    sigmoid_predictions = {drug_id: sigmoid(score) for drug_id, score in disease_predictions.items()}
+    sigmoid_predictions = {
+        drug_id: sigmoid(score) for drug_id, score in disease_predictions.items()
+    }
 
     # Step 5: Sort the drugs by prediction score in descending order
-    top_k_drugs = sorted(sigmoid_predictions.items(), key=lambda x: x[1], reverse=True)[:k]
+    top_k_drugs = sorted(sigmoid_predictions.items(), key=lambda x: x[1], reverse=True)[
+        :k
+    ]
 
     # Step 6: Map drug IDs to their names and format the results
-    top_k_drug_names = [(mapping["id2name_drug"].get(drug_id, "Unknown Drug"), score) for drug_id, score in top_k_drugs]
+    top_k_drug_names = [
+        (mapping["id2name_drug"].get(drug_id, "Unknown Drug"), score)
+        for drug_id, score in top_k_drugs
+    ]
 
     # Step 7: Create a human and LLM-friendly summary string
     summary = f"TxGNN Drug Repurposing Predictions for '{matched_disease}':\n"
@@ -245,12 +260,98 @@ def retrieve_topk_repurposing_drugs_from_disease_txgnn(disease_name, data_lake_p
     return summary
 
 
+def predict_protein_pocket(pdb_file_path):
+    """Predicts protein pockets in a given PDB file using FPocket.
+
+    Parameters
+    ----------
+    pdb_file_path : str
+        Path to the PDB file containing the protein structure
+
+    Returns
+    -------
+    str
+        Research log summarizing the analysis steps and results
+    """
+    command = f"fpocket -f {pdb_file_path} --pocket_descr_stdout"
+    import subprocess
+    import os
+
+    log = "=== Protein Pocket Prediction Analysis ===\n\n"
+    log += f"Input PDB file: {pdb_file_path}\n"
+    log += f"Command: {command}\n\n"
+
+    try:
+        # Check if input file exists
+        if not os.path.exists(pdb_file_path):
+            log += f"Error: PDB file not found at {pdb_file_path}\n"
+            return log
+
+        # Execute fpocket command
+        log += "Executing FPocket analysis...\n"
+        result = subprocess.run(
+            command.split(), capture_output=True, text=True, check=False
+        )
+
+        # Capture standard output
+        if result.stdout:
+            log += "FPocket Standard Output:\n"
+            log += "=" * 50 + "\n"
+            log += result.stdout
+            log += "\n" + "=" * 50 + "\n\n"
+
+        # Capture standard error if any
+        if result.stderr:
+            log += "FPocket Standard Error:\n"
+            log += "-" * 50 + "\n"
+            log += result.stderr
+            log += "\n" + "-" * 50 + "\n\n"
+
+        # Check return code
+        if result.returncode == 0:
+            log += "FPocket analysis completed successfully.\n"
+        else:
+            log += f"FPocket analysis completed with return code: {result.returncode}\n"
+
+        # Look for output files that fpocket typically generates
+        base_name = os.path.splitext(pdb_file_path)[0]
+        output_dir = f"{base_name}_out"
+
+        # Move output directory to current location with same name if it exists elsewhere
+        import shutil
+
+        current_dir = os.getcwd()
+        target_output_dir = os.path.join(current_dir, os.path.basename(output_dir))
+
+        if os.path.exists(output_dir) and output_dir != target_output_dir:
+            if os.path.exists(target_output_dir):
+                shutil.rmtree(target_output_dir)
+            shutil.move(output_dir, target_output_dir)
+            output_dir = target_output_dir
+
+        if os.path.exists(output_dir):
+            log += f"\nOutput directory created: {output_dir}\n"
+            output_files = os.listdir(output_dir)
+            log += f"Generated files: {', '.join(output_files)}\n"
+        else:
+            log += "\nNo output directory found. Check if FPocket ran successfully.\n"
+
+    except FileNotFoundError:
+        log += "Error: FPocket not found. Please ensure FPocket is installed and in PATH.\n"
+    except Exception as e:
+        log += f"Error executing FPocket: {str(e)}\n"
+
+    return log
+
+
 # ADMET prediction function with research log format
 def predict_admet_properties(smiles_list, ADMET_model_type="MPNN"):
     try:
         from DeepPurpose import CompoundPred, utils
     except Exception:
-        subprocess.run([sys.executable, "-m", "pip", "install", "DeepPurpose"], check=False)
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "DeepPurpose"], check=False
+        )
         from DeepPurpose import CompoundPred, utils
 
     # Define available model types
@@ -282,8 +383,10 @@ def predict_admet_properties(smiles_list, ADMET_model_type="MPNN"):
     ]
 
     for task in tasks:
-        model_ADMETs[task + "_" + ADMET_model_type + "_model"] = CompoundPred.model_pretrained(
-            model=task + "_" + ADMET_model_type + "_model"
+        model_ADMETs[task + "_" + ADMET_model_type + "_model"] = (
+            CompoundPred.model_pretrained(
+                model=task + "_" + ADMET_model_type + "_model"
+            )
         )
 
     # Helper function for ADMET prediction
@@ -361,11 +464,15 @@ def predict_admet_properties(smiles_list, ADMET_model_type="MPNN"):
 
 
 # Binding Affinity prediction function with model_type validation
-def predict_binding_affinity_protein_1d_sequence(smiles_list, amino_acid_sequence, affinity_model_type="MPNN-CNN"):
+def predict_binding_affinity_protein_1d_sequence(
+    smiles_list, amino_acid_sequence, affinity_model_type="MPNN-CNN"
+):
     try:
         from DeepPurpose import DTI, utils
     except Exception:
-        subprocess.run([sys.executable, "-m", "pip", "install", "DeepPurpose"], check=False)
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "DeepPurpose"], check=False
+        )
         from DeepPurpose import DTI, utils
 
     # Define available model types for Binding Affinity
@@ -382,7 +489,9 @@ def predict_binding_affinity_protein_1d_sequence(smiles_list, amino_acid_sequenc
         return f"Error: Invalid affinity model type '{affinity_model_type}'. Available options are: {', '.join(available_affinity_model_types)}."
 
     # Load the pre-trained affinity model
-    model_DTI = DTI.model_pretrained(model=affinity_model_type.replace("-", "_") + "_BindingDB")
+    model_DTI = DTI.model_pretrained(
+        model=affinity_model_type.replace("-", "_") + "_BindingDB"
+    )
 
     # Initialize research log string
     research_log = "Research Log for Binding Affinity Predictions:\n"
@@ -411,7 +520,9 @@ def predict_binding_affinity_protein_1d_sequence(smiles_list, amino_acid_sequenc
     return research_log
 
 
-def analyze_accelerated_stability_of_pharmaceutical_formulations(formulations, storage_conditions, time_points):
+def analyze_accelerated_stability_of_pharmaceutical_formulations(
+    formulations, storage_conditions, time_points
+):
     """Analyzes the stability of pharmaceutical formulations under accelerated storage conditions.
 
     Parameters
@@ -456,7 +567,9 @@ def analyze_accelerated_stability_of_pharmaceutical_formulations(formulations, s
 
             # Get acceleration factor based on temperature (simplified Arrhenius equation)
             temp_c = condition["temperature"]
-            accel_factor = 2 ** ((temp_c - 25) / 10)  # Rule of thumb: reaction rate doubles every 10°C
+            accel_factor = 2 ** (
+                (temp_c - 25) / 10
+            )  # Rule of thumb: reaction rate doubles every 10°C
 
             # Add humidity effect for degradation if provided
             humidity_factor = 1.0
@@ -482,7 +595,9 @@ def analyze_accelerated_stability_of_pharmaceutical_formulations(formulations, s
                 # Particle size change (% increase from initial)
                 # Some formulations show particle growth over time
                 particle_size_change = (
-                    0.2 * effective_time if "solid" in formulation.get("dosage_form", "").lower() else 0
+                    0.2 * effective_time
+                    if "solid" in formulation.get("dosage_form", "").lower()
+                    else 0
                 )
 
                 results.append(
@@ -518,7 +633,9 @@ def analyze_accelerated_stability_of_pharmaceutical_formulations(formulations, s
         "   - Storage conditions: "
         + ", ".join(
             [
-                f"{c['description']} ({c['temperature']}°C" + (f"/{c['humidity']}% RH" if "humidity" in c else "") + ")"
+                f"{c['description']} ({c['temperature']}°C"
+                + (f"/{c['humidity']}% RH" if "humidity" in c else "")
+                + ")"
                 for c in storage_conditions
             ]
         )
@@ -538,7 +655,9 @@ def analyze_accelerated_stability_of_pharmaceutical_formulations(formulations, s
     final_results = results_df[results_df["Time_Days"] == final_time]
 
     for formulation in formulations:
-        form_results = final_results[final_results["Formulation"] == formulation["name"]]
+        form_results = final_results[
+            final_results["Formulation"] == formulation["name"]
+        ]
         log += f"   {formulation['name']}:\n"
 
         for _, row in form_results.iterrows():
@@ -607,7 +726,9 @@ def run_3d_chondrogenic_aggregate_assay(
         timepoints.append(culture_duration_days)
 
     # Generate the protocol document
-    protocol = f"# 3D Chondrogenic Aggregate Culture Assay Protocol - {experiment_id}\n\n"
+    protocol = (
+        f"# 3D Chondrogenic Aggregate Culture Assay Protocol - {experiment_id}\n\n"
+    )
 
     protocol += "## 1. Materials and Reagents\n\n"
     protocol += "- Chondrocyte cells\n"
@@ -667,14 +788,18 @@ def run_3d_chondrogenic_aggregate_assay(
 
     protocol += "### Day 1 to Day " + str(culture_duration_days) + ":\n\n"
     protocol += "1. Change medium every 2-3 days:\n"
-    protocol += "   - Carefully remove 50% of the medium without disturbing the aggregates\n"
+    protocol += (
+        "   - Carefully remove 50% of the medium without disturbing the aggregates\n"
+    )
     protocol += "   - Replace with fresh medium containing test compounds at the same concentrations\n\n"
 
-    protocol += f"2. At days {', '.join(map(str, timepoints))}, collect samples for analysis:\n"
     protocol += (
-        "   - Take medium samples for Gaussia luciferase activity measurement (if using COL2A1-GLuc reporter cells)\n"
+        f"2. At days {', '.join(map(str, timepoints))}, collect samples for analysis:\n"
     )
-    protocol += "   - Fix aggregates in 4% paraformaldehyde for histological analysis\n\n"
+    protocol += "   - Take medium samples for Gaussia luciferase activity measurement (if using COL2A1-GLuc reporter cells)\n"
+    protocol += (
+        "   - Fix aggregates in 4% paraformaldehyde for histological analysis\n\n"
+    )
 
     return protocol
 
@@ -966,7 +1091,10 @@ def grade_adverse_events_using_vcog_ctcae(clinical_data_file):
 
         # Default to using the severity mapping if no specific criteria match
         if severity.lower() in grade_map:
-            return grade_map[severity.lower()], f"Grade {grade_map[severity.lower()]}: Based on reported severity"
+            return (
+                grade_map[severity.lower()],
+                f"Grade {grade_map[severity.lower()]}: Based on reported severity",
+            )
 
         # Default grade if no specific criteria match
         return 1, "Grade 1: Default grade (specific criteria not found)"
@@ -1003,7 +1131,11 @@ def grade_adverse_events_using_vcog_ctcae(clinical_data_file):
         # Calculate if grade is increasing, decreasing, or stable for each subject-symptom pair
         trend_counts = {"increasing": 0, "decreasing": 0, "stable": 0, "fluctuating": 0}
 
-        numeric_columns = [col for col in progression_analysis.columns if col not in ["subject_id", "symptom"]]
+        numeric_columns = [
+            col
+            for col in progression_analysis.columns
+            if col not in ["subject_id", "symptom"]
+        ]
 
         if len(numeric_columns) >= 2:
             # Sort columns to ensure chronological order
@@ -1016,7 +1148,9 @@ def grade_adverse_events_using_vcog_ctcae(clinical_data_file):
                         trend_counts["increasing"] += 1
                     elif all(values[i] > values[i + 1] for i in range(len(values) - 1)):
                         trend_counts["decreasing"] += 1
-                    elif all(values[i] == values[i + 1] for i in range(len(values) - 1)):
+                    elif all(
+                        values[i] == values[i + 1] for i in range(len(values) - 1)
+                    ):
                         trend_counts["stable"] += 1
                     else:
                         trend_counts["fluctuating"] += 1
@@ -1040,13 +1174,17 @@ def grade_adverse_events_using_vcog_ctcae(clinical_data_file):
         log += f"- Grade {grade}: {count} events\n"
 
     # Summarize by symptom type
-    symptom_summary = data.groupby("symptom")["vcog_grade"].agg(["max", "mean", "count"])
+    symptom_summary = data.groupby("symptom")["vcog_grade"].agg(
+        ["max", "mean", "count"]
+    )
     log += "\nSymptom severity summary:\n"
     for symptom, stats in symptom_summary.iterrows():
         log += f"- {symptom}: max grade = {stats['max']}, avg grade = {stats['mean']:.2f}, count = {stats['count']}\n"
 
     # Summarize by subject
-    subject_summary = data.groupby("subject_id")["vcog_grade"].agg(["max", "mean", "count"])
+    subject_summary = data.groupby("subject_id")["vcog_grade"].agg(
+        ["max", "mean", "count"]
+    )
     log += f"\nSubjects with adverse events: {len(subject_summary)}\n"
     log += f"Subjects with Grade 3+ events: {len(subject_summary[subject_summary['max'] >= 3])}\n"
 
@@ -1065,7 +1203,9 @@ def grade_adverse_events_using_vcog_ctcae(clinical_data_file):
     # Save the VCOG criteria as a reference
     with open("vcog_ctcae_criteria_reference.json", "w") as f:
         json.dump(vcog_criteria, f, indent=2)
-    log += "VCOG-CTCAE criteria reference saved to: vcog_ctcae_criteria_reference.json\n"
+    log += (
+        "VCOG-CTCAE criteria reference saved to: vcog_ctcae_criteria_reference.json\n"
+    )
 
     return log
 
@@ -1192,7 +1332,9 @@ def analyze_radiolabeled_antibody_biodistribution(time_points, tissue_data):
             log += f"\n### {tissue.capitalize()}\n"
             log += f"- Distribution half-life: {params['distribution_half_life_h']:.2f} hours\n"
             log += f"- Elimination half-life: {params['elimination_half_life_h']:.2f} hours\n"
-            log += f"- Mean residence time: {params['mean_residence_time_h']:.2f} hours\n"
+            log += (
+                f"- Mean residence time: {params['mean_residence_time_h']:.2f} hours\n"
+            )
             if "clearance" in params:
                 log += f"- Clearance: {params['clearance']:.4f} units\n"
 
@@ -1259,7 +1401,10 @@ def estimate_alpha_particle_radiotherapy_dosimetry(
 
         # Apply physical decay correction
         decay_constant = np.log(2) / radiation_parameters["half_life_hours"]
-        decay_corrected_activities = [a * np.exp(-decay_constant * t) for a, t in zip(activities, times, strict=False)]
+        decay_corrected_activities = [
+            a * np.exp(-decay_constant * t)
+            for a, t in zip(activities, times, strict=False)
+        ]
 
         # Calculate time-integrated activity using trapezoidal integration
         cumulated_activity = trapezoid(decay_corrected_activities, times)
@@ -1367,25 +1512,37 @@ def perform_mwas_cyp2c19_metabolizer_status(
         elif methylation_data_path.endswith((".tsv", ".txt")):
             methylation_data = pd.read_csv(methylation_data_path, sep="\t", index_col=0)
         else:
-            log.append("Error: Unsupported file format for methylation data. Please provide a CSV or TSV file.")
+            log.append(
+                "Error: Unsupported file format for methylation data. Please provide a CSV or TSV file."
+            )
             return "\n".join(log)
-        log.append(f"- Successfully loaded methylation data from {methylation_data_path}")
+        log.append(
+            f"- Successfully loaded methylation data from {methylation_data_path}"
+        )
 
         # Load metabolizer status data
         if metabolizer_status_path.endswith(".csv"):
             metabolizer_status_df = pd.read_csv(metabolizer_status_path, index_col=0)
         elif metabolizer_status_path.endswith((".tsv", ".txt")):
-            metabolizer_status_df = pd.read_csv(metabolizer_status_path, sep="\t", index_col=0)
+            metabolizer_status_df = pd.read_csv(
+                metabolizer_status_path, sep="\t", index_col=0
+            )
         else:
-            log.append("Error: Unsupported file format for metabolizer status. Please provide a CSV or TSV file.")
+            log.append(
+                "Error: Unsupported file format for metabolizer status. Please provide a CSV or TSV file."
+            )
             return "\n".join(log)
-        log.append(f"- Successfully loaded metabolizer status data from {metabolizer_status_path}")
+        log.append(
+            f"- Successfully loaded metabolizer status data from {metabolizer_status_path}"
+        )
 
         # Convert DataFrame to Series if necessary
         if metabolizer_status_df.shape[1] == 1:
             metabolizer_status = metabolizer_status_df.iloc[:, 0]
         else:
-            log.append("Error: Metabolizer status file should contain a single column with status values.")
+            log.append(
+                "Error: Metabolizer status file should contain a single column with status values."
+            )
             return "\n".join(log)
 
         # Load covariates if provided
@@ -1396,7 +1553,9 @@ def perform_mwas_cyp2c19_metabolizer_status(
             elif covariates_path.endswith((".tsv", ".txt")):
                 covariates = pd.read_csv(covariates_path, sep="\t", index_col=0)
             else:
-                log.append("Error: Unsupported file format for covariates. Please provide a CSV or TSV file.")
+                log.append(
+                    "Error: Unsupported file format for covariates. Please provide a CSV or TSV file."
+                )
                 return "\n".join(log)
             log.append(f"- Successfully loaded covariates data from {covariates_path}")
     except Exception as e:
@@ -1405,8 +1564,12 @@ def perform_mwas_cyp2c19_metabolizer_status(
 
     # Step 1: Data preprocessing
     log.append("\n### Data Preprocessing")
-    log.append(f"- Methylation data shape: {methylation_data.shape} (samples × CpG sites)")
-    log.append(f"- Number of samples with metabolizer status: {len(metabolizer_status)}")
+    log.append(
+        f"- Methylation data shape: {methylation_data.shape} (samples × CpG sites)"
+    )
+    log.append(
+        f"- Number of samples with metabolizer status: {len(metabolizer_status)}"
+    )
 
     # Ensure sample IDs match between methylation data and metabolizer status
     common_samples = methylation_data.index.intersection(metabolizer_status.index)
@@ -1489,14 +1652,18 @@ def perform_mwas_cyp2c19_metabolizer_status(
 
     # Bonferroni correction
     results_df["adjusted_pvalue"] = results_df["pvalue"] * len(results_df)
-    results_df["adjusted_pvalue"] = results_df["adjusted_pvalue"].clip(upper=1.0)  # Ensure p-values don't exceed 1
+    results_df["adjusted_pvalue"] = results_df["adjusted_pvalue"].clip(
+        upper=1.0
+    )  # Ensure p-values don't exceed 1
 
     # Step 4: Identify significant CpG sites
     significant_sites = results_df[results_df["adjusted_pvalue"] < pvalue_threshold]
     significant_sites = significant_sites.sort_values("adjusted_pvalue")
 
     log.append("\n### Results")
-    log.append(f"- Number of significant CpG sites (adjusted p < {pvalue_threshold}): {len(significant_sites)}")
+    log.append(
+        f"- Number of significant CpG sites (adjusted p < {pvalue_threshold}): {len(significant_sites)}"
+    )
 
     if len(significant_sites) > 0:
         # Save significant sites to file
@@ -1571,9 +1738,14 @@ def calculate_physicochemical_properties(smiles_string):
         1
         for atom in mol.GetAtoms()
         if atom.GetSymbol() == "O"
-        and any(neigh.GetSymbol() == "C" and neigh.GetDegree() == 3 for neigh in atom.GetNeighbors())
+        and any(
+            neigh.GetSymbol() == "C" and neigh.GetDegree() == 3
+            for neigh in atom.GetNeighbors()
+        )
     )
-    basic_groups = sum(1 for atom in mol.GetAtoms() if atom.GetSymbol() == "N" and atom.GetDegree() < 4)
+    basic_groups = sum(
+        1 for atom in mol.GetAtoms() if atom.GetSymbol() == "N" and atom.GetDegree() < 4
+    )
     properties["Estimated Acidic Groups"] = acidic_groups
     properties["Estimated Basic Groups"] = basic_groups
 
@@ -1730,9 +1902,7 @@ def analyze_xenograft_tumor_growth_inhibition(
         mean_rate = np.mean(subject_growth_rates)
         sem_rate = stats.sem(subject_growth_rates)
 
-        log += (
-            f"- {group}: Mean growth rate = {mean_rate:.2f} ± {sem_rate:.2f} mm³/day (n={len(subject_growth_rates)})\n"
-        )
+        log += f"- {group}: Mean growth rate = {mean_rate:.2f} ± {sem_rate:.2f} mm³/day (n={len(subject_growth_rates)})\n"
 
     # 4. Calculate Tumor Growth Inhibition (TGI)
     log += "\n## 4. Tumor Growth Inhibition (TGI)\n\n"
@@ -1745,14 +1915,18 @@ def analyze_xenograft_tumor_growth_inhibition(
     final_time = max(time_points)
     final_data = data_df[data_df[time_column] == final_time]
 
-    control_final_mean = final_data[final_data[group_column] == control_group][volume_column].mean()
+    control_final_mean = final_data[final_data[group_column] == control_group][
+        volume_column
+    ].mean()
 
     tgi_results = {}
     for group in groups:
         if group == control_group:
             continue
 
-        group_final_mean = final_data[final_data[group_column] == group][volume_column].mean()
+        group_final_mean = final_data[final_data[group_column] == group][
+            volume_column
+        ].mean()
         tgi = ((control_final_mean - group_final_mean) / control_final_mean) * 100
         tgi_results[group] = tgi
 
@@ -1789,7 +1963,9 @@ def analyze_xenograft_tumor_growth_inhibition(
         log += "### Post-hoc Analysis (Final Time Point)\n\n"
 
         # Perform Tukey's HSD test
-        tukey = pairwise_tukeyhsd(endog=final_data[volume_column], groups=final_data[group_column], alpha=0.05)
+        tukey = pairwise_tukeyhsd(
+            endog=final_data[volume_column], groups=final_data[group_column], alpha=0.05
+        )
 
         # Save Tukey results
         tukey_file = os.path.join(output_dir, "tukey_posthoc_results.txt")
@@ -1799,7 +1975,9 @@ def analyze_xenograft_tumor_growth_inhibition(
         log += f"Tukey's HSD results saved to: {tukey_file}\n\n"
 
         # Summarize significant comparisons
-        tukey_df = pd.DataFrame(data=tukey._results_table.data[1:], columns=tukey._results_table.data[0])
+        tukey_df = pd.DataFrame(
+            data=tukey._results_table.data[1:], columns=tukey._results_table.data[0]
+        )
 
         sig_pairs = tukey_df[tukey_df["p-adj"] < 0.05]
         if len(sig_pairs) > 0:
@@ -1913,7 +2091,9 @@ def analyze_western_blot(
 
     # Analyze loading control band
     lc_roi = loading_control_band["roi"]
-    lc_band = image[lc_roi[1] : lc_roi[1] + lc_roi[3], lc_roi[0] : lc_roi[0] + lc_roi[2]]
+    lc_band = image[
+        lc_roi[1] : lc_roi[1] + lc_roi[3], lc_roi[0] : lc_roi[0] + lc_roi[2]
+    ]
     lc_intensity = np.sum(lc_band)
     results["loading_control"]["intensity"] = lc_intensity
 
@@ -1938,9 +2118,13 @@ def analyze_western_blot(
     results_file = os.path.join(output_dir, "western_blot_results.csv")
     with open(results_file, "w") as f:
         f.write("Protein,Raw Intensity,Relative Expression\n")
-        f.write(f"{results['loading_control']['name']},{results['loading_control']['intensity']},1.0\n")
+        f.write(
+            f"{results['loading_control']['name']},{results['loading_control']['intensity']},1.0\n"
+        )
         for target in results["targets"]:
-            f.write(f"{target['name']},{target['intensity']},{target['relative_expression']:.4f}\n")
+            f.write(
+                f"{target['name']},{target['intensity']},{target['relative_expression']:.4f}\n"
+            )
 
     # Generate research log
     log = "## Western Blot Analysis\n\n"
@@ -2145,8 +2329,12 @@ def _build_drug_registry_inline(dataframes):
 
     # Convert sets to lists for pickle serialization
     for drug_id in drug_registry:
-        drug_registry[drug_id]["categories"] = list(drug_registry[drug_id]["categories"])
-        drug_registry[drug_id]["interactions"] = list(drug_registry[drug_id]["interactions"])
+        drug_registry[drug_id]["categories"] = list(
+            drug_registry[drug_id]["categories"]
+        )
+        drug_registry[drug_id]["interactions"] = list(
+            drug_registry[drug_id]["interactions"]
+        )
 
     return drug_registry
 
@@ -2233,7 +2421,11 @@ def _generate_ddinter_statistics_inline(drug_info, interaction_matrix):
     connection_counts = []
     for drug_id, drug_data in drug_info.items():
         connection_counts.append(
-            {"drug_id": drug_id, "name": drug_data["name"], "connections": len(drug_data["interactions"])}
+            {
+                "drug_id": drug_id,
+                "name": drug_data["name"],
+                "connections": len(drug_data["interactions"]),
+            }
         )
 
     connection_counts.sort(key=lambda x: x["connections"], reverse=True)
@@ -2272,7 +2464,9 @@ def _standardize_drug_name(drug_name, name_mapping):
     return None
 
 
-def _format_interaction_result(interaction_data, drug_name_a, drug_name_b, include_mechanisms=True):
+def _format_interaction_result(
+    interaction_data, drug_name_a, drug_name_b, include_mechanisms=True
+):
     """
     Format interaction results for research log.
 
@@ -2310,7 +2504,9 @@ def _format_interaction_result(interaction_data, drug_name_a, drug_name_b, inclu
     return result
 
 
-def query_drug_interactions(drug_names, interaction_types=None, severity_levels=None, data_lake_path=None):
+def query_drug_interactions(
+    drug_names, interaction_types=None, severity_levels=None, data_lake_path=None
+):
     """
     Query drug-drug interactions from DDInter database.
 
@@ -2344,7 +2540,9 @@ def query_drug_interactions(drug_names, interaction_types=None, severity_levels=
 
     log += "Query Parameters:\n"
     log += f"- Target drugs: {', '.join(drug_names)}\n"
-    log += f"- Severity filter: {severity_levels if severity_levels else 'All levels'}\n"
+    log += (
+        f"- Severity filter: {severity_levels if severity_levels else 'All levels'}\n"
+    )
     log += f"- Interaction types: {interaction_types if interaction_types else 'All types'}\n\n"
 
     try:
@@ -2381,7 +2579,10 @@ def query_drug_interactions(drug_names, interaction_types=None, severity_levels=
                 if i >= j:  # Avoid duplicate pairs
                     continue
 
-                if drug_a in interaction_matrix and drug_b in interaction_matrix[drug_a]:
+                if (
+                    drug_a in interaction_matrix
+                    and drug_b in interaction_matrix[drug_a]
+                ):
                     interactions = interaction_matrix[drug_a][drug_b]
 
                     # Apply filters
@@ -2389,7 +2590,9 @@ def query_drug_interactions(drug_names, interaction_types=None, severity_levels=
 
                     if severity_levels:
                         filtered_interactions = [
-                            int_data for int_data in filtered_interactions if int_data.get("level") in severity_levels
+                            int_data
+                            for int_data in filtered_interactions
+                            if int_data.get("level") in severity_levels
                         ]
 
                     if interaction_types:
@@ -2401,7 +2604,11 @@ def query_drug_interactions(drug_names, interaction_types=None, severity_levels=
 
                     if filtered_interactions:
                         interactions_found.append(
-                            {"drug_a": drug_a, "drug_b": drug_b, "interactions": filtered_interactions}
+                            {
+                                "drug_a": drug_a,
+                                "drug_b": drug_b,
+                                "interactions": filtered_interactions,
+                            }
                         )
 
         # Format results
@@ -2411,14 +2618,19 @@ def query_drug_interactions(drug_names, interaction_types=None, severity_levels=
         if interactions_found:
             for pair in interactions_found:
                 log += _format_interaction_result(
-                    pair["interactions"], pair["drug_a"].title(), pair["drug_b"].title(), include_mechanisms=True
+                    pair["interactions"],
+                    pair["drug_a"].title(),
+                    pair["drug_b"].title(),
+                    include_mechanisms=True,
                 )
                 log += "\n"
         else:
             log += "No interactions found between the specified drugs with the given filters\n"
 
         # Summary statistics
-        total_interactions = sum(len(pair["interactions"]) for pair in interactions_found)
+        total_interactions = sum(
+            len(pair["interactions"]) for pair in interactions_found
+        )
         log += "Summary:\n"
         log += f"- Total drug pairs analyzed: {len(standardized_names) * (len(standardized_names) - 1) // 2}\n"
         log += f"- Drug pairs with interactions: {len(interactions_found)}\n"
@@ -2439,7 +2651,9 @@ def query_drug_interactions(drug_names, interaction_types=None, severity_levels=
     return log
 
 
-def check_drug_combination_safety(drug_list, include_mechanisms=True, include_management=True, data_lake_path=None):
+def check_drug_combination_safety(
+    drug_list, include_mechanisms=True, include_management=True, data_lake_path=None
+):
     """
     Analyze safety of a drug combination for potential interactions.
 
@@ -2512,7 +2726,10 @@ def check_drug_combination_safety(drug_list, include_mechanisms=True, include_ma
                 if i >= j:  # Avoid duplicate pairs
                     continue
 
-                if drug_a in interaction_matrix and drug_b in interaction_matrix[drug_a]:
+                if (
+                    drug_a in interaction_matrix
+                    and drug_b in interaction_matrix[drug_a]
+                ):
                     interactions = interaction_matrix[drug_a][drug_b]
 
                     for interaction in interactions:
@@ -2524,7 +2741,13 @@ def check_drug_combination_safety(drug_list, include_mechanisms=True, include_ma
                         elif level == "Minor":
                             minor_interactions += 1
 
-                    interactions_found.append({"drug_a": drug_a, "drug_b": drug_b, "interactions": interactions})
+                    interactions_found.append(
+                        {
+                            "drug_a": drug_a,
+                            "drug_b": drug_b,
+                            "interactions": interactions,
+                        }
+                    )
 
         # Overall safety assessment
         log += "Overall Safety Assessment:\n"
@@ -2604,7 +2827,9 @@ def check_drug_combination_safety(drug_list, include_mechanisms=True, include_ma
     return log
 
 
-def analyze_interaction_mechanisms(drug_pair, detailed_analysis=True, data_lake_path=None):
+def analyze_interaction_mechanisms(
+    drug_pair, detailed_analysis=True, data_lake_path=None
+):
     """
     Analyze interaction mechanisms between two specific drugs.
 
@@ -2657,7 +2882,10 @@ def analyze_interaction_mechanisms(drug_pair, detailed_analysis=True, data_lake_
 
         # Query interactions
         interactions = []
-        if std_drug_a in interaction_matrix and std_drug_b in interaction_matrix[std_drug_a]:
+        if (
+            std_drug_a in interaction_matrix
+            and std_drug_b in interaction_matrix[std_drug_a]
+        ):
             interactions = interaction_matrix[std_drug_a][std_drug_b]
 
         if not interactions:
@@ -2673,11 +2901,15 @@ def analyze_interaction_mechanisms(drug_pair, detailed_analysis=True, data_lake_
         log += "Drug Profile Analysis:\n"
         log += "-" * 20 + "\n"
         log += f"{drug_a.title()}:\n"
-        log += f"- Categories: {', '.join(drug_a_info.get('categories', ['Unknown']))}\n"
+        log += (
+            f"- Categories: {', '.join(drug_a_info.get('categories', ['Unknown']))}\n"
+        )
         log += f"- Total known interactions: {len(drug_a_info.get('interactions', []))}\n\n"
 
         log += f"{drug_b.title()}:\n"
-        log += f"- Categories: {', '.join(drug_b_info.get('categories', ['Unknown']))}\n"
+        log += (
+            f"- Categories: {', '.join(drug_b_info.get('categories', ['Unknown']))}\n"
+        )
         log += f"- Total known interactions: {len(drug_b_info.get('interactions', []))}\n\n"
 
         # Analyze interaction mechanisms
@@ -2697,7 +2929,9 @@ def analyze_interaction_mechanisms(drug_pair, detailed_analysis=True, data_lake_
                 if level == "Major":
                     log += "- Clinical Impact: High risk interaction requiring immediate attention\n"
                     log += "- Mechanism: Likely involves significant pharmacokinetic or pharmacodynamic effects\n"
-                    log += "- Management: Avoid combination or use with extreme caution\n"
+                    log += (
+                        "- Management: Avoid combination or use with extreme caution\n"
+                    )
                 elif level == "Moderate":
                     log += "- Clinical Impact: Moderate risk requiring monitoring\n"
                     log += "- Mechanism: May involve enzyme induction/inhibition or receptor competition\n"
@@ -2760,7 +2994,9 @@ def analyze_interaction_mechanisms(drug_pair, detailed_analysis=True, data_lake_
     return log
 
 
-def find_alternative_drugs_ddinter(target_drug, contraindicated_drugs, therapeutic_class=None, data_lake_path=None):
+def find_alternative_drugs_ddinter(
+    target_drug, contraindicated_drugs, therapeutic_class=None, data_lake_path=None
+):
     """
     Find alternative drugs that don't interact with contraindicated drugs.
 
@@ -2847,7 +3083,9 @@ def find_alternative_drugs_ddinter(target_drug, contraindicated_drugs, therapeut
 
             # Apply therapeutic class filter
             if therapeutic_class:
-                if not any(therapeutic_class.lower() in cat.lower() for cat in drug_categories):
+                if not any(
+                    therapeutic_class.lower() in cat.lower() for cat in drug_categories
+                ):
                     continue
             else:
                 # Look for drugs in similar categories as target
@@ -2862,7 +3100,10 @@ def find_alternative_drugs_ddinter(target_drug, contraindicated_drugs, therapeut
             std_drug_name = drug_data["standardized_name"]
 
             for contraindicated in std_contraindicated:
-                if std_drug_name in interaction_matrix and contraindicated in interaction_matrix[std_drug_name]:
+                if (
+                    std_drug_name in interaction_matrix
+                    and contraindicated in interaction_matrix[std_drug_name]
+                ):
                     interactions = interaction_matrix[std_drug_name][contraindicated]
                     interaction_count += len(interactions)
 
@@ -2982,7 +3223,9 @@ class OpenFDAClient:
         self.requests = requests
         self.time = time
         self.session = requests.Session()
-        self.session.headers.update({"User-Agent": "Biomni-Agent/1.0 (https://biomni.stanford.edu)"})
+        self.session.headers.update(
+            {"User-Agent": "Biomni-Agent/1.0 (https://biomni.stanford.edu)"}
+        )
         self.retry_attempts = 3
         self.timeout = 30
         self.rate_limit_delay = 0.2  # 5 requests/second
@@ -3022,8 +3265,14 @@ class OpenFDAClient:
                 "drug_name": "patient.drug.openfda.brand_name.exact",
                 "generic_name": "patient.drug.openfda.generic_name.exact",
             },
-            "drug/label": {"drug_name": "openfda.brand_name.exact", "generic_name": "openfda.generic_name.exact"},
-            "drug/enforcement": {"drug_name": "openfda.brand_name.exact", "generic_name": "openfda.generic_name.exact"},
+            "drug/label": {
+                "drug_name": "openfda.brand_name.exact",
+                "generic_name": "openfda.generic_name.exact",
+            },
+            "drug/enforcement": {
+                "drug_name": "openfda.brand_name.exact",
+                "generic_name": "openfda.generic_name.exact",
+            },
         }
 
         # Transform parameters based on endpoint
@@ -3075,7 +3324,11 @@ class OpenFDAClient:
 
         for attempt in range(self.retry_attempts):
             try:
-                response = self.session.get(f"{self.BASE_URL}/{endpoint}.json", params=fda_params, timeout=self.timeout)
+                response = self.session.get(
+                    f"{self.BASE_URL}/{endpoint}.json",
+                    params=fda_params,
+                    timeout=self.timeout,
+                )
 
                 if response.status_code == 404:
                     return {
@@ -3093,7 +3346,9 @@ class OpenFDAClient:
 
             except self.requests.exceptions.Timeout:
                 if attempt == self.retry_attempts - 1:
-                    raise Exception("FDA API request timed out after multiple attempts") from None
+                    raise Exception(
+                        "FDA API request timed out after multiple attempts"
+                    ) from None
                 self.time.sleep(2**attempt)  # Exponential backoff
 
             except self.requests.exceptions.HTTPError as e:
@@ -3102,7 +3357,9 @@ class OpenFDAClient:
                     self.time.sleep(5 * (attempt + 1))
                     continue
                 else:
-                    raise Exception(f"FDA API HTTP Error: {e.response.status_code}") from e
+                    raise Exception(
+                        f"FDA API HTTP Error: {e.response.status_code}"
+                    ) from e
 
             except Exception as e:
                 if attempt == self.retry_attempts - 1:
@@ -3139,14 +3396,18 @@ class OpenFDAClient:
                 ),
             }
 
-    def query_drug_labels(self, drug_name: str, sections: list[str] | None = None) -> dict:
+    def query_drug_labels(
+        self, drug_name: str, sections: list[str] | None = None
+    ) -> dict:
         """Query FDA drug label information."""
         endpoint = "drug/label"
         params = {"drug_name": drug_name, "limit": 50}
 
         return self._make_request(endpoint, params)
 
-    def query_drug_recalls(self, drug_name: str, classification: list[str] | None = None) -> dict:
+    def query_drug_recalls(
+        self, drug_name: str, classification: list[str] | None = None
+    ) -> dict:
         """Query FDA drug recall and enforcement information."""
         endpoint = "drug/enforcement"
         params = {"drug_name": drug_name, "limit": 100}
@@ -3248,7 +3509,11 @@ def _extract_fda_safety_signals(response_list: list[dict]) -> dict:
                 drug_name = _standardize_drug_name_fda(drug.get("medicinalproduct", ""))
                 if drug_name:
                     if drug_name not in drug_signals:
-                        drug_signals[drug_name] = {"total_reports": 0, "serious_reports": 0, "common_reactions": []}
+                        drug_signals[drug_name] = {
+                            "total_reports": 0,
+                            "serious_reports": 0,
+                            "common_reactions": [],
+                        }
 
                     drug_signals[drug_name]["total_reports"] += 1
                     if result.get("serious") == "1":
@@ -3269,9 +3534,13 @@ def _extract_fda_safety_signals(response_list: list[dict]) -> dict:
 
                     # Count severity
                     if result.get("serious") == "1":
-                        reaction_patterns[reaction_name]["severity_counts"]["serious"] += 1
+                        reaction_patterns[reaction_name]["severity_counts"][
+                            "serious"
+                        ] += 1
                     else:
-                        reaction_patterns[reaction_name]["severity_counts"]["non_serious"] += 1
+                        reaction_patterns[reaction_name]["severity_counts"][
+                            "non_serious"
+                        ] += 1
 
             # Extract temporal patterns
             receipt_date = result.get("receiptdate")
@@ -3296,7 +3565,9 @@ def _extract_fda_safety_signals(response_list: list[dict]) -> dict:
             for result in response["results"]:
                 drugs = result.get("patient", {}).get("drug", [])
                 has_this_drug = any(
-                    _standardize_drug_name_fda(drug.get("medicinalproduct", "")) == drug_name for drug in drugs
+                    _standardize_drug_name_fda(drug.get("medicinalproduct", ""))
+                    == drug_name
+                    for drug in drugs
                 )
 
                 if has_this_drug:
@@ -3309,7 +3580,9 @@ def _extract_fda_safety_signals(response_list: list[dict]) -> dict:
                             drug_reactions[reaction_name] += 1
 
         # Get top 3 reactions for this drug
-        top_reactions = sorted(drug_reactions.items(), key=lambda x: x[1], reverse=True)[:3]
+        top_reactions = sorted(
+            drug_reactions.items(), key=lambda x: x[1], reverse=True
+        )[:3]
         drug_signals[drug_name]["common_reactions"] = [r[0] for r in top_reactions]
 
     return {
@@ -3365,21 +3638,33 @@ def _generate_fda_statistics(response_data: dict) -> dict:
 
     # Report distribution
     stats["report_distribution"] = {
-        "serious_percentage": (stats["serious_reports"] / stats["total_reports"] * 100)
-        if stats["total_reports"] > 0
-        else 0,
-        "non_serious_percentage": ((stats["total_reports"] - stats["serious_reports"]) / stats["total_reports"] * 100)
-        if stats["total_reports"] > 0
-        else 0,
-        "death_percentage": (stats["death_reports"] / stats["total_reports"] * 100)
-        if stats["total_reports"] > 0
-        else 0,
+        "serious_percentage": (
+            (stats["serious_reports"] / stats["total_reports"] * 100)
+            if stats["total_reports"] > 0
+            else 0
+        ),
+        "non_serious_percentage": (
+            (
+                (stats["total_reports"] - stats["serious_reports"])
+                / stats["total_reports"]
+                * 100
+            )
+            if stats["total_reports"] > 0
+            else 0
+        ),
+        "death_percentage": (
+            (stats["death_reports"] / stats["total_reports"] * 100)
+            if stats["total_reports"] > 0
+            else 0
+        ),
     }
 
     return stats
 
 
-def _format_adverse_event_summary(response_data: dict, drug_name: str, include_details: bool = True) -> str:
+def _format_adverse_event_summary(
+    response_data: dict, drug_name: str, include_details: bool = True
+) -> str:
     """Format adverse event data into readable summary."""
     if not response_data.get("results"):
         return f"No adverse events found for {drug_name} in the FDA database."
@@ -3396,9 +3681,7 @@ def _format_adverse_event_summary(response_data: dict, drug_name: str, include_d
         summary += f"- Serious Reports: {stats['serious_reports']:,} ({stats['serious_reports'] / stats['total_reports'] * 100:.1f}%)\n"
 
         if stats["death_reports"] > 0:
-            summary += (
-                f"- Deaths: {stats['death_reports']:,} ({stats['death_reports'] / stats['total_reports'] * 100:.1f}%)\n"
-            )
+            summary += f"- Deaths: {stats['death_reports']:,} ({stats['death_reports'] / stats['total_reports'] * 100:.1f}%)\n"
 
         if stats["life_threatening_reports"] > 0:
             summary += f"- Life-threatening: {stats['life_threatening_reports']:,} ({stats['life_threatening_reports'] / stats['total_reports'] * 100:.1f}%)\n"
@@ -3417,7 +3700,9 @@ def _format_adverse_event_summary(response_data: dict, drug_name: str, include_d
     return summary
 
 
-def _format_drug_label_summary(response_data: dict, drug_name: str, sections: list[str] | None = None) -> str:
+def _format_drug_label_summary(
+    response_data: dict, drug_name: str, sections: list[str] | None = None
+) -> str:
     """Format drug label information into readable summary."""
     if not response_data.get("results"):
         return f"No drug label information found for {drug_name} in the FDA database."
@@ -3473,7 +3758,9 @@ def _format_drug_label_summary(response_data: dict, drug_name: str, sections: li
     return summary
 
 
-def _format_recall_summary(response_data: dict, drug_name: str, include_details: bool = True) -> str:
+def _format_recall_summary(
+    response_data: dict, drug_name: str, include_details: bool = True
+) -> str:
     """Format recall information into structured output."""
     if not response_data.get("results"):
         return f"No drug recalls found for {drug_name} in the FDA database."
@@ -3493,10 +3780,14 @@ def _format_recall_summary(response_data: dict, drug_name: str, include_details:
             summary += f"   - Reason: {recall.get('reason_for_recall', 'N/A')}\n"
             summary += f"   - Date: {recall.get('recall_initiation_date', 'N/A')}\n"
             summary += f"   - Status: {recall.get('status', 'N/A')}\n"
-            summary += f"   - Distribution: {recall.get('distribution_pattern', 'N/A')}\n\n"
+            summary += (
+                f"   - Distribution: {recall.get('distribution_pattern', 'N/A')}\n\n"
+            )
 
         if len(response_data["results"]) > 5:
-            summary += f"... and {len(response_data['results']) - 5} additional recalls\n"
+            summary += (
+                f"... and {len(response_data['results']) - 5} additional recalls\n"
+            )
 
     return summary
 
@@ -3514,7 +3805,9 @@ def _format_safety_signal_summary(
 
     # Add comparison period and threshold info
     if comparison_period:
-        summary += f"Comparison period: {comparison_period[0]} to {comparison_period[1]}\n"
+        summary += (
+            f"Comparison period: {comparison_period[0]} to {comparison_period[1]}\n"
+        )
     if signal_threshold != 2.0:
         summary += f"Signal threshold: {signal_threshold}\n"
     summary += "\n"
@@ -3548,7 +3841,9 @@ def _format_safety_signal_summary(
     # Display cross-drug reaction patterns
     if reaction_patterns:
         summary += "Cross-drug Analysis:\n"
-        sorted_reactions = sorted(reaction_patterns.items(), key=lambda x: x[1]["count"], reverse=True)
+        sorted_reactions = sorted(
+            reaction_patterns.items(), key=lambda x: x[1]["count"], reverse=True
+        )
 
         for reaction, data in sorted_reactions[:5]:  # Show top 5 reactions
             summary += f"- {reaction}: {data['count']:,} reports\n"
@@ -3559,7 +3854,9 @@ def _format_safety_signal_summary(
     if comparison_period:
         summary += "\nTrend Analysis:\n"
         summary += f"Comparing current period to {comparison_period[0]} - {comparison_period[1]}\n"
-        summary += "* Trend detection based on temporal patterns in adverse event reports\n"
+        summary += (
+            "* Trend detection based on temporal patterns in adverse event reports\n"
+        )
         summary += "* Analysis considers seasonal variations and reporting delays\n"
 
     return summary
@@ -3605,16 +3902,23 @@ def query_fda_adverse_events(
 
         # Apply filters if specified
         if severity_filter or outcome_filter:
-            filters = {"severity_filter": severity_filter, "outcome_filter": outcome_filter}
+            filters = {
+                "severity_filter": severity_filter,
+                "outcome_filter": outcome_filter,
+            }
             response = _apply_fda_filters(response, filters)
 
         # Format results with main function title
-        formatted_result = _format_adverse_event_summary(response, drug_name, include_details=True)
+        formatted_result = _format_adverse_event_summary(
+            response, drug_name, include_details=True
+        )
 
         # Replace title for main function
         if formatted_result.startswith("Adverse Event Summary"):
             formatted_result = formatted_result.replace(
-                "Adverse Event Summary\n" + "=" * 21, "OpenFDA Adverse Event Query Results\n" + "=" * 35, 1
+                "Adverse Event Summary\n" + "=" * 21,
+                "OpenFDA Adverse Event Query Results\n" + "=" * 35,
+                1,
             )
 
         # Add filter and date range info if specified
@@ -3630,7 +3934,9 @@ def query_fda_adverse_events(
         if insert_index >= 0:
             # Add date range info
             if date_range:
-                lines.insert(insert_index, f"Date range: {date_range[0]} to {date_range[1]}")
+                lines.insert(
+                    insert_index, f"Date range: {date_range[0]} to {date_range[1]}"
+                )
                 insert_index += 1
 
             # Add severity filter info
@@ -3690,7 +3996,9 @@ def get_fda_drug_label_info(drug_name: str, sections: list[str] | None = None) -
 
 
 def check_fda_drug_recalls(
-    drug_name: str, classification: list[str] | None = None, date_range: tuple[str, str] | None = None
+    drug_name: str,
+    classification: list[str] | None = None,
+    date_range: tuple[str, str] | None = None,
 ) -> str:
     """
     Check for FDA drug recalls and enforcement actions.
@@ -3716,20 +4024,26 @@ def check_fda_drug_recalls(
             return f"Error: Unable to standardize drug name '{drug_name}'"
 
         # Query drug recalls
-        response = client.query_drug_recalls(standardized_name, classification=classification)
+        response = client.query_drug_recalls(
+            standardized_name, classification=classification
+        )
 
         # Format results with filter information
-        formatted_result = _format_recall_summary(response, drug_name, include_details=True)
+        formatted_result = _format_recall_summary(
+            response, drug_name, include_details=True
+        )
 
         # Add filter information to the output
         if classification:
             formatted_result = formatted_result.replace(
-                f"Drug: {drug_name}\n", f"Drug: {drug_name}\nClassification filter: {', '.join(classification)}\n"
+                f"Drug: {drug_name}\n",
+                f"Drug: {drug_name}\nClassification filter: {', '.join(classification)}\n",
             )
 
         if date_range:
             formatted_result = formatted_result.replace(
-                f"Drug: {drug_name}\n", f"Drug: {drug_name}\nDate range: {date_range[0]} to {date_range[1]}\n"
+                f"Drug: {drug_name}\n",
+                f"Drug: {drug_name}\nDate range: {date_range[0]} to {date_range[1]}\n",
             )
 
         return formatted_result
@@ -3739,7 +4053,9 @@ def check_fda_drug_recalls(
 
 
 def analyze_fda_safety_signals(
-    drug_list: list[str], comparison_period: tuple[str, str] | None = None, signal_threshold: float = 2.0
+    drug_list: list[str],
+    comparison_period: tuple[str, str] | None = None,
+    signal_threshold: float = 2.0,
 ) -> str:
     """
     Analyze safety signals across multiple drugs.
@@ -3786,7 +4102,9 @@ def analyze_fda_safety_signals(
         signals = _extract_fda_safety_signals(all_responses)
 
         # Format results with comparison period and threshold info
-        return _format_safety_signal_summary(signals, valid_drugs, comparison_period, signal_threshold)
+        return _format_safety_signal_summary(
+            signals, valid_drugs, comparison_period, signal_threshold
+        )
 
     except Exception as e:
         return f"Error analyzing FDA safety signals: {str(e)}"

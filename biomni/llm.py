@@ -9,8 +9,23 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_ollama import ChatOllama
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
+from langchain_mistralai import ChatMistralAI
+from langchain_aws import ChatBedrock
+from langchain_upstage import ChatUpstage
+from langchain_xai import ChatXAI
 
-SourceType = Literal["OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Custom"]
+SourceType = Literal[
+    "OpenAI",
+    "AzureOpenAI",
+    "Anthropic",
+    "Ollama",
+    "Gemini",
+    "Bedrock",
+    "Custom",
+    "MISTRAL",
+    "Upstage",
+    "XAI",
+]
 
 
 def get_llm(
@@ -44,19 +59,45 @@ def get_llm(
         elif base_url is not None:
             source = "Custom"
         elif "/" in model or any(
-            name in model.lower() for name in ["llama", "mistral", "qwen", "gemma", "phi", "dolphin", "orca", "vicuna"]
+            name in model.lower()
+            for name in [
+                "llama",
+                "qwen",
+                "gemma",
+                "phi",
+                "dolphin",
+                "orca",
+                "vicuna",
+            ]
         ):
             source = "Ollama"
         elif model.startswith(
-            ("anthropic.claude-", "amazon.titan-", "meta.llama-", "mistral.", "cohere.", "ai21.", "us.")
+            (
+                "us.anthropic.claude-",
+                "amazon.titan-",
+                "meta.llama-",
+                "mistral.",
+                "cohere.",
+                "ai21.",
+                "us.",
+            )
         ):
             source = "Bedrock"
+        elif model.startswith(("mistral-")):
+            source = "MISTRAL"
+        elif model.startswith(("solar-")):
+            source = "Upstage"
+        elif model.startswith(("grok-")):
+            source = "XAI"
         else:
-            raise ValueError("Unable to determine model source. Please specify 'source' parameter.")
-
+            raise ValueError(
+                "Unable to determine model source. Please specify 'source' parameter."
+            )
     # Create appropriate model based on source
     if source == "OpenAI":
-        return ChatOpenAI(model=model, temperature=temperature, stop_sequences=stop_sequences)
+        return ChatOpenAI(
+            model=model, temperature=temperature, stop_sequences=stop_sequences
+        )
     elif source == "AzureOpenAI":
         API_VERSION = "2024-12-01-preview"
         return AzureChatOpenAI(
@@ -84,16 +125,27 @@ def get_llm(
             model=model,
             temperature=temperature,
         )
-    # elif source == "Bedrock":
-    #     return ChatBedrock(
-    #         model=model,
-    #         temperature=temperature,
-    #         stop_sequences=stop_sequences,
-    #         region_name=os.getenv("AWS_REGION", "us-east-1"),
-    #     )
+    elif source == "MISTRAL":
+        return ChatMistralAI(
+            model=model,
+            temperature=temperature,
+        )
+    elif source == "Bedrock":
+        return ChatBedrock(
+            model=model,
+            temperature=temperature,
+            model_kwargs={"stop_sequences": stop_sequences, "max_tokens": 8192 * 4},
+        )
+    elif source == "Upstage":
+        return ChatUpstage(
+            model=model,
+            temperature=temperature,
+        )
     elif source == "Custom":
         # Custom LLM serving such as SGLang. Must expose an openai compatible API.
-        assert base_url is not None, "base_url must be provided for customly served LLMs"
+        assert (
+            base_url is not None
+        ), "base_url must be provided for customly served LLMs"
         llm = ChatOpenAI(
             model=model,
             temperature=temperature,
@@ -103,6 +155,14 @@ def get_llm(
             api_key=api_key,
         )
         return llm
+    elif source == "XAI":
+        print("XAI is selected")
+        return ChatXAI(
+            model=model,
+            temperature=temperature,
+            # stop_sequences=stop_sequences,
+            # model_kwargs={"stop_sequences": stop_sequences},
+        )
     else:
         raise ValueError(
             f"Invalid source: {source}. Valid options are 'OpenAI', 'AzureOpenAI', 'Anthropic', 'Gemini', 'Bedrock', or 'Ollama'"

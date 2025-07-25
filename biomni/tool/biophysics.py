@@ -1,4 +1,6 @@
-def predict_protein_disorder_regions(protein_sequence, threshold=0.5, output_file="disorder_prediction_results.csv"):
+def predict_protein_disorder_regions(
+    protein_sequence, threshold=0.5, output_file="disorder_prediction_results.csv"
+):
     """Predicts intrinsically disordered regions (IDRs) in a protein sequence using IUPred2A.
 
     Parameters
@@ -93,7 +95,9 @@ def predict_protein_disorder_regions(protein_sequence, threshold=0.5, output_fil
     # Step 5: Generate the research log
     total_residues = len(scores)
     disordered_count = sum(1 for _, _, score in scores if score >= threshold)
-    disordered_percentage = (disordered_count / total_residues) * 100 if total_residues > 0 else 0
+    disordered_percentage = (
+        (disordered_count / total_residues) * 100 if total_residues > 0 else 0
+    )
 
     log = f"""
 Intrinsically Disordered Region (IDR) Prediction Research Log:
@@ -121,7 +125,9 @@ Disordered Regions:
     return log
 
 
-def analyze_cell_morphology_and_cytoskeleton(image_path, output_dir="./results", threshold_method="otsu"):
+def analyze_cell_morphology_and_cytoskeleton(
+    image_path, output_dir="./results", threshold_method="otsu"
+):
     """Quantifies cell morphology and cytoskeletal organization from fluorescence microscopy images.
 
     Parameters
@@ -218,8 +224,12 @@ def analyze_cell_morphology_and_cytoskeleton(image_path, output_dir="./results",
 
     # Calculate additional metrics
     if len(cell_df) > 0:
-        cell_df["aspect_ratio"] = cell_df["major_axis_length"] / cell_df["minor_axis_length"]
-        cell_df["circularity"] = (4 * np.pi * cell_df["area"]) / (cell_df["perimeter"] ** 2)
+        cell_df["aspect_ratio"] = (
+            cell_df["major_axis_length"] / cell_df["minor_axis_length"]
+        )
+        cell_df["circularity"] = (4 * np.pi * cell_df["area"]) / (
+            cell_df["perimeter"] ** 2
+        )
 
         # Summary statistics
         log += f"- Average cell area: {cell_df['area'].mean():.2f} pixels\n"
@@ -268,7 +278,10 @@ def analyze_cell_morphology_and_cytoskeleton(image_path, output_dir="./results",
                 # Order parameter (measure of alignment, 1 = perfectly aligned, 0 = random)
                 # Convert angles to radians for calculation
                 rad_angles = np.radians(norm_angles)
-                order_parameter = np.sqrt(np.mean(np.cos(2 * rad_angles)) ** 2 + np.mean(np.sin(2 * rad_angles)) ** 2)
+                order_parameter = np.sqrt(
+                    np.mean(np.cos(2 * rad_angles)) ** 2
+                    + np.mean(np.sin(2 * rad_angles)) ** 2
+                )
 
                 log += f"- Detected {len(orientations)} cytoskeletal fibers\n"
                 log += f"- Mean fiber orientation: {mean_orientation:.2f} degrees\n"
@@ -321,7 +334,9 @@ def analyze_cell_morphology_and_cytoskeleton(image_path, output_dir="./results",
     return log
 
 
-def analyze_tissue_deformation_flow(image_sequence, output_dir="results", pixel_scale=1.0):
+def analyze_tissue_deformation_flow(
+    image_sequence, output_dir="results", pixel_scale=1.0
+):
     """Quantify tissue deformation and flow dynamics from microscopy image sequence.
 
     Parameters
@@ -362,7 +377,14 @@ def analyze_tissue_deformation_flow(image_sequence, output_dir="results", pixel_
         # Convert to grayscale if needed
         if len(frames.shape) > 3:  # Has color channels
             frames = np.array(
-                [cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY) if frame.shape[-1] == 3 else frame for frame in frames]
+                [
+                    (
+                        cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+                        if frame.shape[-1] == 3
+                        else frame
+                    )
+                    for frame in frames
+                ]
             )
 
     # Parameters for optical flow
@@ -399,7 +421,9 @@ def analyze_tissue_deformation_flow(image_sequence, output_dir="results", pixel_
         next_frame = frames[i + 1]
 
         # Compute flow for the grid points
-        next_points, status, _ = cv2.calcOpticalFlowPyrLK(prev_frame, next_frame, feature_points, None, **lk_params)
+        next_points, status, _ = cv2.calcOpticalFlowPyrLK(
+            prev_frame, next_frame, feature_points, None, **lk_params
+        )
 
         # Filter valid points
         valid_idx = status.flatten() == 1
@@ -411,7 +435,9 @@ def analyze_tissue_deformation_flow(image_sequence, output_dir="results", pixel_
         points = valid_prev_points
 
         # Interpolate flow field to full image resolution
-        flow_field = np.zeros((frames[0].shape[0], frames[0].shape[1], 2), dtype=np.float32)
+        flow_field = np.zeros(
+            (frames[0].shape[0], frames[0].shape[1], 2), dtype=np.float32
+        )
 
         # Simple nearest-neighbor interpolation for demonstration
         # In a production system, you might use more sophisticated interpolation
@@ -488,7 +514,9 @@ def analyze_tissue_deformation_flow(image_sequence, output_dir="results", pixel_
 
     # Add summary to log
     log += "\nAnalysis Results:\n"
-    log += f"Mean tissue divergence: {mean_divergence:.6f} (expansion/contraction rate)\n"
+    log += (
+        f"Mean tissue divergence: {mean_divergence:.6f} (expansion/contraction rate)\n"
+    )
     log += f"Maximum divergence: {max_divergence:.6f}\n"
     log += f"Mean absolute curl: {mean_curl:.6f} (rotation rate)\n"
     log += f"Mean strain magnitude: {mean_strain:.6f} (deformation intensity)\n\n"

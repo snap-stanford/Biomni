@@ -150,21 +150,29 @@ install_cli_tools() {
 
 # Main installation process
 main() {
+    conda_env_name="biomni_hits"
     # Step 1: Create base conda environment
     echo -e "\n${YELLOW}Step 1: Creating base environment from environment.yml...${NC}"
-    conda env create -n biomni_e1 -f environment.yml
-    handle_error $? "Failed to create base conda environment."
+    
+    # Check if conda environment already exists
+    if conda env list | grep -q "^$conda_env_name "; then
+        echo -e "${GREEN}Conda environment '$conda_env_name' already exists. Skipping creation.${NC}"
+    else
+        echo -e "${YELLOW}Creating new conda environment '$conda_env_name'...${NC}"
+        conda env create -n $conda_env_name -f environment.yml
+        handle_error $? "Failed to create base conda environment."
+    fi
 
     # Step 2: Activate the environment
     echo -e "\n${YELLOW}Step 2: Activating conda environment...${NC}"
     if command -v micromamba &> /dev/null; then
         eval "$("$MAMBA_EXE" shell hook --shell bash)"
-        micromamba activate biomni_e1
+        micromamba activate $conda_env_name
     else
         eval "$(conda shell.bash hook)"
-        conda activate biomni_e1
+        conda activate $conda_env_name
     fi
-    handle_error $? "Failed to activate biomni_e1 environment."
+    handle_error $? "Failed to activate $conda_env_name environment."
 
     # Step 3: Install core bioinformatics tools (including QIIME2)
     echo -e "\n${YELLOW}Step 3: Installing core bioinformatics tools (including QIIME2)...${NC}"
@@ -187,7 +195,7 @@ main() {
     # Setup completed
     echo -e "\n${GREEN}=== Biomni Environment Setup Completed! ===${NC}"
     echo -e "You can now run the example analysis with: ${YELLOW}python bio_analysis_example.py${NC}"
-    echo -e "To activate this environment in the future, run: ${YELLOW}conda activate biomni_e1${NC}"
+    echo -e "To activate this environment in the future, run: ${YELLOW}conda activate $conda_env_name${NC}"
     echo -e "To use BioAgentOS, navigate to the BioAgentOS directory and follow the instructions in the README."
 
     # Display CLI tools setup instructions

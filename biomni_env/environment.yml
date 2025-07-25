@@ -1,4 +1,3 @@
-name: biomni_e1
 channels:
   - conda-forge
   - defaults
@@ -15,12 +14,16 @@ dependencies:
       - scikit-learn
       - gradio
       - langchain
-      - langgraph==0.3.18
+      - langgraph
       - langchain_openai
       - langchain_anthropic
       - langchain_community
       - langchain-google-genai
       - langchain_ollama
+      - langchain_upstage
+      - langchain_mistralai
+      - langchain_aws
+      - langchain-xai
       - openai
       - beautifulsoup4
       - lxml
@@ -36,3 +39,4 @@ dependencies:
       - transformers
       - sentencepiece
       - python-dotenv
+      - rdkit

@@ -107,6 +107,19 @@ description = [
         ],
     },
     {
+        "description": "Predicts protein pockets in a given PDB file using FPocket.",
+        "name": "predict_protein_pocket",
+        "optional_parameters": [],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Path to the PDB file containing the protein structure",
+                "name": "pdb_file_path",
+                "type": "str",
+            }
+        ],
+    },
+    {
         "description": "Computes TxGNN model predictions for drug repurposing and "
         "returns the top predicted drugs with their scores for a "
         "given disease.",

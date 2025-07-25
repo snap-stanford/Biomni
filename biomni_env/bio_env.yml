@@ -1,4 +1,4 @@
-name: biomni_e1
+name: biomni_hits
 channels:
   - conda-forge
   - bioconda
@@ -15,6 +15,7 @@ dependencies:
   - gseapy
   - mageck
   - plannotate
+  - fpocket
   - pip:
     - scanpy
     - biopython

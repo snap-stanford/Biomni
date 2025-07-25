@@ -1,4 +1,3 @@
-name: biomni_e1
 channels:
   - conda-forge
   - defaults
