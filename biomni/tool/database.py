@@ -62,11 +62,8 @@ def _query_llm_for_api(prompt, schema, system_template, model="claude-3-5-haiku-
 
         # Create messages for the LLM
         from langchain_core.messages import HumanMessage, SystemMessage
-        
-        messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=prompt)
-        ]
+
+        messages = [SystemMessage(content=system_prompt), HumanMessage(content=prompt)]
 
         # Get response from LLM
         response = llm.invoke(messages)
