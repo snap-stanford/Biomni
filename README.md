@@ -83,6 +83,14 @@ OPENAI_API_KEY=your_openai_api_key_here
 # Optional: AI Studio Gemini API Key (if using Gemini models)
 GEMINI_API_KEY=your_gemini_api_key_here
 
+# Optional: groq API Key (if using groq as model provider)
+GROQ_API_KEY=your_groq_api_key_here
+
+# Optional: Set the source of your LLM for example:
+#"OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Groq", "Custom"
+#In case of using Groq provider it's required to set
+LLM_SOURCE=your_LLM_source_here
+
 # Optional: AWS Bedrock Configuration (if using AWS Bedrock models)
 AWS_BEARER_TOKEN_BEDROCK=your_bedrock_api_key_here
 AWS_REGION=us-east-1
@@ -108,6 +116,8 @@ export OPENAI_API_KEY="YOUR_API_KEY" # optional if you just use Claude
 export AWS_BEARER_TOKEN_BEDROCK="YOUR_BEDROCK_API_KEY" # optional for AWS Bedrock models
 export AWS_REGION="us-east-1" # optional, defaults to us-east-1 for Bedrock
 export GEMINI_API_KEY="YOUR_GEMINI_API_KEY" #optional if you want to use a gemini model
+export GROQ_API_KEY="YOUR_GROQ_API_KEY" # Optional: set this to use models served by Groq
+export LLM_SOURCE="Groq" # Optional: set this to use models served by Groq
 ```
 </details>
 
