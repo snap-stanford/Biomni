@@ -1356,11 +1356,12 @@ Each library is listed with its description to help you understand its functiona
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
         self.log = [self.system_prompt]
-
+        yield self.system_prompt
         for s in self.app.stream(inputs, stream_mode="values", config=config):
             message = s["messages"][-1]
             out = pretty_print(message)
             self.log.append(out)
+            yield out
 
         return self.log, message.content
 

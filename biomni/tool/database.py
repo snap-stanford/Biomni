@@ -618,8 +618,6 @@ def query_uniprot(
             prompt=prompt,
             schema=uniprot_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not result["success"]:

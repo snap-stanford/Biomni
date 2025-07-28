@@ -1,111 +1,111 @@
 description = [
-    {
-        "description": "Run DiffDock molecular docking using a protein PDB file and "
-        "a SMILES string for the ligand, executing the process in a "
-        "Docker container.",
-        "name": "run_diffdock_with_smiles",
-        "optional_parameters": [
-            {
-                "default": 0,
-                "description": "GPU device ID to use for computation",
-                "name": "gpu_device",
-                "type": "int",
-            },
-            {
-                "default": True,
-                "description": "Whether to use GPU acceleration for docking",
-                "name": "use_gpu",
-                "type": "bool",
-            },
-        ],
-        "required_parameters": [
-            {
-                "default": None,
-                "description": "Path to the protein PDB file for docking",
-                "name": "pdb_path",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "SMILES string representation of the ligand molecule",
-                "name": "smiles_string",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Local directory path where docking results will be saved",
-                "name": "local_output_dir",
-                "type": "str",
-            },
-        ],
-    },
-    {
-        "description": "Performs molecular docking using AutoDock Vina to predict "
-        "binding affinities between small molecules and a receptor "
-        "protein.",
-        "name": "docking_autodock_vina",
-        "optional_parameters": [
-            {
-                "default": 1,
-                "description": "Number of CPU cores to use for docking",
-                "name": "ncpu",
-                "type": "int",
-            }
-        ],
-        "required_parameters": [
-            {
-                "default": None,
-                "description": "List of SMILES strings representing small molecules to dock",
-                "name": "smiles_list",
-                "type": "List[str]",
-            },
-            {
-                "default": None,
-                "description": "Path to the receptor protein structure PDB file",
-                "name": "receptor_pdb_file",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "3D coordinates [x, y, z] of the docking box center",
-                "name": "box_center",
-                "type": "List[float]",
-            },
-            {
-                "default": None,
-                "description": "Dimensions [x, y, z] of the docking box",
-                "name": "box_size",
-                "type": "List[float]",
-            },
-        ],
-    },
-    {
-        "description": "Runs AutoSite on a PDB file to identify potential binding "
-        "sites and returns a research log with the results.",
-        "name": "run_autosite",
-        "optional_parameters": [
-            {
-                "default": 1.0,
-                "description": "Grid spacing parameter for AutoSite calculation",
-                "name": "spacing",
-                "type": "float",
-            }
-        ],
-        "required_parameters": [
-            {
-                "default": None,
-                "description": "Path to the input PDB file",
-                "name": "pdb_file",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Directory where AutoSite results will be saved",
-                "name": "output_dir",
-                "type": "str",
-            },
-        ],
-    },
+    # {
+    #     "description": "Run DiffDock molecular docking using a protein PDB file and "
+    #     "a SMILES string for the ligand, executing the process in a "
+    #     "Docker container.",
+    #     "name": "run_diffdock_with_smiles",
+    #     "optional_parameters": [
+    #         {
+    #             "default": 0,
+    #             "description": "GPU device ID to use for computation",
+    #             "name": "gpu_device",
+    #             "type": "int",
+    #         },
+    #         {
+    #             "default": True,
+    #             "description": "Whether to use GPU acceleration for docking",
+    #             "name": "use_gpu",
+    #             "type": "bool",
+    #         },
+    #     ],
+    #     "required_parameters": [
+    #         {
+    #             "default": None,
+    #             "description": "Path to the protein PDB file for docking",
+    #             "name": "pdb_path",
+    #             "type": "str",
+    #         },
+    #         {
+    #             "default": None,
+    #             "description": "SMILES string representation of the ligand molecule",
+    #             "name": "smiles_string",
+    #             "type": "str",
+    #         },
+    #         {
+    #             "default": None,
+    #             "description": "Local directory path where docking results will be saved",
+    #             "name": "local_output_dir",
+    #             "type": "str",
+    #         },
+    #     ],
+    # },
+    # {
+    #     "description": "Performs molecular docking using AutoDock Vina to predict "
+    #     "binding affinities between small molecules and a receptor "
+    #     "protein.",
+    #     "name": "docking_autodock_vina",
+    #     "optional_parameters": [
+    #         {
+    #             "default": 1,
+    #             "description": "Number of CPU cores to use for docking",
+    #             "name": "ncpu",
+    #             "type": "int",
+    #         }
+    #     ],
+    #     "required_parameters": [
+    #         {
+    #             "default": None,
+    #             "description": "List of SMILES strings representing small molecules to dock",
+    #             "name": "smiles_list",
+    #             "type": "List[str]",
+    #         },
+    #         {
+    #             "default": None,
+    #             "description": "Path to the receptor protein structure PDB file",
+    #             "name": "receptor_pdb_file",
+    #             "type": "str",
+    #         },
+    #         {
+    #             "default": None,
+    #             "description": "3D coordinates [x, y, z] of the docking box center",
+    #             "name": "box_center",
+    #             "type": "List[float]",
+    #         },
+    #         {
+    #             "default": None,
+    #             "description": "Dimensions [x, y, z] of the docking box",
+    #             "name": "box_size",
+    #             "type": "List[float]",
+    #         },
+    #     ],
+    # },
+    # {
+    #     "description": "Runs AutoSite on a PDB file to identify potential binding "
+    #     "sites and returns a research log with the results.",
+    #     "name": "run_autosite",
+    #     "optional_parameters": [
+    #         {
+    #             "default": 1.0,
+    #             "description": "Grid spacing parameter for AutoSite calculation",
+    #             "name": "spacing",
+    #             "type": "float",
+    #         }
+    #     ],
+    #     "required_parameters": [
+    #         {
+    #             "default": None,
+    #             "description": "Path to the input PDB file",
+    #             "name": "pdb_file",
+    #             "type": "str",
+    #         },
+    #         {
+    #             "default": None,
+    #             "description": "Directory where AutoSite results will be saved",
+    #             "name": "output_dir",
+    #             "type": "str",
+    #         },
+    #     ],
+    # },
     {
         "description": "Predicts protein pockets in a given PDB file using FPocket.",
         "name": "predict_protein_pocket",

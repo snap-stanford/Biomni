@@ -118,7 +118,6 @@ def get_llm(
         return ChatGoogleGenerativeAI(
             model=model,
             temperature=temperature,
-            google_api_key=api_key,
         )
     elif source == "Ollama":
         return ChatOllama(

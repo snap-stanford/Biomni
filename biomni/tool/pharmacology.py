@@ -5,6 +5,7 @@ import subprocess
 import sys
 from datetime import datetime
 from difflib import get_close_matches
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -270,78 +271,73 @@ def predict_protein_pocket(pdb_file_path):
 
     Returns
     -------
-    str
-        Research log summarizing the analysis steps and results
+    dict
+        A dictionary containing the pocket IDs as keys, their corresponding scores, volumes, pocket files as values
     """
-    command = f"fpocket -f {pdb_file_path} --pocket_descr_stdout"
-    import subprocess
-    import os
-
-    log = "=== Protein Pocket Prediction Analysis ===\n\n"
-    log += f"Input PDB file: {pdb_file_path}\n"
-    log += f"Command: {command}\n\n"
 
     try:
-        # Check if input file exists
+        command = f"fpocket -f {pdb_file_path} --pocket_descr_stdout"
+        import subprocess
+        import os
+
         if not os.path.exists(pdb_file_path):
-            log += f"Error: PDB file not found at {pdb_file_path}\n"
-            return log
+            return "Error: PDB file not found at {pdb_file_path}\n"
 
         # Execute fpocket command
-        log += "Executing FPocket analysis...\n"
         result = subprocess.run(
             command.split(), capture_output=True, text=True, check=False
         )
-
-        # Capture standard output
-        if result.stdout:
-            log += "FPocket Standard Output:\n"
-            log += "=" * 50 + "\n"
-            log += result.stdout
-            log += "\n" + "=" * 50 + "\n\n"
-
-        # Capture standard error if any
-        if result.stderr:
-            log += "FPocket Standard Error:\n"
-            log += "-" * 50 + "\n"
-            log += result.stderr
-            log += "\n" + "-" * 50 + "\n\n"
-
-        # Check return code
-        if result.returncode == 0:
-            log += "FPocket analysis completed successfully.\n"
-        else:
-            log += f"FPocket analysis completed with return code: {result.returncode}\n"
+        if result.returncode != 0:
+            return f"Error executing FPocket: {result.stderr.strip()}"
 
         # Look for output files that fpocket typically generates
         base_name = os.path.splitext(pdb_file_path)[0]
         output_dir = f"{base_name}_out"
-
-        # Move output directory to current location with same name if it exists elsewhere
-        import shutil
-
         current_dir = os.getcwd()
         target_output_dir = os.path.join(current_dir, os.path.basename(output_dir))
 
-        if os.path.exists(output_dir) and output_dir != target_output_dir:
+        stdout = result.stdout.split("\n")
+        keys = stdout[0].split()
+        predictions = stdout[1:]
+        retval = {}
+        for pred in predictions[:-1]:
+            pred = pred.split()
+            result = dict(zip(keys, pred))
+            pocket_id, score, pocket_volume = pred[0], float(pred[1]), float(pred[2])
+            files = [
+                f"{output_dir}/pocket{pocket_id}_atm.pdb",
+                f"{output_dir}/pocket{pocket_id}_env_atm.pdb",
+                f"{output_dir}/pocket{pocket_id}_vert.pqr",
+            ]
+            if score < 0.5:
+                for file in files:
+                    os.remove(file)
+                continue
+
+            result["pocket_files"] = (
+                [
+                    f"{target_output_dir}/pocket{pocket_id}_atm.pdb",
+                    f"{target_output_dir}/pocket{pocket_id}_env_atm.pdb",
+                    f"{target_output_dir}/pocket{pocket_id}_vert.pqr",
+                ],
+            )
+            retval[pocket_id] = result
+        if len(retval) == 0:
+            return "The protein does not have any druggable pockets"
+
+        if os.path.exists(output_dir) and os.path.abspath(
+            output_dir
+        ) != os.path.abspath(target_output_dir):
             if os.path.exists(target_output_dir):
                 shutil.rmtree(target_output_dir)
             shutil.move(output_dir, target_output_dir)
-            output_dir = target_output_dir
-
-        if os.path.exists(output_dir):
-            log += f"\nOutput directory created: {output_dir}\n"
-            output_files = os.listdir(output_dir)
-            log += f"Generated files: {', '.join(output_files)}\n"
-        else:
-            log += "\nNo output directory found. Check if FPocket ran successfully.\n"
 
     except FileNotFoundError:
-        log += "Error: FPocket not found. Please ensure FPocket is installed and in PATH.\n"
+        return "Error: FPocket not found. Please ensure FPocket is installed and in PATH.\n"
     except Exception as e:
-        log += f"Error executing FPocket: {str(e)}\n"
+        return f"Error executing FPocket: {str(e)}\n"
 
-    return log
+    return retval
 
 
 # ADMET prediction function with research log format
