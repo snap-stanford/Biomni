@@ -7,11 +7,11 @@ default_stages:
 minimum_pre_commit_version: 2.16.0
 repos:
     - repo: https://github.com/biomejs/pre-commit
-      rev: v2.1.1
+      rev: v2.1.2
       hooks:
           - id: biome-format
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.12.3
+      rev: v0.12.5
       hooks:
           - id: ruff-check
             args: [--fix, --exit-non-zero-on-fix, --unsafe-fixes]
