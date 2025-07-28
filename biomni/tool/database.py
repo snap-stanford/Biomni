@@ -2499,9 +2499,6 @@ def query_ensembl(
     - Direct endpoint: query_ensembl(endpoint="lookup/symbol/homo_sapiens/BRCA2")
 
     """
-    print("IN QUERY ENSEMBL")
-    print("PROMPT: ", prompt)
-    print("ENDPOINT: ", endpoint)
     # Base URL for Ensembl API
     base_url = "https://rest.ensembl.org"
 
@@ -2829,6 +2826,125 @@ def query_opentarget(
         and "result" in api_result
     ):
         api_result["result"] = _format_query_results(api_result["result"])
+
+    return api_result
+
+
+# Monarch Initiative integration
+def query_monarch(
+    prompt=None,
+    endpoint=None,
+    api_key=None,
+    model="claude-3-5-haiku-20241022",
+    max_results=2,
+    verbose=False,
+):
+    """Query the Monarch Initiative API using natural language or a direct endpoint.
+
+    Parameters
+    ----------
+    prompt (str, optional): Natural language query about genes, diseases, phenotypes, etc.
+    endpoint (str, optional): Direct Monarch API endpoint or full URL
+    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
+    model (str): Anthropic model to use for prompt-to-endpoint conversion
+    max_results (int): Maximum number of results to return (if supported by endpoint)
+    verbose (bool): Whether to return detailed results
+
+    Returns
+    -------
+    dict: Dictionary containing the query results or error information
+
+    Examples
+    --------
+    - Natural language: query_monarch("Find phenotypes associated with BRCA1")
+    - Direct endpoint: query_monarch(endpoint="https://api.monarchinitiative.org/v3/api/search?q=marfan&category=biolink:Disease&limit=10")
+    - Direct endpoint: query_monarch(endpoint="https://api.monarchinitiative.org/v3/api/entity/MONDO:0007947")
+    """
+    base_url = "https://api.monarchinitiative.org/v3/api"
+
+    if prompt is None and endpoint is None:
+        return {"error": "Either a prompt or an endpoint must be provided"}
+
+    # If using prompt, use Claude to generate the endpoint
+    if prompt:
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "monarch.pkl")
+        if os.path.exists(schema_path):
+            with open(schema_path, "rb") as f:
+                monarch_schema = pickle.load(f)
+        else:
+            monarch_schema = None
+
+        system_template = """
+        You are an expert in translating natural language requests into REST API calls for the Monarch Initiative Platform API.
+
+        Here is the API schema with available endpoints and parameters:
+        {schema}
+
+        Translate the user's natural language request into a valid REST API call for this API.
+        Return only a JSON object with three fields:
+        1. "endpoint": The specific endpoint name from the schema
+        2. "url": The complete URL with path parameters filled in
+        3. "params": A JSON object containing query parameters needed for the request
+
+        SPECIAL NOTES:
+        - Disease IDs typically use MONDO ontology (e.g., "MONDO:0007947" for Marfan syndrome)
+        - Gene IDs typically use HGNC (e.g., "HGNC:3603" for FBN1) or other standard identifiers
+        - Phenotype IDs use Human Phenotype Ontology (e.g., "HP:0002616" for aortic root dilatation)
+        - Association categories use biolink model terms (e.g., "biolink:DiseaseToPhenotypicFeatureAssociation")
+        - For example: to find phenotypes associated with BRCA1, use the following endpoint: /entity/HGNC:1100/biolink:GeneToPhenotypicFeatureAssociation
+        - For search queries, use the 'q' parameter with relevant keywords
+        - When looking for associations, use the association_table endpoint with entity ID and category
+        - For similarity searches, use semsim endpoints with comma-separated term lists
+        - Entity categories include: biolink:Disease, biolink:Gene, biolink:PhenotypicFeature, etc.
+        - Format parameter defaults to 'json' but can be 'tsv' for tabular data
+        - Use autocomplete endpoint for entity name suggestions before exact searches
+
+        COMMON PATTERNS:
+        - Search for entities: Use 'search' endpoint with 'q' and 'category' parameters
+        - Get entity details: Use 'get_entity' endpoint with specific ID
+        - Find associations: Use 'association_table' endpoint with ID and association category
+        - Compare phenotypes: Use 'semsim_compare' with lists of phenotype IDs
+        - Find similar diseases: Use 'semsim_search' with phenotype profile
+
+        Return ONLY the JSON object with no additional text or explanations.
+        """
+
+        claude_result = _query_claude_for_api(
+            prompt=prompt,
+            schema=monarch_schema,
+            system_template=system_template,
+            api_key=api_key,
+            model=model,
+        )
+        if not claude_result["success"]:
+            return claude_result
+        query_info = claude_result["data"]
+        endpoint = query_info.get("url", "")  # Changed from "full_url" to "url"
+        description = f"Monarch API query: {query_info.get('endpoint', 'unknown endpoint')}"
+        if not endpoint:
+            return {
+                "error": "Failed to generate a valid endpoint from the prompt",
+                "claude_response": claude_result.get("raw_response", "No response"),
+            }
+    else:
+        # Use provided endpoint directly
+        if endpoint.startswith("/"):
+            endpoint = f"{base_url}{endpoint}"
+        elif not endpoint.startswith("http"):
+            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        description = "Direct query to Monarch API"
+
+    # Add max_results as a query parameter if not already present
+    if "?" in endpoint:
+        if "rows=" not in endpoint and "limit=" not in endpoint:
+            endpoint += f"&limit={max_results}"
+    else:
+        endpoint += f"?limit={max_results}"
+
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
+        return _format_query_results(api_result["result"])
 
     return api_result
 

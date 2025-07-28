@@ -26,7 +26,9 @@
 
 ## Overview
 
+
 Biomni is a general-purpose biomedical AI agent designed to autonomously execute a wide range of research tasks across diverse biomedical subfields. By integrating cutting-edge large language model (LLM) reasoning with retrieval-augmented planning and code-based execution, Biomni helps scientists dramatically enhance research productivity and generate testable hypotheses.
+
 
 ## Quick Start
 
@@ -57,7 +59,7 @@ Lastly, configure your API keys using one of the following methods:
 
 <details>
 <summary>Click to expand</summary>
-  
+
 #### Option 1: Using .env file (Recommended)
 
 Create a `.env` file in your project directory:
@@ -77,6 +79,9 @@ ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
 # Optional: OpenAI API Key (if using OpenAI models)
 OPENAI_API_KEY=your_openai_api_key_here
+
+# Optional: AI Studio Gemini API Key (if using Gemini models)
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Optional: AWS Bedrock Configuration (if using AWS Bedrock models)
 AWS_BEARER_TOKEN_BEDROCK=your_bedrock_api_key_here
@@ -102,6 +107,7 @@ export ANTHROPIC_API_KEY="YOUR_API_KEY"
 export OPENAI_API_KEY="YOUR_API_KEY" # optional if you just use Claude
 export AWS_BEARER_TOKEN_BEDROCK="YOUR_BEDROCK_API_KEY" # optional for AWS Bedrock models
 export AWS_REGION="us-east-1" # optional, defaults to us-east-1 for Bedrock
+export GEMINI_API_KEY="YOUR_GEMINI_API_KEY" #optional if you want to use a gemini model
 ```
 </details>
 

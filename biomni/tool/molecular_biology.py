@@ -896,8 +896,8 @@ def design_knockout_sgrna(
 
     """
     DEFAULT_LIBRARIES = {
-        "human": data_lake_path + "/sgRNA/KO_SP_human.txt",
-        "mouse": data_lake_path + "/sgRNA/KO_SP_mouse.txt",
+        "human": data_lake_path + "/sgRNA_KO_SP_human.txt",
+        "mouse": data_lake_path + "/sgRNA_KO_SP_mouse.txt",
     }
 
     # Use fixed library pathAdd commentMore actions
