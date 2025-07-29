@@ -137,6 +137,7 @@ def get_llm(
         return ChatMistralAI(
             model=model,
             temperature=temperature,
+            # model_kwargs={"stop_sequences": stop_sequences, "max_tokens": 8192 * 4},
         )
     elif source == "Bedrock":
         return ChatBedrock(
@@ -148,7 +149,16 @@ def get_llm(
         return ChatUpstage(
             model=model,
             temperature=temperature,
+            stop_sequences=stop_sequences,
+            reasoning_effort="high",
         )
+        # return ChatOpenAI(
+        #     model=model,
+        #     temperature=temperature,
+        #     api_key=os.getenv("UPSTAGE_API_KEY"),
+        #     base_url="https://api.upstage.ai/v1",
+        #     stop_sequences=stop_sequences,
+        # )
     elif source == "Custom":
         # Custom LLM serving such as SGLang. Must expose an openai compatible API.
         assert (

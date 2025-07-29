@@ -39,7 +39,9 @@ def run_r_code(code: str) -> str:
             temp_file = f.name
 
         # Run the R code using Rscript
-        result = subprocess.run(["Rscript", temp_file], capture_output=True, text=True, check=False)
+        result = subprocess.run(
+            ["Rscript", temp_file], capture_output=True, text=True, check=False
+        )
 
         # Clean up the temporary file
         os.unlink(temp_file)
@@ -203,7 +205,9 @@ def run_with_timeout(func, args=None, kwargs=None, timeout=600):
             result_queue.put(("error", str(e)))
 
     # Start a separate thread
-    thread = threading.Thread(target=thread_func, args=(func, args, kwargs, result_queue))
+    thread = threading.Thread(
+        target=thread_func, args=(func, args, kwargs, result_queue)
+    )
     thread.daemon = True  # Set as daemon so it will be killed when main thread exits
     thread.start()
 
@@ -223,10 +227,14 @@ def run_with_timeout(func, args=None, kwargs=None, timeout=600):
             if thread_id:
                 # This is a bit dangerous and not 100% reliable
                 # It attempts to raise a SystemExit exception in the thread
-                res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), ctypes.py_object(SystemExit))
+                res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
+                    ctypes.c_long(thread_id), ctypes.py_object(SystemExit)
+                )
                 if res > 1:
                     # Oops, we raised too many exceptions
-                    ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), None)
+                    ctypes.pythonapi.PyThreadState_SetAsyncExc(
+                        ctypes.c_long(thread_id), None
+                    )
         except Exception as e:
             print(f"Error trying to terminate thread: {e}")
 
@@ -300,15 +308,21 @@ def get_all_functions_from_file(file_path):
 
     # Walk through the AST nodes
     for node in tree.body:  # Only consider top-level nodes in the body
-        if isinstance(node, ast.FunctionDef):  # Check if the node is a function definition
+        if isinstance(
+            node, ast.FunctionDef
+        ):  # Check if the node is a function definition
             # Skip if function name starts with underscore
             if node.name.startswith("_"):
                 continue
 
             start_line = node.lineno - 1  # Get the starting line of the function
-            end_line = node.end_lineno  # Get the ending line of the function (only available in Python 3.8+)
+            end_line = (
+                node.end_lineno
+            )  # Get the ending line of the function (only available in Python 3.8+)
             func_code = file_content.splitlines()[start_line:end_line]
-            functions.append("\n".join(func_code))  # Join lines of the function and add to the list
+            functions.append(
+                "\n".join(func_code)
+            )  # Join lines of the function and add to the list
 
     return functions
 
@@ -326,7 +340,9 @@ def write_python_code(request: str):
     ```python
     ....
     ```"""
-    prompt = ChatPromptTemplate.from_messages([("system", template), ("human", "{input}")])
+    prompt = ChatPromptTemplate.from_messages(
+        [("system", template), ("human", "{input}")]
+    )
 
     def _sanitize_output(text: str):
         _, after = text.split("```python")
@@ -343,7 +359,9 @@ def execute_graphql_query(
 ) -> dict:
     """Executes a GraphQL query with variables and returns the data as a dictionary."""
     headers = {"Content-Type": "application/json"}
-    response = requests.post(api_address, json={"query": query, "variables": variables}, headers=headers)
+    response = requests.post(
+        api_address, json={"query": query, "variables": variables}, headers=headers
+    )
     if response.status_code == 200:
         return response.json()
     else:
@@ -439,7 +457,9 @@ def pretty_print(message, printout=True):
     if isinstance(message, tuple):
         title = message
     elif isinstance(message.content, list):
-        title = get_msg_title_repr(message.type.title().upper() + " Message", bold=is_interactive_env())
+        title = get_msg_title_repr(
+            message.type.title().upper() + " Message", bold=is_interactive_env()
+        )
         if message.name is not None:
             title += f"\nName: {message.name}"
 
@@ -452,7 +472,9 @@ def pretty_print(message, printout=True):
         if printout:
             print(f"{title}")
     else:
-        title = get_msg_title_repr(message.type.title() + " Message", bold=is_interactive_env())
+        title = get_msg_title_repr(
+            message.type.title() + " Message", bold=is_interactive_env()
+        )
         if message.name is not None:
             title += f"\nName: {message.name}"
         title += f"\n\n{message.content}"
@@ -481,7 +503,9 @@ class CustomBaseModel(BaseModel):
 
             error_msg = "Required Parameters:\n"
             for param in cls.api_schema["required_parameters"]:
-                error_msg += f"- {param['name']} ({param['type']}): {param['description']}\n"
+                error_msg += (
+                    f"- {param['name']} ({param['type']}): {param['description']}\n"
+                )
 
             error_msg += "\nErrors:\n"
             for err in e.errors():
@@ -495,7 +519,9 @@ class CustomBaseModel(BaseModel):
                 for key, value in obj.items():
                     error_msg += f"- {key}: {value}\n"
 
-                missing_params = {param["name"] for param in cls.api_schema["required_parameters"]} - set(obj.keys())
+                missing_params = {
+                    param["name"] for param in cls.api_schema["required_parameters"]
+                } - set(obj.keys())
                 if missing_params:
                     error_msg += "\nMissing Parameters:\n"
                     for param in missing_params:
@@ -529,7 +555,9 @@ def safe_execute_decorator(func):
 
 def api_schema_to_langchain_tool(api_schema, mode="generated_tool", module_name=None):
     if mode == "generated_tool":
-        module = importlib.import_module("biomni.tool.generated_tool." + api_schema["tool_name"] + ".api")
+        module = importlib.import_module(
+            "biomni.tool.generated_tool." + api_schema["tool_name"] + ".api"
+        )
     elif mode == "custom_tool":
         module = importlib.import_module(module_name)
 
@@ -565,10 +593,15 @@ def api_schema_to_langchain_tool(api_schema, mode="generated_tool", module_name=
                 # Default to Any for unknown types
                 annotations[param["name"]] = Any
 
-    fields = {param["name"]: Field(description=param["description"]) for param in api_schema["required_parameters"]}
+    fields = {
+        param["name"]: Field(description=param["description"])
+        for param in api_schema["required_parameters"]
+    }
 
     # Create the ApiInput class dynamically
-    ApiInput = type("Input", (CustomBaseModel,), {"__annotations__": annotations, **fields})
+    ApiInput = type(
+        "Input", (CustomBaseModel,), {"__annotations__": annotations, **fields}
+    )
     # Set the api_schema
     ApiInput.set_api_schema(api_schema)
 
@@ -587,7 +620,9 @@ def api_schema_to_langchain_tool(api_schema, mode="generated_tool", module_name=
 class ID(enum.Enum):
     ENTREZ = "Entrez"
     ENSEMBL = "Ensembl without version"  # e.g. ENSG00000123374
-    ENSEMBL_W_VERSION = "Ensembl with version"  # e.g. ENSG00000123374.10 (needed for GTEx)
+    ENSEMBL_W_VERSION = (
+        "Ensembl with version"  # e.g. ENSG00000123374.10 (needed for GTEx)
+    )
 
 
 def get_gene_id(gene_symbol: str, id_type: ID):
@@ -682,7 +717,11 @@ class PromptLogger(BaseCallbackHandler):
 
 class NodeLogger(BaseCallbackHandler):
     def on_llm_end(self, response, **kwargs):  # response of type LLMResult
-        for generations in response.generations:  # response.generations of type List[List[Generations]] becuase "each input could have multiple candidate generations"
+        for (
+            generations
+        ) in (
+            response.generations
+        ):  # response.generations of type List[List[Generations]] becuase "each input could have multiple candidate generations"
             for generation in generations:
                 generated_text = generation.message.content
                 # token_usage = generation.message.response_metadata["token_usage"]
@@ -741,10 +780,16 @@ def langchain_to_gradio_message(message):
                     gradio_message["metadata"]["title"] = "🛠️ Writing code..."
                     # input = "```python {code_block}```\n".format(code_block=item['input']["command"])
                     gradio_message["metadata"]["log"] = "Executing Code block..."
-                    gradio_message["content"] = f"##### Code: \n ```python \n {item['input']['command']} \n``` \n"
+                    gradio_message["content"] = (
+                        f"##### Code: \n ```python \n {item['input']['command']} \n``` \n"
+                    )
                 else:
-                    gradio_message["metadata"]["title"] = f"🛠️ Used tool ```{item['name']}```"
-                    to_print = ";".join([i + ": " + str(j) for i, j in item["input"].items()])
+                    gradio_message["metadata"][
+                        "title"
+                    ] = f"🛠️ Used tool ```{item['name']}```"
+                    to_print = ";".join(
+                        [i + ": " + str(j) for i, j in item["input"].items()]
+                    )
                     gradio_message["metadata"]["log"] = f"🔍 Input -- {to_print}\n"
                 gradio_message["metadata"]["status"] = "pending"
                 gradio_messages.append(gradio_message)
@@ -810,7 +855,9 @@ def textify_api_dict(api_dict):
         lines.append("=" * (len("Import file: ") + len(category)))
         for method in methods:
             lines.append(f"Method: {method.get('name', 'N/A')}")
-            lines.append(f"  Description: {method.get('description', 'No description provided.')}")
+            lines.append(
+                f"  Description: {method.get('description', 'No description provided.')}"
+            )
 
             # Process required parameters
             req_params = method.get("required_parameters", [])
@@ -821,7 +868,9 @@ def textify_api_dict(api_dict):
                     param_type = param.get("type", "N/A")
                     param_desc = param.get("description", "No description")
                     param_default = param.get("default", "None")
-                    lines.append(f"    - {param_name} ({param_type}): {param_desc} [Default: {param_default}]")
+                    lines.append(
+                        f"    - {param_name} ({param_type}): {param_desc} [Default: {param_default}]"
+                    )
 
             # Process optional parameters
             opt_params = method.get("optional_parameters", [])
@@ -832,35 +881,41 @@ def textify_api_dict(api_dict):
                     param_type = param.get("type", "N/A")
                     param_desc = param.get("description", "No description")
                     param_default = param.get("default", "None")
-                    lines.append(f"    - {param_name} ({param_type}): {param_desc} [Default: {param_default}]")
-
+                    lines.append(
+                        f"    - {param_name} ({param_type}): {param_desc} [Default: {param_default}]"
+                    )
+            if method.get("return"):
+                lines.append(f"    - Returns: {method.get('return')}")
             lines.append("")  # Empty line between methods
         lines.append("")  # Extra empty line after each category
 
     return "\n".join(lines)
 
 
-def read_module2api():
-    fields = [
-        "literature",
-        "biochemistry",
-        "bioengineering",
-        "biophysics",
-        "cancer_biology",
-        "cell_biology",
-        "molecular_biology",
-        "genetics",
-        "genomics",
-        "immunology",
-        "microbiology",
-        "pathology",
-        "pharmacology",
-        "physiology",
-        "synthetic_biology",
-        "systems_biology",
-        "support_tools",
-        "database",
-    ]
+def read_module2api(allowed_fields=None):
+    if allowed_fields is not None:
+        fields = allowed_fields
+    else:
+        fields = [
+            "literature",
+            "biochemistry",
+            "bioengineering",
+            "biophysics",
+            "cancer_biology",
+            "cell_biology",
+            "molecular_biology",
+            "genetics",
+            "genomics",
+            "immunology",
+            "microbiology",
+            "pathology",
+            "pharmacology",
+            "physiology",
+            "synthetic_biology",
+            "systems_biology",
+            "support_tools",
+            "database",
+        ]
 
     module2api = {}
     for field in fields:
@@ -913,7 +968,10 @@ def download_and_unzip(url: str, dest_dir: str) -> str:
 
 
 def check_and_download_s3_files(
-    s3_bucket_url: str, local_data_lake_path: str, expected_files: list[str], folder: str = "data_lake"
+    s3_bucket_url: str,
+    local_data_lake_path: str,
+    expected_files: list[str],
+    folder: str = "data_lake",
 ) -> dict[str, bool]:
     """Check for missing files in the local data lake and download them from S3 bucket.
 
@@ -940,7 +998,9 @@ def check_and_download_s3_files(
 
             with open(file_path, "wb") as f:
                 if total_size > 0:
-                    with tqdm.tqdm(total=total_size, unit="B", unit_scale=True, desc=desc, ncols=80) as pbar:
+                    with tqdm.tqdm(
+                        total=total_size, unit="B", unit_scale=True, desc=desc, ncols=80
+                    ) as pbar:
                         for chunk in response.iter_content(chunk_size=8192):
                             if chunk:
                                 f.write(chunk)
