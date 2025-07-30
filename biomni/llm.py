@@ -10,16 +10,18 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_ollama import ChatOllama
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
 
+from biomni.config import config
+
 SourceType = Literal["OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Custom"]
 
 
 def get_llm(
-    model: str = "claude-3-5-sonnet-20241022",
+    model: str = config.llm_model,
     temperature: float = 0.7,
     stop_sequences: list[str] | None = None,
     source: SourceType | None = None,
-    base_url: str | None = None,
-    api_key: str = "EMPTY",
+    base_url: str | None = config.base_url,
+    api_key: str | None = config.api_key,
 ) -> BaseChatModel:
     """
     Get a language model instance based on the specified model name and source.
@@ -60,8 +62,8 @@ def get_llm(
     elif source == "AzureOpenAI":
         API_VERSION = "2024-12-01-preview"
         return AzureChatOpenAI(
-            openai_api_key=os.getenv("OPENAI_API_KEY"),
-            azure_endpoint=os.getenv("OPENAI_ENDPOINT"),
+            openai_api_key=api_key,
+            azure_endpoint=base_url,
             azure_deployment=model,
             openai_api_version=API_VERSION,
             temperature=temperature,
