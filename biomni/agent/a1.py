@@ -107,12 +107,7 @@ class A1:
         self.path = os.path.join(path, "biomni_data")
         module2api = read_module2api()
 
-        self.llm = get_llm(
-            model=llm,
-            stop_sequences=["</execute>", "</solution>"],
-            base_url=base_url,
-            api_key=api_key,
-        )
+        self.llm = get_llm(model=llm, stop_sequences=["</execute>", "</solution>"])
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
 
