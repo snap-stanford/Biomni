@@ -1334,19 +1334,23 @@ def query_stringdb(
         """
 
         # Query Claude to generate the API call
-        claude_result = _query_claude_for_api(
+        # claude_result = _query_claude_for_api(
+        #     prompt=prompt,
+        #     schema=stringdb_schema,
+        #     system_template=system_template,
+        #     api_key=api_key,
+        #     model=model,
+        # )
+        result = _query_llm_for_api(
             prompt=prompt,
             schema=stringdb_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
-
-        if not claude_result["success"]:
-            return claude_result
+        if not result["success"]:
+            return result
 
         # Get the full URL from Claude's response
-        query_info = claude_result["data"]
+        query_info = result["data"]
         endpoint = query_info.get("full_url", "")
         description = query_info.get("description", "")
         output_format = query_info.get("output_format", "json")
@@ -1354,7 +1358,7 @@ def query_stringdb(
         if not endpoint:
             return {
                 "error": "Failed to generate a valid endpoint from the prompt",
-                "claude_response": claude_result.get("raw_response", "No response"),
+                "claude_response": result.get("raw_response", "No response"),
             }
     else:
         # Use direct endpoint
@@ -1368,7 +1372,6 @@ def query_stringdb(
         # Try to determine output format from URL
         if "image" in endpoint or "svg" in endpoint:
             output_format = "image"
-
     # Check if we're dealing with an image request
     is_image = output_format in ["image", "highres_image", "svg"]
 
@@ -1386,9 +1389,9 @@ def query_stringdb(
 
                 # Generate filename based on endpoint
                 endpoint_parts = endpoint.split("/")
-                filename = (
-                    f"string_{endpoint_parts[-2]}_{int(time.time())}.{output_format}"
-                )
+                # Handle special case where output_format is "image" - use png extension
+                extension = "png" if output_format == "image" else output_format
+                filename = f"string_{endpoint_parts[-2]}_{int(time.time())}.{extension}"
                 file_path = os.path.join(output_dir, filename)
 
                 # Save the image
@@ -2867,7 +2870,9 @@ def query_monarch(
 
     # If using prompt, use Claude to generate the endpoint
     if prompt:
-        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "monarch.pkl")
+        schema_path = os.path.join(
+            os.path.dirname(__file__), "schema_db", "monarch.pkl"
+        )
         if os.path.exists(schema_path):
             with open(schema_path, "rb") as f:
                 monarch_schema = pickle.load(f)
@@ -2920,7 +2925,9 @@ def query_monarch(
             return claude_result
         query_info = claude_result["data"]
         endpoint = query_info.get("url", "")  # Changed from "full_url" to "url"
-        description = f"Monarch API query: {query_info.get('endpoint', 'unknown endpoint')}"
+        description = (
+            f"Monarch API query: {query_info.get('endpoint', 'unknown endpoint')}"
+        )
         if not endpoint:
             return {
                 "error": "Failed to generate a valid endpoint from the prompt",
@@ -2941,9 +2948,16 @@ def query_monarch(
     else:
         endpoint += f"?limit={max_results}"
 
-    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+    api_result = _query_rest_api(
+        endpoint=endpoint, method="GET", description=description
+    )
 
-    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
+    if (
+        not verbose
+        and "success" in api_result
+        and api_result["success"]
+        and "result" in api_result
+    ):
         return _format_query_results(api_result["result"])
 
     return api_result

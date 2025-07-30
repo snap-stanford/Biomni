@@ -885,7 +885,7 @@ def textify_api_dict(api_dict):
                         f"    - {param_name} ({param_type}): {param_desc} [Default: {param_default}]"
                     )
             if method.get("return"):
-                lines.append(f"    - Returns: {method.get('return')}")
+                lines.append(f"  Returns: {method.get('return')}")
             lines.append("")  # Empty line between methods
         lines.append("")  # Extra empty line after each category
 
@@ -915,6 +915,7 @@ def read_module2api(allowed_fields=None):
             "systems_biology",
             "support_tools",
             "database",
+            "proteomics",
         ]
 
     module2api = {}

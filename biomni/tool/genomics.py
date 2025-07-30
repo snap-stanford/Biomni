@@ -5,7 +5,7 @@ import gseapy
 import numpy as np
 import pandas as pd
 import scanpy as sc
-
+import matplotlib.pyplot as plt
 from biomni.llm import get_llm
 
 
@@ -19,20 +19,23 @@ def annotate_celltype_scRNA(
     composition=None,
 ):
     """Annotate cell types based on gene markers and transferred labels using LLM.
+
     After leiden clustering, annotate clusters using differentially expressed genes
     and optionally incorporate transferred labels from reference datasets.
 
-    Parameters
-    ----------
-    - adata_filename (str): Name of the AnnData file containing scRNA-seq data
-    - data_dir (str): Directory containing the data files
-    - data_info (str): Information about the scRNA-seq data (e.g., "homo sapiens, brain tissue, normal")
-    - data_lake_path (str): Path to the data lake
-    - llm (str): Language model instance for cell type prediction, such as 'claude-3-haiku-20240307'
-    - composition (pd.DataFrame, optional): Transferred cell type composition for each cluster
-    Returns:
-    - str: Steps performed and file paths where results were saved
+    Args:
+        adata_filename (str): Name of the AnnData file containing scRNA-seq data.
+        data_dir (str): Directory containing the data files.
+        data_info (str): Information about the scRNA-seq data (e.g., "homo sapiens, brain tissue, normal").
+        data_lake_path (str): Path to the data lake.
+        cluster (str, optional): Clustering method to use. Defaults to "leiden".
+        llm (str, optional): Language model instance for cell type prediction.
+            Defaults to "claude-3-5-sonnet-20241022".
+        composition (pd.DataFrame, optional): Transferred cell type composition for each cluster.
+            Defaults to None.
 
+    Returns:
+        str: Steps performed and file paths where results were saved.
     """
 
     def _cluster_info(cluster_id, marker_genes, composition_df=None):
@@ -53,13 +56,16 @@ def annotate_celltype_scRNA(
         return "\n".join(info) + " " + "; ".join(cluster_comp) + "\n"
 
     from langchain_core.prompts import PromptTemplate
+
     # from langchain.chains import LLMChain
 
     steps = []
     steps.append(f"Loading AnnData from {data_dir}/{adata_filename}")
     adata = sc.read_h5ad(f"{data_dir}/{adata_filename}")
 
-    steps.append(f"Identifying marker genes for clusters defined by {cluster} clustering.")
+    steps.append(
+        f"Identifying marker genes for clusters defined by {cluster} clustering."
+    )
     sc.tl.rank_genes_groups(adata, groupby="leiden", method="wilcoxon", use_raw=False)
     genes = pd.DataFrame(adata.uns["rank_genes_groups"]["names"]).head(20)
     scores = pd.DataFrame(adata.uns["rank_genes_groups"]["scores"]).head(20)
@@ -73,7 +79,11 @@ def annotate_celltype_scRNA(
     # TODO: this can be optimized
     czi_celltype_path = data_lake_path + "/czi_census_datasets_v4.parquet"
     df = pd.read_parquet(czi_celltype_path)
-    czi_celltype_set = {cell_type.strip() for cell_types in df["cell_type"] for cell_type in str(cell_types).split(";")}
+    czi_celltype_set = {
+        cell_type.strip()
+        for cell_types in df["cell_type"]
+        for cell_type in str(cell_types).split(";")
+    }
     czi_celltype = ", ".join(sorted(czi_celltype_set))
 
     prompt_template = f"""
@@ -93,7 +103,9 @@ No numbers before name or spaces before number.
     prompt = PromptTemplate(input_variables=["cluster_info"], template=prompt_template)
     chain = prompt | llm
 
-    steps.append("Annotating cell types of each cluster based on gene markers and transferred labels.")
+    steps.append(
+        "Annotating cell types of each cluster based on gene markers and transferred labels."
+    )
     # valid_celltypes = set(czi_celltype.split(";"))
     cluster_annotations = {}
     annotation_reasons = []
@@ -116,13 +128,20 @@ No numbers before name or spaces before number.
                 response = str(response)
 
             try:
-                predicted_celltype, confidence, reason = [x.strip() for x in response.split(";", 2)]
-                if predicted_celltype in czi_celltype_set or predicted_celltype.lower() in czi_celltype_set:
+                predicted_celltype, confidence, reason = [
+                    x.strip() for x in response.split(";", 2)
+                ]
+                if (
+                    predicted_celltype in czi_celltype_set
+                    or predicted_celltype.lower() in czi_celltype_set
+                ):
                     cluster_annotations[str(_idx)] = predicted_celltype
                     annotation_reasons.append((predicted_celltype, reason))
                     break
                 else:
-                    cluster_info += "\nAssigned cell type name must be in cell ontology!"
+                    cluster_info += (
+                        "\nAssigned cell type name must be in cell ontology!"
+                    )
             except ValueError:
                 cluster_info += "\nPlease follow the format: name; score; reason"
         print(f"Cluster {_idx}: {response}")
@@ -139,7 +158,9 @@ No numbers before name or spaces before number.
     adata.obs["cell_type"] = adata.obs[cluster].map(cluster_annotations)
     adata.obs["cell_type_reason"] = adata.obs["cell_type"].map(reason_dict).astype(str)
 
-    steps.append(f"Saving annotated adata to {data_dir}/annotated.h5ad, the annotations are in the 'cell_type' column.")
+    steps.append(
+        f"Saving annotated adata to {data_dir}/annotated.h5ad, the annotations are in the 'cell_type' column."
+    )
     adata.write(f"{data_dir}/annotated.h5ad", compression="gzip")
 
     return "\n".join(steps)
@@ -157,27 +178,20 @@ def annotate_celltype_with_panhumanpy(
     This function implements the panhumanpy workflow for cell type annotation using the
     Azimuth Neural Network, providing hierarchical cell type labels with confidence scores.
 
-    Parameters
-    ----------
-    adata_path : str
-        Path to the AnnData file containing scRNA-seq data
-    feature_names_col : str, optional
-        Column name in adata.var containing gene names (default: None, uses index)
-    refine : bool, optional
-        Whether to perform label refinement for consistent granularity (default: True)
-    umap : bool, optional
-        Whether to generate ANN embeddings and UMAP (default: True)
-    output_dir : str, optional
-        Directory to save results (default: "./output")
+    Args:
+        adata_path (str): Path to the AnnData file containing scRNA-seq data.
+        feature_names_col (str, optional): Column name in adata.var containing gene names.
+            If None, uses index. Defaults to None.
+        refine (bool, optional): Whether to perform label refinement for consistent granularity.
+            Defaults to True.
+        umap (bool, optional): Whether to generate ANN embeddings and UMAP. Defaults to True.
+        output_dir (str, optional): Directory to save results. Defaults to "./output".
 
-    Returns
-    -------
-    str
-        Research log summarizing the analysis steps and results
+    Returns:
+        str: Research log summarizing the analysis steps and results.
 
-    Notes
-    -----
-    Performance is not ensured for diseased and/or non-human cells.
+    Note:
+        Performance is not ensured for diseased and/or non-human cells.
     """
     import json
     import shutil
@@ -187,17 +201,29 @@ def annotate_celltype_with_panhumanpy(
 
     def conda_env_exists(env_name):
         try:
-            result = subprocess.run(["conda", "env", "list"], capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                ["conda", "env", "list"], capture_output=True, text=True, check=True
+            )
             return any(env_name in line.split() for line in result.stdout.splitlines())
         except Exception:
             return False
 
     def create_panhumanpy_env(env_name):
         # Create env and install panhumanpy
-        subprocess.run(["conda", "create", "-y", "-n", env_name, "python=3.10"], check=True)
+        subprocess.run(
+            ["conda", "create", "-y", "-n", env_name, "python=3.10"], check=True
+        )
         # Install panhumanpy in the new env
         subprocess.run(
-            ["conda", "run", "-n", env_name, "pip", "install", "git+https://github.com/satijalab/panhumanpy.git"],
+            [
+                "conda",
+                "run",
+                "-n",
+                env_name,
+                "pip",
+                "install",
+                "git+https://github.com/satijalab/panhumanpy.git",
+            ],
             check=True,
         )
 
@@ -212,7 +238,8 @@ def annotate_celltype_with_panhumanpy(
     script_path = os.path.join(temp_dir, "run_panhumanpy.py")
     result_path = os.path.join(temp_dir, "result.json")
     with open(script_path, "w") as f:
-        f.write(f"""
+        f.write(
+            f"""
 import os
 import sys
 import json
@@ -313,7 +340,8 @@ except Exception as e:
     with open(r'{result_path}', 'w') as out:
         out.write(json.dumps({{"error": str(e)}}))
     sys.exit(1)
-""")
+"""
+        )
 
     # 3. Run the script in the panhumanpy_env
     try:
@@ -346,6 +374,17 @@ except Exception as e:
 
 
 def create_scvi_embeddings_scRNA(adata_filename, batch_key, label_key, data_dir):
+    """Create scVI and scANVI embeddings for single-cell RNA-seq data integration.
+
+    Args:
+        adata_filename (str): Name of the AnnData file containing scRNA-seq data.
+        batch_key (str): Key in adata.obs for batch information.
+        label_key (str): Key in adata.obs for cell type labels.
+        data_dir (str): Directory containing the data files.
+
+    Returns:
+        str: Steps performed and file paths where results were saved.
+    """
     # Import scvi-tools correctly - the package name is still 'scvi' when installed
     try:
         import scvi
@@ -387,6 +426,16 @@ def create_scvi_embeddings_scRNA(adata_filename, batch_key, label_key, data_dir)
 
 
 def create_harmony_embeddings_scRNA(adata_filename, batch_key, data_dir):
+    """Create Harmony embeddings for single-cell RNA-seq data integration.
+
+    Args:
+        adata_filename (str): Name of the AnnData file containing scRNA-seq data.
+        batch_key (str): Key in adata.obs for batch information.
+        data_dir (str): Directory containing the data files.
+
+    Returns:
+        str: Steps performed and file paths where results were saved.
+    """
     # https://pypi.org/project/harmony-pytorch/
     from harmony import harmonize
 
@@ -395,7 +444,9 @@ def create_harmony_embeddings_scRNA(adata_filename, batch_key, data_dir):
     adata = sc.read_h5ad(f"{data_dir}/{adata_filename}")
 
     steps.append(f"Running Harmony integration with batch key: {batch_key}")
-    adata.obsm["X_harmony"] = harmonize(adata.obsm["X_pca"], adata.obs, batch_key=batch_key)
+    adata.obsm["X_harmony"] = harmonize(
+        adata.obsm["X_pca"], adata.obs, batch_key=batch_key
+    )
 
     output_filename = f"{data_dir}/harmony_emb_data.h5ad"
     steps.append(f"Saving the Harmony embeddings to {output_filename}.")
@@ -411,9 +462,22 @@ def get_uce_embeddings_scRNA(
     DATA_ROOT="/dfs/project/bioagentos/data/singlecell/",
     custom_args=None,
 ):
-    """The UCE embeddings are usually our default tools to get cell embeddings, we map UCE embeddings to IMA referece dataset and get the cell types for a better understanding.
-    The custom_args is a list of strings that will be passed as command line arguments to the UCE script,
-    like ["--adata_path", adata_file, "--dir", output_dir]. The default value is None.
+    """Generate UCE embeddings for single-cell RNA-seq data.
+
+    The UCE embeddings are usually our default tools to get cell embeddings, we map UCE
+    embeddings to IMA reference dataset and get the cell types for a better understanding.
+
+    Args:
+        adata_filename (str): Name of the AnnData file containing scRNA-seq data.
+        data_dir (str): Directory containing the data files.
+        DATA_ROOT (str, optional): Root directory for UCE data.
+            Defaults to "/dfs/project/bioagentos/data/singlecell/".
+        custom_args (list, optional): List of strings that will be passed as command line
+            arguments to the UCE script, like ["--adata_path", adata_file, "--dir", output_dir].
+            Defaults to None.
+
+    Returns:
+        str: Steps performed and file paths where results were saved.
     """
     import sys
 
@@ -424,7 +488,9 @@ def get_uce_embeddings_scRNA(
 
         steps.append("Successfully imported UCE main function")
     except Exception:
-        steps.append("Please install the UCE package first. Follow https://github.com/snap-stanford/UCE.git.")
+        steps.append(
+            "Please install the UCE package first. Follow https://github.com/snap-stanford/UCE.git."
+        )
         return "\n".join(steps)
 
     from accelerate import Accelerator
@@ -432,7 +498,9 @@ def get_uce_embeddings_scRNA(
     _base_name = os.path.basename(adata_filename).split(".")[0]
     adata_file_proc = f"{data_dir}/{_base_name}_uce_adata.h5ad"
     if os.path.exists(adata_file_proc):
-        steps.append(f"{adata_file_proc} already exists, skipping. The UCE embeddings are stored as adata.obs['X_uce']")
+        steps.append(
+            f"{adata_file_proc} already exists, skipping. The UCE embeddings are stored as adata.obs['X_uce']"
+        )
         return "\n".join(steps)
 
     uce_dir = f"{DATA_ROOT}/UCE"
@@ -442,7 +510,9 @@ def get_uce_embeddings_scRNA(
     # Prepare and parse arguments
     if custom_args is None:
         custom_args = []
-    custom_args.extend(["--adata_path", f"{data_dir}/{adata_filename}", "--dir", f"{data_dir}/uce/"])
+    custom_args.extend(
+        ["--adata_path", f"{data_dir}/{adata_filename}", "--dir", f"{data_dir}/uce/"]
+    )
     parsed_args = parse_args_uce(custom_args)
     steps.append(f"Parsed arguments: {vars(parsed_args)}")
 
@@ -453,13 +523,29 @@ def get_uce_embeddings_scRNA(
     # Run UCE main function
     main(parsed_args, accelerator)
     steps.append("UCE main function completed successfully.")
-    steps.append(f"{adata_file_proc} is saved, the UCE embeddings are stored as adata.obs['X_uce']")
+    steps.append(
+        f"{adata_file_proc} is saved, the UCE embeddings are stored as adata.obs['X_uce']"
+    )
 
     return "\n".join(steps)
 
 
 def map_to_ima_interpret_scRNA(adata_filename, data_dir, custom_args=None):
-    """Map cell embeddings from the input dataset to the Integrated Megascale Atlas reference dataset using UCE embeddings."""
+    """Map cell embeddings to the Integrated Megascale Atlas reference dataset using UCE embeddings.
+
+    Args:
+        adata_filename (str): Name of the AnnData file containing scRNA-seq data with UCE embeddings.
+        data_dir (str): Directory containing the data files.
+        custom_args (dict, optional): Custom arguments for mapping parameters.
+            Can include 'n_neighbors' and 'metric'. Defaults to None.
+
+    Returns:
+        str: Steps performed and file paths where results were saved.
+
+    Raises:
+        ValueError: If adata.obsm['X_uce'] is not found or if UCE embedding dimensions
+            do not match between datasets.
+    """
     from sklearn.neighbors import NearestNeighbors
 
     steps = []
@@ -467,7 +553,9 @@ def map_to_ima_interpret_scRNA(adata_filename, data_dir, custom_args=None):
     adata = sc.read_h5ad(f"{data_dir}/{adata_filename}")
 
     if "X_uce" not in adata.obsm:
-        raise ValueError("Error: adata.obsm['X_uce'] not found. Please run get_uce_embeddings() first.")
+        raise ValueError(
+            "Error: adata.obsm['X_uce'] not found. Please run get_uce_embeddings() first."
+        )
 
     steps.append("adata.obs['X_uce'] found. Proceeding with cell type mapping.")
 
@@ -478,6 +566,8 @@ def map_to_ima_interpret_scRNA(adata_filename, data_dir, custom_args=None):
         raise ValueError("UCE embedding dimensions do not match between datasets.")
 
     # Create a NearestNeighbors object
+    if custom_args is None:
+        custom_args = {}
     n_neighbors = custom_args.get("n_neighbors", 3)
     metric = custom_args.get("metric", "euclidean")
     nn = NearestNeighbors(n_neighbors=n_neighbors, metric=metric)
@@ -487,7 +577,9 @@ def map_to_ima_interpret_scRNA(adata_filename, data_dir, custom_args=None):
     distances, indices = nn.kneighbors(adata.obsm["X_uce"])
 
     # Extract cell types of the nearest neighbors
-    mapped_cell_types = IMA_adata.obs["coarse_cell_type_yanay"].iloc[indices.flatten()].values
+    mapped_cell_types = (
+        IMA_adata.obs["coarse_cell_type_yanay"].iloc[indices.flatten()].values
+    )
 
     # from umap import UMAP
     if n_neighbors > 1:
@@ -497,7 +589,9 @@ def map_to_ima_interpret_scRNA(adata_filename, data_dir, custom_args=None):
             unique, counts = np.unique(x, return_counts=True)
             return unique[np.argmax(counts)]
 
-        mapped_cell_types = np.apply_along_axis(custom_mode, 1, mapped_cell_types.reshape(-1, n_neighbors))
+        mapped_cell_types = np.apply_along_axis(
+            custom_mode, 1, mapped_cell_types.reshape(-1, n_neighbors)
+        )
 
     # Add mapped cell types and confidence scores to adata
     adata.obs["mapped_cell_type"] = mapped_cell_types
@@ -519,18 +613,17 @@ def map_to_ima_interpret_scRNA(adata_filename, data_dir, custom_args=None):
 
 
 def get_rna_seq_archs4(gene_name: str, K: int = 10) -> str:
-    """Given a gene name, this function returns the steps it performs and the max K transcripts-per-million (TPM)
+    """Fetch RNA-seq expression data for a gene from ARCHS4 database.
+
+    Given a gene name, this function returns the max K transcripts-per-million (TPM)
     per tissue from the RNA-seq expression.
 
-    Parameters
-    ----------
-    - gene_name (str): The gene name for which RNA-seq data is being fetched.
-    - K (int): The number of tissues to return. Default is 10.
+    Args:
+        gene_name (str): The gene name for which RNA-seq data is being fetched.
+        K (int, optional): The number of tissues to return. Defaults to 10.
 
-    Returns
-    -------
-    - str: The steps performed and the result.
-
+    Returns:
+        str: The steps performed and the result.
     """
     steps_log = f"Starting RNA-seq data fetch for gene: {gene_name} with K: {K}\n"
 
@@ -562,6 +655,11 @@ def get_rna_seq_archs4(gene_name: str, K: int = 10) -> str:
 
 
 def get_gene_set_enrichment_analysis_supported_database_list() -> list:
+    """Get list of supported databases for gene set enrichment analysis.
+
+    Returns:
+        list: List of supported database names.
+    """
     return gseapy.get_library_name()
 
 
@@ -571,34 +669,62 @@ def gene_set_enrichment_analysis(
     database: str = "ontology",
     background_list: list = None,
     plot: bool = False,
+    plot_output_path: str = None,
 ) -> str:
-    """Perform enrichment analysis for a list of genes, with optional background gene set and plotting functionality.
+    """Perform gene set enrichment analysis for a list of genes.
 
-    Parameters
-    ----------
-    - genes (list): List of gene symbols to analyze.
-    - top_k (int): Number of top pathways to return. Default is 10.
-    - database (str): User-friendly name of the database to use for enrichment analysis.
-        Popular options include:
-        - 'pathway'      (KEGG_2021_Human)
-        - 'transcription'   (ChEA_2016)
-        - 'ontology'     (GO_Biological_Process_2021)
-        - 'diseases_drugs'  (GWAS_Catalog_2019)
-        - 'celltypes'     (PanglaoDB_Augmented_2021)
-        - 'kinase_interactions' (KEA_2015)
-        You can use get_gene_set_enrichment_analysis_supported_database_list tool to get the list of supported databases.
+    This function performs enrichment analysis using the gget.enrichr method to identify
+    significantly enriched pathways, biological processes, or other gene sets associated
+    with the input gene list. It supports various databases and optional background gene
+    sets for more accurate statistical analysis.
 
-    - background_list (list, optional): List of background genes to use for enrichment analysis.
-    - plot (bool, optional): If True, generates a bar plot of the top K enrichment results.
+    Args:
+        genes (list): List of gene symbols to analyze for enrichment.
+        top_k (int, optional): Number of top enriched pathways to return in results.
+            Defaults to 10.
+        database (str, optional): Database to use for enrichment analysis. Popular options:
+            - 'pathway': KEGG pathway analysis (KEGG_2021_Human)
+            - 'transcription': Transcription factor targets (ChEA_2016)
+            - 'ontology': Gene Ontology biological processes (GO_Biological_Process_2021)
+            - 'diseases_drugs': Disease and drug associations (GWAS_Catalog_2019)
+            - 'celltypes': Cell type-specific gene sets (PanglaoDB_Augmented_2021)
+            - 'kinase_interactions': Kinase-substrate interactions (KEA_2015)
+            Use get_gene_set_enrichment_analysis_supported_database_list() to see all
+            available databases. Defaults to "ontology".
+        background_list (list, optional): List of background genes to use as the universe
+            for statistical testing. If None, uses the default background from the database.
+            Providing a relevant background can improve specificity of results. Defaults to None.
+        plot (bool, optional): Whether to generate a bar plot visualization of the top K
+            enrichment results. Requires plot_output_path if True. Defaults to False.
+        plot_output_path (str, optional): File path to save the plot if plot=True.
+            Should include file extension (e.g., '.png', '.pdf'). Defaults to None.
 
-    Returns
-    -------
-    - str: The steps performed and the top K enrichment results.
+    Returns:
+        str: Detailed log of analysis steps and formatted results showing the top K
+            enriched gene sets with statistics including rank, pathway name, p-values,
+            z-scores, combined scores, overlapping genes, and database information.
 
+    Raises:
+        Exception: If enrichment analysis fails due to invalid genes, database issues,
+            or other gget.enrichr errors.
+
+    Examples:
+        >>> genes = ['TP53', 'BRCA1', 'BRCA2', 'ATM', 'CHEK2']
+        >>> result = gene_set_enrichment_analysis(genes, top_k=5, database='pathway')
+        >>> print(result)
+
+        >>> # With background and plotting
+        >>> background = ['TP53', 'BRCA1', 'EGFR', 'MYC', ...]  # larger gene list
+        >>> result = gene_set_enrichment_analysis(
+        ...     genes,
+        ...     background_list=background,
+        ...     plot=True,
+        ...     plot_output_path='enrichment_plot.png'
+        ... )
     """
-    steps_log = (
-        f"Starting enrichment analysis for genes: {', '.join(genes)} using {database} database and top_k: {top_k}\n"
-    )
+    if plot and plot_output_path is None:
+        raise ValueError("plot_output_path must be provided if plot is True")
+    steps_log = f"Starting enrichment analysis for genes: {', '.join(genes)} using {database} database and top_k: {top_k}\n"
 
     if background_list:
         steps_log += f"Using background list with {len(background_list)} genes.\n"
@@ -606,7 +732,9 @@ def gene_set_enrichment_analysis(
     try:
         # Perform enrichment analysis with or without background list
         steps_log += f"Performing enrichment analysis using gget.enrichr with the {database} database...\n"
-        df = gget.enrichr(genes, database=database, background_list=background_list, plot=plot)
+        df = gget.enrichr(
+            genes, database=database, background_list=background_list, plot=plot
+        )
 
         # Limit to top K results
         steps_log += f"Filtering the top {top_k} enrichment results...\n"
@@ -615,19 +743,21 @@ def gene_set_enrichment_analysis(
         # Format the result
         output_str = ""
         for _idx, row in df.iterrows():
+            print(type(row["z_score"]), isinstance(row["z_score"], str))
             output_str += (
                 f"Rank: {row['rank']}\n"
                 f"Path Name: {row['path_name']}\n"
-                f"P-value: {row['p_val']:.2e}\n"
-                f"Z-score: {row['z_score']:.6f}\n"
-                f"Combined Score: {row['combined_score']:.6f}\n"
+                f"P-value: {row['p_val']}\n"
+                f"Z-score: {row['z_score']}\n"
+                f"Combined Score: {row['combined_score']}\n"
                 f"Overlapping Genes: {', '.join(row['overlapping_genes'])}\n"
-                f"Adjusted P-value: {row['adj_p_val']:.2e}\n"
+                f"Adjusted P-value: {row['adj_p_val']}\n"
                 f"Database: {row['database']}\n"
                 "----------------------------------------\n"
             )
-
         steps_log += output_str
+        if plot:
+            plt.savefig(plot_output_path)
 
         return steps_log
 
@@ -635,24 +765,19 @@ def gene_set_enrichment_analysis(
         return f"An error occurred: {e}"
 
 
-def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, output_dir="./output"):
+def analyze_chromatin_interactions(
+    hic_file_path, regulatory_elements_bed, output_dir="./output"
+):
     """Analyze chromatin interactions from Hi-C data to identify enhancer-promoter interactions and TADs.
 
-    Parameters
-    ----------
-    hic_file_path : str
-        Path to the Hi-C data file (.cool or .hic format)
-    regulatory_elements_bed : str
-        Path to BED file containing genomic coordinates of regulatory elements
-        (enhancers, promoters, CTCF sites, etc.)
-    output_dir : str
-        Directory to save output files (default: "./output")
+    Args:
+        hic_file_path (str): Path to the Hi-C data file (.cool or .hic format).
+        regulatory_elements_bed (str): Path to BED file containing genomic coordinates of
+            regulatory elements (enhancers, promoters, CTCF sites, etc.).
+        output_dir (str, optional): Directory to save output files. Defaults to "./output".
 
-    Returns
-    -------
-    str
-        Research log summarizing the analysis steps and results
-
+    Returns:
+        str: Research log summarizing the analysis steps and results.
     """
     import cooler
     import numpy as np
@@ -692,7 +817,9 @@ def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, outpu
             log.append(f"Warning: Could not check for balancing weights: {str(e)}")
 
         if not has_weights:
-            log.append("Warning: No balancing weights found in the cooler file. Using unbalanced data.")
+            log.append(
+                "Warning: No balancing weights found in the cooler file. Using unbalanced data."
+            )
 
         # Function to get matrix with proper balancing option
         def get_matrix(chrom, balance_if_possible=True):
@@ -703,7 +830,9 @@ def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, outpu
                 else:
                     return c.matrix(balance=False).fetch(chrom)
             except Exception as e:
-                log.append(f"Warning: Error getting matrix with balance={balance_if_possible}: {str(e)}")
+                log.append(
+                    f"Warning: Error getting matrix with balance={balance_if_possible}: {str(e)}"
+                )
                 # If balanced fails, try unbalanced as fallback
                 if balance_if_possible:
                     log.append("Falling back to unbalanced matrix")
@@ -727,9 +856,15 @@ def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, outpu
         log.append(f"Loaded {len(reg_elements)} regulatory elements")
 
         # Separate enhancers and promoters based on name field (assuming naming convention)
-        enhancers = reg_elements[reg_elements["name"].str.contains("enhancer", case=False)]
-        promoters = reg_elements[reg_elements["name"].str.contains("promoter", case=False)]
-        log.append(f"Identified {len(enhancers)} enhancers and {len(promoters)} promoters")
+        enhancers = reg_elements[
+            reg_elements["name"].str.contains("enhancer", case=False)
+        ]
+        promoters = reg_elements[
+            reg_elements["name"].str.contains("promoter", case=False)
+        ]
+        log.append(
+            f"Identified {len(enhancers)} enhancers and {len(promoters)} promoters"
+        )
     except Exception as e:
         log.append(f"Error loading regulatory elements: {str(e)}")
         return "\n".join(log)
@@ -766,7 +901,9 @@ def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, outpu
             chrom_promoters = promoters[promoters["chrom"] == chrom]
 
             if len(chrom_enhancers) == 0 or len(chrom_promoters) == 0:
-                log.append(f"No enhancers or promoters found on chromosome {chrom}, skipping")
+                log.append(
+                    f"No enhancers or promoters found on chromosome {chrom}, skipping"
+                )
                 continue
 
             # For each enhancer, find interactions with promoters
@@ -793,7 +930,9 @@ def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, outpu
                     expected = np.nanmean(diag_values) if len(diag_values) > 0 else 0
 
                     # Calculate significance (fold enrichment)
-                    fold_enrichment = interaction_strength / expected if expected > 0 else 0
+                    fold_enrichment = (
+                        interaction_strength / expected if expected > 0 else 0
+                    )
 
                     # Store significant interactions (fold enrichment > 2)
                     if fold_enrichment > 2:
@@ -812,13 +951,17 @@ def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, outpu
                         )
 
         # Define interactions file path (moved before the empty check)
-        interactions_file = os.path.join(output_dir, "enhancer_promoter_interactions.tsv")
+        interactions_file = os.path.join(
+            output_dir, "enhancer_promoter_interactions.tsv"
+        )
 
         # Save interactions to file if any were found
         if interactions:
             interactions_df = pd.DataFrame(interactions)
             interactions_df.to_csv(interactions_file, sep="\t", index=False)
-            log.append(f"Identified {len(interactions)} significant enhancer-promoter interactions")
+            log.append(
+                f"Identified {len(interactions)} significant enhancer-promoter interactions"
+            )
             log.append(f"Saved interactions to {interactions_file}")
         else:
             # Create an empty file with headers if no interactions were found
@@ -840,7 +983,9 @@ def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, outpu
     except Exception as e:
         log.append(f"Error identifying interactions: {str(e)}")
         # Ensure the interactions_file variable is defined even in case of error
-        interactions_file = os.path.join(output_dir, "enhancer_promoter_interactions.tsv")
+        interactions_file = os.path.join(
+            output_dir, "enhancer_promoter_interactions.tsv"
+        )
 
     # Step 5: Call TADs using simple insulation score method
     log.append("\n## Step 5: Identifying Topologically Associated Domains (TADs)")
@@ -871,7 +1016,9 @@ def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, outpu
             insulation_score = np.zeros(matrix.shape[0] - 2 * window_size)
             for i in range(window_size, matrix.shape[0] - window_size):
                 # Calculate sum of interactions crossing bin i
-                cross_interactions = np.sum(matrix[i - window_size : i, i : i + window_size])
+                cross_interactions = np.sum(
+                    matrix[i - window_size : i, i : i + window_size]
+                )
                 insulation_score[i - window_size] = cross_interactions
 
             # Normalize insulation score
@@ -911,12 +1058,16 @@ def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, outpu
         tads_df = pd.DataFrame(tad_results)
         if not tads_df.empty:
             tads_df.to_csv(tads_file, sep="\t", index=False)
-            log.append(f"Identified {len(tad_results)} topologically associated domains")
+            log.append(
+                f"Identified {len(tad_results)} topologically associated domains"
+            )
             log.append(f"Average TAD size: {tads_df['size_kb'].mean():.2f} kb")
             log.append(f"Saved TADs to {tads_file}")
         else:
             # Create an empty file with headers if no TADs were found
-            pd.DataFrame(columns=["chrom", "start", "end", "size_kb"]).to_csv(tads_file, sep="\t", index=False)
+            pd.DataFrame(columns=["chrom", "start", "end", "size_kb"]).to_csv(
+                tads_file, sep="\t", index=False
+            )
             log.append("No topologically associated domains were identified")
             log.append(f"Created empty TADs file at {tads_file}")
     except Exception as e:
@@ -958,7 +1109,9 @@ def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, outpu
     interactions = interactions if "interactions" in locals() else []
     tad_results = tad_results if "tad_results" in locals() else []
 
-    log.append(f"- Identified {len(interactions)} significant enhancer-promoter interactions")
+    log.append(
+        f"- Identified {len(interactions)} significant enhancer-promoter interactions"
+    )
     log.append(f"- Called {len(tad_results)} topologically associated domains")
     log.append("\nOutput files:")
     log.append(f"- Enhancer-promoter interactions: {interactions_file}")
@@ -968,26 +1121,22 @@ def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, outpu
     return "\n".join(log)
 
 
-def analyze_comparative_genomics_and_haplotypes(sample_fasta_files, reference_genome_path, output_dir="./output"):
+def analyze_comparative_genomics_and_haplotypes(
+    sample_fasta_files, reference_genome_path, output_dir="./output"
+):
     """Perform comparative genomics and haplotype analysis on multiple genome samples.
 
     This function aligns multiple genome samples to a reference, identifies variants,
     analyzes shared and unique genomic regions, and determines haplotype structure.
 
-    Parameters
-    ----------
-    sample_fasta_files : list of str
-        Paths to FASTA files containing whole-genome sequences to be analyzed
-    reference_genome_path : str
-        Path to the reference genome FASTA file
-    output_dir : str, optional
-        Directory to store output files (default: "./output")
+    Args:
+        sample_fasta_files (list of str): Paths to FASTA files containing whole-genome
+            sequences to be analyzed.
+        reference_genome_path (str): Path to the reference genome FASTA file.
+        output_dir (str, optional): Directory to store output files. Defaults to "./output".
 
-    Returns
-    -------
-    str
-        A research log summarizing the analysis steps and results
-
+    Returns:
+        str: A research log summarizing the analysis steps and results.
     """
     import subprocess
     import time
@@ -1003,7 +1152,9 @@ def analyze_comparative_genomics_and_haplotypes(sample_fasta_files, reference_ge
     log.append(f"Analysis started at: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
     log.append(f"Reference genome: {reference_genome_path}")
     log.append(f"Number of samples: {len(sample_fasta_files)}")
-    log.append(f"Sample files: {', '.join(os.path.basename(f) for f in sample_fasta_files)}\n")
+    log.append(
+        f"Sample files: {', '.join(os.path.basename(f) for f in sample_fasta_files)}\n"
+    )
 
     # Step 1: Index reference genome for alignment
     log.append("## Step 1: Preparing Reference Genome")
@@ -1013,11 +1164,15 @@ def analyze_comparative_genomics_and_haplotypes(sample_fasta_files, reference_ge
 
         # Index reference genome
         log.append("Indexing reference genome with BWA...")
-        subprocess.run(["bwa", "index", reference_genome_path], check=True, stderr=subprocess.PIPE)
+        subprocess.run(
+            ["bwa", "index", reference_genome_path], check=True, stderr=subprocess.PIPE
+        )
         log.append("Reference genome indexed successfully.\n")
     except (subprocess.CalledProcessError, FileNotFoundError):
         # If BWA is not available, use a simplified approach
-        log.append("BWA not available. Using simplified sequence comparison approach instead.\n")
+        log.append(
+            "BWA not available. Using simplified sequence comparison approach instead.\n"
+        )
 
     # Step 2: Align samples to reference and identify variants
     log.append("## Step 2: Sequence Alignment and Variant Identification")
@@ -1054,8 +1209,14 @@ def analyze_comparative_genomics_and_haplotypes(sample_fasta_files, reference_ge
             log.append("  - Using simplified sequence comparison")
 
             # Load reference and sample sequences
-            reference_seqs = {record.id: str(record.seq) for record in SeqIO.parse(reference_genome_path, "fasta")}
-            sample_seqs = {record.id: str(record.seq) for record in SeqIO.parse(sample_path, "fasta")}
+            reference_seqs = {
+                record.id: str(record.seq)
+                for record in SeqIO.parse(reference_genome_path, "fasta")
+            }
+            sample_seqs = {
+                record.id: str(record.seq)
+                for record in SeqIO.parse(sample_path, "fasta")
+            }
 
             # Simple variant detection by direct comparison
             for seq_id in set(reference_seqs.keys()) & set(sample_seqs.keys()):
@@ -1066,7 +1227,9 @@ def analyze_comparative_genomics_and_haplotypes(sample_fasta_files, reference_ge
                 min_len = min(len(ref_seq), len(sample_seq))
                 for i in range(min_len):
                     if ref_seq[i] != sample_seq[i]:
-                        variants.append(f"SNP at position {i + 1}: {ref_seq[i]} -> {sample_seq[i]}")
+                        variants.append(
+                            f"SNP at position {i + 1}: {ref_seq[i]} -> {sample_seq[i]}"
+                        )
                         # Limit to first 10 variants for demonstration
                         if len(variants) >= 10:
                             variants.append("... (more variants exist)")
@@ -1146,15 +1309,21 @@ def analyze_comparative_genomics_and_haplotypes(sample_fasta_files, reference_ge
         for group in haplotype_groups:
             f.write(f"  {group}:\n")
             f.write(f"    - Distinguishing variants: {random.randint(5, 30)}\n")
-            f.write(f"    - Estimated divergence time: {random.randint(1000, 10000)} years\n")
+            f.write(
+                f"    - Estimated divergence time: {random.randint(1000, 10000)} years\n"
+            )
 
     log.append(f"Haplotype analysis results saved to {haplotype_file}")
 
     # Step 5: Summary of findings
     log.append("\n## Summary of Findings")
-    log.append(f"- Analyzed {len(sample_fasta_files)} genome samples against the reference")
+    log.append(
+        f"- Analyzed {len(sample_fasta_files)} genome samples against the reference"
+    )
     log.append("- Identified variant patterns across samples")
-    log.append(f"- Determined haplotype structure with {len(haplotype_groups)} major groups")
+    log.append(
+        f"- Determined haplotype structure with {len(haplotype_groups)} major groups"
+    )
     log.append(f"- All results saved to {output_dir}")
 
     # Return the research log
@@ -1170,24 +1339,16 @@ def perform_chipseq_peak_calling_with_macs2(
 ):
     """Perform ChIP-seq peak calling using MACS2 to identify genomic regions with significant binding.
 
-    Parameters
-    ----------
-    chip_seq_file : str
-        Path to the ChIP-seq read data file (BAM, BED, or other supported format)
-    control_file : str
-        Path to the control/input data file (BAM, BED, or other supported format)
-    output_name : str, optional
-        Prefix for output files (default: "macs2_output")
-    genome_size : str, optional
-        Effective genome size shorthand: 'hs' for human, 'mm' for mouse, etc. (default: "hs")
-    q_value : float, optional
-        q-value (minimum FDR) cutoff for peak calling (default: 0.05)
+    Args:
+        chip_seq_file (str): Path to the ChIP-seq read data file (BAM, BED, or other supported format).
+        control_file (str): Path to the control/input data file (BAM, BED, or other supported format).
+        output_name (str, optional): Prefix for output files. Defaults to "macs2_output".
+        genome_size (str, optional): Effective genome size shorthand: 'hs' for human, 'mm' for mouse, etc.
+            Defaults to "hs".
+        q_value (float, optional): q-value (minimum FDR) cutoff for peak calling. Defaults to 0.05.
 
-    Returns
-    -------
-    str
-        A research log summarizing the peak calling process and results
-
+    Returns:
+        str: A research log summarizing the peak calling process and results.
     """
     import datetime
     import subprocess
@@ -1272,16 +1433,26 @@ def perform_chipseq_peak_calling_with_macs2(
     try:
         # Run MACS2
         log += "Running MACS2 peak calling...\n"
-        process = subprocess.run(macs2_cmd, capture_output=True, text=True, check=True, timeout=300)
+        process = subprocess.run(
+            macs2_cmd, capture_output=True, text=True, check=True, timeout=300
+        )
 
         # Log stdout and stderr (truncate if too long)
         stdout_text = process.stdout
         if len(stdout_text) > 2000:
-            stdout_text = stdout_text[:1000] + "\n...[output truncated]...\n" + stdout_text[-1000:]
+            stdout_text = (
+                stdout_text[:1000]
+                + "\n...[output truncated]...\n"
+                + stdout_text[-1000:]
+            )
 
         stderr_text = process.stderr
         if stderr_text and len(stderr_text) > 2000:
-            stderr_text = stderr_text[:1000] + "\n...[output truncated]...\n" + stderr_text[-1000:]
+            stderr_text = (
+                stderr_text[:1000]
+                + "\n...[output truncated]...\n"
+                + stderr_text[-1000:]
+            )
 
         log += "MACS2 Standard Output:\n"
         log += stdout_text + "\n"
@@ -1349,29 +1520,20 @@ def find_enriched_motifs_with_homer(
 ):
     """Find DNA sequence motifs enriched in genomic regions using the HOMER motif discovery software.
 
-    Parameters
-    ----------
-    peak_file : str
-        Path to peak file in BED format containing genomic regions to analyze for motif enrichment
-    genome : str, optional
-        Reference genome for sequence extraction (default: "hg38")
-    background_file : str, optional
-        Path to BED file with background regions for comparison. If None, HOMER will generate random
-        background sequences automatically (default: None)
-    motif_length : str, optional
-        Comma-separated list of motif lengths to discover (default: "8,10,12")
-    output_dir : str, optional
-        Directory to save output files (default: "./homer_motifs")
-    num_motifs : int, optional
-        Number of motifs to find (default: 10)
-    threads : int, optional
-        Number of CPU threads to use (default: 4)
+    Args:
+        peak_file (str): Path to peak file in BED format containing genomic regions to analyze
+            for motif enrichment.
+        genome (str, optional): Reference genome for sequence extraction. Defaults to "hg38".
+        background_file (str, optional): Path to BED file with background regions for comparison.
+            If None, HOMER will generate random background sequences automatically. Defaults to None.
+        motif_length (str, optional): Comma-separated list of motif lengths to discover.
+            Defaults to "8,10,12".
+        output_dir (str, optional): Directory to save output files. Defaults to "./homer_motifs".
+        num_motifs (int, optional): Number of motifs to find. Defaults to 10.
+        threads (int, optional): Number of CPU threads to use. Defaults to 4.
 
-    Returns
-    -------
-    str
-        A research log summarizing the motif discovery process and results
-
+    Returns:
+        str: A research log summarizing the motif discovery process and results.
     """
     import datetime
     import glob
@@ -1424,7 +1586,11 @@ def find_enriched_motifs_with_homer(
         # Log stdout and stderr (truncate if too long)
         stdout_text = process.stdout
         if len(stdout_text) > 2000:
-            stdout_text = stdout_text[:1000] + "\n...[output truncated]...\n" + stdout_text[-1000:]
+            stdout_text = (
+                stdout_text[:1000]
+                + "\n...[output truncated]...\n"
+                + stdout_text[-1000:]
+            )
 
         log += "HOMER Standard Output (truncated if long):\n"
         log += stdout_text + "\n"
@@ -1512,20 +1678,14 @@ def find_enriched_motifs_with_homer(
 def analyze_genomic_region_overlap(region_sets, output_prefix="overlap_analysis"):
     """Analyze overlaps between two or more sets of genomic regions.
 
-    Parameters
-    ----------
-    region_sets : list
-        List of genomic region sets. Each item can be either:
-        - A string path to a BED file
-        - A list of tuples/lists with format (chrom, start, end) or (chrom, start, end, name)
-    output_prefix : str, optional
-        Prefix for output files (default: "overlap_analysis")
+    Args:
+        region_sets (list): List of genomic region sets. Each item can be either:
+            - A string path to a BED file
+            - A list of tuples/lists with format (chrom, start, end) or (chrom, start, end, name)
+        output_prefix (str, optional): Prefix for output files. Defaults to "overlap_analysis".
 
-    Returns
-    -------
-    str
-        Research log summarizing the analysis steps and results
-
+    Returns:
+        str: Research log summarizing the analysis steps and results.
     """
     from datetime import datetime
 
@@ -1616,7 +1776,9 @@ def analyze_genomic_region_overlap(region_sets, output_prefix="overlap_analysis"
                             chrom_a = fields[0]
                             start_a = int(fields[1])
                             end_a = int(fields[2])
-                            chrom_b = fields[len(fields) // 2]  # Middle field is typically the start of second feature
+                            chrom_b = fields[
+                                len(fields) // 2
+                            ]  # Middle field is typically the start of second feature
                             identifier = f"{chrom_a}:{start_a}-{end_a}_{chrom_b}"
                             unique_overlaps.add(identifier)
                         except (ValueError, IndexError) as e:
@@ -1644,8 +1806,16 @@ def analyze_genomic_region_overlap(region_sets, output_prefix="overlap_analysis"
                     overlap_regions = len(unique_overlaps)
 
                     # Calculate percentages
-                    pct_of_set1 = (overlap_bp / stats[i]["Total_BP"]) * 100 if stats[i]["Total_BP"] > 0 else 0
-                    pct_of_set2 = (overlap_bp / stats[j]["Total_BP"]) * 100 if stats[j]["Total_BP"] > 0 else 0
+                    pct_of_set1 = (
+                        (overlap_bp / stats[i]["Total_BP"]) * 100
+                        if stats[i]["Total_BP"] > 0
+                        else 0
+                    )
+                    pct_of_set2 = (
+                        (overlap_bp / stats[j]["Total_BP"]) * 100
+                        if stats[j]["Total_BP"] > 0
+                        else 0
+                    )
 
                     results.append(
                         {
@@ -1659,7 +1829,9 @@ def analyze_genomic_region_overlap(region_sets, output_prefix="overlap_analysis"
                     )
 
                     # Save detailed overlaps to file
-                    overlap_file = f"{output_prefix}_{set_names[i]}_{set_names[j]}_overlaps.bed"
+                    overlap_file = (
+                        f"{output_prefix}_{set_names[i]}_{set_names[j]}_overlaps.bed"
+                    )
                     overlap_with_bases.saveas(overlap_file)
 
                     log += f"- Between {set_names[i]} and {set_names[j]}:\n"

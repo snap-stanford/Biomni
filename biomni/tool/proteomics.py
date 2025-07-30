@@ -563,69 +563,69 @@ def draw_boxplot(
     plt.savefig(output_filepath)
 
 
-def enrich_pathway_analysis(genes_of_interest, organism="human", cutoff=0.05):
-    """
-    Perform pathway enrichment analysis for a list of genes of interest.
+# def enrich_pathway_analysis(genes_of_interest, organism="human", cutoff=0.05):
+#     """
+#     Perform pathway enrichment analysis for a list of genes of interest.
 
-    This function uses the GSEApy library to perform enrichment analysis against
-    various gene set databases including Gene Ontology (GO) terms and KEGG pathways.
+#     This function uses the GSEApy library to perform enrichment analysis against
+#     various gene set databases including Gene Ontology (GO) terms and KEGG pathways.
 
-    Parameters
-    ----------
-    genes_of_interest : list
-        List of gene symbols to analyze for pathway enrichment.
-    organism : str, optional
-        Target organism for the analysis. Default is "human".
-        Other options include "mouse", "rat", etc.
-    cutoff : float, optional
-        P-value cutoff for significant enrichment results. Default is 0.05.
+#     Parameters
+#     ----------
+#     genes_of_interest : list
+#         List of gene symbols to analyze for pathway enrichment.
+#     organism : str, optional
+#         Target organism for the analysis. Default is "human".
+#         Other options include "mouse", "rat", etc.
+#     cutoff : float, optional
+#         P-value cutoff for significant enrichment results. Default is 0.05.
 
-    Returns
-    -------
-    str
-        A formatted string containing the enrichment results including gene set names,
-        p-values, and associated genes.
+#     Returns
+#     -------
+#     str
+#         A formatted string containing the enrichment results including gene set names,
+#         p-values, and associated genes.
 
-    Notes
-    -----
-    The function creates an output directory 'enrichment_results_up' containing
-    detailed results files.
+#     Notes
+#     -----
+#     The function creates an output directory 'enrichment_results_up' containing
+#     detailed results files.
 
-    Currently uses GO_Biological_Process_2023 gene set library. Additional
-    libraries like GO_Molecular_Function_2023, GO_Cellular_Component_2023,
-    and KEGG_2019_Mouse can be uncommented as needed.
+#     Currently uses GO_Biological_Process_2023 gene set library. Additional
+#     libraries like GO_Molecular_Function_2023, GO_Cellular_Component_2023,
+#     and KEGG_2019_Mouse can be uncommented as needed.
 
-    Examples
-    --------
-    >>> genes = ['APOE', 'TREM2', 'CD33']
-    >>> results = enrich_pathway_analysis(genes)
-    >>> print(results)
-    """
-    import gseapy as gp
+#     Examples
+#     --------
+#     >>> genes = ['APOE', 'TREM2', 'CD33']
+#     >>> results = enrich_pathway_analysis(genes)
+#     >>> print(results)
+#     """
+#     import gseapy as gp
 
-    # Available gene sets in Enrichr
-    # all_libs = gp.get_library_name()
-    # print(all_libs)  # Print first 10 libraries
+#     # Available gene sets in Enrichr
+#     # all_libs = gp.get_library_name()
+#     # print(all_libs)  # Print first 10 libraries
 
-    libraries = [
-        "GO_Biological_Process_2023",
-        # "GO_Molecular_Function_2023",
-        # "GO_Cellular_Component_2023",
-        # "KEGG_2019_Mouse",
-    ]
+#     libraries = [
+#         "GO_Biological_Process_2023",
+#         # "GO_Molecular_Function_2023",
+#         # "GO_Cellular_Component_2023",
+#         # "KEGG_2019_Mouse",
+#     ]
 
-    # For up-regulated genes
-    enr_up = gp.enrichr(
-        gene_list=genes_of_interest,
-        gene_sets=libraries,
-        organism=organism,
-        outdir="enrichment_results_up",
-        cutoff=cutoff,
-    )
+#     # For up-regulated genes
+#     enr_up = gp.enrichr(
+#         gene_list=genes_of_interest,
+#         gene_sets=libraries,
+#         organism=organism,
+#         outdir="enrichment_results_up",
+#         cutoff=cutoff,
+#     )
 
-    # Process up-regulated gene enrichment results
-    result_string = ""
-    result_string += "ENRICHMENT RESULTS ===\n\n"
-    result_string += enr_up.results.to_string() + "\n\n"
+#     # Process up-regulated gene enrichment results
+#     result_string = ""
+#     result_string += "ENRICHMENT RESULTS ===\n\n"
+#     result_string += enr_up.results.to_string() + "\n\n"
 
-    return result_string
+#     return result_string
