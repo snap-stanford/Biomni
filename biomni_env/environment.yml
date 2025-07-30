@@ -36,3 +36,4 @@ dependencies:
       - transformers
       - sentencepiece
       - python-dotenv
+      - pydantic-settings

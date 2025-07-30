@@ -13,18 +13,6 @@ description = [
                 "type": "str",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": 5,
                 "description": "Maximum number of results to return",
                 "name": "max_results",
@@ -108,7 +96,6 @@ description = [
             },
             {
                 "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
                 "name": "api_key",
                 "type": "str",
             },
@@ -143,18 +130,6 @@ description = [
                 "description": "Direct structured query in RCSB Search API format (overrides prompt)",
                 "name": "query",
                 "type": "dict",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
             },
             {
                 "default": 3,
@@ -215,18 +190,6 @@ description = [
                 "type": "str",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will look for ANTHROPIC_API_KEY environment variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": True,
                 "description": "Whether to return detailed API response information",
                 "name": "verbose",
@@ -252,18 +215,6 @@ description = [
                 "default": None,
                 "description": "Full URL to query directly (overrides prompt)",
                 "name": "endpoint",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
                 "type": "str",
             },
             {
@@ -311,18 +262,6 @@ description = [
                 "type": "str",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": True,
                 "description": "Whether to return detailed query information or just formatted results",
                 "name": "verbose",
@@ -346,18 +285,6 @@ description = [
                 "default": None,
                 "description": "API endpoint name or full URL",
                 "name": "endpoint",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
                 "type": "str",
             },
             {
@@ -388,18 +315,6 @@ description = [
                 "type": "str",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": True,
                 "description": "Whether to return detailed query information",
                 "name": "verbose",
@@ -424,18 +339,6 @@ description = [
                 "default": None,
                 "description": "Full URL or endpoint specification",
                 "name": "endpoint",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
                 "type": "str",
             },
             {
@@ -466,18 +369,6 @@ description = [
                 "type": "str",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": True,
                 "description": "Whether to return detailed API response information",
                 "name": "verbose",
@@ -504,18 +395,6 @@ description = [
                 "type": "str",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will look for ANTHROPIC_API_KEY environment variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": 3,
                 "description": "Maximum number of results to return",
                 "name": "max_results",
@@ -539,18 +418,6 @@ description = [
                 "default": None,
                 "description": "Direct search term in GEO syntax",
                 "name": "search_term",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
                 "type": "str",
             },
             {
@@ -586,18 +453,6 @@ description = [
                 "type": "str",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": 3,
                 "description": "Maximum number of results to return",
                 "name": "max_results",
@@ -630,18 +485,6 @@ description = [
                 "type": "str",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": True,
                 "description": "Whether to return detailed results",
                 "name": "verbose",
@@ -665,18 +508,6 @@ description = [
                 "default": None,
                 "description": 'Direct API endpoint to query (e.g., "lookup/symbol/human/BRCA2") or full URL',
                 "name": "endpoint",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
                 "type": "str",
             },
             {
@@ -712,18 +543,6 @@ description = [
                 "type": "dict",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": True,
                 "description": "Whether to return detailed API response information",
                 "name": "verbose",
@@ -756,18 +575,6 @@ description = [
                 "type": "dict",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": False,
                 "description": "Whether to return detailed results",
                 "name": "verbose",
@@ -795,18 +602,6 @@ description = [
                 "type": "str",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": 3,
                 "description": "Maximum number of results to return",
                 "name": "max_results",
@@ -830,18 +625,6 @@ description = [
                 "default": None,
                 "description": 'Gene symbol (e.g., "BRCA1")',
                 "name": "gene_symbol",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
                 "type": "str",
             },
             {
@@ -912,18 +695,6 @@ description = [
                 "type": "str",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": True,
                 "description": "Whether to return detailed results",
                 "name": "verbose",
@@ -948,18 +719,6 @@ description = [
                 "default": None,
                 "description": "Direct API endpoint to query",
                 "name": "endpoint",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
                 "type": "str",
             },
             {
@@ -988,18 +747,6 @@ description = [
                 "description": "The full endpoint to query (e.g., "
                 '"https://www.ebi.ac.uk/pride/ws/archive/v2/projects?keyword=breast%20cancer")',
                 "name": "endpoint",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
                 "type": "str",
             },
             {
@@ -1033,18 +780,6 @@ description = [
                 "description": "Full API endpoint to query (e.g., "
                 '"https://www.guidetopharmacology.org/services/targets?type=GPCR&name=beta-2")',
                 "name": "endpoint",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
                 "type": "str",
             },
             {
@@ -1141,18 +876,6 @@ description = [
                 "type": "str",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": True,
                 "description": "Whether to return detailed results",
                 "name": "verbose",
@@ -1181,18 +904,6 @@ description = [
                 "type": "str",
             },
             {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
                 "default": True,
                 "description": "Whether to return detailed results",
                 "name": "verbose",
@@ -1216,18 +927,6 @@ description = [
                 "default": None,
                 "description": 'Full API endpoint to query (e.g., "https://www.ebi.ac.uk/emdb/api/search")',
                 "name": "endpoint",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
                 "type": "str",
             },
             {

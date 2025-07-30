@@ -11,6 +11,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
+from biomni.config import config
 from biomni.env_desc import data_lake_dict, library_content_dict
 from biomni.llm import get_llm
 from biomni.model.retriever import ToolRetriever
@@ -41,24 +42,27 @@ class AgentState(TypedDict):
 class A1:
     def __init__(
         self,
-        path="./data",
-        llm="claude-sonnet-4-20250514",
-        use_tool_retriever=True,
-        timeout_seconds=600,
-        base_url: str | None = None,
-        api_key: str = "EMPTY",
+        path=config.data_path,
+        llm=config.llm_model,
+        use_tool_retriever=config.use_tool_retriever,
+        timeout_seconds=config.timeout_seconds,
+        base_url=config.base_url,
+        api_key=config.api_key,
     ):
         """Initialize the biomni agent.
 
         Args:
-            path: Path to the data
-            llm: LLM to use for the agent
-            use_tool_retriever: If True, use a tool retriever
-            timeout_seconds: Timeout for code execution in seconds
-            base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
-            api_key: API key for the custom LLM
+            path: Path to the data (defaults from BIOMNI_DATA_PATH env var)
+            llm: LLM to use for the agent (defaults from BIOMNI_LLM_MODEL env var)
+            use_tool_retriever: If True, use a tool retriever (defaults from BIOMNI_USE_TOOL_RETRIEVER env var)
+            timeout_seconds: Timeout for code execution in seconds (defaults from BIOMNI_TIMEOUT_SECONDS env var)
+            base_url: Base URL for custom model serving (defaults from CUSTOM_MODEL_BASE_URL env var)
+            api_key: API key for the custom LLM (defaults from CUSTOM_MODEL_API_KEY env var)
 
         """
+        # Update config values if input parameters differ from current config
+        self._update_config_if_different(path, llm, use_tool_retriever, timeout_seconds, base_url, api_key)
+
         self.path = path
 
         if not os.path.exists(path):
@@ -103,7 +107,12 @@ class A1:
         self.path = os.path.join(path, "biomni_data")
         module2api = read_module2api()
 
-        self.llm = get_llm(llm, stop_sequences=["</execute>", "</solution>"], base_url=base_url, api_key=api_key)
+        self.llm = get_llm(
+            model=llm,
+            stop_sequences=["</execute>", "</solution>"],
+            base_url=base_url,
+            api_key=api_key,
+        )
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
 
@@ -114,6 +123,38 @@ class A1:
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
         self.configure()
+
+    def _update_config_if_different(
+        self,
+        path: str,
+        llm: str,
+        use_tool_retriever: bool,
+        timeout_seconds: int,
+        base_url: str | None,
+        api_key: str | None,
+    ):
+        """Update config values if input parameters differ from current config.
+
+        Args:
+            path: Path to the data
+            llm: LLM model name
+            use_tool_retriever: Whether to use tool retriever
+            timeout_seconds: Timeout for code execution
+            base_url: Base URL for custom model serving
+            api_key: API key for custom LLM
+        """
+        if path != config.data_path:
+            config.data_path = path
+        if llm != config.llm_model:
+            config.llm_model = llm
+        if use_tool_retriever != config.use_tool_retriever:
+            config.use_tool_retriever = use_tool_retriever
+        if timeout_seconds != config.timeout_seconds:
+            config.timeout_seconds = timeout_seconds
+        if base_url != config.base_url:
+            config.base_url = base_url
+        if api_key != config.api_key:
+            config.api_key = api_key
 
     def add_tool(self, api):
         """Add a new tool to the agent's tool registry and make it available for retrieval.
