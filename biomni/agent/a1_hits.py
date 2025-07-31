@@ -3,6 +3,7 @@ import inspect
 import os
 import re
 from typing import Literal, TypedDict
+import time
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -123,6 +124,7 @@ class A1_HITS:
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
         self.configure()
+        self.timer = dict()
 
     def add_tool(self, api):
         """Add a new tool to the agent's tool registry and make it available for retrieval.
@@ -1054,6 +1056,7 @@ Each library is listed with its description to help you understand its functiona
 
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
+            t1 = time.time()
             messages = [SystemMessage(content=self.system_prompt)] + state["messages"]
             response = self.llm.invoke(messages)
             # Parse the response
@@ -1107,9 +1110,15 @@ Each library is listed with its description to help you understand its functiona
                         )
                     )
                     state["next_step"] = "generate"
+            t2 = time.time()
+            function_name = inspect.currentframe().f_code.co_name
+            if function_name not in self.timer:
+                self.timer[function_name] = 0
+            self.timer[function_name] += t2 - t1
             return state
 
         def execute(state: AgentState) -> AgentState:
+            t1 = time.time()
             last_message = state["messages"][-1].content
             # Only add the closing tag if it's not already there
             if "<execute>" in last_message and "</execute>" not in last_message:
@@ -1174,7 +1183,11 @@ Each library is listed with its description to help you understand its functiona
                     )
                 observation = f"\n<observation>{result}</observation>"
                 state["messages"].append(HumanMessage(content=observation.strip()))
-
+            t2 = time.time()
+            function_name = inspect.currentframe().f_code.co_name
+            if function_name not in self.timer:
+                self.timer[function_name] = 0
+            self.timer[function_name] += t2 - t1
             return state
 
         def routing_function(

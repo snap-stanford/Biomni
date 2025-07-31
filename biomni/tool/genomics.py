@@ -743,7 +743,6 @@ def gene_set_enrichment_analysis(
         # Format the result
         output_str = ""
         for _idx, row in df.iterrows():
-            print(type(row["z_score"]), isinstance(row["z_score"], str))
             output_str += (
                 f"Rank: {row['rank']}\n"
                 f"Path Name: {row['path_name']}\n"

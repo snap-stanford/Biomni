@@ -2130,25 +2130,30 @@ def query_clinvar(
         """
 
         # Query Claude to generate the API call
-        claude_result = _query_claude_for_api(
+        # claude_result = _query_claude_for_api(
+        #     prompt=prompt,
+        #     schema=clinvar_schema,
+        #     system_template=system_prompt_template,
+        #     api_key=api_key,
+        #     model=model,
+        # )
+        result = _query_llm_for_api(
             prompt=prompt,
             schema=clinvar_schema,
             system_template=system_prompt_template,
-            api_key=api_key,
-            model=model,
         )
 
-        if not claude_result["success"]:
-            return claude_result
+        if not result["success"]:
+            return result
 
         # Get the full URL from Claude's response
-        query_info = claude_result["data"]
+        query_info = result["data"]
         search_term = query_info.get("search_term", "")
 
         if not search_term:
             return {
                 "error": "Failed to generate a valid search term from the prompt",
-                "claude_response": claude_result.get("raw_response", "No response"),
+                "claude_response": result.get("raw_response", "No response"),
             }
 
     return _query_ncbi_database(
