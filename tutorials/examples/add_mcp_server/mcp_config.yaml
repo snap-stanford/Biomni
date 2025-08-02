@@ -1,0 +1,25 @@
+# MCP Server Config for Biomni
+
+mcp_servers:
+  # GitHub MCP Server (Docker approach - adding all tools)
+  github:
+    command: ["docker", "run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server"]
+    enabled: true
+    description: "Official GitHub MCP server for repository and issue management"
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_TOKEN}"
+
+  # Custom Local MCP Server - Only add tools necessary
+  pubmed:
+    command: ["python", "-m", "biomni.tool.mcp_tools.pubmed_mcp"]
+    enabled: true
+    tools:
+      - biomni_name: search_pubmed
+        description: "Search PubMed"
+        parameters:
+          query:        {type: str, required: true,  description: "PubMed search term"}
+          max_results:  {type: int, required: false, default: 10, description: "Maximum number of hits"}
+      - biomni_name: get_article_abstract
+        description: "Fetch PubMed abstract"
+        parameters:
+          pmid: {type: str, required: true, description: "PubMed ID"}

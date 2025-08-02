@@ -30,6 +30,7 @@ examples/*.fa
 scratch/
 packages/
 data
+dataset
 logs
 scripts/gradio
 data_lake
@@ -176,6 +177,7 @@ ENV/
 env.bak/
 venv.bak/
 .envrc
+uv.lock
 
 # Spyder project settings
 .spyderproject
@@ -217,3 +219,6 @@ data/ddinter_raw/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+# VSCode
+/.vscode

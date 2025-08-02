@@ -35,6 +35,9 @@ dependencies:
       - pytest
       - transformers
       - sentencepiece
+      - hyperimpute
+      - mcp
+      - tooluniverse
       - python-dotenv
       - langchain_google_genai
       - langchain_ollama

@@ -131,6 +131,21 @@ agent.go("Perform scRNA-seq annotation at [PATH] and generate meaningful hypothe
 agent.go("Predict ADMET properties for this compound: CC(C)CC1=CC=C(C=C1)C(C)C(=O)O")
 ```
 
+## MCP (Model Context Protocol) Support
+
+Biomni supports MCP servers for external tool integration:
+
+```python
+from biomni.agent import A1
+
+agent = A1()
+agent.add_mcp(config_path="./mcp_config.yaml")
+agent.go("Find FDA active ingredient information for ibuprofen")
+```
+
+**Built-in MCP Servers:**
+For usage and implementation details, see the [MCP Integration Documentation](docs/mcp_integration.md) and examples in [`tutorials/examples/add_mcp_server/`](tutorials/examples/add_mcp_server/) and [`tutorials/examples/expose_biomni_server/`](tutorials/examples/expose_biomni_server/).
+
 ## 🤝 Contributing to Biomni
 
 Biomni is an open-science initiative that thrives on community contributions. We welcome:
@@ -180,6 +195,7 @@ Experience Biomni through our no-code web interface at **[biomni.stanford.edu](h
 - [ ] 8 Real-world research task benchmark/leaderboard release
 - [ ] A tutorial on how to contribute to Biomni
 - [ ] A tutorial on baseline agents
+- [x] MCP support
 - [x] Biomni A1+E1 release
 
 ## Important Note
