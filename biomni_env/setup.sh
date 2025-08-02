@@ -65,18 +65,18 @@ if [ -f /etc/os-release ]; then
     . /etc/os-release
     if [ "$ID" = "ubuntu" ]; then
         echo -e "${YELLOW}Ubuntu detected. Installing gcc and unzip...${NC}"
-        
+
         # Update package lists
         sudo apt-get update
         handle_error $? "Failed to update package lists"
-        
+
         # Install gcc
         sudo apt-get install build-essential python3-dev
         handle_error $? "Failed to install build-essential python3-dev"
         # Install unzip
         sudo apt-get install unzip
         handle_error $? "Failed to install unzip"
-        
+
         echo -e "${GREEN}Successfully installed gcc and unzip!${NC}"
     else
         echo -e "${YELLOW}Not Ubuntu ($ID detected). Skipping gcc and unzip installation.${NC}"
