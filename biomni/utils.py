@@ -915,7 +915,8 @@ def read_module2api(allowed_fields=None):
             "systems_biology",
             "support_tools",
             "database",
-            "proteomics",
+            "proteomics",  # added by jaechang
+            "facs_fcm",  # added by jaechang
         ]
 
     module2api = {}

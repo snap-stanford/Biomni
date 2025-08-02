@@ -64,6 +64,9 @@ def _query_claude_for_api(
     dict: Dictionary with 'success', 'data' (if successful), 'error' (if failed), and optional 'raw_response'
 
     """
+    # temporary fix
+    return _query_llm_for_api(prompt, schema, system_template)
+
     # Get API key
     api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
     if api_key is None:

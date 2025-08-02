@@ -64,7 +64,6 @@ IMPORTANT GUIDELINES:
 6. For libraries, include those that provide functions needed for analysis
 7. Don't exclude resources just because they're not explicitly mentioned in the query
 8. When in doubt about a database tool or molecular biology tool, include it rather than exclude it
-9. DO NOT include more than 10 items for each category.
 """
 
         # Use the provided LLM or create a new one

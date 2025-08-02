@@ -150,7 +150,7 @@ install_cli_tools() {
 
 # Main installation process
 main() {
-    conda_env_name="biomni_hits"
+    conda_env_name="biomni_hits2"
     # Step 1: Create base conda environment
     echo -e "\n${YELLOW}Step 1: Creating base environment from environment.yml...${NC}"
     
