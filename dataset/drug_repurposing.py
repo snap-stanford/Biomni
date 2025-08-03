@@ -1,12 +1,12 @@
-from bioagentos.task.base_task import base_task
-import pandas as pd
 import numpy as np
+import pandas as pd
+from bioagentos.task.base_task import base_task
 
 
 class drug_repurposing(base_task):
-    def __init__(self, num_samples = 100):
+    def __init__(self, num_samples=100):
         # Load the benchmark dataset
-        self.df = pd.read_csv('/dfs/user/kexinh/BioAgentOS/data/drug_repurposing_ehr_validation.csv')
+        self.df = pd.read_csv("/dfs/user/kexinh/BioAgentOS/data/drug_repurposing_ehr_validation.csv")
         self.df = self.df[self.df.indicated != 1]
         # Define the prompt template
         self.prompt = (
@@ -15,7 +15,9 @@ class drug_repurposing(base_task):
             "Disease: {disease}\nDrugs: {drug_list}\n"
             "Output format: a list of drugs with their DrugBank IDs, no drug name, just the IDs: 1. DB00001 2. DB00002 3. DB00003 .."
         )
-        self.disease_names = self.df.groupby('disease_name').log_OR.mean().sort_values()[::-1][:num_samples].index.values
+        self.disease_names = (
+            self.df.groupby("disease_name").log_OR.mean().sort_values()[::-1][:num_samples].index.values
+        )
         self.num_examples = len(self.disease_names)
 
     def __len__(self):
@@ -25,13 +27,9 @@ class drug_repurposing(base_task):
         if index is None:
             index = np.random.randint(self.num_examples)
         example = self.disease_names[index]
-        novel_db_ids = self.df[self.df.disease_name == example].sort_values('log_OR')[::-1].DB_ID.values[:50]
+        novel_db_ids = self.df[self.df.disease_name == example].sort_values("log_OR")[::-1].DB_ID.values[:50]
 
-        return {
-            "prompt": self.prompt.format(
-                disease=example, drug_list=", ".join(novel_db_ids)
-            )
-        }
+        return {"prompt": self.prompt.format(disease=example, drug_list=", ".join(novel_db_ids))}
 
     def get_iterator(self):
         for i in range(self.num_examples):
@@ -39,18 +37,15 @@ class drug_repurposing(base_task):
 
     def evaluate(self, disease_name, drugs):
         # Evaluation using accuracy
-        out = self.df[self.df.disease_name == disease_name].set_index('DB_ID').loc[drugs].log_OR
+        out = self.df[self.df.disease_name == disease_name].set_index("DB_ID").loc[drugs].log_OR
 
-        return {
-            "mean_log_or": out.mean(),
-            "max_log_or": out.max()
-        }
+        return {"mean_log_or": out.mean(), "max_log_or": out.max()}
 
     def reward(self, input, output):
         name = self.disease_names[input]
-        return self.df[self.df.disease_name == name].set_index('DB_ID').loc[output].log_OR.mean()
+        return self.df[self.df.disease_name == name].set_index("DB_ID").loc[output].log_OR.mean()
 
-    def split(self, ratio = 0.8, seed = 42):
+    def split(self, ratio=0.8, seed=42):
         np.random.seed(seed)
         indices = np.arange(self.num_examples)
         np.random.shuffle(indices)
@@ -60,8 +55,9 @@ class drug_repurposing(base_task):
         return train_indices, val_indices
 
     def output_class(self):
-        from pydantic import BaseModel, Field
         from typing import Optional
+
+        from pydantic import BaseModel, Field
 
         class drug_list(BaseModel):
             """List of drugs to repurpose for a disease"""
@@ -70,4 +66,5 @@ class drug_repurposing(base_task):
                 description="""A list of drug bank IDs to repurpose for a disease.
                 The drugs should be separated by a newline character. The output should be DB00001\nDB00002\nDB00003\n...\nDB00005"""
             )
+
         return drug_list

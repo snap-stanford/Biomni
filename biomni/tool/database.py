@@ -35,7 +35,7 @@ def get_hpo_names(hpo_terms: list[str], data_lake_path: str) -> list[str]:
 
 def _query_llm_for_api(prompt, schema, system_template, api_key=None, model="claude-3-5-haiku-20241022"):
     """Helper function to query LLMs for generating API calls based on natural language prompts.
-    
+
     Supports multiple model providers including Claude, Gemini, GPT, and others via the unified get_llm interface.
 
     Parameters
@@ -61,7 +61,7 @@ def _query_llm_for_api(prompt, schema, system_template, api_key=None, model="cla
 
         # Get LLM instance using the unified interface
         llm = get_llm(model=model, temperature=0.0, api_key=api_key or "EMPTY")
-        
+
         # Compose messages
         messages = [
             SystemMessage(content=system_prompt),

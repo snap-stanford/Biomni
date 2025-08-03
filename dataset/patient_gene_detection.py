@@ -1,36 +1,33 @@
-from pydantic import BaseModel, Field
 import sys
-import pandas as pd
+
 import numpy as np
-sys.path.append('/dfs/user/kexinh/BioAgentOS')
+import pandas as pd
+from pydantic import BaseModel, Field
+
+sys.path.append("/dfs/user/kexinh/BioAgentOS")
 from bioagentos.task.base_task import base_task
 
 
 class patient_gene_detection(base_task):
-    def __init__(self, num_samples=100, map_id = True):
+    def __init__(self, num_samples=100, map_id=True):
         self.map_id = map_id
         if self.map_id:
-            self.data = pd.read_pickle('/dfs/user/kexinh/BioAgentOS/data/patient_gene_detection_benchmark_mapped.pkl')
+            self.data = pd.read_pickle("/dfs/user/kexinh/BioAgentOS/data/patient_gene_detection_benchmark_mapped.pkl")
         else:
-            self.data = pd.read_pickle('/dfs/user/kexinh/BioAgentOS/data/patient_gene_detection_benchmark_unmapped.pkl')
-        
+            self.data = pd.read_pickle("/dfs/user/kexinh/BioAgentOS/data/patient_gene_detection_benchmark_unmapped.pkl")
+
         self.query = []
         self.answer = []
         self.data = self.data[:num_samples]
         for idx in range(len(self.data)):
             patient = self.data.iloc[idx]
 
-            phenotypes = patient['phenotypes']
-            candidate_genes = patient['candidate_genes']
-            true_genes = patient['true_genes']
+            phenotypes = patient["phenotypes"]
+            candidate_genes = patient["candidate_genes"]
+            true_genes = patient["true_genes"]
 
-            self.query.append({
-                "phenotypes": phenotypes,
-                "candidate_genes": candidate_genes
-            })
-            self.answer.append({
-                "true_genes": true_genes
-            })
+            self.query.append({"phenotypes": phenotypes, "candidate_genes": candidate_genes})
+            self.answer.append({"true_genes": true_genes})
 
         self.task_description = """
 Task: Given a patient's phenotypes and a list of candidate genes, identify the causal gene.
@@ -46,13 +43,12 @@ Output format: {{'causal_gene': [gene1]}}
     def get_example(self, index=None):
         if index is None:
             index = np.random.randint(len(self.query))
-        
+
         q = self.query[index]
         a = self.answer[index]
-        
+
         prompt = self.task_description.format(
-            phenotype_list=', '.join(q['phenotypes']),
-            candidate_genes=', '.join(q['candidate_genes'])
+            phenotype_list=", ".join(q["phenotypes"]), candidate_genes=", ".join(q["candidate_genes"])
         )
         answer = a["true_genes"]
 
@@ -85,5 +81,5 @@ Output format: {{'causal_gene': [gene1]}}
             causal_genes: list = Field(
                 description="The list of causal gene(s) identified, e.g., ['ENSG00000138449']. Please Use ENSG ID."
             )
-        
+
         return GeneDetectionOutput
