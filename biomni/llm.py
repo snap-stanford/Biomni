@@ -44,7 +44,8 @@ def get_llm(
         elif base_url is not None:
             source = "Custom"
         elif "/" in model or any(
-            name in model.lower() for name in ["llama", "mistral", "qwen", "gemma", "phi", "dolphin", "orca", "vicuna"]
+            name in model.lower()
+            for name in ["llama", "mistral", "qwen", "gemma", "phi", "dolphin", "orca", "vicuna", "deepseek"]
         ):
             source = "Ollama"
         elif model.startswith(
@@ -74,10 +75,18 @@ def get_llm(
             stop_sequences=stop_sequences,
         )
     elif source == "Gemini":
-        return ChatGoogleGenerativeAI(
+        # If you want to use ChatGoogleGenerativeAI, you need to pass the stop sequences upon invoking the model.
+        # return ChatGoogleGenerativeAI(
+        #     model=model,
+        #     temperature=temperature,
+        #     google_api_key=api_key,
+        # )
+        return ChatOpenAI(
             model=model,
             temperature=temperature,
-            google_api_key=api_key,
+            api_key=os.getenv("GEMINI_API_KEY"),
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+            stop_sequences=stop_sequences,
         )
     elif source == "Ollama":
         return ChatOllama(

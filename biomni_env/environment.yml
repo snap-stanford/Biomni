@@ -36,3 +36,5 @@ dependencies:
       - transformers
       - sentencepiece
       - python-dotenv
+      - langchain_google_genai
+      - langchain_ollama

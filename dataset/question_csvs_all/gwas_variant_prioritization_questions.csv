@@ -1,0 +1,1076 @@
+task,prompt,answer
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: B-Carotene
+Variants: rs2287921, rs7700133, rs2000999, rs1805313, rs2404602, rs2241210, rs8396, rs1801689, rs8101881, rs6564851, rs10741657
+",rs6564851
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Bilirubin
+Variants: rs2160387, rs4587594, rs662138, rs3847502, rs1667255, rs38855, rs6742078, rs10830963, rs7529794, rs1395, rs4253772
+",rs6742078
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Bilirubin
+Variants: rs11119805, rs2040771, rs9637599, rs12029080, rs766420, rs17702912, rs4947534, rs13375749, rs12678919, rs3780181, rs7227483
+",rs766420
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: sphingomyelin 14∶0 molar percentage
+Variants: rs172642, rs16942887, rs12785878, rs1805313, rs17145738, rs4814176, rs9844948, rs7157785, rs12498742, rs4869272, rs7535263
+",rs7157785
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: D-Glucose
+Variants: rs5030062, rs1532085, rs941206, rs9635324, rs1061808, rs13122250, rs560887, rs646776, rs2414095, rs131794, rs2731672
+",rs560887
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: 25-Hydroxyvitamin D2
+Variants: rs4503368, rs4253772, rs2231142, rs7061710, rs1061808, rs750472, rs2000999, rs2282679, rs4680, rs131794, rs1697421
+",rs2282679
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: 25-Hydroxyvitamin D2
+Variants: rs2282679, rs6742078, rs1163251, rs10741657, rs10830963, rs9637599, rs14399, rs3132440, rs646776, rs3017098, rs6073958
+",rs10741657
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: 25-Hydroxyvitamin D2
+Variants: rs494562, rs646776, rs12785878, rs7651090, rs17711722, rs499974, rs56043887, rs13106975, rs13122250, rs3847502, rs2769264
+",rs12785878
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Phosphorus
+Variants: rs12029080, rs9635324, rs1532085, rs1800562, rs1697421, rs4939883, rs3132440, rs17145738, rs3734398, rs56113850, rs2270968
+",rs1697421
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Phosphorus
+Variants: rs2100944, rs1697421, rs2970818, rs2769264, rs560887, rs11119805, rs10882272, rs74249229, rs1074145, rs2011069, rs507080
+",rs2970818
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Magneseium
+Variants: rs8396, rs7061710, rs2100944, rs7860634, rs1532085, rs9637599, rs2769264, rs662138, rs4072037, rs2287921, rs116843064
+",rs4072037
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Magnesium
+Variants: rs8051149, rs2160387, rs1883025, rs10087900, rs9635324, rs1805313, rs7227483, rs16942887, rs4846914, rs11144134, rs12785878
+",rs11144134
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: N-glycan measurement
+Variants: rs1571700, rs1395, rs9527, rs532545, rs7159888, rs2241210, rs603424, rs6804368, rs7883218, rs2235544, rs10882272
+",rs7159888
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: D dimer measurement
+Variants: rs4921914, rs7385804, rs2414095, rs6048216, rs7130284, rs6804368, rs3757354, rs4680, rs2160860, rs12029080, rs1571700
+",rs12029080
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: D dimer measurement
+Variants: rs8012, rs4253772, rs6687813, rs34100980, rs12678919, rs7535263, rs1697421, rs646776, rs2270968, rs12288023, rs12916
+",rs6687813
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Alpha-Tocopherol
+Variants: rs12709013, rs74249229, rs649129, rs116843064, rs17711722, rs7860634, rs2108622, rs4253772, rs4343, rs6975024, rs4949874
+",rs2108622
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Docosapentaenoic acid
+Variants: rs154657, rs7535263, rs3734398, rs9392556, rs2011069, rs7616006, rs172642, rs2100944, rs2414095, rs7582179, rs4869272
+",rs3734398
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Vitamin A
+Variants: rs1365505, rs4947534, rs10455872, rs9527, rs2073547, rs248386, rs10882272, rs9844948, rs14399, rs1864729, rs12678919
+",rs10882272
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Vitamin A
+Variants: rs15676, rs4846914, rs1667255, rs1061808, rs10741657, rs7157785, rs5030062, rs1801222, rs4949874, rs13106975, rs16942887
+",rs1667255
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Inosine
+Variants: rs560887, rs17145738, rs10741657, rs494562, rs172642, rs8101881, rs2731672, rs2073547, rs17279437, rs7616006, rs12498742
+",rs494562
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Testosterone
+Variants: rs7809234, rs7700133, rs6564851, rs4921914, rs12150660, rs10830963, rs2970818, rs2540641, rs2011069, rs1801725, rs4949874
+",rs12150660
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Alanine / L-Valine
+Variants: rs1805313, rs7061710, rs2970818, rs11144134, rs247616, rs17702912, rs1163251, rs2160387, rs234714, rs1395, rs174548
+",rs2160387
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Phenylalanine / L-Tyrosine
+Variants: rs113612868, rs2270968, rs12678919, rs7582179, rs1471633, rs7651090, rs7157785, rs603424, rs4788815, rs10830963, rs2330809
+",rs4788815
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Linoleic acid
+Variants: rs2330809, rs2731672, rs4939883, rs6564851, rs646776, rs2229738, rs15676, rs2073547, rs8177240, rs172642, rs2404602
+",rs2229738
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: similar to Phosphatidylcholine(18:0/14:0)|Phosphatidylcholine(16:1/18:0)
+Variants: rs2769264, rs1005390, rs1697421, rs7529794, rs9637599, rs7535263, rs11591147, rs10455872, rs1061808, rs11119805, rs499974
+",rs1061808
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: sphingolipid measurement
+Variants: rs3847502, rs1367117, rs6804368, rs56043887, rs13106975, rs12288023, rs838876, rs154657, rs748196, rs116843064, rs2011069
+",rs13106975
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Dimethylarsinate
+Variants: rs154657, rs12150660, rs12141041, rs1697421, rs2731672, rs4941615, rs14399, rs2270968, rs9527, rs3847502, rs113612868
+",rs9527
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Urea
+Variants: rs9635324, rs6687813, rs4983559, rs2540641, rs11144134, rs4343, rs7227483, rs6975024, rs3734398, rs1667255, rs6678639
+",rs7227483
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: D-Glucose
+Variants: rs13375749, rs2686796, rs499974, rs7529794, rs154657, rs1280, rs2160860, rs172642, rs4846914, rs6459467, rs2011069
+",rs1280
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: D-Glucose
+Variants: rs559555, rs1801133, rs1395, rs247616, rs6831256, rs4869272, rs2270968, rs7651090, rs4788815, rs1571700, rs4939883
+",rs7651090
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: D-Glucose
+Variants: rs4869272, rs1367117, rs2970818, rs7343008, rs1171614, rs10882272, rs4846914, rs13538, rs1280, rs3780181, rs12916
+",rs4869272
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: D-Glucose
+Variants: rs9369898, rs6564851, rs7157785, rs1805313, rs2414095, rs1163251, rs17806888, rs7535263, rs6975024, rs6742078, rs2248551
+",rs6975024
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: D-Glucose
+Variants: rs1800961, rs1801222, rs1805313, rs559555, rs3738934, rs10830963, rs507080, rs4680, rs8012, rs2000999, rs2686796
+",rs10830963
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Uric acid
+Variants: rs1471633, rs154657, rs2404602, rs2270968, rs507080, rs6678639, rs2241210, rs941206, rs494562, rs7700133, rs2366858
+",rs1471633
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Uric acid
+Variants: rs12498742, rs12210538, rs7529794, rs4690522, rs12785878, rs10741657, rs3780181, rs10830963, rs559555, rs12029080, rs2160387
+",rs12498742
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Uric acid
+Variants: rs38855, rs7700133, rs8177240, rs2066938, rs2970818, rs7529794, rs2231142, rs1801725, rs499974, rs2040771, rs9392556
+",rs2231142
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Stearic acid
+Variants: rs11119805, rs1153858, rs6742078, rs6693388, rs1163251, rs14399, rs1550532, rs2970818, rs10087900, rs2731672, rs6511720
+",rs11119805
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Thyroxine
+Variants: rs1065852, rs4587594, rs12150660, rs12916, rs2235544, rs1153858, rs2366858, rs2540641, rs28489187, rs12550729, rs4941615
+",rs2235544
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Thyroxine
+Variants: rs2330809, rs7045138, rs499974, rs8012, rs2241210, rs7860634, rs234714, rs7700133, rs2160860, rs1005390, rs2576452
+",rs7045138
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Thyroxine
+Variants: rs7159888, rs6687813, rs234714, rs7700133, rs1065852, rs2229738, rs2404602, rs1367117, rs7860634, rs12550729, rs4072037
+",rs7860634
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Estradiol
+Variants: rs4253311, rs174548, rs2000999, rs494562, rs7582179, rs1153858, rs3734398, rs1864729, rs4941615, rs4949874, rs8177240
+",rs1864729
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Copper
+Variants: rs1571700, rs1163251, rs10083777, rs10934753, rs74249229, rs4343, rs1005390, rs4939883, rs1801133, rs603424, rs2769264
+",rs2769264
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs1471633, rs2366858, rs560887, rs2769264, rs1776029, rs9844948, rs2235544, rs56113850, rs2229738, rs8012, rs4788815
+",rs2366858
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Dimethlyglycine
+Variants: rs1047891, rs4660306, rs2287623, rs7582179, rs7883218, rs1805313, rs1395, rs13538, rs1570669, rs248386, rs3846710
+",rs248386
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Asparagine
+Variants: rs6748734, rs10741657, rs4808136, rs2657879, rs4690522, rs2066938, rs10903129, rs748196, rs7157785, rs2011069, rs12498742
+",rs4690522
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Orotic acid
+Variants: rs6564851, rs6804368, rs6151429, rs2403254, rs3847502, rs11119805, rs4253311, rs4947534, rs2241210, rs9844948, rs113612868
+",rs9844948
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Thyroxine
+Variants: rs56322409, rs2769264, rs7883218, rs2540641, rs6048216, rs2270968, rs4687717, rs507080, rs12029080, rs2275565, rs10934753
+",rs7883218
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Homocysteine
+Variants: rs2731672, rs1153858, rs6831256, rs74249229, rs2403254, rs3738934, rs558971, rs1801133, rs4343, rs1801222, rs12029080
+",rs1801133
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Homocysteine
+Variants: rs499368, rs9635324, rs140348140, rs1801133, rs10087900, rs4921914, rs7385804, rs10083777, rs3017098, rs131794, rs4660306
+",rs4660306
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Homocysteine
+Variants: rs1074145, rs2275565, rs766420, rs1365505, rs2686796, rs13375749, rs10083777, rs4788815, rs2011069, rs2040771, rs10882272
+",rs2275565
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Homocysteine
+Variants: rs7529794, rs4503368, rs1395, rs2100944, rs4939883, rs662138, rs6742078, rs6678639, rs2011069, rs12550729, rs9369898
+",rs9369898
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Homocysteine
+Variants: rs6564851, rs28489187, rs2404602, rs2576452, rs13106975, rs2231142, rs15676, rs1153858, rs7130284, rs2547231, rs1532085
+",rs7130284
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Homocysteine
+Variants: rs8101881, rs2287623, rs7045138, rs3847502, rs2404602, rs17279437, rs154657, rs2540641, rs8012, rs1471633, rs17702912
+",rs154657
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Homo-L-arginine
+Variants: rs7157785, rs1883025, rs603424, rs2241210, rs1153858, rs2270968, rs6048216, rs499974, rs2108622, rs13538, rs1395
+",rs1153858
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Estradiol
+Variants: rs1801133, rs2686796, rs1280, rs1153858, rs12141041, rs1571700, rs2414095, rs2235544, rs1030420, rs2731672, rs2066938
+",rs2414095
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Calcium
+Variants: rs7535263, rs1550532, rs2160860, rs1395, rs1365505, rs247616, rs6748734, rs2248551, rs662138, rs2160387, rs56043887
+",rs1550532
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Calcium
+Variants: rs12145743, rs2970818, rs1280, rs8012, rs14399, rs10741657, rs4690522, rs7343008, rs1801725, rs7582179, rs4941615
+",rs1801725
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Calcium
+Variants: rs6831256, rs3734398, rs12150660, rs1005390, rs8177240, rs13538, rs17711722, rs558971, rs7809234, rs7542172, rs12678919
+",rs17711722
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Calcium
+Variants: rs12916, rs131794, rs10934753, rs11119805, rs1171614, rs6748734, rs4939883, rs1800562, rs1805313, rs1570669, rs1532085
+",rs1570669
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Cholesterol
+Variants: rs2110073, rs7542172, rs2366858, rs4690522, rs1163251, rs1805313, rs558971, rs646776, rs7860634, rs2404602, rs7616006
+",rs558971
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Cholesterol
+Variants: rs38855, rs1667255, rs3017098, rs1800562, rs4253772, rs7860634, rs2000999, rs2287623, rs6048216, rs2231142, rs6564851
+",rs2287623
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Cholesterol
+Variants: rs4253311, rs2270968, rs1153858, rs766420, rs174548, rs131794, rs38855, rs7616006, rs2282679, rs507080, rs649129
+",rs7616006
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Cholesterol
+Variants: rs10490626, rs10455872, rs1718309, rs2160860, rs10903129, rs2275565, rs2282679, rs16942887, rs2366858, rs2235544, rs4869272
+",rs10455872
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Cholesterol
+Variants: rs113612868, rs11119805, rs17279437, rs34100980, rs7343008, rs4808136, rs7651090, rs3780181, rs1030420, rs1061808, rs12288023
+",rs3780181
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Cholesterol
+Variants: rs4503368, rs4253772, rs1801133, rs17145738, rs2231142, rs248386, rs5030062, rs2073547, rs17134585, rs1801725, rs17711722
+",rs4253772
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs10903129, rs2270968, rs2287623, rs1395, rs9296404, rs941206, rs12145743, rs2235544, rs1800562, rs4808136, rs7159888
+",rs12145743
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs662138, rs4846914, rs272889, rs750472, rs17134585, rs4253311, rs4949874, rs2108622, rs1171614, rs4921914, rs11144134
+",rs4846914
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs10087900, rs2657879, rs1864729, rs2231142, rs9635324, rs17711722, rs558971, rs1280, rs9392556, rs3734398, rs1030420
+",rs10087900
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs13538, rs2287623, rs56113850, rs1800961, rs7616006, rs1883025, rs2011069, rs532545, rs11119805, rs1367117, rs1047891
+",rs1883025
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs2547231, rs12210538, rs1047891, rs1532085, rs3847502, rs12916, rs9635324, rs6831256, rs2011069, rs4846914, rs2270968
+",rs3847502
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs11144134, rs1471633, rs2731672, rs8101881, rs558971, rs499974, rs6511720, rs2954022, rs38855, rs1395, rs2275565
+",rs499974
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs174548, rs272889, rs9392556, rs17279437, rs1697421, rs2241210, rs17806888, rs649129, rs494562, rs9369898, rs2160387
+",rs2241210
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs6742078, rs1805313, rs6564851, rs838876, rs140348140, rs6459467, rs5030062, rs2235544, rs4846914, rs1030420, rs12210538
+",rs838876
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs9392556, rs1047891, rs8101881, rs234714, rs2160387, rs1074145, rs6975024, rs1471633, rs4983559, rs2366858, rs2547231
+",rs4983559
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs1532085, rs4814176, rs6459467, rs499368, rs2287623, rs507080, rs7130284, rs7860634, rs1864729, rs2275565, rs3734398
+",rs1532085
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs10087900, rs3738934, rs17279437, rs174548, rs4072037, rs4814176, rs7651090, rs15676, rs2066938, rs247616, rs131794
+",rs247616
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs7130284, rs17702912, rs4503368, rs2275565, rs4788815, rs6073958, rs1570669, rs16942887, rs1074145, rs2414095, rs1776029
+",rs16942887
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs10741657, rs7860634, rs2231142, rs14399, rs7130284, rs113612868, rs6048216, rs6975024, rs12498742, rs2330809, rs4687717
+",rs113612868
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs662138, rs1171614, rs17702912, rs7582179, rs1864729, rs140348140, rs1395, rs4939883, rs3780181, rs2160860, rs4949874
+",rs4939883
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs74249229, rs6678639, rs7385804, rs3738934, rs649129, rs6459467, rs12141041, rs1800961, rs10491431, rs131794, rs748196
+",rs1800961
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: low density lipoprotein cholesterol measurement
+Variants: rs4921914, rs10903129, rs2270968, rs2404602, rs2547231, rs4814176, rs2108622, rs10455872, rs13106975, rs8051149, rs1171614
+",rs10903129
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: low density lipoprotein cholesterol measurement
+Variants: rs11591147, rs7343008, rs4814176, rs113612868, rs7809234, rs17134585, rs746872, rs56043887, rs1074145, rs1471633, rs2366858
+",rs11591147
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: low density lipoprotein cholesterol measurement
+Variants: rs1171614, rs1571700, rs646776, rs174548, rs56043887, rs13538, rs3734398, rs1805313, rs13122250, rs1800961, rs1395
+",rs646776
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: low density lipoprotein cholesterol measurement
+Variants: rs10455872, rs16942887, rs34100980, rs7542172, rs855791, rs1153858, rs1367117, rs12498742, rs2073547, rs4253311, rs4680
+",rs1367117
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: low density lipoprotein cholesterol measurement
+Variants: rs1365505, rs7227483, rs494562, rs10455872, rs10490626, rs9844948, rs4921914, rs2011069, rs10491431, rs16942887, rs6511720
+",rs10490626
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: low density lipoprotein cholesterol measurement
+Variants: rs13106975, rs1883025, rs4072037, rs272889, rs2108622, rs3738934, rs2403254, rs855791, rs6742078, rs12916, rs1801689
+",rs12916
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: low density lipoprotein cholesterol measurement
+Variants: rs12498742, rs4072037, rs17279437, rs10455872, rs507080, rs4343, rs2540641, rs6048216, rs12550729, rs3757354, rs2414095
+",rs3757354
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: low density lipoprotein cholesterol measurement
+Variants: rs7159888, rs3734398, rs1570669, rs8012, rs17134585, rs1065852, rs2073547, rs4343, rs2366858, rs6073958, rs4947534
+",rs2073547
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: low density lipoprotein cholesterol measurement
+Variants: rs6073958, rs9844948, rs12210538, rs17145738, rs855791, rs131794, rs248386, rs6831256, rs13538, rs2000999, rs1570669
+",rs2000999
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: low density lipoprotein cholesterol measurement
+Variants: rs28489187, rs9369898, rs56322409, rs7700133, rs1801689, rs174548, rs4808136, rs1776029, rs10830963, rs1571700, rs1805313
+",rs1801689
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: low density lipoprotein cholesterol measurement
+Variants: rs1550532, rs2110073, rs6511720, rs5030062, rs56113850, rs2248551, rs17702912, rs2231142, rs4949874, rs1171614, rs649129
+",rs6511720
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: triglyceride measurement
+Variants: rs1864729, rs9635324, rs56113850, rs4587594, rs12141041, rs12145743, rs28489187, rs1801725, rs248386, rs941206, rs3847502
+",rs4587594
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: triglyceride measurement
+Variants: rs499974, rs6831256, rs2275565, rs8396, rs8012, rs7061710, rs9637599, rs13106975, rs9392556, rs1532085, rs560887
+",rs6831256
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: triglyceride measurement
+Variants: rs2282679, rs2160387, rs56043887, rs1061808, rs38855, rs74249229, rs494562, rs649129, rs855791, rs8101881, rs2100944
+",rs38855
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: triglyceride measurement
+Variants: rs499368, rs56322409, rs1805313, rs1395, rs4983559, rs34100980, rs6151429, rs7061710, rs1171614, rs12678919, rs272889
+",rs12678919
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: triglyceride measurement
+Variants: rs12141041, rs1532085, rs7061710, rs2954022, rs1550532, rs4814176, rs838876, rs1280, rs9392556, rs7809234, rs1776029
+",rs2954022
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Asymmetric dimethylarginine
+Variants: rs3017098, rs28489187, rs1074145, rs9392556, rs6511720, rs9635324, rs56113850, rs941206, rs74249229, rs4814176, rs2235544
+",rs28489187
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: triglyceride measurement
+Variants: rs2657879, rs532545, rs4921914, rs116843064, rs6693388, rs2970818, rs17145738, rs1864729, rs10490626, rs7542172, rs2954022
+",rs116843064
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Desmethylcitalopram / Citalopram
+Variants: rs1074145, rs6742078, rs4690522, rs766420, rs11144134, rs28489187, rs2769264, rs649129, rs6511720, rs4687717, rs12785878
+",rs1074145
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Didemethylcitalopram
+Variants: rs272889, rs1074145, rs2330809, rs1801222, rs4072037, rs4983559, rs1065852, rs4947534, rs174548, rs4503368, rs7130284
+",rs1065852
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Fucose
+Variants: rs558971, rs494562, rs2000999, rs766420, rs4814176, rs10882272, rs2287921, rs15676, rs2403254, rs4253311, rs172642
+",rs2287921
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Lysine
+Variants: rs4687717, rs1030420, rs1776029, rs1367117, rs8101881, rs646776, rs1570669, rs2547231, rs17711722, rs4660306, rs11119805
+",rs8101881
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: N-Acetyl-L-phenylalanine
+Variants: rs7343008, rs838876, rs11591147, rs2066938, rs750472, rs7159888, rs116843064, rs2686796, rs2540641, rs1801222, rs12288023
+",rs12288023
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Trehalose
+Variants: rs9369898, rs1697421, rs507080, rs4343, rs1367117, rs603424, rs7343008, rs838876, rs1395, rs1550532, rs1801725
+",rs507080
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Homocysteine
+Variants: rs1163251, rs12498742, rs4814176, rs56322409, rs1047891, rs6804368, rs10934753, rs1065852, rs4253772, rs8101881, rs12709013
+",rs10934753
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Homocysteine
+Variants: rs2270968, rs113612868, rs6748734, rs116843064, rs7809234, rs499974, rs8012, rs4869272, rs4072037, rs6975024, rs9296404
+",rs9296404
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Homocysteine
+Variants: rs1864729, rs234714, rs2287623, rs9296404, rs2110073, rs4941615, rs1047891, rs499974, rs12498742, rs3132440, rs1471633
+",rs234714
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: (S)-3,4-Dihydroxybutyric acid
+Variants: rs7045138, rs1801725, rs649129, rs38855, rs1571700, rs12029080, rs4947534, rs11119805, rs2657879, rs10491431, rs1030420
+",rs1030420
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: / Bradykinin
+Variants: rs2731672, rs1367117, rs2403254, rs7130284, rs2160860, rs7343008, rs7529794, rs3017098, rs494562, rs4869272, rs1163251
+",rs2731672
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: 1-methylxanthine
+Variants: rs10087900, rs12678919, rs116843064, rs11144134, rs746872, rs10934753, rs4921914, rs13122250, rs1883025, rs6678639, rs2011069
+",rs4921914
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: 2-Arachidonoylglycerophosphocholine
+Variants: rs2248551, rs4343, rs1395, rs1805313, rs4983559, rs12029080, rs6511720, rs12288023, rs7045138, rs4503368, rs748196
+",rs748196
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: 2-Hydroxy-3-methylbutyric acid
+Variants: rs2287921, rs12141041, rs494562, rs10490626, rs17702912, rs9369898, rs559555, rs2330809, rs12550729, rs2231142, rs560887
+",rs12141041
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: 2-Hydroxy-3-methylbutyric acid
+Variants: rs1776029, rs12550729, rs9637599, rs4808136, rs2403254, rs2970818, rs1365505, rs1570669, rs2547231, rs2066938, rs3738934
+",rs2403254
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: 5-Hydroxy-L-tryptophan
+Variants: rs12709013, rs855791, rs838876, rs7700133, rs646776, rs2160860, rs4921914, rs1667255, rs12498742, rs499368, rs2066938
+",rs2160860
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: 5alpha-pregnan-3beta,20alpha-diol disulfate
+Variants: rs560887, rs1800562, rs941206, rs10491431, rs11144134, rs15676, rs7542172, rs559555, rs2769264, rs6048216, rs4343
+",rs10491431
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: 9-Decenoylcarnitine
+Variants: rs5030062, rs2330809, rs649129, rs4343, rs6073958, rs12029080, rs12141041, rs131794, rs7616006, rs9392556, rs14399
+",rs9392556
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Acetylcarnosine
+Variants: rs172642, rs1005390, rs6804368, rs116843064, rs3738934, rs1395, rs4072037, rs1801725, rs4814176, rs10087900, rs6975024
+",rs6804368
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Androsterone sulfate / Epiandrosterone Sulfate
+Variants: rs2160387, rs1800562, rs1801133, rs559555, rs12678919, rs10455872, rs6693388, rs746872, rs5030062, rs34100980, rs17134585
+",rs17134585
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Arachidonate / 8,11,14-Eicosatrienoic acid
+Variants: rs2241210, rs6511720, rs2657879, rs1171614, rs559555, rs15676, rs247616, rs2282679, rs74249229, rs4941615, rs174548
+",rs174548
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Arachidonate|1-Arachidonoylglycerophosphoinositol
+Variants: rs4788815, rs1163251, rs2248551, rs2576452, rs2282679, rs494562, rs4253311, rs1801725, rs2330809, rs646776, rs7883218
+",rs2576452
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Aspartylphenylalanine / 
+Variants: rs7529794, rs2366858, rs1800961, rs13122250, rs2282679, rs494562, rs1074145, rs1532085, rs12709013, rs4343, rs9635324
+",rs4343
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Betaine
+Variants: rs4983559, rs7582179, rs499368, rs2287921, rs10490626, rs2404602, rs4949874, rs1395, rs9635324, rs1074145, rs1776029
+",rs499368
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Bradykinin
+Variants: rs8396, rs9296404, rs1571700, rs7883218, rs507080, rs28489187, rs746872, rs1801133, rs5030062, rs13538, rs838876
+",rs5030062
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Bradykinin
+Variants: rs4253311, rs3738934, rs1280, rs4808136, rs10087900, rs7385804, rs12678919, rs7651090, rs855791, rs7700133, rs1367117
+",rs4253311
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Butyrylcarnitine
+Variants: rs4660306, rs3757354, rs9369898, rs11119805, rs10903129, rs16942887, rs2066938, rs2160860, rs559555, rs8051149, rs13106975
+",rs2066938
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: C3f, complement C3 derived peptide
+Variants: rs766420, rs2110073, rs7535263, rs2231142, rs7159888, rs12150660, rs34100980, rs1697421, rs12678919, rs6742078, rs7045138
+",rs7535263
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Citrulline
+Variants: rs13375749, rs10455872, rs559555, rs140348140, rs9296404, rs7385804, rs11119805, rs56322409, rs6151429, rs499974, rs7860634
+",rs56322409
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: cortolone glucuronide
+Variants: rs2540641, rs1171614, rs4660306, rs559555, rs12145743, rs1365505, rs2275565, rs12550729, rs2954022, rs4941615, rs2231142
+",rs559555
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Cysteineglutathione disulfide
+Variants: rs2330809, rs12141041, rs4947534, rs2547231, rs17806888, rs10903129, rs4949874, rs1395, rs12288023, rs234714, rs1571700
+",rs2330809
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Decanoylcarnitine
+Variants: rs74249229, rs7159888, rs17145738, rs7883218, rs131794, rs8396, rs9392556, rs1395, rs3846710, rs2248551, rs5030062
+",rs8396
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: erythritol
+Variants: rs6687813, rs13375749, rs1697421, rs1801133, rs7542172, rs12709013, rs1570669, rs2000999, rs1171614, rs10903129, rs6678639
+",rs7542172
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Ethyl 10-undecenoate / 
+Variants: rs559555, rs6048216, rs2282679, rs10882272, rs7860634, rs1667255, rs1365505, rs2414095, rs5030062, rs4788815, rs8396
+",rs1365505
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Fibrinopeptide A
+Variants: rs38855, rs649129, rs6975024, rs17134585, rs4687717, rs1801222, rs3847502, rs6048216, rs507080, rs3017098, rs11144134
+",rs649129
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Glutarylcarnitine
+Variants: rs1005390, rs13375749, rs7954638, rs1883025, rs7616006, rs1061808, rs2287623, rs17134585, rs12709013, rs3132440, rs56043887
+",rs13375749
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Glutarylcarnitine
+Variants: rs9392556, rs499974, rs2066938, rs8012, rs2954022, rs4680, rs2275565, rs4587594, rs11144134, rs4072037, rs1571700
+",rs8012
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: hydroxyisovaleroyl carnitine
+Variants: rs1153858, rs7542172, rs2270968, rs12145743, rs12141041, rs7343008, rs12678919, rs4690522, rs10903129, rs1074145, rs2241210
+",rs2270968
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Hypoxanthine
+Variants: rs746872, rs6459467, rs3734398, rs6831256, rs16942887, rs2229738, rs1571700, rs12785878, rs2330809, rs603424, rs2404602
+",rs6459467
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Indoleacetic acid
+Variants: rs3780181, rs2576452, rs2231142, rs4253311, rs17145738, rs1047891, rs13106975, rs7159888, rs7809234, rs507080, rs116843064
+",rs7809234
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Indolelactic acid
+Variants: rs7385804, rs3846710, rs2235544, rs15676, rs3757354, rs1365505, rs10455872, rs234714, rs1532085, rs9635324, rs646776
+",rs15676
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: isobutyrylcarnitine
+Variants: rs6048216, rs10083777, rs16942887, rs8012, rs750472, rs13106975, rs2287921, rs7130284, rs6564851, rs662138, rs9296404
+",rs662138
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: isobutyrylcarnitine
+Variants: rs10087900, rs2282679, rs4814176, rs2248551, rs10083777, rs2404602, rs140348140, rs2547231, rs1047891, rs1801222, rs9844948
+",rs2404602
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Ketoleucine
+Variants: rs12550729, rs13106975, rs6748734, rs2160387, rs4941615, rs1883025, rs6975024, rs2287623, rs7130284, rs1395, rs4680
+",rs4941615
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Acetylcarnitine|Hexanoylcarnitine
+Variants: rs2547231, rs154657, rs1395, rs7529794, rs9392556, rs10903129, rs2073547, rs558971, rs4949874, rs4587594, rs4503368
+",rs4949874
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Asparagine
+Variants: rs3017098, rs1800562, rs9527, rs662138, rs1367117, rs10741657, rs748196, rs4941615, rs2769264, rs6748734, rs17702912
+",rs3017098
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Asparagine
+Variants: rs2366858, rs2287921, rs28489187, rs2011069, rs4503368, rs2231142, rs8396, rs6459467, rs116843064, rs174548, rs17702912
+",rs2011069
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Kynurenine
+Variants: rs1395, rs1532085, rs4660306, rs4253772, rs8051149, rs9527, rs9369898, rs4941615, rs1074145, rs7542172, rs4788815
+",rs8051149
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Serine
+Variants: rs154657, rs9844948, rs2275565, rs3734398, rs3132440, rs7061710, rs2000999, rs131794, rs1163251, rs4660306, rs7535263
+",rs1163251
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Tryptophan
+Variants: rs13122250, rs649129, rs2576452, rs646776, rs17702912, rs4503368, rs12916, rs113612868, rs234714, rs6048216, rs13106975
+",rs13122250
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Valine / Isovalerylcarnitine
+Variants: rs7227483, rs2403254, rs272889, rs1697421, rs7954638, rs1365505, rs2282679, rs1367117, rs1532085, rs1005390, rs1163251
+",rs272889
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Linoleic acid / 5,8-Tetradecadienoic acid
+Variants: rs2110073, rs172642, rs6693388, rs7700133, rs1697421, rs12916, rs7954638, rs7130284, rs649129, rs1800961, rs13122250
+",rs6693388
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Methylcysteine
+Variants: rs154657, rs7343008, rs7809234, rs941206, rs8012, rs8177240, rs4949874, rs3132440, rs7061710, rs6459467, rs2248551
+",rs7061710
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: myo-Inositol
+Variants: rs174548, rs1047891, rs7860634, rs2576452, rs4808136, rs3847502, rs113612868, rs12141041, rs4921914, rs56113850, rs559555
+",rs4808136
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Myristic acid / Myristoleic acid
+Variants: rs12916, rs2011069, rs17134585, rs7227483, rs9844948, rs4921914, rs603424, rs6975024, rs140348140, rs2970818, rs16942887
+",rs603424
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: N-(3-acetamidopropyl)pyrrolidin-2-one
+Variants: rs4680, rs1570669, rs4253311, rs5030062, rs6073958, rs10087900, rs6748734, rs1532085, rs10882272, rs2241210, rs1005390
+",rs1005390
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: N-Acetylornithine / myo-Inositol
+Variants: rs13538, rs7130284, rs2110073, rs56322409, rs2275565, rs15676, rs3847502, rs6693388, rs7542172, rs7227483, rs10087900
+",rs13538
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Nonanoylcarnitine
+Variants: rs1801222, rs7954638, rs1280, rs113612868, rs140348140, rs74249229, rs16942887, rs3738934, rs56043887, rs532545, rs11144134
+",rs3738934
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: O-methylascorbate
+Variants: rs559555, rs2686796, rs10903129, rs4680, rs7954638, rs2231142, rs10934753, rs7343008, rs9844948, rs6687813, rs855791
+",rs4680
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: O-Sulfotyrosine
+Variants: rs1801133, rs7061710, rs6151429, rs13538, rs6678639, rs855791, rs499974, rs1163251, rs4253772, rs9369898, rs4869272
+",rs6151429
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Pantothenic acid
+Variants: rs11144134, rs1171614, rs1395, rs4941615, rs1030420, rs1471633, rs1550532, rs4587594, rs247616, rs746872, rs12550729
+",rs1395
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Phenyllactic acid / L-Phenylalanine
+Variants: rs1367117, rs9296404, rs7343008, rs6511720, rs3132440, rs2160860, rs12709013, rs1153858, rs2235544, rs494562, rs14399
+",rs12709013
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Phosphate / Erythronic acid
+Variants: rs272889, rs7061710, rs13375749, rs2970818, rs4788815, rs4687717, rs34100980, rs8101881, rs2160860, rs2235544, rs1061808
+",rs4687717
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Propionylcarnitine / Isovalerylcarnitine
+Variants: rs1030420, rs646776, rs2040771, rs272889, rs1776029, rs9635324, rs6975024, rs2160860, rs116843064, rs12916, rs2160387
+",rs9635324
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Pyroglutamic acid
+Variants: rs12550729, rs116843064, rs7227483, rs131794, rs838876, rs172642, rs4921914, rs2275565, rs532545, rs4949874, rs6678639
+",rs12550729
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: similar to 5-Androstenediol
+Variants: rs12288023, rs1550532, rs12141041, rs4072037, rs2547231, rs10882272, rs1801689, rs7343008, rs140348140, rs560887, rs2657879
+",rs2547231
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Succinylcarnitine
+Variants: rs6459467, rs272889, rs1365505, rs2769264, rs2160860, rs174548, rs2657879, rs13106975, rs17806888, rs4941615, rs12210538
+",rs17806888
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Undecylenic acid / 11-Hydroxy-9-tridecenoic acid
+Variants: rs2108622, rs56322409, rs1395, rs10083777, rs13106975, rs2330809, rs13122250, rs12785878, rs1153858, rs1005390, rs6678639
+",rs6678639
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Uridine
+Variants: rs532545, rs662138, rs8101881, rs11119805, rs4921914, rs3132440, rs9369898, rs8051149, rs140348140, rs1471633, rs1571700
+",rs532545
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Uridine
+Variants: rs1171614, rs1030420, rs10741657, rs1005390, rs6564851, rs766420, rs1776029, rs3846710, rs2686796, rs7159888, rs2769264
+",rs2686796
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Uridine
+Variants: rs1153858, rs131794, rs7542172, rs4869272, rs10491431, rs4983559, rs1065852, rs2235544, rs2108622, rs1280, rs10830963
+",rs131794
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Cobalamin
+Variants: rs2248551, rs6459467, rs4072037, rs1801222, rs3780181, rs17145738, rs532545, rs8101881, rs2231142, rs662138, rs558971
+",rs1801222
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: D-Glucose
+Variants: rs8051149, rs3780181, rs4941615, rs6048216, rs10882272, rs4253311, rs2769264, rs1280, rs6748734, rs6687813, rs7582179
+",rs6048216
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Arginine
+Variants: rs1061808, rs1395, rs2275565, rs750472, rs13538, rs4680, rs6804368, rs1047891, rs499974, rs7542172, rs2248551
+",rs2248551
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Cotinine glucuronide
+Variants: rs4846914, rs34100980, rs17806888, rs10083777, rs2731672, rs2287623, rs5030062, rs559555, rs12916, rs12785878, rs7045138
+",rs34100980
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Iron
+Variants: rs7542172, rs13106975, rs1776029, rs12210538, rs4680, rs17145738, rs8101881, rs3132440, rs1800961, rs8177240, rs9296404
+",rs8177240
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Iron
+Variants: rs12498742, rs1532085, rs7529794, rs6511720, rs748196, rs8177240, rs15676, rs1800562, rs2108622, rs9296404, rs2100944
+",rs1800562
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Iron
+Variants: rs7385804, rs7535263, rs3734398, rs1801222, rs6459467, rs1805313, rs2769264, rs17702912, rs7542172, rs12210538, rs507080
+",rs7385804
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Iron
+Variants: rs746872, rs2100944, rs56113850, rs838876, rs1800961, rs1667255, rs4983559, rs646776, rs4680, rs662138, rs855791
+",rs855791
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Arachidic acid
+Variants: rs2547231, rs2100944, rs1074145, rs3738934, rs2229738, rs7883218, rs113612868, rs2657879, rs1367117, rs3846710, rs6459467
+",rs2100944
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Oleic Acid
+Variants: rs2110073, rs4788815, rs7700133, rs2547231, rs3847502, rs7159888, rs10087900, rs234714, rs750472, rs6459467, rs38855
+",rs2110073
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Lead
+Variants: rs4814176, rs6748734, rs1805313, rs17702912, rs3846710, rs12916, rs17279437, rs28489187, rs7343008, rs1367117, rs1800562
+",rs1805313
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Manganese
+Variants: rs1776029, rs6804368, rs649129, rs6048216, rs7535263, rs1065852, rs12678919, rs12498742, rs2160387, rs4253311, rs7542172
+",rs1776029
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Hydroxysphingomyeline C24:1
+Variants: rs4814176, rs7883218, rs12141041, rs8012, rs56322409, rs7582179, rs5030062, rs1800562, rs2404602, rs855791, rs17711722
+",rs4814176
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Carnitine
+Variants: rs8051149, rs10455872, rs3846710, rs6048216, rs1171614, rs7159888, rs646776, rs1801222, rs2235544, rs1697421, rs2073547
+",rs1171614
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Proline
+Variants: rs17279437, rs12141041, rs2108622, rs2270968, rs2540641, rs2366858, rs1367117, rs1030420, rs7883218, rs4846914, rs56322409
+",rs2540641
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Serine
+Variants: rs748196, rs2686796, rs2100944, rs5030062, rs10882272, rs1163251, rs2287921, rs1065852, rs7535263, rs4947534, rs1395
+",rs4947534
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: LysoPC(16:0)
+Variants: rs6048216, rs2160860, rs1776029, rs2404602, rs247616, rs6687813, rs4814176, rs7542172, rs3017098, rs4343, rs7529794
+",rs7529794
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: PC(o-22:2(13Z,16Z)/22:3(10Z,13Z,16Z))
+Variants: rs6804368, rs2275565, rs56043887, rs4072037, rs4788815, rs4869272, rs941206, rs8051149, rs6742078, rs7582179, rs2287921
+",rs7582179
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: PC(o-22:2(13Z,16Z)/22:3(10Z,13Z,16Z))
+Variants: rs2547231, rs1550532, rs9637599, rs13375749, rs17279437, rs532545, rs2235544, rs4983559, rs1570669, rs7700133, rs1667255
+",rs7700133
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Phosphatidyl choline PC(14:0/18:2(9Z,12Z)) is a specific example  
+Variants: rs9392556, rs2540641, rs12785878, rs8051149, rs6975024, rs7343008, rs4983559, rs1571700, rs2576452, rs6687813, rs16942887
+",rs7343008
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: alpha-Ketoisovaleric acid
+Variants: rs12785878, rs4808136, rs3780181, rs1801222, rs2229738, rs9844948, rs1776029, rs1471633, rs10455872, rs10491431, rs6748734
+",rs6748734
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Dimethylglycine / L-Alanine
+Variants: rs6459467, rs3780181, rs8177240, rs2110073, rs7343008, rs2954022, rs17279437, rs3846710, rs499974, rs172642, rs4921914
+",rs17279437
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Ethanolamine
+Variants: rs6048216, rs1065852, rs56043887, rs3738934, rs2970818, rs11144134, rs2011069, rs748196, rs1171614, rs6975024, rs1005390
+",rs56043887
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Glycine / Citric acid
+Variants: rs7159888, rs4680, rs2954022, rs4343, rs1061808, rs8396, rs3846710, rs2231142, rs1883025, rs6678639, rs1864729
+",rs3846710
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Glycolic acid
+Variants: rs17702912, rs7529794, rs154657, rs12210538, rs7061710, rs8101881, rs1065852, rs3132440, rs131794, rs2231142, rs7651090
+",rs3132440
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: myo-Inositol
+Variants: rs17702912, rs9637599, rs4690522, rs2731672, rs1570669, rs17711722, rs7045138, rs941206, rs6048216, rs2686796, rs2040771
+",rs17702912
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Succinic acid / Citric acid
+Variants: rs38855, rs941206, rs2404602, rs7061710, rs174548, rs116843064, rs9392556, rs6804368, rs2160860, rs113612868, rs6678639
+",rs941206
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: acylcarnitine measurement
+Variants: rs1005390, rs4808136, rs2275565, rs15676, rs2066938, rs17279437, rs494562, rs12210538, rs6564851, rs28489187, rs4072037
+",rs12210538
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Alanine / L-Asparagine
+Variants: rs74249229, rs174548, rs10083777, rs750472, rs2000999, rs7954638, rs1280, rs838876, rs7157785, rs13538, rs1163251
+",rs750472
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Methylmalonylcarnitine
+Variants: rs2403254, rs3017098, rs941206, rs2686796, rs746872, rs7061710, rs13106975, rs4343, rs174548, rs2330809, rs172642
+",rs746872
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Similar to 3-Hydroxyisovalerylcarnitine
+Variants: rs2403254, rs2282679, rs1005390, rs559555, rs1471633, rs13375749, rs9392556, rs558971, rs1571700, rs2040771, rs7529794
+",rs1571700
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: ratio of Hydroxycotinine to Cotinine
+Variants: rs247616, rs8101881, rs13106975, rs7159888, rs7651090, rs532545, rs12145743, rs15676, rs56113850, rs2229738, rs13538
+",rs56113850
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Citric acid
+Variants: rs4846914, rs2769264, rs646776, rs2100944, rs8051149, rs499368, rs748196, rs6742078, rs7159888, rs131794, rs172642
+",rs172642
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Citric acid
+Variants: rs1163251, rs2108622, rs13122250, rs12288023, rs2040771, rs2657879, rs56113850, rs9527, rs8101881, rs7582179, rs34100980
+",rs2040771
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Glycine
+Variants: rs10903129, rs11591147, rs1800961, rs9844948, rs38855, rs1047891, rs2040771, rs8051149, rs4788815, rs2275565, rs3017098
+",rs1047891
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Glycine
+Variants: rs2275565, rs4680, rs3734398, rs140348140, rs1718309, rs1163251, rs4869272, rs10903129, rs2011069, rs16942887, rs272889
+",rs140348140
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Glycine
+Variants: rs646776, rs74249229, rs4253772, rs4947534, rs7159888, rs10083777, rs13538, rs10882272, rs6073958, rs12141041, rs2547231
+",rs10083777
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs16942887, rs4503368, rs1030420, rs13122250, rs1061808, rs7045138, rs11591147, rs748196, rs1801689, rs8101881, rs1153858
+",rs4503368
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: high density lipoprotein cholesterol measurement
+Variants: rs9296404, rs2100944, rs2229738, rs748196, rs17711722, rs1532085, rs2287623, rs6073958, rs1776029, rs1074145, rs3738934
+",rs6073958
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Glutamine
+Variants: rs7045138, rs1800961, rs6073958, rs7582179, rs1571700, rs13538, rs7159888, rs17711722, rs2657879, rs38855, rs4939883
+",rs2657879
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Histidine
+Variants: rs4846914, rs2073547, rs14399, rs1801133, rs10083777, rs941206, rs3738934, rs1570669, rs1776029, rs2270968, rs7954638
+",rs7954638
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Phenylalanine
+Variants: rs1697421, rs5030062, rs1718309, rs1395, rs12709013, rs2547231, rs1864729, rs4072037, rs113612868, rs603424, rs7343008
+",rs1718309
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Tyrosine
+Variants: rs1061808, rs748196, rs14399, rs7542172, rs13375749, rs2235544, rs6459467, rs4587594, rs113612868, rs2540641, rs248386
+",rs14399
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: L-Valine
+Variants: rs2073547, rs2110073, rs9637599, rs247616, rs8177240, rs12916, rs1805313, rs1800562, rs113612868, rs7130284, rs4983559
+",rs9637599
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: Pyruvic acid
+Variants: rs4587594, rs2275565, rs1776029, rs6831256, rs4921914, rs2540641, rs4983559, rs1800961, rs2066938, rs74249229, rs6073958
+",rs74249229
+gwas_variant_prioritization,"Your task is to identify the most promising variant associated wtih a given GWAS phenotype for futher examination. 
+From the list, prioritize the top associated variant (matching one of the given variant). 
+GWAS phenotype: triglyceride measurement
+Variants: rs12210538, rs6459467, rs4660306, rs1471633, rs13538, rs17145738, rs3017098, rs2404602, rs7860634, rs4808136, rs8051149
+",rs17145738

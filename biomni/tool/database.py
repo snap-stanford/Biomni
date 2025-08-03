@@ -2303,9 +2303,6 @@ def query_ensembl(
     - Direct endpoint: query_ensembl(endpoint="lookup/symbol/homo_sapiens/BRCA2")
 
     """
-    print("IN QUERY ENSEMBL")
-    print("PROMPT: ", prompt)
-    print("ENDPOINT: ", endpoint)
     # Base URL for Ensembl API
     base_url = "https://rest.ensembl.org"
 
@@ -2622,8 +2619,8 @@ def query_monarch(
     endpoint=None,
     api_key=None,
     model="claude-3-5-haiku-20241022",
-    max_results=5,
-    verbose=True,
+    max_results=2,
+    verbose=False,
 ):
     """Query the Monarch Initiative API using natural language or a direct endpoint.
 
@@ -2643,9 +2640,10 @@ def query_monarch(
     Examples
     --------
     - Natural language: query_monarch("Find phenotypes associated with BRCA1")
-    - Direct endpoint: query_monarch(endpoint="https://api.monarchinitiative.org/api/bioentity/gene/NCBIGene:672/phenotypes")
+    - Direct endpoint: query_monarch(endpoint="https://api.monarchinitiative.org/v3/api/search?q=marfan&category=biolink:Disease&limit=10")
+    - Direct endpoint: query_monarch(endpoint="https://api.monarchinitiative.org/v3/api/entity/MONDO:0007947")
     """
-    base_url = "https://api.monarchinitiative.org/api"
+    base_url = "https://api.monarchinitiative.org/v3/api"
 
     if prompt is None and endpoint is None:
         return {"error": "Either a prompt or an endpoint must be provided"}
@@ -2660,7 +2658,40 @@ def query_monarch(
             monarch_schema = None
 
         system_template = """
-        You are a biomedical knowledge graph expert specialized in using the Monarch Initiative API.\n\nBased on the user's natural language request, determine the appropriate Monarch API endpoint and parameters.\n\nMONARCH API SCHEMA:\n{schema}\n\nYour response should be a JSON object with the following fields:\n1. \"full_url\": The complete URL to query (including the base URL \"https://api.monarchinitiative.org/api\" and any parameters)\n2. \"description\": A brief description of what the query is doing\n\nSPECIAL NOTES:\n- For gene queries, use NCBI Gene IDs (e.g., NCBIGene:672 for BRCA1)\n- For disease queries, use MONDO IDs (e.g., MONDO:0005148 for breast cancer)\n- For phenotype queries, use HPO IDs (e.g., HP:0001250)\n- Common endpoints: /bioentity/gene/{id}/phenotypes, /bioentity/disease/{id}/genes, /bioentity/phenotype/{id}/diseases\n- Use max_results to limit the number of returned items if supported\n\nReturn ONLY the JSON object with no additional text.\n        """
+        You are an expert in translating natural language requests into REST API calls for the Monarch Initiative Platform API.
+
+        Here is the API schema with available endpoints and parameters:
+        {schema}
+
+        Translate the user's natural language request into a valid REST API call for this API.
+        Return only a JSON object with three fields:
+        1. "endpoint": The specific endpoint name from the schema
+        2. "url": The complete URL with path parameters filled in
+        3. "params": A JSON object containing query parameters needed for the request
+
+        SPECIAL NOTES:
+        - Disease IDs typically use MONDO ontology (e.g., "MONDO:0007947" for Marfan syndrome)
+        - Gene IDs typically use HGNC (e.g., "HGNC:3603" for FBN1) or other standard identifiers
+        - Phenotype IDs use Human Phenotype Ontology (e.g., "HP:0002616" for aortic root dilatation)
+        - Association categories use biolink model terms (e.g., "biolink:DiseaseToPhenotypicFeatureAssociation")
+        - For example: to find phenotypes associated with BRCA1, use the following endpoint: /entity/HGNC:1100/biolink:GeneToPhenotypicFeatureAssociation
+        - For search queries, use the 'q' parameter with relevant keywords
+        - When looking for associations, use the association_table endpoint with entity ID and category
+        - For similarity searches, use semsim endpoints with comma-separated term lists
+        - Entity categories include: biolink:Disease, biolink:Gene, biolink:PhenotypicFeature, etc.
+        - Format parameter defaults to 'json' but can be 'tsv' for tabular data
+        - Use autocomplete endpoint for entity name suggestions before exact searches
+
+        COMMON PATTERNS:
+        - Search for entities: Use 'search' endpoint with 'q' and 'category' parameters
+        - Get entity details: Use 'get_entity' endpoint with specific ID
+        - Find associations: Use 'association_table' endpoint with ID and association category
+        - Compare phenotypes: Use 'semsim_compare' with lists of phenotype IDs
+        - Find similar diseases: Use 'semsim_search' with phenotype profile
+
+        Return ONLY the JSON object with no additional text or explanations.
+        """
+
         claude_result = _query_claude_for_api(
             prompt=prompt,
             schema=monarch_schema,
@@ -2671,8 +2702,8 @@ def query_monarch(
         if not claude_result["success"]:
             return claude_result
         query_info = claude_result["data"]
-        endpoint = query_info.get("full_url", "")
-        description = query_info.get("description", "")
+        endpoint = query_info.get("url", "")  # Changed from "full_url" to "url"
+        description = f"Monarch API query: {query_info.get('endpoint', 'unknown endpoint')}"
         if not endpoint:
             return {
                 "error": "Failed to generate a valid endpoint from the prompt",
@@ -2689,9 +2720,9 @@ def query_monarch(
     # Add max_results as a query parameter if not already present
     if "?" in endpoint:
         if "rows=" not in endpoint and "limit=" not in endpoint:
-            endpoint += f"&rows={max_results}"
+            endpoint += f"&limit={max_results}"
     else:
-        endpoint += f"?rows={max_results}"
+        endpoint += f"?limit={max_results}"
 
     api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 

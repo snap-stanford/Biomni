@@ -1,0 +1,1023 @@
+task,prompt,answer
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002987, HP:0003273, HP:0040083, HP:0001239, HP:0001371, HP:0005830
+Candidate genes: ['ENSG00000155657']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Distal arthrogryposis type 10', 'OMIM_ID': '187370'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002000, HP:0000205, HP:0002987, HP:0000343, HP:0002086, HP:0000347, HP:0003457, HP:0000293, HP:0002650, HP:0001181, HP:0002793, HP:0001762, HP:0003273, HP:0001250, HP:0002093, HP:0001270, HP:0006380, HP:0000470, HP:0010751, HP:0012385, HP:0001371, HP:0000431, HP:0011824
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000750, HP:0000431, HP:0009931, HP:0001250, HP:0002000, HP:0001250, HP:0000343, HP:0000347, HP:0000205, HP:0005957, HP:0010751, HP:0002059, HP:0000293, HP:0001252, HP:0012385, HP:0001181, HP:0002093, HP:0001263, HP:0001762, HP:0002793, HP:0001848, HP:0002020, HP:0003273, HP:0002019, HP:0002987, HP:0000023, HP:0002650, HP:0002871, HP:0000565, HP:0001270, HP:0000486, HP:0000470, HP:0000787
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002987, HP:0000347, HP:0001181, HP:0002000, HP:0000205, HP:0000431, HP:0000023, HP:0010751, HP:0012385, HP:0001270, HP:0000782, HP:0006380, HP:0002093, HP:0000470, HP:0000343, HP:0000293, HP:0009931, HP:0003273, HP:0002793, HP:0001252, HP:0001762
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002283, HP:0000486, HP:0001537, HP:0010751, HP:0001762, HP:0000431, HP:0000293, HP:0001848, HP:0002650, HP:0002093, HP:0002000, HP:0002793, HP:0000205, HP:0001181, HP:0000750, HP:0002827, HP:0001252, HP:0000470, HP:0000347, HP:0001263, HP:0012385, HP:0002020, HP:0000343, HP:0009931, HP:0001270, HP:0006380
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001840, HP:0000431, HP:0000347, HP:0000293, HP:0002063, HP:0000470, HP:0000205, HP:0009931, HP:0001270, HP:0000565, HP:0000343, HP:0001181, HP:0000750, HP:0002093, HP:0002020, HP:0000023, HP:0002793, HP:0001252, HP:0001263, HP:0012385, HP:0002000, HP:0000486
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002020, HP:0006380, HP:0000750, HP:0000347, HP:0000293, HP:0001181, HP:0002987, HP:0001263, HP:0001270, HP:0001250, HP:0005957, HP:0001272, HP:0001252, HP:0002104, HP:0002793, HP:0002307, HP:0001762, HP:0002019, HP:0000486, HP:0009931, HP:0000343, HP:0010751, HP:0012385, HP:0000431, HP:0002000
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000023, HP:0005957, HP:0001250, HP:0000470, HP:0002650, HP:0006380, HP:0003273, HP:0001762, HP:0012385, HP:0001181, HP:0000486, HP:0000431, HP:0009931, HP:0002000, HP:0000343, HP:0000347, HP:0000205, HP:0010751, HP:0001270, HP:0000750
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000293, HP:0000486, HP:0000431, HP:0009931, HP:0002000, HP:0000343, HP:0000347, HP:0012385, HP:0001181, HP:0002987, HP:0006380, HP:0001263, HP:0000750, HP:0001270, HP:0001252
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0003273, HP:0002000, HP:0000343, HP:0000347, HP:0000293, HP:0012385, HP:0001181, HP:0001762, HP:0002987, HP:0006380, HP:0000470, HP:0001263, HP:0000750, HP:0001270, HP:0002020, HP:0000023, HP:0000175, HP:0009931, HP:0000431
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001250, HP:0009931, HP:0001270, HP:0003273, HP:0001762, HP:0000486, HP:0000023, HP:0001263, HP:0001181, HP:0002019, HP:0012385, HP:0000293, HP:0000750, HP:0002020, HP:0000431, HP:0010751, HP:0000205, HP:0002307, HP:0000347, HP:0100275, HP:0000343, HP:0005957, HP:0002000
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001634, HP:0000431, HP:0000023, HP:0002000, HP:0000347, HP:0000293, HP:0002019, HP:0002020, HP:0002307, HP:0002093, HP:0001250, HP:0000750, HP:0000470, HP:0006380, HP:0001762, HP:0012385, HP:0000205, HP:0000343, HP:0009931, HP:0000565, HP:0002793, HP:0005957, HP:0001270, HP:0001263, HP:0002650, HP:0003273, HP:0001181
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002793, HP:0000431, HP:0009931, HP:0002000, HP:0000347, HP:0000205, HP:0010751, HP:0000293, HP:0012385, HP:0001181, HP:0003273, HP:0002987, HP:0006380, HP:0000470, HP:0001263, HP:0000750, HP:0001270, HP:0001250, HP:0001945, HP:0002307, HP:0002020, HP:0002019
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000293, HP:0000431, HP:0009931, HP:0002000, HP:0012385, HP:0000347, HP:0001537, HP:0002020, HP:0001252, HP:0001270, HP:0000750, HP:0001263, HP:0000470, HP:0001181, HP:0002938, HP:0001848
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001762, HP:0002793, HP:0002093, HP:0000969, HP:0002791, HP:0001270, HP:0000750, HP:0001263, HP:0003273, HP:0001181, HP:0012385, HP:0000293, HP:0000343, HP:0002000, HP:0009931, HP:0000431
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001181, HP:0001776, HP:0000343, HP:0010751, HP:0000347, HP:0000205
+Candidate genes: ['ENSG00000102452']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Congenital Contractures of the Limbs and Face, Hypotonia, and Developmental Delay', 'OMIM_ID': '616266'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002591, HP:0001513, HP:0000821, HP:0000846, HP:0001252, HP:0001263, HP:0000098, HP:0011751, HP:0000717, HP:0002870, HP:0010535, HP:0002104, HP:0001355, HP:0012166
+Candidate genes: ['ENSG00000115138']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'POMC deficiency', 'OMIM_ID': '609734'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000508, HP:0004322, HP:0002650, HP:0002948, HP:0100490
+Candidate genes: ['ENSG00000109063']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'DA8', 'OMIM_ID': '178110'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0004322, HP:0002650, HP:0012385, HP:0100490, HP:0002948, HP:0000508
+Candidate genes: ['ENSG00000109063']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'DA8', 'OMIM_ID': '178110'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002650, HP:0000486, HP:0000160, HP:0012385, HP:0001270, HP:0002987, HP:0001371
+Candidate genes: ['ENSG00000109063']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 2A', 'OMIM_ID': '193700'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0012385, HP:0000365, HP:0000160, HP:0000028, HP:0000750, HP:0000343, HP:0002650, HP:0006380, HP:0001371
+Candidate genes: ['ENSG00000109063']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 2A', 'OMIM_ID': '193700'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000028, HP:0000160, HP:0002650, HP:0012385
+Candidate genes: ['ENSG00000109063']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 2A', 'OMIM_ID': '193700'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001762, HP:0012385, HP:0002650, HP:0000750, HP:0001371
+Candidate genes: ['ENSG00000109063']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 2A', 'OMIM_ID': '193700'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002650, HP:0001371, HP:0000160, HP:0003273, HP:0012385
+Candidate genes: ['ENSG00000109063']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 2A', 'OMIM_ID': '193700'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002904, HP:0001276, HP:0001371, HP:0001762, HP:0000486, HP:0000347, HP:0000581, HP:0000066, HP:0000431, HP:0012385, HP:0000059
+Candidate genes: ['ENSG00000109063']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 2A', 'OMIM_ID': '193700'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000160, HP:0012385, HP:0000028, HP:0002650, HP:0001371, HP:0001762
+Candidate genes: ['ENSG00000109063']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 2A', 'OMIM_ID': '193700'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0006380, HP:0001181, HP:0001762, HP:0001193, HP:0001371, HP:0100490, HP:0001239
+Candidate genes: ['ENSG00000109063']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Sheldon-Hall syndrome', 'OMIM_ID': '601680'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0008454, HP:0009763, HP:0004322, HP:0007340, HP:0002355, HP:0001388
+Candidate genes: ['ENSG00000170266']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Mucopolysaccharidosis type 4B', 'OMIM_ID': '253010'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0200006, HP:0007776, HP:0011800, HP:0000347, HP:0000185, HP:0000365, HP:0002974
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0200006, HP:0007646, HP:0011800, HP:0000347, HP:0000365, HP:0006482, HP:0001822
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0200006, HP:0000347, HP:0002974
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000347, HP:0012478, HP:0000175, HP:0000365, HP:0002974
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0007646, HP:0000347, HP:0000175, HP:0000365, HP:0001172
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0200006, HP:0007776, HP:0011800, HP:0000347, HP:0000365, HP:0001172
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0200006, HP:0007646, HP:0011800, HP:0000347, HP:0000365, HP:0001172
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000365, HP:0200006, HP:0007646, HP:0000347, HP:0002974
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0200006, HP:0007776, HP:0011800, HP:0000347, HP:0000378, HP:0000402, HP:0000365, HP:0009778, HP:0000750, HP:0004322, HP:0010109
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0200006, HP:0007646, HP:0011800, HP:0000347, HP:0012478, HP:0000185, HP:0000365, HP:0009778, HP:0002974, HP:0001263, HP:0012385, HP:0001762, HP:0012210, HP:0001629
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0200006, HP:0000347, HP:0100736, HP:0000365, HP:0009778
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0200006, HP:0011800, HP:0000347, HP:0100736, HP:0000365, HP:0001172
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0011800, HP:0000347, HP:0100736, HP:0000365, HP:0000486, HP:0001634, HP:0001172
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0200006, HP:0011800, HP:0000347, HP:0000174, HP:0000365, HP:0002984, HP:0001172
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0200006, HP:0011800, HP:0000347, HP:0002705, HP:0001172, HP:0004322, HP:0001159
+Candidate genes: ['ENSG00000143368']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Nager acrofacial dysostosis', 'OMIM_ID': '154400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001263, HP:0002650
+Candidate genes: ['ENSG00000177189']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Coffin-Lowry syndrome', 'OMIM_ID': '303600'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001263, HP:0000717, HP:0000750, HP:0000319, HP:0000322, HP:0004322
+Candidate genes: ['ENSG00000101126']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'ADNP-related multiple congenital anomalies-intellectual disability-autism spectrum disorder', 'OMIM_ID': '615873'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000717
+Candidate genes: ['ENSG00000080709']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'autism (disease)', 'OMIM_ID': '209850'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001760, HP:0000508, HP:0000347, HP:0001371, HP:0012385, HP:0005830, HP:0030084
+Candidate genes: ['ENSG00000171551']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'DA2B', 'OMIM_ID': '601680'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002578, HP:0100633, HP:0001336, HP:0001279, HP:0001250, HP:0100702, HP:0001258, HP:0002960, HP:0001263, HP:0001264, HP:0001258, HP:0002960, HP:0002355, HP:0001252, HP:0002169, HP:0002061
+Candidate genes: ['ENSG00000115267']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Aicardi-Goutieres syndrome 7', 'OMIM_ID': '615846'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001250, HP:0001250, HP:0001250, HP:0002169, HP:0002312, HP:0001250, HP:0001250, HP:0001250, HP:0002069
+Candidate genes: ['ENSG00000141556']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Encephalopathy, Progressive, Early-Onset, with Brain Atrophy and Thin Corpus Callosum; PEBAT', 'OMIM_ID': '617193'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000347, HP:0000448, HP:0000411, HP:0000378, HP:0002558, HP:0000625, HP:0000202
+Candidate genes: ['ENSG00000102967']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Postaxial acrofacial dysostosis', 'OMIM_ID': '263750'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000448, HP:0000347, HP:0000202, HP:0000625, HP:0002558, HP:0000378, HP:0000411
+Candidate genes: ['ENSG00000102967']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Postaxial acrofacial dysostosis', 'OMIM_ID': '263750'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000347, HP:0000448, HP:0000411, HP:0000378, HP:0002558, HP:0000625, HP:0000202
+Candidate genes: ['ENSG00000102967']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Postaxial acrofacial dysostosis', 'OMIM_ID': '263750'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000347, HP:0000411, HP:0000378, HP:0002558, HP:0000625, HP:0000202, HP:0000448
+Candidate genes: ['ENSG00000102967']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Postaxial acrofacial dysostosis', 'OMIM_ID': '263750'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000625, HP:0002558, HP:0000378, HP:0000448, HP:0000202, HP:0000347, HP:0000411
+Candidate genes: ['ENSG00000102967']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Postaxial acrofacial dysostosis', 'OMIM_ID': '263750'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000448, HP:0000378, HP:0000411, HP:0000202, HP:0000347, HP:0000625, HP:0002558
+Candidate genes: ['ENSG00000102967']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Postaxial acrofacial dysostosis', 'OMIM_ID': '263750'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0010864, HP:0001250, HP:0000717
+Candidate genes: ['ENSG00000173575']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'childhood onset epileptic encephalopathy,Epileptic Encephalopathy, Childhood-Onset,Epileptic encephalopathy, childhood-onset', 'OMIM_ID': '615369'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001999, HP:0001263, HP:0000708
+Candidate genes: ['ENSG00000095787']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'facial dysmorphism-developmental delay-behavioral abnormalities syndrome due to WAC point mutation', 'OMIM_ID': '616708'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002098, HP:0001252, HP:0000160, HP:0001357, HP:0001363, HP:0000274, HP:0045025, HP:0012745, HP:0003196, HP:0000463, HP:0000396, HP:0000369, HP:0001601, HP:0001371
+Candidate genes: ['ENSG00000142798']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Schwartz-Jampel syndrome', 'OMIM_ID': '255800'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001518
+Candidate genes: ['ENSG00000101986']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'X-linked cerebral adrenoleukodystrophy', 'OMIM_ID': '300100'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000470, HP:0004322, HP:0005281, HP:0000508, HP:0000369, HP:0001629, HP:0012385, HP:0002650
+Candidate genes: ['ENSG00000159251']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'DA8', 'OMIM_ID': '178110'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001643, HP:0000316, HP:0100703, HP:0006380, HP:0004755, HP:0011220, HP:0001274, HP:0005879, HP:0002357, HP:0000378, HP:0000252, HP:0001263, HP:0001631, HP:0001488, HP:0000319, HP:0001776
+Candidate genes: ['ENSG00000156650']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Toriello-Carey syndrome', 'OMIM_ID': '217980'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001249, HP:0000717
+Candidate genes: ['ENSG00000132024']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'autism (disease)', 'OMIM_ID': '209850'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000078, HP:0002098, HP:0012735, HP:0001510, HP:0001217, HP:0003251, HP:0000975, HP:0000975, HP:0001276
+Candidate genes: ['ENSG00000001626']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'CFM1', 'OMIM_ID': '603855'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0003121
+Candidate genes: ['ENSG00000130595']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 1A', 'OMIM_ID': '108120'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0005617
+Candidate genes: ['ENSG00000130595']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 1A', 'OMIM_ID': '108120'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001776, HP:0008944, HP:0009473, HP:0001159, HP:0010704, HP:0002804, HP:0012453, HP:0005684, HP:0006251
+Candidate genes: ['ENSG00000130595']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 1A', 'OMIM_ID': '108120'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001067, HP:0002664, HP:0002664, HP:0009589, HP:0030692
+Candidate genes: ['ENSG00000186575']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Neurofibromatosis, Type 2,Neurofibromatosis, type 2,Neurofibromatosis type 2', 'OMIM_ID': '101000'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001371, HP:0009901
+Candidate genes: ['ENSG00000138829']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'DA9', 'OMIM_ID': '121050'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0009901, HP:0001840, HP:0001166
+Candidate genes: ['ENSG00000138829']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'DA9', 'OMIM_ID': '121050'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000717, HP:0002079, HP:0001257, HP:0001252
+Candidate genes: ['ENSG00000082701']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Autism', 'OMIM_ID': '209850'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002561, HP:0001057, HP:0000598
+Candidate genes: ['ENSG00000134504']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Scalp-ear-nipple syndrome', 'OMIM_ID': '181270'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001057, HP:0002561, HP:0000598
+Candidate genes: ['ENSG00000134504']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Scalp-ear-nipple syndrome', 'OMIM_ID': '181270'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001057, HP:0000598, HP:0002561
+Candidate genes: ['ENSG00000134504']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Scalp-ear-nipple syndrome', 'OMIM_ID': '181270'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000598, HP:0002561, HP:0001057
+Candidate genes: ['ENSG00000134504']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Scalp-ear-nipple syndrome', 'OMIM_ID': '181270'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002561, HP:0001057, HP:0000598
+Candidate genes: ['ENSG00000134504']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Scalp-ear-nipple syndrome', 'OMIM_ID': '181270'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002561, HP:0000598, HP:0001057
+Candidate genes: ['ENSG00000134504']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Scalp-ear-nipple syndrome', 'OMIM_ID': '181270'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001057, HP:0000598, HP:0002561
+Candidate genes: ['ENSG00000134504']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Scalp-ear-nipple syndrome', 'OMIM_ID': '181270'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002561, HP:0001057, HP:0000598
+Candidate genes: ['ENSG00000134504']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Scalp-ear-nipple syndrome', 'OMIM_ID': '181270'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000598, HP:0001057, HP:0002561
+Candidate genes: ['ENSG00000134504']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Scalp-ear-nipple syndrome', 'OMIM_ID': '181270'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002561, HP:0000598, HP:0001057
+Candidate genes: ['ENSG00000134504']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Scalp-ear-nipple syndrome', 'OMIM_ID': '181270'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000252, HP:0001263, HP:0001249, HP:0000006
+Candidate genes: ['ENSG00000168036']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Mental Retardation, Autosomal Dominant 19', 'OMIM_ID': '615075'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0100702
+Candidate genes: ['ENSG00000176692']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Lymphedema-distichiasis syndrome', 'OMIM_ID': '153400'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001263, HP:0001252
+Candidate genes: ['ENSG00000105409']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Alternating Hemiplegia of Childhood 1', 'OMIM_ID': '104290'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0004322, HP:0009473, HP:0000347, HP:0000175
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Gordon syndrome', 'OMIM_ID': '114300'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0009473, HP:0004322, HP:0000347, HP:0000508, HP:0000175, HP:0002650
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Gordon syndrome', 'OMIM_ID': '114300'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002650, HP:0009473, HP:0000175, HP:0000347
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Gordon syndrome', 'OMIM_ID': '114300'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0009473, HP:0000347, HP:0000175
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Gordon syndrome', 'OMIM_ID': '114300'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000602, HP:0000175, HP:0009473, HP:0000347
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Gordon syndrome', 'OMIM_ID': '114300'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000508, HP:0000193, HP:0009473, HP:0000347
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Gordon syndrome', 'OMIM_ID': '114300'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000347, HP:0000508, HP:0009473, HP:0002650, HP:0000175
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Gordon syndrome', 'OMIM_ID': '114300'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002650, HP:0000175, HP:0007099, HP:0004322, HP:0001263, HP:0009473
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Gordon syndrome', 'OMIM_ID': '114300'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000347, HP:0000175, HP:0007099, HP:0004322, HP:0000508, HP:0009473, HP:0002650
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Gordon syndrome', 'OMIM_ID': '114300'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000602, HP:0000175, HP:0004322, HP:0002650, HP:0000508, HP:0009473
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Gordon syndrome', 'OMIM_ID': '114300'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000602, HP:0001371, HP:0009473, HP:0002091
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002091, HP:0002650, HP:0009473, HP:0000602, HP:0004322
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002650, HP:0009473, HP:0004322, HP:0001488, HP:0000602
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000508, HP:0009473, HP:0000602, HP:0000347
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000602, HP:0009473
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0009473, HP:0009473, HP:0001488, HP:0000602
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0004322, HP:0009473, HP:0000508, HP:0000602
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0009473, HP:0000602, HP:0001488, HP:0004322
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000602, HP:0002650, HP:0000508, HP:0009473, HP:0000347
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000508, HP:0001371, HP:0000602, HP:0009473
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000508, HP:0009473, HP:0001371
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002650, HP:0001371, HP:0009473, HP:0000602
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001488, HP:0004322, HP:0009473, HP:0001371, HP:0000602
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0009473, HP:0001371, HP:0000602, HP:0002650, HP:0001488
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0009473, HP:0001371, HP:0000602, HP:0002650, HP:0000508
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000602, HP:0001371, HP:0009473, HP:0000508
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001371, HP:0004322, HP:0000508, HP:0002650, HP:0009473
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000508, HP:0001371, HP:0000602, HP:0009473
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000602, HP:0000508, HP:0004322, HP:0001371, HP:0009473
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000602, HP:0001371, HP:0000508, HP:0009473
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000602, HP:0004322, HP:0001371, HP:0000508, HP:0009473
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0009473, HP:0001371, HP:0000602, HP:0002650, HP:0000508, HP:0002091
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000602, HP:0004322, HP:0001488, HP:0002650, HP:0002091, HP:0009473, HP:0001371
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0009473, HP:0001488, HP:0002091, HP:0002650, HP:0005745
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis with oculomotor limitation and electroretinal anomalies', 'OMIM_ID': '108145'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000347, HP:0002650, HP:0001263, HP:0005745, HP:0009473, HP:0001305, HP:0000508, HP:0000175
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Marden-Walker syndrome', 'OMIM_ID': '248700'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0031936, HP:0000319, HP:0000463, HP:0000490, HP:0000508, HP:0031936, HP:0000750, HP:0001488, HP:0001371, HP:0001220, HP:0003044, HP:0000193, HP:0001371, HP:0009909, HP:0000233, HP:0000343, HP:0012785, HP:0001371, HP:0002987, HP:0001371, HP:0008962, HP:0001371, HP:0009004, HP:0001762, HP:0006466, HP:0004322
+Candidate genes: ['ENSG00000154864']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Gordon syndrome', 'OMIM_ID': '114300'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000218, HP:0001371, HP:0000293, HP:0012712, HP:0003273, HP:0000369, HP:0001762, HP:0003196, HP:0010751
+Candidate genes: ['ENSG00000196218']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'DA2B', 'OMIM_ID': '601680'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0003946, HP:0004305, HP:0007166, HP:0001332, HP:0001371, HP:0001337, HP:0002072, HP:0012531, HP:0002305, HP:0100021, HP:0003121, HP:0001427, HP:0100660, HP:0100022, HP:0006704, HP:0003457
+Candidate genes: ['ENSG00000173175']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Dyskinesia, Familial, With Facial Myokymia', 'OMIM_ID': '606703'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0011220, HP:0000348, HP:0000316, HP:0000637, HP:0000520, HP:0000586, HP:0003196, HP:0004279, HP:0002148, HP:0001644, HP:0000239, HP:0012523, HP:0003025, HP:0002663, HP:0009803
+Candidate genes: ['ENSG00000165458']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Opsismodysplasia', 'OMIM_ID': '258480'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000239, HP:0000348, HP:0000316, HP:0000637, HP:0000520, HP:0000586, HP:0003196, HP:0002093, HP:0004279, HP:0002148, HP:0000175, HP:0000347, HP:0002100, HP:0001947, HP:0002779, HP:0003025, HP:0002663, HP:0009803, HP:0004322, HP:0002652
+Candidate genes: ['ENSG00000165458']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Opsismodysplasia', 'OMIM_ID': '258480'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002091, HP:0002652, HP:0000239, HP:0011220, HP:0000348, HP:0000316, HP:0000637, HP:0000520, HP:0000586, HP:0003196, HP:0000358, HP:0002090, HP:0004279, HP:0001270, HP:0000774, HP:0006380, HP:0000540, HP:0000822, HP:0003025, HP:0004912, HP:0002663, HP:0009803, HP:0000926, HP:0002677, HP:0008445, HP:0002812, HP:0008804, HP:0008807
+Candidate genes: ['ENSG00000165458']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Opsismodysplasia', 'OMIM_ID': '258480'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000520, HP:0003025, HP:0002091, HP:0000316, HP:0002092, HP:0011220, HP:0002663, HP:0004279, HP:0003196, HP:0000348, HP:0009803, HP:0000586, HP:0002652, HP:0000938, HP:0002148, HP:0006532
+Candidate genes: ['ENSG00000165458']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Opsismodysplasia', 'OMIM_ID': '258480'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002652, HP:0003196, HP:0000369, HP:0004279, HP:0002093, HP:0003025, HP:0009803, HP:0002663
+Candidate genes: ['ENSG00000165458']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Opsismodysplasia', 'OMIM_ID': '258480'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0004279, HP:0009803, HP:0000926, HP:0008454, HP:0000774, HP:0002652, HP:0003196, HP:0003025, HP:0000239, HP:0011220, HP:0000348, HP:0000316, HP:0000520, HP:0000586
+Candidate genes: ['ENSG00000165458']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Opsismodysplasia', 'OMIM_ID': '258480'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000365, HP:0000717
+Candidate genes: ['ENSG00000251322']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Phelan-Mcdermid Syndrome', 'OMIM_ID': '606232'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0100702, HP:0000365, HP:0012443
+Candidate genes: ['ENSG00000121957']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Chudley-McCullough syndrome', 'OMIM_ID': '604213'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001903, HP:0000648, HP:0000365, HP:0003324, HP:0010871, HP:0010535
+Candidate genes: ['ENSG00000185803']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Riboflavin transporter deficiency', 'OMIM_ID': '211530'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001263, HP:0001270, HP:0001270
+Candidate genes: ['ENSG00000119392']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'lethal arthrogryposis-anterior horn cell disease syndrome', 'OMIM_ID': '611890'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000256, HP:0000343, HP:0000347, HP:0010628, HP:0011968, HP:0001249, HP:0000463, HP:0000187, HP:0001344, HP:0012385, HP:0001374, HP:0001647, HP:0000470, HP:0006466, HP:0000369, HP:0002460, HP:0000308, HP:0001510, HP:0001270, HP:0000020
+Candidate genes: ['ENSG00000126970']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Intellectual disability-developmental delay-contractures syndrome,Wieacker syndrome,Wieacker-Wolff Syndrome', 'OMIM_ID': '314580'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001276, HP:0001270, HP:0002378, HP:0000750, HP:0001263
+Candidate genes: ['ENSG00000158290']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Syndromic X-linked mental retardation, Cabezas type,Mental Retardation, X-Linked, Syndromic, Cabezas Type,X-linked intellectual disability, Cabezas type', 'OMIM_ID': '300354'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002664
+Candidate genes: ['ENSG00000083799']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Brooke-Spiegler Syndrome', 'OMIM_ID': '605041'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001631, HP:0001250, HP:0001276, HP:0002020, HP:0002043, HP:0006528, HP:0001385, HP:0012443, HP:0001548, HP:0001655, HP:0008807, HP:0001274, HP:0010535, HP:0000389, HP:0008807, HP:0001631, HP:0002780, HP:0002019, HP:0000365
+Candidate genes: ['ENSG00000181090']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Kleefstra syndrome', 'OMIM_ID': '610253'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0011344, HP:0001250, HP:0002376
+Candidate genes: ['ENSG00000072501']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Epileptic Encephalopathy, Early Infantile, 2,Early infantile epileptic encephalopathy 2', 'OMIM_ID': '300672'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001249
+Candidate genes: ['ENSG00000101825']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'autism (disease)', 'OMIM_ID': '209850'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001249
+Candidate genes: ['ENSG00000101825']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'autism (disease)', 'OMIM_ID': '209850'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000508, HP:0000518, HP:0001250, HP:0000158, HP:0000011, HP:0001297, HP:0000341, HP:0002553, HP:0000426, HP:0000463, HP:0002263, HP:0000158, HP:0000212, HP:0001263, HP:0002376, HP:0004467, HP:0100704, HP:0000212
+Candidate genes: ['ENSG00000145348']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Hypotonia, Infantile, with Psychomotor Retardation and Characteristic Facies 3; IHPRF3', 'OMIM_ID': '616900'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0002664
+Candidate genes: ['ENSG00000095209']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'osteogenesis imperfecta type 14', 'OMIM_ID': '615066'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0012385, HP:0001371, HP:0001836, HP:0100490, HP:0000494, HP:0001883, HP:0001762
+Candidate genes: ['ENSG00000198467']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'DA2B', 'OMIM_ID': '601680'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0004097, HP:0001776, HP:0004097
+Candidate genes: ['ENSG00000198467']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 1A', 'OMIM_ID': '108120'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001761, HP:0001761, HP:0009466, HP:0005617, HP:0010186, HP:0006248, HP:0009486, HP:0010326, HP:0010326, HP:0100498, HP:0100490
+Candidate genes: ['ENSG00000130598']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 1A', 'OMIM_ID': '108120'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001776, HP:0002650, HP:0000470, HP:0006248, HP:0010505, HP:0005617, HP:0002194
+Candidate genes: ['ENSG00000130598']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 1A', 'OMIM_ID': '108120'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0000470, HP:0002650, HP:0002194, HP:0005617, HP:0001776
+Candidate genes: ['ENSG00000130598']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Arthrogryposis, Distal, Type 1A', 'OMIM_ID': '108120'}"
+rare_disease_diagnosis,"
+Task: given a patient's phenotypes and a list of candidate genes, diagnose the rare disease that the patient has.
+Phenotypes: HP:0001250, HP:0001263, HP:0000047, HP:0000639, HP:0000821, HP:0000238, HP:0001513
+Candidate genes: ['ENSG00000101871']
+
+Output format: {'disease_name': XXX, 'OMIM_ID': XXX}
+        ","{'disease_name': 'Opitz Gbbb Syndrome, Type 1', 'OMIM_ID': '300000'}"

@@ -1,0 +1,1963 @@
+task,prompt,answer
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLMAP,RPL23A,CA11,RFX6,GM2A,SCAP,MYH4,PTPRU,NOVA2,TRIM39-RPP21",RPL23A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CENPM,STX18,CASQ1,TWIST2,DNAH14,RRP7A,EFHD2,FUT3,PEX14,CCDC3",RRP7A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NDUFS7,C17orf62,FAU,DTX3L,SVIL,DUSP13,PDZD3,CLTB,NCBP2,C1orf64",FAU
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TMEM150B,TRIM56,ATF7IP,AVPR2,OR10K1,SREK1,PHLDA1,MMP8,TMEM98,MDH1",PHLDA1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HSPD1,PIGR,IPO11,LCORL,PATL1,HLA-DQA2,LARGE2,SIX1,VEZT,HOXB9",LARGE2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PRR5L,CD68,PRPF31,ZNHIT2,TSTD3,LDB1,CYB5B,LCE2A,PRTG,TEN1",PRPF31
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NIT2,CEP41,EPN3,NCR2,OST4,BRI3,PAN2,IRGQ,HENMT1,F3",BRI3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C14orf159,TMEM87B,MIEN1,HHLA1,VKORC1,COL11A1,PDSS2,CACUL1,AQP10,AMY1A",MIEN1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RPS3,MYCBPAP,CDO1,OR52N1,HSPA6,TNFSF11,RAPGEF3,GJA8,SERPINB8,COL15A1",RPS3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PRKCG,PLA2G4D,GC,NUP85,ZNF415,NDRG1,MED15,DEFB103B,SCG2,DDX31",MED15
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CSRNP3,HERC6,CGB1,TCF21,C10orf142,OR8K5,ADAM30,CCNB1,MAP3K4,NLRP2B",MAP3K4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GPR26,CCDC8,DCUN1D5,KCNH2,CELA1,CYP26C1,SERF2,PSMA6,PPFIA1,VCX2",PSMA6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DDOST,GNLY,EIF5A,PAQR4,APC2,SLC35E1,ZNF202,CERS4,C5orf51,TENM2",EIF5A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MAGEL2,TAS2R46,PIGG,LRP10,DUSP13,EPC1,PAPD7,NPY1R,TERB1,HP",TERB1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: S100A8,CCDC174,HMGCL,TXNL4B,SPATA17,BOLA3,ZSCAN2,TTC39A,RRAGD,COL3A1",CCDC174
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: B4GALT5,THOC5,FAM90A1,OSCP1,AAAS,FAM102A,DPP8,SAYSD1,EPC2,MRE11",THOC5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C9orf57,SALL1,RBMS3,SRPX,CD68,ACKR4,HMGCL,MCM7,THAP1,TGIF2",THAP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KCNK10,SLC2A12,CMPK2,DGKG,PAIP2B,KEAP1,RSAD2,OR6C70,VHLL,FIGLA",FIGLA
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF680,KIAA0319L,PF4,LHFPL2,FOXRED1,RSL1D1,P4HA2,ZNF169,C14orf79,GNL3L",GNL3L
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GPR26,LY75,SLC34A3,SLC4A11,RPL13A,TMEM189-UBE2V1,MICAL3,COL24A1,GPATCH4,CDK17",RPL13A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KCNC1,OR4N5,RHPN2,EPHA2,IFNA10,DUSP13,RAB39B,FAM71B,AMBN,CCT4",CCT4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TSTD1,REPIN1,MAGEA10,NXF2,ACE2,RPL18,HMOX2,PBLD,TAAR5,NADSYN1",RPL18
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF141,PCSK5,ZDHHC24,IFNG,C1GALT1C1L,MPG,MAP2K4,RECK,CCDC157,KRT12",RECK
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: WARS,EPHA7,GPR148,BCL7A,GDF6,EBNA1BP2,PINLYP,LRRK2,NANOS2,OR2T35",EBNA1BP2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: AFM,ZBTB20,ZNF837,PGGT1B,MYO1G,CTF1,RFWD2,GTSF1,TMED5,F8A3",ZNF837
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF264,COPE,ANKRD53,SLC35F1,EPHB1,VAT1,DAPK3,SV2B,SAAL1,PKDREJ",COPE
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PMS2,RABGEF1,PLEKHO2,TXK,PEPD,PNMT,ELMOD3,SLC28A3,RPGRIP1,DPM1",PEPD
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DEFA4,HOXB1,MPPED1,BCL6,RAB6A,BNIP3,DNMT3L,C12orf66,BMI1,OR2W3",C12orf66
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DAAM1,PCDHA6,DOCK6,BICRAL,ASPN,CA13,MFAP3,SMYD4,CACTIN,C14orf80",SMYD4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DEFB129,PQLC3,PRIM2,ATG5,RBBP4,NBN,ZSCAN23,FNIP2,KLHL26,ASPHD1",PRIM2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF256,RFPL2,GET4,FAM72C,PIBF1,PNO1,EPS8L2,C7orf71,RAB39B,SERPINE3",PNO1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CTDP1,CACNA1A,HAUS6,PSG6,WFIKKN1,FAM210B,C19orf43,SSBP4,AKR1B15,OR4D9",OR4D9
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ASS1,MYO5A,HMG20B,SREK1IP1,ANKH,FCN1,ZNF365,NT5C,FSD2,USP5",USP5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ADGRG3,ATP6V0A4,PAQR7,RSPO2,NTPCR,CNPY4,MCM5,NISCH,DNAJB4,SNX6",MCM5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ALX1,MRGPRD,PHF10,GADD45G,ASMT,USP17L3,DNAJC7,PAX2,TCF7L1,WDR5",WDR5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CPA1,VAPB,RBM48,CBWD7,SGO1,IGSF5,FXYD4,GABRR2,ABHD13,LDHB",SGO1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GLRX2,OR4D5,LAMP5,ZNF205,PNLIP,RYR1,THBS2,SLC25A52,COX6C,FBN1",COX6C
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PTGES3,GAN,PTGER3,DCAKD,RPS25,NXPH1,FGF18,MB21D2,USE1,ARG2",RPS25
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GSE1,PRODH2,TCF21,MBNL3,POTEE,FRMD3,PPP1R3C,CRLF1,ATP2C2,ANAPC15",ANAPC15
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MEGF9,B3GNT4,ITPKC,PLA2G3,IQCF1,SLC25A35,CDC20B,KIAA1462,CYP2S1,TUBGCP2",TUBGCP2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: AP3M1,NUDT3,TMEM160,MAP3K15,CFAP69,FKRP,ZSWIM3,RUFY4,WDFY4,ACSS1",FKRP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PDE4A,CABLES1,THADA,KCTD21,ZNF16,CDC7,EBPL,RBX1,MOSPD3,ABCA7",CDC7
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LGALS7B,ASTN2,UGDH,IMP3,CCDC74A,ARMS2,SP110,GYS1,TMUB2,DLL3",IMP3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: OR2L8,ZNF552,SLC25A53,DYTN,CETP,ZSCAN21,IQCG,MRPL58,ACAD11,EVPLL",MRPL58
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ULBP2,WDR41,TERT,ATXN7L1,ARHGEF25,HIVEP1,KIF11,DNAAF4,ADA,PGBD3",KIF11
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FAM104B,TP53TG3E,ASCL5,MBNL2,SGSH,PRPF6,CHRNB2,DNM1L,BRS3,CNTN1",PRPF6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FABP1,TSSK2,REXO1,RAB14,ZNF675,EIF2AK4,TRAIP,NFYB,FKBP1B,ESCO1",TRAIP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLC11A2,GMIP,BTK,KRT84,OR10S1,PSMB6,IP6K3,CDKN1A,LHX5,BCAP31",GMIP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SP8,LOC388780,OR4S1,CFAP47,DACH1,CLUH,INTU,PAQR9,ZNF654,PGD",PGD
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ANXA11,AMOTL2,MAPK13,RBBP4,MISP3,RSAD2,UBE2H,SAA4,SEPT3,NHSL1",UBE2H
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZBTB38,DEUP1,SLC1A4,RETREG2,CEBPZ,SOAT2,NDRG2,BRICD5,SPDYE5,MMD2",MMD2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF148,KIAA0922,OVCH1,TMEM132D,IFNA7,E2F5,PLPBP,ARHGAP18,TMC3,SLC37A3",ZNF148
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CLPS,LPL,TSC2,EML6,MAGEB17,SLC52A3,PRG2,RIPOR3,OPRM1,CPN2",TSC2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GRAP,USP46,SYNM,CENPI,ACADVL,BCL7A,NFXL1,SPATA3,RANGAP1,HIST1H3I",CENPI
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KNDC1,SYTL1,MAPK9,SERPINA9,IKBKB,C16orf45,TUBGCP5,COX7A1,PPEF2,ADRA2B",TUBGCP5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DHX30,ZRANB3,MECR,ADH1B,PTMA,RASSF10,TTC17,MRPS18A,OR7C2,SYCP2L",PTMA
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CSN3,SLC37A3,RBX1,SGMS1,KIF17,NMRAL1,LIMS3,KIAA1217,L3MBTL2,METTL24",METTL24
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CD226,SYT17,TCIRG1,GABRR1,NPLOC4,KRT27,SCPEP1,PIGQ,DENND3,RPS18",RPS18
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: AQP12A,EIF4H,ASB6,NUP62,TP53INP2,CDK18,AMFR,PPP1R14B,MACC1,TMEM105",NUP62
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BBS9,KIF24,RUSC1-AS1,EFHB,ANKDD1B,DNTTIP2,RRP8,ACOT2,PRKCG,SPAG4",DNTTIP2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ADGRL4,ZNF181,PSMC3,HELZ,PPP4R1,NOC2L,GNPTAB,IGFBP5,ITGAM,MC1R",PSMC3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FOXN3,HIST1H2BJ,SNX5,CALB2,OSBPL5,CCER2,MSLN,ZNF205,NUP88,TP53TG3E",NUP88
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TRIM14,RUVBL1,LOC339862,SAT2,TEX15,OAZ1,MYO9B,PKN3,MUC1,LBX2",RUVBL1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CCT2,DIAPH3,RPL7,KCNJ11,NEFL,GYPE,WFDC2,PCDHGB7,CHST7,MCM10",MCM10
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ADCYAP1,RRP1,PIM1,M1AP,TMSB4Y,IL17RB,PIGO,CTSD,FGG,PIGS",RRP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LCN10,IRX2,PGBD2,ANP32E,OR52W1,GDNF,NRBP1,SEPT2,NDUFAF2,LSMEM2",NRBP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RPS6KA6,UBTFL1,CAPN13,ALPK3,NPTX2,SNRNP200,THAP2,CALY,LRRC30,C10orf55",SNRNP200
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CAMLG,ST8SIA2,TMEM219,YEATS2,CTPS1,MAP3K2,SELENOT,PEX7,ADGRG5,TPSB2",CTPS1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SULT1B1,GCC1,GRIK4,PRKD1,AFAP1L2,GINS1,EBAG9,AAMDC,LXN,KRTAP1-4",GINS1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: COPZ1,IFI44,ZNF473,TWF1,AKAP8L,UNKL,C10orf55,MAEA,ELOA2,NFE4",COPZ1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: VCPIP1,GNAT1,OR4M1,SELENOT,DCAF7,ILF2,MTF2,CHGA,DLEU7,PLK4",ILF2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MSTN,MIOS,WDTC1,KIAA0753,RGS20,RIBC1,SLC27A5,VWDE,TIGD2,ZNF792",MIOS
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CFAP70,ZMAT4,ELOVL7,DEFB106A,ZNF605,FAM149B1,FBL,C3orf30,PLAC9,DDX5",FBL
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SS18,ADAMTS4,GMPR,POLR1B,SPEG,C20orf197,FABP4,ELF2,IFNA1,SLC5A1",POLR1B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: OR1L4,ADORA2B,PIAS1,COA5,EPHA7,SLC26A9,B3GNT8,RAP1A,GPS2,NKRF",RAP1A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TBCK,AP3B1,RPL17,DEFB118,EIF2B4,PWWP2B,ARPC4,MRPS18A,PSEN1,ABCB9",RPL17
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ABO,OR2G3,UBQLN3,DSCAM,MED6,ARHGEF2,MPP4,DDX41,NKX2-8,METTL23",DDX41
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NXPH3,TUBA1C,SNRPF,DTD1,BOK,GUCA1B,PTGFRN,GET4,PCP4L1,UAP1",SNRPF
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EIF3L,CP,NFYB,KRT19,TIGD1,VAX2,SSX7,SRFBP1,NMS,SNX13",SRFBP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HIST2H3D,MRPL22,APIP,GAS2L1,ARIH2OS,C15orf38-AP3S2,PPP2R2B,MIA3,NIPSNAP3B,TMLHE",MRPL22
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ADRA2C,ATAD1,KLF5,PITPNB,YDJC,FAM213A,DBX1,B4GALNT4,FAM110A,STON2",PITPNB
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PDK3,PRDM8,MRPL40,ROM1,CD4,HIST1H2BC,BRPF3,ISM1,CALR3,GK",CD4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLC35A4,PPIP5K1,VCAN,ZBED1,PRSS37,DENND1B,ITSN2,ARMC12,PELI3,MTAP",ITSN2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TGM5,GSAP,ZNF532,PTPRF,FBXL14,CEMIP,FAM124B,SLC1A1,LOC730183,RPL9",RPL9
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CNIH2,DONSON,ERVMER34-1,MED30,KDSR,DPH2,EPC2,SOS1,HAPLN1,GIMAP7",DONSON
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TRMT12,SLC27A1,NR1H3,HTRA4,SMC1A,TSLP,KIF13B,FAM69C,GPR108,XPNPEP2",SMC1A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C15orf54,KRTAP20-3,VPS51,NOL9,RBFA,POLR2L,ARMC2,NUDT3,SP1,CDR2L",SP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LSM4,VRK1,TRAT1,FAM109B,CST2,TOP1,HCAR1,CLDN14,ITGA8,GFI1B",LSM4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ELOB,QDPR,ABCA5,C22orf42,PARP1,ERCC6,LHFPL2,SPOUT1,RASA4,ACTRT3",SPOUT1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KDELC2,RRN3,TENM2,DAPK3,YAP1,GRTP1,RGL1,CAMK1D,MED6,DCC",RRN3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DLD,SYNM,XG,SLC6A15,HOXA9,E2F8,ZNF91,CC2D2A,GULP1,IQSEC2",DLD
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: AGPAT2,TPTE,CSH2,C16orf70,APOL3,CHRND,YIPF3,CCDC87,MBD4,GALNT8",C16orf70
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: IFNA14,C21orf33,KLHL33,MESDC1,LOC100130880,AK7,CCL25,PPIL2,A1CF,MRPL48",MESDC1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: UBE4B,NGLY1,SF3B6,DCLRE1A,TTC27,UTS2B,RWDD2B,C1S,NIPSNAP2,SPG7",NIPSNAP2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MUTYH,SAGE1,EXOC6B,GLIS1,TRIM73,MKS1,FAM173B,UGT2B17,FAM177B,PCBP2",PCBP2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF600,PRMT2,ZMYND12,NHSL2,SPHKAP,CRIM1,KIAA0319L,AGL,PIANP,POLA2",POLA2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PAPPA,RPL18A,MAMDC2,SYT13,RHCE,BAALC,NCOA4,ZNF248,MYNN,GPX5",BAALC
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ORMDL1,TRPV1,LYPD1,TNIP2,ITIH4,PRDX5,LOX,TTYH3,NXPE3,SMIM6",NXPE3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KAT8,CNTNAP3B,TMEM216,MINDY1,SPX,SERPINH1,IKZF2,ZNF585B,LOC100506388,GPATCH11",KAT8
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: COBLL1,RPL13,LRRC25,SPAG8,TMEM62,AGAP2,ADGRG7,OR2C1,NDUFV1,SCAMP5",RPL13
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PHIP,UBTD1,LARP7,REV3L,PPAN-P2RY11,BLOC1S1,HSD17B6,CCDC158,INPP5A,ACAN",UBTD1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF841,PON1,RPS6,NOP10,CASP8,BTAF1,CDC14A,ZNF669,RIPPLY1,ACTL10",RPS6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BCAS2,BRPF3,ACP1,GNG5,ZNF839,STAP1,NEUROD1,PRODH,SH3PXD2A,MARCH4",BCAS2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GJD4,EIF3J,SHROOM3,ADAM22,PLCH1,LDHAL6A,ZNF213,ARPC3,DNAH8,RAB6B",ARPC3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RPAP2,SMYD1,FAM78A,SMARCA2,PLEKHG4,CTH,ABHD13,DDX52,RMND5A,GTF2IRD2B",RMND5A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: COX5A,INMT,C7orf77,ESF1,C11orf97,CACNA2D4,DUSP14,ATP5J2,C22orf29,EBF1",ESF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TMPRSS7,MOB3A,ODF3B,ARPC1A,MTAP,HIST1H3E,USP17L3,ASPG,SQOR,VN1R1",ASPG
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SHB,BCKDHB,SULT4A1,CNEP1R1,WASHC5,KRTAP5-6,XAGE1B,GPR135,HNRNPM,PRR15",XAGE1B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LRRC4,CYP20A1,KNCN,SYT14,ACTL10,FGFR2,TRDN,EIF3B,ZNF781,ARL2BP",EIF3B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PRR19,SPC24,ZNF761,RBPMS,MYL10,C14orf166,YKT6,HOXB4,CDC20B,COL19A1",SPC24
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CLIC4,ELAC1,NOX1,HP1BP3,CHST2,ACOX1,CD82,PPIAL4D,ALDOC,GRB2",GRB2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZGLP1,UFD1,ZBTB34,ELK3,XRCC3,MEA1,MAT2B,GABRA4,TMEM17,ELOVL1",XRCC3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLC19A1,LOC100506422,PAXIP1,GDF11,TAS2R4,NBL1,DNAJC24,KRTAP5-5,ANKRD62,TPT1",TPT1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FBXO25,BBX,ADRM1,SNAI2,POLR3G,CYP4A22,HLA-G,DNASE1,MPV17,C15orf61",C15orf61
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HTR3B,LRGUK,TUBB1,ZNF749,ENO4,SGK3,IL10RA,METTL25,SLC18A1,MT1E",SGK3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FRYL,ITPKA,EIF3D,PNLIPRP2,C5,KIAA1644,FAM162A,RBBP4,GRAMD1A,SLC22A4",EIF3D
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RAB11FIP2,ATP2A3,CRYBA1,MSLN,ACTL8,HYKK,KIAA1549,DTX1,SELENOS,SMARCA4",SMARCA4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TMEM141,FAM153B,MS4A6A,LRFN1,CPT2,SRGN,FAM83C,OR6C76,ERMARD,ARHGAP15",ARHGAP15
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: VCX2,MCUB,LRRC37A2,VPS13A,NFYC,RTL8B,ZFP42,LPIN3,SYT1,APBB3",NFYC
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BCS1L,RPL32,EEF2KMT,ATP6V1C2,SFRP1,ICE1,CROT,SLC6A1,TTBK1,EIF3J",RPL32
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TEX48,CHMP1A,PSMD10,RABL2A,HIST2H3D,BCL2L10,CST5,CCNH,NOL3,CACNA1C",CHMP1A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KCNE5,HNRNPL,C18orf32,PCDHA7,RPS7,LRG1,AGT,FAHD2A,ALDH1A2,LMTK3",RPS7
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TCEAL1,KCNA7,RFWD2,C8orf37,ZNF583,PRRX2,PAX4,CHMP5,SLC26A8,HRASLS",CHMP5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KRTAP16-1,ADAP1,WNT4,APOA5,LILRB2,GPR180,RGPD6,VPS4A,GPATCH11,RBM44",WNT4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FGF23,ZNF579,AAED1,POLR3G,LOC100506388,MAGEA9,CEP295,ANKRA2,KRT3,GJB4",CEP295
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ANKS6,CCDC71,ASZ1,ZNF354B,KHNYN,LARP4,BRMS1,ATP6V1F,RAB6B,ABCA4",KHNYN
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ATP1B3,PPP1R17,FAM84B,RRH,PYCR3,ZNF575,LGALS9B,DEFB127,MRFAP1L1,IL7R",ATP1B3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PDE6B,TYRP1,EMC3,TMEM81,SH3BP2,COL11A2,GIMAP1,IL10RA,AKAIN1,EMC6",GIMAP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FZD7,GALNT14,NAPRT,S100A6,CRABP1,BPHL,TRDMT1,DEFB118,WDR36,RSPH9",WDR36
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RFC1,ADH4,KDM3B,RDH13,ZNF165,MMP9,SPINK4,HSD17B4,SH3RF3,CASR",RFC1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KLHL31,NRXN3,LOC100506388,GPN3,PRRG3,RNF114,SLC12A5,UTS2R,TAF12,RNF8",NRXN3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GRK7,PZP,TMEM219,MPRIP,OTOP1,NPAS1,RTL8C,UTP15,CACNB1,SERPINE3",UTP15
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RIOX1,ERICH5,ETNK2,APOD,UHRF1BP1L,BDP1,OR4C12,AMY2A,OR3A1,TGM1",ERICH5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SGIP1,BLVRB,LOC101929926,ZFP28,TCTN3,KRT33A,ZNF806,PSIP1,PVRIG,NARFL",NARFL
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SNRPG,TP53I3,CDK10,WDR6,SPDL1,SYK,PARM1,KRT79,SIPA1L2,BRD1",SPDL1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PARP11,SPHK1,NRDE2,IVNS1ABP,APBB1,RNF166,CDK19,TOP1,TPP2,DAZ1",NRDE2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: STRADB,OST4,SIRPA,PTPN18,PMM1,ADAMTS6,FAM83B,HOXB7,STX19,CERK",CERK
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MBD3L4,ROBO3,ZCCHC18,CA3,SCNN1A,RIMBP3,FOXB2,MRGPRG,MMGT1,TRAPPC5",TRAPPC5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BRD3,HCN1,FAM177B,ARSH,LY6L,CACNG6,KCNJ2,WIZ,FAM20B,GJC1",WIZ
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TMEM269,APEH,KLF10,TMEM95,TRIM49C,EFCAB5,ZNF281,PRCP,HSCB,NDUFB2",TRIM49C
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NAIP,LILRA2,RICTOR,CD163,AURKB,PPIL1,GPR87,MEN1,DIAPH3,PRSS36",PPIL1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C21orf59,CNIH1,CNBP,KLHL35,CCL3L3,KCNK5,ART3,NLRP11,TWISTNB,CSPG4",TWISTNB
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DUPD1,SLC29A3,GRK1,DDX50,VCP,FBXO30,WFDC6,RRP12,HIC2,ZNF790",VCP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GOLGA7B,RPL7A,INO80C,CRELD2,DNAL1,FANCI,NR1H4,PDCD7,HAUS1,MGAT2",RPL7A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NDUFB6,MAP9,STARD7,CFLAR,MXD3,GMPPA,TCF15,PRPF4B,MEST,IRGQ",PRPF4B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SRCIN1,PLCG2,STAT5B,LIMCH1,HOXB4,FUT2,DYNLRB1,SGCE,CD207,RNPEPL1",STAT5B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ESYT1,EVPL,XAGE5,CRLF2,AMIGO1,DYM,PDXP,FKBP6,CHMP3,FEZF2",CHMP3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CREG1,RBFOX1,PCSK9,EMD,BEGAIN,MRPS9,IRS4,CNIH3,FCAMR,UBTFL1",BEGAIN
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RWDD1,PRSS53,OR1C1,SYF2,STAMBP,MESDC2,TRABD,G6PC3,ZNF32,CHMP6",CHMP6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MOV10L1,ZNF785,CXCR5,CXCR4,FAM111A,DUSP7,PRKCG,ADAR,FBXL21,SEM1",SEM1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SPINK4,MARCH3,AQP9,CNTN5,PPIF,POLD2,DCTN5,TRAF5,CUBN,HNF1B",DCTN5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ALDH3A2,MTPN,TSPAN31,ZNF333,PTPN23,GAB3,CDC25A,C20orf27,TMEM61,RNPC3",PTPN23
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RGS14,SLC1A4,EBLN1,RBM14,DNPEP,ISY1,DUSP21,SLC48A1,TBC1D15,APOOL",RBM14
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RGL1,ZMYND12,PBDC1,TPBGL,C15orf41,CTC1,CIC,PRY,PPM1M,CCT8L2",C15orf41
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PPDPF,JPH1,TMEM116,HOXB9,ZMIZ2,STMN3,CASP2,FAXC,CRB3,SH3BP5",JPH1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ME3,GANAB,GPR137B,FBXW10,DKC1,KRBOX1,PTGR2,APCDD1,TWF1,GALNT11",DKC1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TAS2R14,LSP1,FKBP14,RBSN,PRSS53,ZC2HC1B,ALG3,ABLIM3,FAM13C,DNMT3L",RBSN
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PPP1R15A,GPR108,TMEM81,PAGE2,ALG1L,GRIK2,BTBD6,SLC25A16,ANKRD52,SYT14",ANKRD52
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PMF1,DRP2,RAPGEF2,LRIT3,GPR33,FBXL8,IL5RA,PGAM4,PEAK1,IGFL4",PMF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BCORL1,C20orf141,TMEM114,GATAD1,DYNC1H1,TRIM5,PLIN3,SMARCE1,ANXA8,SERTAD1",SMARCE1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RAD54L2,SELENOT,C9orf152,COX4I2,FAM185A,KLF8,CFDP1,GINS2,HSPA13,GPBAR1",GINS2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EEF2,HIST1H2AE,RASAL3,CRYBB2,KCNMA1,NPIPB9,FAM102A,NSUN5,CCDC13,VRK3",EEF2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NGF,PHB,MICAL2,INAFM1,SEBOX,DNMT3B,INO80,MICAL1,SNAI3,ELP6",PHB
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ADAM7,ZCCHC12,ZNF273,SOX30,OR2M3,MAP1LC3B2,OOEP,ARHGAP4,LDB2,PCSK9",ARHGAP4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LBHD1,SYNPO2,UBXN8,LIMD1,SUSD5,RPL34,HECW2,QKI,FAM157A,FAM78B",RPL34
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C12orf42,ZUFSP,COX8C,CDK14,NUP98,KRTAP9-6,WWP1,EVA1A,EIF2B5,TRAF1",NUP98
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ST3GAL3,OR51V1,COX20,PHOX2B,SYN1,MPDU1,AMOTL1,SRF,FKBP15,RTEL1",RTEL1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF322,DPH7,OTUB1,ENO3,ANP32E,NR2C2,ARAP2,SWSAP1,GOLT1B,ZER1",OTUB1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLC12A1,C2orf78,SYNGR2,EFCAB12,LCE4A,HPGD,NOX1,SLC25A14,ANKRD33,ZNF345",SYNGR2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MAP3K14,SRSF1,HOXA7,LAS1L,CPSF4L,GJB7,MEIG1,RARRES1,TIMM8B,FGF1",SRSF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SHF,SCFD1,CTRC,HPRT1,SFTPC,FNBP4,CEBPZ,SDHAF2,COL11A2,BACE1",SCFD1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLC1A4,PLRG1,TM4SF5,ATP6V1F,RASGRP4,TIMP2,TERB2,RNF165,C10orf131,KCNT2",PLRG1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SERPINB3,HLA-DQB1,C9orf170,CLPP,OR8H2,MYO15B,USH1C,C20orf78,RPL37,WNT9A",RPL37
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KIF1BP,WDR12,DOCK3,P4HB,FAN1,PAQR8,XPO5,DDX60,MID1IP1,CDH26",WDR12
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CAPN11,SYDE2,TRMT61A,VPS37C,LRGUK,RFPL4A,DCAF13,POLR2D,OR2L2,ZNF311",POLR2D
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ELAVL1,OCLN,ZASP,RSPH4A,PCDHGA11,MAD2L1BP,CTH,VGLL4,ST6GALNAC2,NPIPA1",MAD2L1BP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ERICH4,SAMD4A,PENK,FLG2,NCAPD2,MARK3,GNAT2,IL17RC,ALKBH2,PGAM1",NCAPD2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PHYKPL,FDCSP,CTNNAL1,LRRN2,DMRT2,BMS1,ST6GAL1,MAFA,GRB7,ABHD1",BMS1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KIAA1328,DHX9,C1orf174,GARS,DNAJB13,ZNF200,CWF19L1,EIF4G1,HSD17B6,KCP",EIF4G1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: IER5,MCRS1,BTNL9,OSGIN1,SLC6A6,RGS9,FOXO4,MAGEB4,YEATS4,CEP41",YEATS4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: USP1,WNK2,PFKP,REEP2,NUP133,B3GNT3,CHRAC1,LIPA,SSR4,ZNF124",NUP133
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ARMC9,MARK2,PTPRA,ALDH9A1,DENND6B,TAS2R16,LSM6,NIPSNAP3B,UBE2J2,TGFA",LSM6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NEFL,MRAS,TMEM25,VAMP3,PPFIA1,ASIC2,GGN,FBXO46,KANK4,NKAP",ASIC2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EPAS1,DFFB,CLN3,SF3A3,JMJD7-PLA2G4B,KLF2,EIF1AX,HIGD1A,ARF4,ZSCAN10",KLF2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FAM26E,SGSM2,KIAA0754,GATA2,TMEM205,SNX15,CRYGC,ATP6V1E1,METRN,CEP192",CEP192
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BCAT2,RAB9B,SIL1,NANS,MIS18A,BUB1B,CATSPERE,GPR171,PDCD11,ANO8",PDCD11
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CALN1,KTN1,CARMIL2,TAS2R31,CNN3,TTC39C,UNC45B,RPS8,NMNAT3,FMNL3",RPS8
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RPS21,WDR86,PYDC2,CRY1,TRIL,SUSD6,CCP110,GNB1L,GSX2,AP3B2",RPS21
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ERVV-2,TNFAIP1,TEX261,DMGDH,TRPC4,GAD1,FBXW2,KRT28,SLC25A23,ARFGEF2",FBXW2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HOXA7,NT5E,KCNF1,NCL,GRAP,BBS1,RAPGEF4,CLEC1A,ITIH3,MRPL20",NCL
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF419,PSMC6,RPE65,GALK1,ARG2,NIPSNAP3A,POMP,KCNC2,LGALS7B,NCOR2",POMP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DNAH14,CD19,TCN1,PARP3,INSL5,HAVCR1,TESC,KCNT1,NIPA1,PCBP1",PCBP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EPGN,CR1L,TAF3,CPN2,CLPP,TRIM16L,ZNF26,POLR1A,FAM47E,UBE2C",POLR1A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: COX6A1,SLC1A7,ADAM8,OR1N2,SF3A2,ZNF430,FJX1,FOXD4,ZBTB8B,ZFP41",SF3A2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PSMA1,ZNF862,TRAPPC12,FBXO30,BNIP3L,TTC33,SLC2A7,HIST3H3,HECTD3,RND3",PSMA1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RNF20,AAK1,SULT1A2,MYO5B,C1QTNF8,NMRK1,METTL15,PLCXD3,PPP1R3C,TCEANC",RNF20
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DEFB113,PPP6C,GTF3C2,CAMK2G,FAM180A,SNRPD2,PIWIL4,RAPGEFL1,FKBP9,ATXN3",SNRPD2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TRPM6,MAGEA1,GPATCH8,OR8D4,INTS7,FAM107B,ZFP42,SUMO3,INHBC,SPAG16",INTS7
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: THOC7,PPP1R3G,PTPRR,QSER1,KIAA1429,MTRNR2L9,TEAD3,DERL2,ACP1,KRTAP4-9",DERL2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF77,MUC1,EFTUD2,CLCA2,API5,OR1Q1,CAPN7,RNASE7,C1QTNF12,FGD1",EFTUD2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RBM25,SPINK9,PPP4R4,USP45,IL17D,DISP2,SH2D7,MCM3,LRRC52,OXSM",RBM25
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TOM1L1,TRIM61,RPS4X,SECISBP2,ATP6V1G2,PHF3,XKRY,PPM1A,TEX48,FOXG1",RPS4X
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF699,DECR1,TSTD2,IPCEF1,LRP11,HIST1H3A,TMF1,RBM8A,GSR,LINC00452",GSR
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZBTB25,KPNA7,EBF3,EVA1B,PGPEP1,CSTF2,COPS6,SPATA31D1,SLCO4C1,PLOD1",SPATA31D1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLC2A9,STKLD1,CATSPERG,UBE3D,CYP27C1,RPL30,CAVIN2,CALHM3,ELMSAN1,ME1",RPL30
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DOK4,DDX54,MSLN,HIRA,CC2D2B,CCDC89,PPP1R12B,DLK2,STK11IP,INTS11",DDX54
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C5orf46,C1orf168,SMU1,OR10X1,ZNF91,ATP5O,ZNF829,LDHC,SLCO5A1,PRAMEF5",SMU1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLC2A13,WDPCP,OR2C1,NWD2,CDC16,PDE6A,PCDHA8,PCDH19,PANK4,TAS1R1",CDC16
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: UBE2T,TTC32,ARPC2,U2AF1,FAM3A,MAP4K3,LBR,OLIG3,GPR33,OR4P4",U2AF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LCMT2,ARFGEF2,UTP11,VPREB3,CCDC54,ZNF652,FEM1C,WASF1,NDUFC1,RBM23",UTP11
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF714,C6orf141,OTUD6A,RYR2,TNIP3,TTLL3,GRK6,PPAT,CDYL,HEATR4",PPAT
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TNS3,TBC1D15,HAUS3,G6PD,CST2,LCE5A,HERPUD2,KCNK9,SLC12A4,AIF1L",HAUS3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C2CD2,FAM199X,PDE3A,TWSG1,TRPM2,UGT1A10,DEFB129,YIF1B,FIG4,RPL4",RPL4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SMN1,SSX2,RNF34,VSIR,SAFB,IMPDH2,BDH2,DHX29,MYBL2,ABCA12",MYBL2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RTBDN,TCEAL6,WNT7B,DEFB1,WFDC11,PDZRN3,ATP6V1F,PRPF18,AOC2,EIF3H",EIF3H
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CCDC177,SH3BP4,ANKRD20A3,ZFP14,PRPF19,CDAN1,SP6,RIN1,PDZD11,OR52I2",PRPF19
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KCNV2,ZNF33A,ZFYVE9,TEX2,UBD,SHB,CDH5,STAM,ABCD4,NAT16",NAT16
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MFSD2B,CCDC34,GIPR,TMEM110,ARHGAP42,GVQW2,CCDC170,SERINC3,CDC23,GTF2A2",CDC23
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CAPN9,MRPS25,ZNF771,LEFTY1,USP19,SYCE3,GPR107,HES3,UBASH3A,ZNF165",UBASH3A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TNRC6A,RALA,CMTM4,GTPBP6,PSPH,MAGOH,STK32A,C2CD2,CABP5,CORO6",MAGOH
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ENTPD1,TCOF1,SLC52A1,SPINT3,ADGRV1,MUC17,E2F2,JKAMP,PYROXD2,DCK",DCK
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TCF12,CCDC70,ADSSL1,UPP2,P4HB,ZNF625,SLC29A2,CUTA,JAZF1,PBX3",CCDC70
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RHOBTB3,HMG20B,TTC34,C2CD2,MARC1,PRPF4,RBMXL2,SLC22A5,SAMD9,LRRFIP2",PRPF4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TFDP1,LIPG,KIAA0895L,NATD1,RAP1B,MARCH5,PCDH17,NOD1,WASF3,RPP25",TFDP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RPL31,SCYL3,PRMT8,COX17,MC3R,CCNG1,POMC,DSEL,CLCN1,ZNF783",RPL31
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HPGDS,HIF1AN,KLHL33,PEBP4,RGS7BP,ZNF677,STK38L,C19orf25,KDM6A,TMEM72",HIF1AN
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NAXD,METTL11B,ZMYM5,MYO1A,SMG5,MMGT1,NR2C2,PDE10A,AKR1A1,KRTAP5-7",SMG5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF546,IDE,JCHAIN,GPR75,OR5L1,ARSG,DAW1,RAB29,RRM2,NEK5",RRM2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LYPLA2,ARMCX2,FAM49B,EDIL3,QPCT,CXorf49B,ZNF45,ATP6V0D1,IFI16,ADRA1A",FAM49B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TMIGD3,SS18,COMP,HMHB1,DYNC1I2,TMEM161A,SLC15A4,NSMCE1,SPTBN1,VPS33A",DYNC1I2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RNF43,ABCG5,VSIG8,SERPINE1,CYFIP1,TWF1,MYH10,C1QA,TBL1Y,POLE",POLE
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BMP7,MIP,SNX25,DZIP1L,TRIM54,ERCC6L,RIC8A,CORO1A,ERGIC2,SLC7A6",CORO1A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GSPT1,GPR179,ASB1,CD81,KCTD10,SAV1,PRAMEF9,ZNF697,POLR2C,EIF3M",POLR2C
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GFER,ATG101,WDR72,CCRL2,FRMD4A,ADORA1,ZFR2,POM121L12,ADARB2,IL1R1",ATG101
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SNRPB,GLRX2,NSDHL,KLRK1,C6orf47,SPATA31E1,SERPINH1,COX7A2,ZC3H15,ARL5C",SNRPB
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TAS2R39,HMGA1,DGKE,CYB5R4,ANKRD34A,ETFA,C15orf65,CENPE,HAL,CC2D2A",CENPE
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GAB3,TMEM255A,PLP1,CDC6,OR6S1,MYH2,RNF183,TBC1D29,ARHGAP44,TRIM43",CDC6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TGFBR3,GPR179,PRKD1,GLRX3,RBM38,INO80,KCNJ11,SWAP70,PYCARD,PLA2G2C",GLRX3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MEOX1,LIPE,ARL4C,CHRNE,OR52H1,FAM216B,GDAP1L1,NOB1,GK,ESRP1",NOB1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HELQ,FGF11,PRR12,NBPF7,DNAJB5,ANAPC5,SERPINB5,KLK6,ELMOD2,LOC653602",PRR12
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CGB1,ALG13,MMP1,HSD3B7,KRTAP20-2,PBXIP1,GIGYF2,CLEC10A,VSIG4,PDK3",GIGYF2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SH3GL1,OR5H6,ARL8A,KRT4,ARHGEF4,WRNIP1,FAIM,RAB7A,PRG3,TSPAN13",ARL8A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CEP170,ZNF626,RAB27A,ZNF579,CBLN2,PXK,CHIC2,PTPRA,SLC25A37,VPS28",VPS28
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CCDC39,RNLS,C9orf57,ZNF85,OR2L5,HLA-DQB1,IDH3G,TONSL,SPAG16,RNF39",TONSL
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GGA2,UBL7,PACSIN3,C6orf118,HMGCS2,TUSC5,MT1F,KCNJ16,CPSF4,NBPF15",CPSF4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KCNG4,CCDC88A,GEN1,ANKRD50,MMS22L,SLC45A2,AHDC1,BHMT2,SDAD1,EXOSC1",SDAD1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CDC42BPA,GINS4,YLPM1,LOXL4,PSG3,GALNT12,AANAT,DDC,SNAPC1,ZNF277",GINS4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CBWD2,PLAA,PLEKHF2,RASSF5,FBXO33,CCNL1,TSG101,NDUFS6,UBQLN2,TCEAL4",TSG101
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RMDN1,MPHOSPH10,MOGS,C1orf94,SLC30A5,MAML2,LHX5,ENPP1,OR10H3,FCGR1B",MPHOSPH10
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LATS1,PML,TM4SF5,SGSH,CRYBG2,SNRPE,RPL15,STMN3,PPP1R14A,GPR143",RPL15
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MT4,FFAR3,TUBA1B,PDIA3,CA13,GTF2H2,OPRPN,NEPRO,TAS2R38,KLF14",NEPRO
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DDAH2,EDEM3,SPIB,ARHGAP36,PRAMEF5,S100B,NOS1AP,PARVG,CLDN8,OR1D5",DDAH2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MPZL3,TP53TG3,HCAR1,ANGPTL4,HOXB4,CD46,POLD3,CYP2J2,EMC3,MCRIP2",POLD3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BTBD10,SLAMF7,PFDN6,ZMYM1,IRF3,ACER2,BATF,LINC01835,BCL2L1,COL4A6",BATF
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CYP3A7,OARD1,SNRK,SBNO1,ZC3H12A,HYAL3,CTNS,SGMS2,UBE2I,ABCD4",ZC3H12A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C11orf80,JRK,TUBGCP3,ZNF675,MAP2K6,ZW10,SLITRK4,NUPL2,FCGR3A,BCL2L14",TUBGCP3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ANKRD22,SLC10A7,DCBLD1,EPS15L1,SLC4A2,FAM160B2,DDI1,C15orf40,RBMS3,ALAS2",EPS15L1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LRRC14,GCLC,RPLP0,DIXDC1,MANEAL,NPAS3,FANCM,C7orf71,CLSPN,ZRANB2",CLSPN
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: WDR37,RALGPS2,COPZ2,RAB34,ICA1,GON4L,TFDP3,CNOT2,CPSF6,ILF3",CPSF6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MAGED4B,FAM151A,CENPN,ACOX1,BFSP1,ZNF821,PEA15,CNTRL,ZNF544,ALAS2",CENPN
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MAP3K2,RPL39,CCDC134,PIP5KL1,ARID4A,GK5,KLHL4,EEF1G,PBRM1,PRR23C",RPL39
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MAPKAPK5,CXXC4,SLC15A4,CD164,BBS5,ODF3L2,CDK1,ADGRF5,NDUFB8,PIANP",CDK1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SPC25,RPS23,OXT,R3HCC1L,EPB41L3,SLC2A7,NAT14,OR11H6,ATP6V0E1,LCK",RPS23
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RPL10,SNX9,PAGR1,CLDN34,B3GAT2,GSTO1,AIFM1,SH2D1B,FZD3,C8B",RPL10
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CDT1,ELMOD3,ADAM7,DUSP23,NRBP2,FLYWCH2,ADIPOR1,PIAS1,CCDC25,RNF5",CDT1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLC22A10,AGTRAP,RPS20,MAP2K4,ABCB4,TSPAN14,TRIM44,ITGB3,OSBPL7,PEAK1",RPS20
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: WDR61,ART5,SLC39A14,PODXL2,CNN2,DOPEY2,LHFPL4,USP38,CCDC148,WFIKKN2",WDR61
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: POLR1C,NOTCH1,PCDHB14,APP,EXOSC10,GPANK1,EXOSC9,INTS2,IGFBP1,IL17A",POLR1C
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RNF25,RAD21L1,SIRPA,LRRK1,CD34,IRX2,PCP2,CSTF1,DPY19L3,RP9",LRRK1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: IL2RG,COX6B1,PSMD5,UBE2U,CCL8,CCDC83,IL21,SYCP2L,SPOCK1,SLC16A3",IL2RG
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: COX5A,F12,PRDM10,TSPAN5,CHCHD3,MINOS1,CENPA,CCDC183,FCHO2,F11",PRDM10
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TMEM119,SERPINA10,PXMP2,SPATA46,POLD2,TELO2,SMC3,TRIM25,JPH3,NEURL4",SMC3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DDX49,GK2,RFC4,CISD3,MAPK1,LIN7C,SIAE,AKR1B15,MAGI1,ACTR1B",RFC4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GALNT8,FBXL12,HAGHL,MS4A6A,TICRR,SCML4,OR6B1,LDHC,NR1H3,PDIA3",TICRR
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SUN5,KBTBD7,NEUROG2,TMEM243,IL2RA,GPR65,SLCO3A1,GSX2,EIF1AX,SAP30",IL2RA
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: IQCD,NCF2,GALNT14,ST5,SPIN3,ZNF75D,CUL5,GIMAP5,ANAPC4,RREB1",ANAPC4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GALNT18,CREG2,HES1,ICMT,RPS16,BTN3A2,RAMP3,CHD8,ADH6,SNX15",RPS16
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LOC286068,PDAP1,ZBTB37,KCNK17,GPR65,ODF2,IL13,C5orf15,CIT,SYNDIG1",CIT
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CAPN3,AMY2B,CDKN1C,ZP1,DNAJA1,NYAP2,SQLE,EPS8L1,BOD1L1,RPS6KA3",BOD1L1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MMP14,DCAF4,PAFAH2,CPA2,CIB4,ZCCHC9,NXF1,TTC1,AGK,MBD3L5",NXF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: JAK2,PDE11A,LOXL1,EDC4,INSL6,MDM2,APLF,RSPO3,PIGM,ORMDL2",EDC4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DCAF15,C1orf54,KBTBD8,PI4K2A,EIF3A,C16orf47,TGIF2-C20orf24,ZNF138,TMEM179B,STX3",DCAF15
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PPTC7,ABHD14B,ARSF,ORC6,NPY4R,MRPL42,AKR1B15,MCPH1,CLDND2,BBIP1",MCPH1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PCDHGA8,CTSZ,PIGK,ZEB2,ZNRF4,FAM204A,VANGL2,TBC1D7,TEKT2,UNK",FAM204A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MAN1A1,RXRA,SLC38A11,LDAH,TAGLN,TSSK6,SRI,BRCC3,RALA,DDX23",DDX23
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SCIMP,PLB1,OR2T11,RFPL3,AMFR,DDX47,BCL2L12,MEAF6,C11orf74,VPS26B",DDX47
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FXYD3,NTS,TDRD9,TMBIM4,CYR61,BTBD9,NAA11,CEP72,C19orf81,LMO2",CYR61
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ABHD14B,PTRH1,KIAA0368,C10orf142,ABCB5,RGMB,NFKB2,OR2A25,SMAD9,C16orf47",NFKB2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RP2,CD46,PITPNM3,PDE6B,ASAH2,FAM117B,MDM4,MOGAT1,PTK2,TUBA4A",MDM4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BOLA2B,MYCBP2,PRKCQ,COLGALT1,IL37,RAB37,MAMDC4,LIMD1,CORT,SLC11A2",MYCBP2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TEX10,RERGL,F8A3,LSM5,PRAM1,HORMAD1,E2F7,CHST13,C9orf135,ESYT1",TEX10
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FAM46B,OR7A5,SH3D21,BORA,IGFLR1,LRFN1,PRRC1,NEIL1,FRMD7,VAT1L",BORA
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TICAM2,C20orf141,GPN1,HLTF,EFNB2,ATP1A1,MAGED1,GPR87,FOXO1,ATP7B",ATP1A1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PIEZO2,CD37,TGFBR1,LRRC14B,DGCR8,HAS3,ZNF19,OCM2,FLG2,OR4C45",DGCR8
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: AUNIP,NANOGNB,MCOLN2,BTBD7,NOS1,NAV1,CA6,RPUSD4,CFHR1,CNGA1",AUNIP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GPR156,AGBL1,TPRX1,ATAT1,RIMS1,AHSA2,TIGAR,RFC3,SLC16A3,HSD11B1",RFC3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GPR62,CA6,ZNF467,DIP2A,AKR1D1,GNL2,TCL1B,BCKDK,LST1,TMEM105",GNL2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KRT32,SCN5A,TM2D3,COPS6,RPL27,POR,TMEM70,IQCF1,WDYHV1,ELL",RPL27
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MAP4K3,ZNF227,CTRB2,CRNN,CNOT1,HLX,SETD5,ZFAND3,MTMR7,EPHA1",CNOT1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HEG1,C10orf90,ALG13,OR2F2,FBXO31,PTCHD3,DGCR6,UGT3A1,NACC2,EIF3I",EIF3I
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PSMC5,SERPINE1,VSTM2B,FAM129B,NHLH2,DMRTC2,CNBP,BTBD6,METTL22,ZNF408",PSMC5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C10orf128,FHAD1,BAMBI,FUOM,POLR1D,UNC5A,KTN1,HUNK,XAB2,OR4K1",XAB2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TBL3,KRTAP19-2,C7orf26,ID2,RBM17,GSE1,RRH,CCR9,FBRS,NOP2",NOP2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CCDC172,TAS2R43,NR2F6,FUBP1,BEND5,SPA17,TMED5,CATSPERD,C20orf141,FGFR1",FUBP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LZTR1,SPATA31C2,BAHCC1,ZNF484,OR2G2,EPB42,KIF21A,HDDC3,DST,KIF3C",LZTR1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RIOK2,RNF103-CHMP3,TNK2,GRIK3,G6PD,FYB,FANCD2,ZNF140,DPAGT1,VPS13D",RIOK2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BPIFB4,HACL1,XKR9,GABRA6,UMODL1,ZCCHC4,CSRNP1,PLIN1,AARS,MYO19",AARS
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PGBD3,ABCD2,FRG2,CD44,RGS16,OR14C36,DNM2,SERPINB1,FCGR3B,ZNF292",DNM2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SPRY3,ETFDH,CLINT1,PRPF18,PRPF8,NAB1,C9orf84,ATXN7,NDUFAF1,DEF8",PRPF8
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MUC21,PHACTR4,SPATA32,SCGB1D2,HSD17B6,IARS2,MYL12B,LOC100506127,EPSTI1,SLC23A2",PHACTR4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SP5,NFAT5,JUND,PRPF40B,CLPSL2,SLBP,MEX3C,SEC24B,SSX4B,C17orf74",SLBP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CAPN1,TAF1A,RBPJL,TUBB4B,FLT3LG,SGPP2,FUNDC2,NXPH3,C10orf62,CST7",TAF1A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ITPR3,CALY,ARFGAP3,ISOC1,ERAL1,NEIL1,EI24,DDX25,FBXL4,TCF20",EI24
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PLEKHH3,CBLL1,MIPOL1,INO80C,ARMCX5-GPRASP2,TAS2R19,ZBTB6,GPR176,ATP6V0C,C6orf58",CBLL1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: IFIT1B,DRC1,ARHGAP21,ZIC1,RBM44,TEX13C,NAPG,ZNF366,GPSM2,XPO1",XPO1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: WDR24,OPN1MW,RABIF,PRKG2,MMP11,OR6N1,LRGUK,NPAP1,RALY,RNF17",MMP11
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SPEN,MMGT1,CDC42SE2,CA3,RALB,CACNA1S,ZKSCAN8,NUTF2,CCDC152,RPAP1",NUTF2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SOX11,HSF4,PCOLCE,TSR3,IFI44L,UGT2B17,VCY1B,CLNS1A,AMT,DNAJB13",CLNS1A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MLC1,RASA2,LYNX1,VCAN,HMGCR,FH,RFX1,ARHGDIB,COASY,CLTA",RASA2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RIPK1,FBXL4,METTL2A,LLGL1,COL6A2,OR2AK2,CSNK1G2,PKN1,CCR10,NRF1",NRF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RAE1,OR5K3,IDS,GMPPA,GBP7,TOP3A,PKHD1L1,TLX2,ACE2,GHDC",RAE1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SNX8,PRPF40A,TOP2B,VDAC1,SYT11,HDAC1,YRDC,DYNC1LI2,UBE2E1,GGCT",UBE2E1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CCDC151,GSTT2,U2AF2,PRPF38A,CSNK1G3,RND1,SIRPD,PLEKHO1,NOTO,RAB36",U2AF2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GYPC,RPS14,DCX,NUP85,DDX20,TRIP12,MT1HL1,PRR29,TOX2,GABRB2",RPS14
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: UBXN2A,OSBPL6,CKAP5,ARTN,EFS,PXMP2,HKDC1,SLC4A8,ADCK2,PPP6R3",CKAP5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DAO,TALDO1,WWP2,SIKE1,AS3MT,SURF4,PABPC4,SLC17A8,NOC3L,PRSS50",NOC3L
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RABGGTA,POLR1D,ZDHHC12,NUP93,TSGA13,EFCAB2,TTYH2,LIG3,PCDH15,MED17",NUP93
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FAM180B,ORAOV1,TMCC1,SMG6,TINAGL1,RD3,FAM196B,MAP1LC3B,AKAP3,LRRTM2",MAP1LC3B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NSRP1,ZFP64,MGAT1,CCNC,ATG10,CTNNA3,FSIP1,KANSL2,H3F3C,CLUAP1",KANSL2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: OR2B6,KDM4B,BLMH,ACTR10,KCNA4,SPPL2C,ABCC4,LIME1,ADAMTS4,YKT6",LIME1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DCTN3,OR52W1,PSMC4,MILR1,RNF26,PDS5A,KLHL12,ZNF17,PBX3,BCO1",PSMC4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CNTN4,MYO7B,MYOG,HNRNPF,AKAP12,SYF2,MEIS1,ATG9A,GKAP1,LMAN1",ATG9A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: AXDND1,CYB5D1,MTBP,CARHSP1,LXN,DNAJB6,TRPM8,SERPINE2,IGFBP2,MMEL1",MTBP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DIS3L,HRNR,GABRR3,PFAS,RBM8A,PTRHD1,SEPT8,ERGIC3,SH3GLB2,HEATR5A",PFAS
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HLA-DQB2,EIF3M,HSPA1L,ALG12,PDHA2,FAM157A,STT3A,MTMR12,DNAJC4,RPF1",RPF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KIAA0355,NEIL3,LCE1A,ZFPM1,PSMD6,FXYD7,RIN1,GSTZ1,RUNX1T1,DNTT",PSMD6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LRRC75A,DCUN1D2,KLRF2,TPCN1,FCAMR,POLR2I,NDUFAF3,KRTAP21-2,PTPRB,TVP23B",POLR2I
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LMAN1,NEXN,POLR2G,NAGPA,ZBED2,CPA4,P2RX5,ETV3L,MAF,AQP2",POLR2G
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DGKA,TAS2R16,CYP7A1,CXorf66,DNAAF3,NBEAL2,TRPM5,ZNF3,C9orf84,VWA8",DGKA
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: YIPF4,THOC3,C6orf229,ANGPTL7,SCLY,SUPT3H,ATP5C1,ARMC7,LYNX1,RUNDC3A",THOC3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CASS4,NOS1AP,SAMM50,RBBP8NL,B3GAT2,CX3CR1,PLA2G4D,SLC22A14,RIMS3,LTN1",SAMM50
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C16orf78,CHKA,SEMA3G,TMEM190,ACPT,TPTE,CHAC1,KCTD3,NEK9,ZNF501",CHKA
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C2orf54,CPT2,LIPI,DCDC2C,C19orf18,TOMM34,DUSP10,DSN1,ATOH8,TSPYL1",DSN1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: IRX3,RTCB,RTFDC1,SORL1,CD7,MGST1,SAMD1,DLK2,GGACT,ADCK1",RTFDC1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GVQW1,ECE2,IMPDH1,PINLYP,PLAC9,UMPS,TFF3,FAM162A,MKI67,LRTM1",UMPS
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KCNK18,FAH,RBPJ,PRDM11,PIPOX,CTDSPL2,TBC1D19,CXorf66,PPP1R37,PTP4A1",CTDSPL2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EIF3J,LRIG2,HOXC4,GSTO2,ACTG1,ITGB1,ZFP91,PCDHA7,TRAF3IP1,SART1",SART1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CPNE4,CHAF1A,LIN7C,SOX7,ERBB2,GAB4,C12orf65,C14orf37,SGK494,DUOX2",CHAF1A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PSMB9,RPS3A,NXF5,FN1,IL1RL1,ALKBH4,DIDO1,R3HDM4,TCEAL3,COL11A1",RPS3A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RBM22,ZCCHC8,ATL1,G2E3,KLRC2,ATP5G2,PPP1R2,FUT6,TNFSF13,FKBP15",RBM22
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CFP,ABCC4,CYP4V2,MYO3B,DDX11,VDAC2,RLIM,ZHX1,ICAM4,BOP1",BOP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SF3B3,TEX9,NOMO3,BIN3,SLC22A18,TMED8,CBFA2T3,HSBP1,LAMB3,HMX1",SF3B3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EIF4E,SCIN,PCDHGB3,KCNK17,ATP2C2,SLX4,SOX15,ANKRD24,FKBP10,CLDND1",SLX4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MAFK,CEBPZ,DNM1,KCNS2,TUBA1B,WDR53,DUOX2,TBX15,SLC35B2,CHERP",CHERP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SMURF1,CD40LG,PYCR3,GPC2,ITIH4,PRKCH,GDF10,SPRYD4,SIKE1,SPATA5",PRKCH
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RRP9,OR7D4,ENTPD2,SFRP1,WDR24,ZNF425,VGF,CHMP7,ABHD16B,CELSR2",RRP9
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: COL4A1,DIRAS2,TATDN2,TBC1D19,UBE3C,SPZ1,PARP16,RPS24,EHBP1,SGPP1",RPS24
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PTPN13,OCRL,SHANK2,ANKDD1B,OR8K3,C8orf33,EIF5,CES5A,PYCARD,RPL3",RPL3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TCIRG1,RERGL,C6orf201,RCVRN,FNDC3B,CBFB,PARD3B,CEBPG,ATOX1,CHD6",CBFB
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ELF5,TBCD,JAK3,CYSLTR2,MARCKS,TOMM6,ZNF653,ATF1,DNM1L,FRAS1",JAK3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: WSCD2,RPL19,DGCR2,RTN2,FCGR1A,GLE1,ARG1,ZNF860,RAPH1,TXNRD3NB",RPL19
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: OR13C8,ASPRV1,TSNAXIP1,ZNF664,C15orf40,SOX9,ACSL3,CTLA4,VCL,PTPN22",PTPN22
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: OR4D2,HIGD1B,MT1A,ARGLU1,NXN,SCGN,PTCHD4,SALL2,RPL8,CAMK2N2",RPL8
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TNFRSF11B,IL26,CRYAB,BRD9,TAF7L,PA2G4,DAPL1,RAD51C,BAG1,CX3CL1",RAD51C
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PRR5L,SCAMP4,CAAP1,DDHD1,SUMF1,GLYAT,DNASE1L3,ANKFN1,TAS2R19,MRPL41",MRPL41
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PLA1A,KIF3A,OSBPL2,ABCB5,PTPN12,SLC25A51,P2RX1,CTNNBIP1,RFC5,OR3A3",RFC5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TOR1AIP2,LCK,SPRYD4,DDX27,CCDC74A,TOPORS,ATP6V1B1,TP53AIP1,OR5AU1,SPATA33",DDX27
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NCAPH,ZMAT1,EHBP1,PIGV,ITGB2,KDM4C,FBXW4,ARID2,ECH1,SREK1",ARID2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ADAMTSL5,MPDU1,PCSK4,NT5C2,WSCD1,ZEB1,ZNF480,OR6M1,THOP1,KLHL40",ZEB1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: USMG5,AK3,SIDT1,F2RL2,CD40,CELSR1,BUB3,CACHD1,PTTG1IP,NRIP2",BUB3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SRRT,MITD1,PRM2,STARD9,DIS3,LOC441155,TSHR,ADGRE2,GLRA1,MAD2L1",SRRT
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PDE12,DPPA2,ARFGEF3,MYC,DMRTA1,RFTN2,FABP3,LYSMD2,CTNNBIP1,VWA3A",MYC
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FGFR4,RPL38,CWF19L2,TOPBP1,ACSM5,SLC35A5,PDLIM5,COL17A1,HNF1B,CYP2C19",RPL38
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SWI5,BTBD17,TRIM49,C19orf60,MAGEA9B,OVCH2,TBKBP1,OR11H6,RILPL2,CDC5L",CDC5L
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PSMD2,LAMB2,CCER2,ADM5,RPS15,ZNF529,SFTPC,LRRC69,SPATA31A6,TREM2",PSMD2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CFAP57,POLR2H,SLC5A4,BCR,GTDC1,IFRD1,PROSER2,DISP1,RNF123,SEL1L3",CFAP57
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TIGAR,UBA1,TAS2R8,KISS1R,SLC6A20,CATSPERD,KAT5,PGPEP1L,CALCRL,C15orf62",KAT5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GPC6,MICU2,PDP1,C20orf194,TAB2,XCL2,NUDC,TRAPPC3,COPS5,OR51G2",NUDC
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TYW1B,TRMT2B,PAPD4,SLC25A46,LKAAEAR1,PPP2R5C,CEP70,PPM1A,ACBD5,GART",GART
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ALX3,EPO,HIPK1,CCND2,NKX6-1,HLA-DMA,PRKAR1B,GYS2,SLC16A7,EIF3K",EIF3K
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C1orf56,C11orf97,PLAUR,PACRG,KRTAP20-2,CNOT3,MORN3,SLC9A3,NR5A2,OSCAR",CNOT3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HOXB4,WNT11,SYT9,PAQR5,GCN1,DDX59,ADI1,PCED1B,GOLGA8N,ZNF582",GCN1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GPR20,C4orf32,UTP6,ZNF219,DPP4,CERS4,SIRT1,DDI2,SH2B3,OR5K3",UTP6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TNS4,PNMA6A,ZNF414,CYB5D2,CLEC14A,TRIM16L,PTGES,FAM96B,CBS,MFAP1",MFAP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: COL21A1,RND1,SLC35A5,CD2BP2,ZFP69B,RPL10A,MAT2B,RIC8B,FBP1,DLGAP2",RPL10A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GAL3ST2,C2orf83,GNE,ADAM30,NTN5,HBP1,RIIAD1,PIP5K1A,GIMAP5,EGLN2",PIP5K1A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TMEM99,HDHD3,TMEFF2,C21orf59,MAP4K3,ZNF473,AGPAT2,DMC1,GAK,CSE1L",GAK
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HOXB3,ARRDC4,NARS,RPAP1,PLXNB1,PAPOLA,FBXO18,CPSF2,COX7C,LOC283357",CPSF2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DCX,PRB1,KRTAP4-1,ZNF17,SVOPL,FKBP5,PLEKHG5,FRRS1,BAHCC1,PIBF1",PLEKHG5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PDCD5,PSMA5,PGLS,OR4X2,ZNF695,NFATC4,NOC4L,APOBR,ZNF768,COLGALT1",ZNF695
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C3orf30,OR11H1,ITGAM,CSNK2B,USP13,SEMA4A,DISC1,TECTB,HEATR5A,RPS17",RPS17
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HGS,RNF181,LRRC10B,BRD2,PDCD6,CFH,STK39,OR2AE1,FAM9C,SPRR2D",HGS
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CNGA4,TDO2,PRMT9,HHLA1,KANSL3,ARMC7,RFK,C1RL,RHCG,AQP5",KANSL3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TACC2,ZNF383,HOXB8,THOC1,PREX1,WDR74,CALR,SLC22A5,OLFML2A,ARHGEF39",THOC1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SPRTN,DDC,SPAG4,STPG3,OR51I2,NPY2R,C1QTNF9,OR4P4,PPP2R2C,EMG1",EMG1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GJB2,UTP18,TMEM179B,OAS2,PAPSS2,SIM1,IQCF3,TRIOBP,UBASH3B,CCDC84",UBASH3B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLC15A4,KLRF2,PRELP,LOC401052,ACOT13,PRAC1,NPFFR2,RAD21L1,MEST,UHRF2",LOC401052
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LOC100130451,RASSF8,UGT2A1,TJP3,UTRN,IQGAP3,TMPRSS7,ERVW-1,MTF1,EPHA6",MTF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MEIS3,SATB1,DFNB59,DEF8,POLR3F,SDHC,KIAA1671,LIG4,NPS,RANBP3L",SDHC
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SPINK1,POU4F3,STAC,ABCA12,LILRA1,RHOV,KRTAP8-1,RIC1,C19orf70,TRIM40",C19orf70
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ATP13A5,PRKRIP1,NGRN,RBM42,OR2M4,IL27,FBXW7,SYN3,SLC22A24,TNFRSF11A",RBM42
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PTH,KIF16B,EEF1D,SHBG,USH2A,P2RY2,RNF216,DOK1,FAM46A,PRMT1",PRMT1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GPATCH8,BECN1,MUC2,MED13,OR5R1,NEK2,IL18RAP,NAPB,AP1G2,MAGED4",BECN1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PIEZO1,PNMA8A,SIGLEC14,KIF26B,DUT,NIF3L1,F13A1,C19orf12,CDKL3,KLRD1",DUT
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PRKRIP1,ZNF19,MCM4,PELI3,METAP2,GSG1L,TTC9B,FREM1,GGTLC2,RGP1",METAP2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PTTG1,SPACA6,ICOSLG,ZBED1,ELSPBP1,RNF19A,EVA1C,PROS1,SH3D21,KRT78",PTTG1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SATB1,SYNRG,OR3A3,TMOD4,ARHGAP17,CD82,AFP,TSC22D3,DNAJC27,RPLP2",RPLP2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GJA9,RPGRIP1L,PRUNE2,ADIPOR2,RETREG1,VPS4B,TGIF2LX,RTL9,FCF1,BLMH",FCF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SYNE3,C5orf22,BCL2,SHCBP1,GNAI2,RNF151,ESX1,CIDEB,NOS3,PCDH11Y",GNAI2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CCDC127,SPICE1,LRFN4,BARHL1,TNIP3,ZNF621,ATP6V0E2,NOL6,PLK2,MYOCD",NOL6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ALKBH1,SHROOM4,PAK3,MARCH1,CHM,IGSF23,ADAMTS5,ARL10,RDH13,KDM1A",KDM1A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MDGA1,CAMSAP2,PUS7L,PPAN,MAP3K13,ISLR,MRPS16,OPHN1,ALDH1L2,KCNMB3",PPAN
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PSMD7,SKP1,CDKN2A,ZFHX2,PARVG,THAP4,TMPRSS11E,PRKAR1B,OMG,PHF5A",PSMD7
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SYCE3,GNG10,FAM72C,ZNF182,RPIA,ANXA7,RABL6,IFNA1,SETD9,RPS11",RPS11
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: IKBKAP,EPB41L4A,TNPO3,TMEM19,FAM24B,CPEB1,REPIN1,IL31RA,OR10G2,DCAF4",TNPO3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PREX1,CAP1,SLAMF1,ANKRD10,HCRT,C21orf58,TSPY4,HNRNPU,MARS,ERBB4",CAP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CLCNKA,TSC1,SENP1,FBF1,MMAA,SETDB2,RAP2A,NRL,NPHP1,SOX18",TSC1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF224,EEF1A1,NAA25,GPD1,ATP5B,TEX30,GIPC3,MCM3AP,RNASE13,GBA3",MCM3AP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SNRNP35,NFKBID,ZNF385C,DCUN1D2,IL2RB,FAM20C,NBEAL1,RET,CARHSP1,PLAUR",IL2RB
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EEF1B2,LBHD1,RPS10,ANHX,DERL3,PLCXD2,PRND,DDX52,CDH20,THPO",RPS10
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FAM149B1,NOMO2,ITPRIP,SLC38A4,UBOX5,CABP5,BEND3,RPL6,C21orf33,IK",RPL6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: OAS1,ARHGEF6,AMOT,CCDC86,COX7A2,ULK2,GRAMD1C,GSTA5,AP1G2,RGS22",CCDC86
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PRPF40A,MYO1A,CTSC,GPR39,CDK12,NUMB,FRG2B,SPSB3,ETHE1,ENTPD5",CDK12
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GTSF1,FTSJ3,ASCL1,TADA1,CRIPAK,CMTM8,GIPC2,CAPN5,IL17C,REG1B",FTSJ3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RELL2,PKMYT1,SART3,FAHD2A,CXorf21,CALCB,UNC13B,QSOX2,IER3IP1,ATP6V1B2",PKMYT1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CCKBR,RAPH1,FAM8A1,MCM7,DNAJB4,RAPGEF2,CCNE1,IRGC,RUVBL2,IGF2BP3",RUVBL2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: APOF,SPANXN5,NAT14,ZMAT2,NKX6-1,CNNM1,MLANA,TIMM8B,PACS1,FGF22",ZMAT2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LONRF3,RBKS,CTNNBL1,JMJD4,GSX2,PADI4,PPIH,ATL3,TCTN1,DGKQ",PPIH
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HELB,GPSM1,ACTL6A,PRSS21,HKDC1,ELK1,SUMO1,MARCKS,KCNA10,TRNP1",ACTL6A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PKHD1L1,PARL,SLC2A4RG,PPIF,SPAG7,DYDC2,SERF1A,SEC13,WDR45,SLC25A28",WDR45
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TMEM65,EIF2AK1,C4orf26,NCK1,DOK7,RPL14,NT5DC1,CALN1,NIPBL,KLHL11",RPL14
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RPL37A,DLK2,SSBP1,BEND4,ZNF639,AMPH,C11orf57,MEF2A,PPP2R5D,BPTF",RPL37A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: OR8J3,AP5S1,PREPL,TRUB1,BAGE,CHMP2A,RPL26,IGFBP6,ASB11,MPO",RPL26
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HES1,PIWIL2,RAET1G,MTNR1B,MCM2,CCL4,ELL2,CYP2A6,NUGGC,MRPL37",MCM2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SP8,ZNF785,PXMP4,DHX38,RPL36,WDR87,LCTL,WNT8A,CACNG8,EWSR1",RPL36
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LYRM9,RPF2,CLDN7,PIK3R5,PRKAR1B,HELZ2,SSTR3,NEXN,ZNF256,EIF1AY",RPF2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MB,PBXIP1,PAGE5,KCNA4,OXT,ACRBP,KCTD9,SETD1B,CH25H,DGKZ",DGKZ
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: P2RX2,ODF4,ZNF502,MIXL1,TMEM202,ERH,FAM168B,SEL1L3,SP9,CHRNA3",ERH
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PRC1,COL18A1,FAM86B1,TCEA2,PCOTH,SSC5D,MLYCD,LPCAT3,ADIPOQ,KIAA1191",PRC1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KAT14,UNC5D,TENM2,ISOC1,COX7B,RNF149,HK3,GUCY2F,C17orf74,C20orf197",KAT14
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DNAL4,USP29,UTP14A,TRAT1,KLHL34,ZMPSTE24,TTC7A,MAP2,MAF1,STAT2",UTP14A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ARHGAP12,SPATA6,SERPINA2,SERPINE3,EAPP,UBA52,CYHR1,DUSP6,FAM110A,PRAMEF18",UBA52
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BRD2,GATAD1,KLHDC9,TAF1C,RDM1,C21orf33,SRBD1,SERF2,RIBC2,YARS",SRBD1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SP7,PWP1,GBF1,MTCP1,HTR1F,KIAA1161,NR1D1,HIST1H2BJ,EXOC8,ZNF572",GBF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EGR2,PRKCSH,KRT84,TAF7L,ZNF700,EIF3C,RPS27A,AP3B1,MSRA,SECISBP2L",RPS27A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PCCA,ABCF3,TMEM136,GNLY,VAPB,TRAPPC1,PNISR,GPR61,MT1X,TMEM52B",PNISR
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TVP23C,ALOX12,GLRA3,MMGT1,OR2H1,RDM1,GINS3,ZNF462,STARD5,WDR25",GINS3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DDX50,COL18A1,TUBG1,FZD2,FABP1,ARID3C,FNBP1,CGGBP1,ERRFI1,PCDH7",TUBG1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: COMTD1,EIF3F,ELK1,NNAT,FAM83F,MTUS1,ZNF605,GNAT2,XYLT2,NSD1",EIF3F
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PKP3,VSIG8,NME9,PGM5,DPM1,RAB3A,MZT2A,ZAR1,FGF5,GAS2",ZAR1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LGALS9C,ANXA8,GPANK1,JAG1,C1orf109,DDX24,FGF6,SDR39U1,CDK15,P2RY2",DDX24
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PUM2,GKAP1,JMJD6,AATF,CAPN6,KRT3,CEACAM8,MTCH1,CYP2U1,WNT10A",AATF
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SNRNP40,TRIM44,PIGX,TPD52L3,CEACAM19,SPANXA1,CLDN22,CDV3,SSC4D,MAK16",MAK16
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RD3,RNF44,SPINK13,USF2,MMD,TRERF1,ANKRD55,NCKIPSD,CAMK4,ADAD2",CAMK4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C19orf43,STRBP,TMEM26,CR1L,NECAP1,PIPOX,NAALAD2,SNRNP27,C4orf17,C2orf83",SNRNP27
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: G6PC,CMAS,FAM120C,WDR46,STK26,LENG9,TMEM168,SLC4A3,TPRX1,CAD",CAD
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SKP2,GBP4,DGKE,HNRNPLL,DGKQ,PLIN3,MAP1LC3A,NID2,SHOX,SH3GLB1",SKP2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GOLGA8K,CAGE1,EGFL6,METTL21A,DNAJC2,FAM181A,RPL35,LRRC49,MCHR2,KRT36",RPL35
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RPL24,CLASP2,AVPR1A,SNTG1,CNNM3,SCIMP,HRASLS,EIF3A,CCDC97,RANBP6",RPL24
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RPLP1,RIPK2,AGAP1,SNCAIP,NDUFAF7,CXCL12,SLCO1A2,BRI3BP,CCL8,CYP19A1",RPLP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: POLR2M,RNASEL,CNTF,SDF2,TMEM45B,OR1N1,SCAI,ADSS,PACSIN2,PKD1L3",ADSS
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LAMP3,ANGEL2,ASB15,FAM187B,LIPT2,CHP1,E2F1,DACT2,LRRC63,ODF3B",E2F1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MTMR1,NCR3,BDH2,TYMS,ITGB4,DAG1,SMIM14,SLC7A13,HYI,AP3S1",TYMS
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TLR3,C8A,TUB,CGB7,TMF1,SEMA6D,MYO1D,BCKDHA,MEMO1,HCAR2",MEMO1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EXD3,RABGAP1L,ADAM23,CTAG1A,COMMD4,SYMPK,HIST1H4L,SLC35G5,PAPPA,FAM20A",SYMPK
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C2orf69,EP400,CYC1,KCTD10,ZNF16,RIMKLA,ARL8B,OR4S2,KCNAB3,ZNF740",EP400
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZC3H6,KYAT3,ZNF398,EDDM3A,RNF40,ZDHHC11B,ATP6V1B2,OR11H12,LRIT3,CXCR2",RNF40
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GSTZ1,C12orf80,ELMOD3,RCL1,FAM167B,RCBTB1,CLEC4G,TM4SF19,CISD3,ENTPD3",RCL1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C16orf45,SLC13A3,PTK2,APMAP,HIF1A,DLST,KCTD10,IL22RA1,PIGH,PSMB1",DLST
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: JRK,DPH1,RBBP6,DSE,HTR1E,SLC16A8,PHC2,TGFB1,PCDHA9,UPF1",UPF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HIRIP3,SGTA,OR1M1,SURF6,GAS8,PPA1,COX7B,LPAR2,EXOSC7,SAP18",SURF6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CHAF1B,PDXDC1,SENP6,ITGA11,SMIM17,FAM50B,LOC283713,STAP2,PSIP1,LRFN4",CHAF1B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KIF9,SPANXN4,GYG1,NMT1,ARNT2,CBR4,HERC1,PTPN11,RMDN2,UBL7",NMT1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF420,PAPSS2,RPS5,ARSD,PRR35,LZTS1,S100A6,MINK1,CACYBP,MRC1",RPS5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RASSF2,ADAMTS17,CDC45,SCFD2,KIAA2022,RPS13,GCM1,ALKBH1,OCM,WNK2",RPS13
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SIDT1,KLF13,LSP1,KCNA1,APOL2,INTS3,A2M,COL6A3,SPAG8,ASF1B",INTS3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ACP1,NIP7,APOA1,CFAP221,MTRNR2L1,PPP1R8,TMEM9,FAM214A,PSMD10,CRTAC1",PPP1R8
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CLCN2,GSTM5,GP9,BLOC1S1,TSGA10IP,SLAMF6,DIO2,IER3IP1,NAA60,CXCL5",SLAMF6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CMPK1,PYCR1,KRTAP5-2,C11orf57,TRAF7,SNRPC,PSMD14,ANKRD40,RTN2,OXLD1",SNRPC
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: UBR3,SEC14L4,UBXN6,ZNF311,BTC,P2RX7,DHODH,CXorf21,UHRF1BP1L,NAB2",DHODH
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KCNQ5,ANXA8,CYP11A1,SUGT1,GABRA3,SIX5,NHP2,SLC25A42,CD5,CLIC4",CD5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ITGB3BP,DEFB108B,MAP4K1,CDS1,MAP1LC3C,CCND1,WDR83OS,IL15RA,RANGAP1,IFITM3",MAP4K1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CCDC25,CCL15,SOX13,ZNF684,DEFB105B,CYB5R4,GPR17,PDGFRA,YAP1,EDF1",PDGFRA
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CBLB,OR2L13,AGAP9,TMEM132B,RAB3B,MAFG,SYCE3,DPPA4,ANXA4,FAM71F2",CBLB
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: VAV1,RRAGD,ANXA4,COG5,GRIK2,CLEC6A,PDE4A,ZNF446,USP48,ANO7",VAV1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EMC6,AR,TRIM65,LRP2,LCP2,PLVAP,CTSA,SMIM6,DNAJC13,ZNF740",LCP2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TAS2R10,RPP25,BCO1,XCL1,GLIS1,BTN3A2,YTHDF2,CD3G,EMP1,FGG",CD3G
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CDH7,KRT3,NEK8,RHO,ULK3,IL2,SPSB3,GADD45G,HYPM,FAM227B",IL2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NECAP2,RGS9,CD3D,MESP1,RPS4Y2,ARHGAP40,IAH1,POMC,MPC2,PRKG1",CD3D
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FANCF,PLP1,ALKBH2,GAPT,CCDC14,OR52R1,GOLGA8O,LAX1,CD28,EAF1",CD28
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FSD1,OR8G1,CIC,KIAA1614,TMEM206,H3F3A,ZAP70,MMP1,CD164L2,SEL1L3",ZAP70
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LRRC43,CD3E,ARHGAP5,KCNMB3,CXorf49,ZFAT,VANGL2,AARS2,N4BP2L2,MARCH6",CD3E
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ITK,METTL27,ALKBH7,RAB37,FOXJ3,TFAM,GSK3B,KRTDAP,RNF214,DFNB59",ITK
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZBED3,CD2,ZNF609,HNRNPA2B1,HIST2H3C,TMEM160,RGS4,PATE1,CLNK,BAG2",CD2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLC25A3,FDX1,LEPROTL1,ACP5,IFNGR2,TP53INP2,IKBKG,TBCC,NDST2,RNF10",IFNGR2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RFX3,ACY3,ZNF519,ZIM3,OR6C76,CEACAM3,KRTAP5-3,DEF6,KRTAP19-4,LRRC25",DEF6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MINDY1,CBR4,RBFA,CBX5,C9orf92,RAC2,DCST2,H6PD,SF3B4,KANSL1L",RAC2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KLHDC7B,CD247,CD1B,ZNF488,PTPRB,DMRT1,ZNF329,ESD,SOAT2,PGAM4",CD247
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BEST1,TRIM6,KAZN,NKAIN1,TSPY2,SPINT3,GRAP2,MSS51,ACAP1,ADH7",GRAP2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TSPAN5,MROH1,C17orf58,PLCG1,RBM8A,CERS6,CCRL2,MGRN1,RENBP,FBXO5",PLCG1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FGFR3,VPS35,SETBP1,MUC16,TRNAU1AP,PHF20L1,ZNF385C,DAP,APCDD1,TCTN2",VPS35
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SERPINA6,TIMM10,LNX2,TMEM130,DND1,LAT,KLF4,ZNF367,DCC,PCDHA1",LAT
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLC6A19,NHLRC3,FBXO2,CLEC16A,CCL4,VPS29,COL2A1,CCDC107,GIPC1,PRUNE2",VPS29
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EXOSC8,OR4C3,GUCA2B,SEMA6B,TMEM50A,NARR,ZDHHC15,VTN,CAST,KIDINS220",KIDINS220
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FNDC10,CD99,NOM1,SNX25,COX8C,BPIFB2,TRIM4,NEU1,KLC1,TAF13",TAF13
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NRIP3,FMR1NB,NEUROG3,CELF6,PKP4,FAM186B,IL12B,SHCBP1L,WAS,MC2R",WAS
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SUSD1,STX1B,C1QB,ISX,RBBP4,ELK3,PRDX3,GNPTG,TRIM21,NME5",TRIM21
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HRH3,ZNF324,KCNJ3,CACHD1,KRTAP10-1,SIRT1,KNOP1,TRAF6,GFM1,GUCY2D",TRAF6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GLIS2,TRO,CDC42,ZNF776,CHADL,ANKRD1,C16orf78,RHOG,ATP8B4,ZNF561",RHOG
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SHOC2,LCE3C,THAP9,ZNF836,ATP13A2,CREBZF,C18orf25,ARHGEF39,SLC38A5,IFNA6",SHOC2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EMX2,TCP11,SULT2B1,AK1,CPEB1,ZNF501,PCBP4,FEM1C,RNPEP,POLR2K",SULT2B1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PDHX,TNFAIP8L2-SCNM1,DHRS9,IL27RA,CNOT9,USP17L3,FAM19A2,AFDN,OR5K3,TAF2",TAF2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LHFPL1,GOLT1B,RBFOX2,SCRIB,SCML2,TARM1,OR4C13,SH3RF3,SMARCA5,SPI1",SCRIB
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ASPDH,RIPOR2,NEK5,FBXO17,ARHGEF5,FAAP20,TMCC2,SPATA31A6,PIK3C3,HS6ST3",RIPOR2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LOC100131303,BCL10,PRY,ODF2,C4orf47,NR2E1,TSPAN2,FAM213B,C6orf10,KHDC1L",BCL10
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: IFNE,TAF8,BTNL3,PADI2,ACBD4,TCEAL1,DBR1,CNEP1R1,C5orf22,KIF20B",TAF8
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PNLIP,TOP2A,SRP68,LRRC66,PACS1,PPT2,TBC1D25,VPS13B,R3HDM1,TRMT2B",SRP68
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RPAP3,PRB4,KRT222,SPPL2B,HIST1H4C,TTLL7,GLI4,MTA3,SPRYD3,RASL11A",SPRYD3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: AKT1,STX3,FOXS1,WARS2,GSX2,THRA,PROZ,BCL2L15,TAF11,OR2A14",TAF11
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LMX1A,EBF2,DGCR6L,ELAVL1,PTPRC,SMOC2,TAF7L,CMA1,MAPK1IP1L,MRPL40",PTPRC
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GIPR,GAGE10,KPNA1,ANO6,AADACL3,STX6,ATM,TAF4,PEX7,CUL5",TAF4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DOLK,VBP1,C6orf58,ZSCAN25,CALCB,EVC2,RPN2,LIX1,GBP3,FAHD1",RPN2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TRIM35,PMEL,NFE2L2,MED23,ZDHHC9,CHEK2,COL14A1,RNF208,HNRNPH1,SLC3A1",MED23
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SCGB1C1,WDR59,ZNF773,PRSS38,PRMT5,BNIP3L,LOC101927322,KRBA1,ZBED3,ABTB2",LOC101927322
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SLC30A1,RNASE10,SEPT9,ELOF1,TKT,VWA3A,PRMT9,FAM45A,RTP3,EFCAB7",ELOF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PCOLCE2,BTNL2,SRP19,ALYREF,CLEC1A,EFHD1,FRY,IL21R,PRCD,FBXO18",SRP19
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PSMD10,LACTB,PRDX3,PSG8,SLC44A1,KIAA1109,LIPE,SERPINA2,STRBP,KRT75",KIAA1109
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PRKD2,ADCY6,SERPINB13,NR0B1,LPGAT1,BAIAP2,SPATA9,OGFRL1,RCAN1,GNAZ",PRKD2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TLN1,MLLT6,HCN1,NLRP12,LCNL1,AAAS,SEMA6B,RSPH14,BAP1,LPIN3",TLN1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: STRA6,LOC100144595,POTEH,SLC38A7,GPR176,DBH,FANCF,MRPL24,KAT7,TBC1D3B",KAT7
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PI4KB,PCK2,MRPS2,BBS10,CDKN3,CCER1,S100A2,RIOX2,HTR1B,ARHGAP28",PI4KB
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SH2D1A,SKIV2L,FAM161A,METTL4,WDR81,ARHGEF40,PEX26,VHLL,ZNF235,CYP17A1",SH2D1A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RGS7BP,SPTLC2,PTCD2,VEPH1,IL17F,DPY19L2,CDCA5,UBE2N,POU6F2,CCL4",SPTLC2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: COMMD2,CRYBB1,TMEM132C,ZNF181,SERPINA11,ING5,DLK2,FCGR2B,ASCC2,SCAMP2",ING5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: METTL7B,POLR3H,TSPOAP1,CHUK,OTX1,DMBT1,WASHC1,GUK1,HLA-DOA,C15orf62",CHUK
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CD6,EPHA10,SSR1,RAP2C,TMEM190,CTXN3,DCP2,SEBOX,ZDHHC3,ZC3H12D",CD6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FITM2,FDFT1,SLC11A2,ATP2A2,UGT1A7,ZNF79,SNAI1,AQP3,CDC26,CIB1",AQP3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RUNDC1,SLC39A2,NUP37,G6PC,PHF20,OGDHL,C21orf140,HELB,RPL22L1,BTBD10",NUP37
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LNX1,CAPN15,RAB6A,GULP1,CST9L,POLR2J3,ATN1,MAP3K7CL,RLN2,C7orf66",C7orf66
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF428,RSBN1L,NDST3,PRR35,CHRNG,SRP72,CATSPERG,SPNS3,VWC2,PHACTR1",SRP72
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ADGRV1,EDEM3,KLC1,ENTPD1,KIF7,ELOA,USP7,FCGR2B,PAPLN,ZNF615",ELOA
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RUSC1-AS1,DCP2,DLGAP3,ALDH6A1,ETNK1,AP3B1,SLC35G4,SCG5,RSPH10B,PURA",ETNK1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ARHGAP39,PRSS41,HBZ,PHACTR1,RNASE1,GPR55,SLC5A5,TECR,CLCN6,NCOR1",NCOR1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LYPLA1,ARL9,WDR76,KIAA0556,CD53,ZNF800,CD40,SPA17,RSPH10B,EMC1",CD53
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SEC61B,HOMER1,SMOC1,C14orf177,ATE1,LCN8,HUNK,GNPDA1,INHA,CD63",SEC61B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TCP10,MARF1,FAM185A,NUDT19,GABPB2,PRSS33,PHF13,BCL11B,ECT2,TLK2",BCL11B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FIS1,PPOX,PTPRF,CYP11B1,SCX,OARD1,THEMIS,ZNF407,LINC02210-CRHR1,DLG1",THEMIS
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DLX5,SPDEF,GDF5,UBA3,SLC13A2,WNK1,UBE2NL,DPH5,GPR33,KRI1",UBA3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FZD4,HOXD3,C16orf89,ZBTB18,KLRD1,HDAC7,NCOA1,AIMP1,KMO,SHC1",HDAC7
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: VASN,CLMP,TEK,ABCA5,TEX13A,TMEM185B,SPIN1,TRAPPC3,ACTR5,ZNF530",ACTR5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CDK7,DGKI,C11orf91,VTN,MAPK4,SIN3B,EFNB2,TOMM20,HS3ST1,CHGB",SIN3B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MICU3,TMX1,NUDT4,SPTBN2,ECI2,TEX15,RBM18,CREG2,TMEM27,RBM48",TMX1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SS18L1,PRKAR1A,TAS2R1,KPNA3,ZSCAN23,DHX33,ACER1,HMGCL,TMPRSS3,GHRL",PRKAR1A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KRTAP10-12,ZFPM1,C2orf68,ALOX5,MPHOSPH8,CLEC9A,ADIG,CCDC114,JUN,NCAPH2",JUN
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CYP11B2,RBPMS2,MAP9,CDK11A,ADCY5,KRTAP4-4,DCDC5,GOLGA6C,LINC01750,CNOT9",ADCY5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: VPS11,CDH17,USP16,SUPT5H,RDH12,SLC11A2,MPZL1,PCGF2,SCAI,FCER1G",SUPT5H
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CCL17,OR5T1,MED13,C10orf105,STK35,ACYP1,COL4A3BP,GPR180,BID,OR10H4",COL4A3BP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BICC1,SPHK2,DYRK3,ATP10A,MAGT1,SYTL3,LOC283710,GPR21,RGMA,LRWD1",MAGT1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PRRC2B,ZNHIT3,PQLC2L,RIMBP3,PDE6G,MAGED2,GRIN2B,DCP1A,MARCH5,CCDC47",PRRC2B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TNFRSF6B,SLC41A1,OR6A2,HDAC3,POU2F1,DDB2,ABCA9,MAS1L,CSF1,ZNF239",HDAC3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: AGBL2,PRDM5,UBA6,HLA-DRA,PDE1C,RHOU,UGT3A1,ADGRB1,PIGS,ARHGAP21",HLA-DRA
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: OR6Y1,CLUL1,TAF5,ANAPC11,SHISA8,COL28A1,AMER3,SERPINA2,GREB1,CCDC149",TAF5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BMP5,TMEM196,ZNF335,B4GAT1,NDUFAF3,MYO19,COG4,PSMD1,GALNT11,MYH6",COG4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: BAHCC1,CBLN3,STK26,ISX,DTNBP1,ANKRD18B,GCNA,ELK4,C3orf79,RNASEH2A",DTNBP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ID3,WDR59,IDH3G,TARBP1,MALT1,NEFH,POTEI,GIP,CXorf23,CCDC151",ID3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KBTBD8,DDX21,VRTN,SERINC5,BMP2K,GNAT1,CHIC2,TMEM60,CEP290,PDCD2",TMEM60
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LILRA2,ADGRG3,GALNT1,UBE2M,PCDHB7,FBXO7,HERPUD1,CCNT1,KCNK1,TP73",PCDHB7
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NRTN,VAT1L,CRIM1,OR10S1,TMEM130,DAD1,ANKRD13B,G3BP1,LEFTY2,PHPT1",DAD1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MEI1,CCT7,WSB1,CD248,CCDC88B,SYNDIG1,SLC27A4,ORC2,XRCC5,CACNA1I",XRCC5
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: UBXN6,TMEM203,GOT1L1,VSTM4,SOX4,RANBP6,RASL10B,MAP2K1,ZNF536,LILRB5",ZNF536
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TCTE3,SPATS1,APOD,HP,MOB4,FUK,DDX46,SLC25A17,PGRMC2,GFM1",MOB4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ALMS1,UGT8,ZNF830,GPR22,ZNRD1,GC,VSTM2A,TRIM42,TMEM267,CTTNBP2",ALMS1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: IDH2,ELF5,NOS2,MED10,TRPM5,C19orf57,MSL1,ACADS,CNOT7,GNPTG",ACADS
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: COMMD8,TEX261,IL26,UGT1A6,FOXJ3,CDK5RAP1,CXCL17,TSSK4,TRIM10,TM6SF1",COMMD8
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: JAGN1,SLC26A10,AKAP3,EFHD2,CA1,BAG6,CRLF3,SPRR3,DMGDH,MTA3",BAG6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MTA2,ANKRD34A,C1orf186,TNNI3,KLHL20,FOXO4,TMEM170A,NEFM,ANXA10,SERTM1",KLHL20
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NELFA,WNT3A,PPP3R2,DDA1,RPE,C1orf87,NKX2-1,OR2T2,RBP3,SMAP2",DDA1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PTPN2,CMTR2,ACTG1,MYT1,SNX29,ABCA3,RGS18,KIAA1671,HOXA9,NOP9",RGS18
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FA2H,LRRC55,EFCAB7,FOXB1,SCAND1,LGALS13,COPS9,RUSC1-AS1,CAMKV,ARL6IP6",COPS9
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HDHD2,SLA,ITPRIPL2,BRD3,REEP6,XPO4,LIPT1,GLRA2,FBXL7,FAM3C",GLRA2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KLHL7,RABL6,CLCA2,IPO5,CEP290,XCR1,KRTAP2-4,ATOX1,KCNC4,FCRLA",KCNC4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SRCAP,CDK2,HGF,SENP8,AOC1,AKR1E2,OR51F1,SLC35B1,MRGBP,HSPBAP1",SENP8
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TMEM221,SP3,BSG,TAS2R50,IRF2BP2,BRMS1,SSH1,CLCN4,KDM3A,NACA",SSH1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RNF222,PCDH11Y,SPAG8,DNAJC13,MEFV,ANK1,POTEB3,CENPC,ATXN7,FAM71C",FAM71C
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KMO,APC2,CCDC81,ITM2A,SLC30A7,CNTNAP5,ALDH3B2,PREB,OR4S1,NONO",CCDC81
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ACSM4,N4BP3,FAM149A,USP17L12,EVI2B,SPANXN3,C10orf131,TRPV1,ZNF750,TMEM55A",TMEM55A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TARDBP,FETUB,GNA11,S100B,CES5A,GCNT2,CHST10,ZZZ3,PFKFB2,LOC388813",TARDBP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TUSC3,ICAM5,NUP50,HERC3,LRRTM1,FAF1,WDR90,TATDN3,WNT16,TRIM77",TATDN3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TBKBP1,FAM26F,PRCD,MASP1,SFTPD,PBX2,TMEM203,NOL4,DACT2,ADGRL3",PBX2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RAP1GAP2,FEM1A,EXOC6,CYB5R4,SEL1L3,SON,C16orf90,AP5Z1,XYLT2,PIGU",C16orf90
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MAP9,C19orf67,ELL3,PNMA8A,CCT2,REL,ASXL2,ACTR8,CNPY4,XPOT",ASXL2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SNAP29,SLC30A9,SART3,KDM2B,NR4A2,RLBP1,SP140L,KIF3A,CCR6,MRPL33",CCR6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PM20D1,SLC17A1,SIGLEC10,ZNF524,SERPINF2,DHX40,IKBKB,OR51B6,EZR,TPD52L3",SERPINF2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF41,DNAJC14,BTBD8,TPMT,ABLIM1,KRBA2,NPAP1,LCK,BTK,DAZ1",TPMT
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: UGT1A3,C9orf131,TAS2R13,MGAM2,RNASEH2C,MIS18A,RABGAP1,FANCD2,SOX2,HSF1",RABGAP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DUSP19,EME1,BTNL9,RAB4A,ABCC9,PDE10A,FOXK1,USE1,UVRAG,PNPLA7",FOXK1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: VPS9D1,IFT27,OSBP,JARID2,SLCO1C1,NEIL3,PPP1R1C,NIPAL1,C1orf204,TM9SF3",OSBP
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CRYBA4,EZR,ZNF45,LANCL2,CIB2,NUMBL,ARHGAP27,TIFA,HIST1H2BE,TMEM221",LANCL2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C12orf56,L3MBTL1,MARCH3,STAR,CTAGE8,RBM24,RHOT1,BARX1,NAT9,TRNT1",CTAGE8
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: RHAG,CLDN20,ECH1,TACC1,MUC6,CHDH,SLC16A14,ARL5A,MIEF2,TTC23",RHAG
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MOG,UBAC2,TTC39C,FBXW7,CENPX,TMIGD2,FAM229A,NHLRC3,ZSCAN4,WHRN",ZSCAN4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SPATA24,ZNF543,ZMYM3,CCDC28B,AGBL5,TAF7,LRRC8B,OTC,IL17D,NAGPA",TAF7
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CD101,RPRML,OR7A10,ZFP1,PSMC6,SPATC1,IFNA21,CADPS,MRPL37,C17orf105",CD101
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: EHMT2,STYXL1,SH2D4A,EIF4E3,OR5B12,CCNJ,SKI,SETBP1,SMLR1,KLHL12",OR5B12
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GID8,GJA3,IVNS1ABP,RGS5,BEND2,ZFP69B,CCR5,BBS1,KLF4,RAB11B",BEND2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ADH4,ROBO2,ASB10,MLLT3,PNPLA8,PIGN,DNLZ,ASPDH,BTNL3,CXCR1",MLLT3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PIEZO2,RERE,ZC3H7B,ANKRD50,CTSK,MYH14,CSTL1,NFIC,OR6C6,OR6K6",NFIC
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TMEM164,CLDN8,TMEM223,FKBP8,STOML2,SMIM3,IPO8,BRD8,LSM7,C6",C6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CXCR1,IFI30,RAB3C,HAGHL,EMILIN3,C7orf61,LYZL4,FTHL17,URB2,C6orf136",LYZL4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: NOL4,CD177,CSF3R,LIN37,KIAA1549,ZFP37,NHLRC3,RERG,ZNF324B,COL27A1",LIN37
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FOXD4L6,PODXL2,GALNT8,NLRP14,APOA1,KRT26,ZNF416,SLC51B,RNF146,DNASE1L1",RNF146
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZBTB1,IKBKB,RPP30,CARS2,DOCK2,CDS2,EIF4E3,PHF11,RHOB,FAH",DOCK2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZSCAN21,FRMD5,MDFI,HEXDC,CARD11,UBE2L6,P4HA3,SLC23A2,LOC101929926,ORAOV1",CARD11
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PKD2L1,RTL1,DCTN4,LYL1,IP6K3,RPL35A,HNF4A,INHBA,MDC1,RLF",HNF4A
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: WFDC12,TBC1D4,BANF2,SRPX2,OR2K2,CDH15,MYLK,NTNG2,SIM2,EEF1B2",OR2K2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CASP4,ZNF652,C9orf131,KLRF1,HEXIM1,MIA2,RNPEPL1,CASP7,DNAJB5,SNAPC4",CASP4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: COLQ,CRYGD,TMEM249,PKNOX1,ADAMTS6,SUFU,UBE2B,TP53BP1,RXRG,KRT80",PKNOX1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: COG6,HUS1B,CCNJL,ZNF729,TCF21,CCNB1,NAPB,DKK4,C2orf68,DNAH1",COG6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: LINGO3,RBL2,TIMELESS,CPNE9,IFNL4,DGKD,ISLR,NUP107,COL26A1,KMO",LINGO3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KATNBL1,SBK2,CCL28,C4orf19,SAT2,HRH4,ATP6V1E2,CCDC150,GCNT4,KAT6B",ATP6V1E2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SUMO1,KRTAP19-7,MCIDAS,ACOT8,HACD2,ZBTB10,MAPKAP1,UQCRHL,PFN1,CTNS",MCIDAS
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FZR1,HNRNPCL2,NOS1AP,ETF1,MARVELD3,FUBP3,TBL2,TMPRSS3,TNNC2,KBTBD13",ETF1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: VENTX,MFHAS1,MRPS11,PRDM14,IL5RA,BTG4,GRIN2C,FUT8,OR10R2,KCNT1",MFHAS1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GLI1,LARP4,ATXN7,ACVR1,ZNF230,ENTPD3,ANKRD29,C4orf36,CTSF,SPARCL1",GLI1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: HP1BP3,PDLIM2,GPR157,EMP3,BEST2,OPN1MW,TREML2,UBA5,KNSTRN,CTAGE1",EMP3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: VNN3,LGI2,IRF8,WFDC13,PNMA8B,TARSL2,ACVR1C,ZNF506,PGC,COTL1",LGI2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GPR31,DAPP1,LBHD1,HCAR1,HIST1H4A,ESX1,ZNF780B,TACR3,SLC39A2,DHX38",DAPP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CHCHD5,PLBD2,DDOST,ZNF630,TMEM231,KIAA0556,SIGIRR,POLK,BRWD3,M1AP",PLBD2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TEX13B,ASB6,HAPLN1,C11orf54,MYO16,NT5DC3,USMG5,ANGEL1,RHOC,LOC340178",TEX13B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CSRNP3,SSR1,PAX4,SCRT1,PLCXD3,DOCK9,ADAMTS8,RFPL4B,KLKB1,PAGE2",ADAMTS8
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CYFIP1,NSUN3,SH3BP5,SNW1,RCE1,AGBL3,CT45A10,ADGRG4,MYLPF,B3GLCT",ADGRG4
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SOS1,CLEC4M,CCNE1,KDM5C,OR10G3,MBD2,IER2,GCSAM,NDST1,SNAP25",MBD2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: SSRP1,AKAP5,GNPDA2,TRIM17,IQSEC1,PDZD3,ZFP41,DMGDH,CDC73,GOLGA8M",GOLGA8M
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TMEM35B,NECAB1,SLC32A1,PRSS8,FSTL5,STAB2,NAB1,PRB1,DYNC2LI1,STAP1",DYNC2LI1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: AFMID,SIRPD,MTRNR2L2,CUL2,ARHGEF26,EXD3,EEF1A2,CD200R1,USP24,MVP",EEF1A2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PROSER2,BNIP3L,SMIM10,SLC15A1,PNN,CLEC4E,SERPINB5,TPI1,CDIPT,COIL",SLC15A1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KRTAP2-2,ATP1B1,MRPL1,CKAP2L,GLI4,UBE2I,SLC9C1,POU2F3,IQCF2,CCL4",IQCF2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: JMJD4,SLC2A13,TERT,AK2,BBS5,CCDC40,BTBD3,RAPGEF6,NAA11,TAF1B",RAPGEF6
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: DOCK3,CRIP1,GOLGA6L22,NDUFC2,SMIM13,RHOU,NHSL1,SLC22A16,S1PR5,FCGRT",GOLGA6L22
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: OASL,ZNF70,CMTM2,NFKBIB,BRWD1,SPACA9,AP1M1,CTDSP1,PTCH1,GRAP",BRWD1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: GRIK5,KRBA2,ZC3H12C,OR10W1,NMB,GSG2,C4orf26,ECHDC2,KCNA2,PRDX1",KCNA2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CABP7,ZNF668,CSAG3,FAM161B,ARRB1,MYEOV,IPMK,SLC25A19,FAM157A,KRTAP4-12",ARRB1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ANKRD18B,NYAP1,CSF2,PSMA4,FAM173B,MLEC,CTSW,FOXO1,DFNB59,PSPN",NYAP1
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CAPN10,IRF9,ENKUR,EXOSC4,WEE1,HS6ST3,ZNF80,SNRNP35,MEIS3,PCYT2",PCYT2
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ZNF222,MUC12,PIK3C3,CTNNA2,PIGB,HS2ST1,AP2A1,NUDCD3,PAPPA,MAPK3",MAPK3
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: MCF2L,ARHGEF19,A3GALT2,LIFR,LMTK2,TOMM6,SCNN1B,MLLT11,ARHGAP31,HTRA4",LIFR
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: CLMP,CCL24,OAS3,INPP5J,TMC1,LZTS3,SAA4,MTFMT,PES1,FGF13",MTFMT
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: ARMC7,CLEC10A,PCLAF,CLDN3,P2RX1,PPARA,FAM159A,SLC45A3,C10orf99,CUL9",PPARA
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: TEX48,NRTN,PRAMEF7,ARRDC3,TMEM105,FBXO5,ACAP2,TECPR1,PCF11,EPHA2",PRAMEF7
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: AMY1C,TEAD4,SUPT6H,SLC25A30,CNTFR,ATAD1,ALB,FMO5,VN1R1,NEUROG1",SUPT6H
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: FBF1,CEACAM1,ATP5G2,UBL4A,COQ5,ROPN1B,DEFB104B,WNK1,WDR55,IFNA17",DEFB104B
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: C19orf48,MRPS18B,ADAM28,ZNF587,EIF3M,SURF4,KDELR2,TELO2,CTAGE15,XCL2",CTAGE15
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: KSR2,NSDHL,INO80B,RFWD3,ANLN,FZD10,MED21,TYRP1,EML5,INHBA",ANLN
+gene_perturb_selection,"Your task is to identify genes that regulate the production of Interleukin-2 (IL-2). 
+ From the list of potential genes, provide one most confident gene (matching one of the given genes). 
+ Gene list: PCP2,HIST1H3J,ABR,ENTPD7,OR13C2,CLASRP,MARCH5,RAX2,GBE1,EHD3",OR13C2

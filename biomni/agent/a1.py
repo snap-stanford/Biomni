@@ -1092,7 +1092,7 @@ Each library is listed with its description to help you understand its functiona
             else:
                 raise ValueError(f"Unexpected next_step: {next_step}")
 
-        def self_critic(state: AgentState) -> AgentState:
+        def execute_self_critic(state: AgentState) -> AgentState:
             if self.critic_count < test_time_scale_round:
                 # Generate feedback based on message history
                 messages = state["messages"]
@@ -1127,7 +1127,7 @@ Each library is listed with its description to help you understand its functiona
         workflow.add_node("execute", execute)
 
         if self_critic:
-            workflow.add_node("self_critic", self_critic)
+            workflow.add_node("self_critic", execute_self_critic)
             # Add conditional edges
             workflow.add_conditional_edges(
                 "generate",
@@ -1242,6 +1242,7 @@ Each library is listed with its description to help you understand its functiona
             message = s["messages"][-1]
             out = pretty_print(message)
             self.log.append(out)
+            yield self.log, message
 
         return self.log, message.content
 
