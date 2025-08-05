@@ -10,6 +10,7 @@ from langchain_ollama import ChatOllama
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
 
 SourceType = Literal["OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Custom"]
+ALLOWED_SOURCES: set[str] = set(SourceType.__args__)
 
 
 def get_llm(
@@ -34,26 +35,33 @@ def get_llm(
     """
     # Auto-detect source from model name if not specified
     if source is None:
-        if model[:7] == "claude-":
-            source = "Anthropic"
-        elif model[:4] == "gpt-":
-            source = "OpenAI"
-        elif model.startswith("azure-"):
-            source = "AzureOpenAI"
-        elif model[:7] == "gemini-":
-            source = "Gemini"
-        elif base_url is not None:
-            source = "Custom"
-        elif "/" in model or any(
-            name in model.lower() for name in ["llama", "mistral", "qwen", "gemma", "phi", "dolphin", "orca", "vicuna"]
-        ):
-            source = "Ollama"
-        elif model.startswith(
-            ("anthropic.claude-", "amazon.titan-", "meta.llama-", "mistral.", "cohere.", "ai21.", "us.", "apac.", "eu.")
-        ):
-            source = "Bedrock"
+        env_source = os.getenv("LLM_SOURCE")
+        if env_source in ALLOWED_SOURCES:
+            source = env_source
         else:
-            raise ValueError("Unable to determine model source. Please specify 'source' parameter.")
+            if model[:7] == "claude-":
+                source = "Anthropic"
+            elif model[:4] == "gpt-":
+                source = "OpenAI"
+            elif model.startswith("azure-"):
+                source = "AzureOpenAI"
+            elif model[:7] == "gemini-":
+                source = "Gemini"
+            elif "groq" in model.lower():
+                source = "Groq"
+            elif base_url is not None:
+                source = "Custom"
+            elif "/" in model or any(
+                name in model.lower()
+                for name in ["llama", "mistral", "qwen", "gemma", "phi", "dolphin", "orca", "vicuna", "deepseek"]
+            ):
+                source = "Ollama"
+            elif model.startswith(
+                ("anthropic.claude-", "amazon.titan-", "meta.llama-", "mistral.", "cohere.", "ai21.", "us.", "apac.", "eu.")
+            ):
+                source = "Bedrock"
+            else:
+                raise ValueError("Unable to determine model source. Please specify 'source' parameter.")
 
     # Create appropriate model based on source
     if source == "OpenAI":
