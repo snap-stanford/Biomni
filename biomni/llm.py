@@ -3,7 +3,6 @@ from typing import Literal, Optional
 
 import openai
 from langchain_anthropic import ChatAnthropic
-
 # from langchain_aws import ChatBedrock
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -50,7 +49,7 @@ def get_llm(
         ):
             source = "Ollama"
         elif model.startswith(
-            ("anthropic.claude-", "amazon.titan-", "meta.llama-", "mistral.", "cohere.", "ai21.", "us.")
+            ("anthropic.claude-", "amazon.titan-", "meta.llama-", "mistral.", "cohere.", "ai21.", "us.", "apac.", "eu.")
         ):
             source = "Bedrock"
         else:
