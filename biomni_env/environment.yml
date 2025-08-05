@@ -5,7 +5,7 @@ dependencies:
   - python=3.11
   - pip
   - pip:
-      - numpy==1.24.3
+      - numpy==1.26.4
       - pandas
       - matplotlib
       - scipy
@@ -32,6 +32,7 @@ dependencies:
       - python-dotenv
       - FlowKit
       - rdkit
+      - scanpy
       - langchain_anthropic
       - langchain_community
       - langchain-google-genai

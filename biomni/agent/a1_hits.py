@@ -801,7 +801,7 @@ class A1_HITS:
 
         # Base prompt
         prompt_modifier = """
-You are a helpful biomedical assistant assigned with the task of problem-solving.
+You are a helpful flow metry data analysis expert.
 To achieve this, you will be using an interactive coding environment equipped with a variety of tool functions, data, and softwares to assist you throughout the process.
 
 Given a task, make a plan first. The plan should be a numbered list of steps that you will take to solve the task. Be specific and detailed.
@@ -822,6 +822,8 @@ If a step fails or needs modification, mark it with an X and explain why:
 4. [ ] Third step
 
 Always show the updated plan after each step so the user can track progress.
+
+Think in English no matter what language the user speaks.
 
 At each turn, you should first provide your thinking and reasoning given the conversation history.
 After that, you have two options:
@@ -1182,6 +1184,7 @@ Each library is listed with its description to help you understand its functiona
                         + result[:max_length]
                     )
                 observation = f"\n<observation>{result}</observation>"
+                # state["messages"].append(AIMessage(content=observation.strip()))
                 state["messages"].append(HumanMessage(content=observation.strip()))
             t2 = time.time()
             function_name = inspect.currentframe().f_code.co_name
@@ -1283,7 +1286,7 @@ Each library is listed with its description to help you understand its functiona
         self.app.checkpointer = self.checkpointer
         # display(Image(self.app.get_graph().draw_mermaid_png()))
 
-    def go(self, prompt, resources=None):
+    def go(self, prompt, additional_system_prompt=None, resources=None):
         """Execute the agent with the given prompt.
 
         Args:
@@ -1369,6 +1372,9 @@ Each library is listed with its description to help you understand its functiona
 
             # Update the system prompt with the selected resources
             self.update_system_prompt_with_selected_resources(selected_resources_names)
+
+        if additional_system_prompt:
+            self.system_prompt += "\n----\n" + additional_system_prompt
 
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}

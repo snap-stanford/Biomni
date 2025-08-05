@@ -1,0 +1,8 @@
+langchain_anthropic
+langchain_community
+langchain-google-genai
+langchain_ollama
+langchain_upstage
+langchain_mistralai
+langchain_aws
+langchain-xai

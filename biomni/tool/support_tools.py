@@ -1,4 +1,5 @@
 import sys
+import traceback
 from io import StringIO
 
 # Create a persistent namespace that will be shared across all executions
@@ -23,7 +24,43 @@ def run_python_repl(command: str) -> str:
             exec(command, _persistent_namespace)
             output = mystdout.getvalue()
         except Exception as e:
-            output = f"Error: {str(e)}"
+            # Get detailed error information with proper line tracking
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+
+            # Split command into lines for better error reporting
+            command_lines = command.split("\n")
+
+            # Extract detailed traceback information
+            tb_list = traceback.extract_tb(exc_traceback)
+
+            # Find the frame that corresponds to our executed code
+            error_line_num = None
+            error_line_content = None
+
+            for frame in tb_list:
+                # The exec() call creates a frame with filename '<string>'
+                if frame.filename == "<string>":
+                    error_line_num = frame.lineno
+                    if 1 <= error_line_num <= len(command_lines):
+                        error_line_content = command_lines[error_line_num - 1].strip()
+                    break
+
+            # Create a detailed error message
+            error_details = []
+            error_details.append(f"Error Type: {exc_type.__name__}")
+            error_details.append(f"Error Message: {str(exc_value)}")
+
+            if error_line_num is not None:
+                error_details.append(f"Error Line: {error_line_num}")
+                if error_line_content:
+                    error_details.append(f"Error Code: {error_line_content}")
+
+            # Add full traceback for complex errors
+            if len(tb_list) > 1:
+                error_details.append("\nFull Traceback:")
+                error_details.append(traceback.format_exc())
+
+            output = "\n".join(error_details)
         finally:
             sys.stdout = old_stdout
         return output
@@ -65,6 +102,95 @@ def read_function_source_code(function_name: str) -> str:
         return source_code
     except (ImportError, AttributeError) as e:
         return f"Error: Could not find function '{function_name}'. Details: {str(e)}"
+
+
+def get_error_line_info(command: str) -> str:
+    """
+    Execute Python command and return detailed error information including exact line numbers.
+
+    Parameters:
+        command (str): Python code to execute
+
+    Returns:
+        str: Execution result or detailed error information with line numbers
+    """
+    # Store original stdout and stderr
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+
+    # Redirect output
+    stdout_capture = StringIO()
+    stderr_capture = StringIO()
+    sys.stdout = stdout_capture
+    sys.stderr = stderr_capture
+
+    try:
+        # Clean the command
+        clean_command = command.strip("```python").strip("```").strip()
+
+        # Split into lines for error reporting
+        lines = clean_command.split("\n")
+
+        # Execute the code
+        exec(clean_command, globals())
+
+        # Get normal output
+        output = stdout_capture.getvalue()
+        if not output:
+            output = "Code executed successfully (no output)"
+
+    except Exception as e:
+        # Get exception details
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+
+        # Extract traceback information
+        tb_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+
+        # Find the error line in our code
+        error_line = None
+        error_content = None
+
+        # Parse traceback to find line number
+        for tb_line in tb_lines:
+            if "line " in tb_line and "<string>" in tb_line:
+                # Extract line number from traceback
+                import re
+
+                match = re.search(r"line (\d+)", tb_line)
+                if match:
+                    error_line = int(match.group(1))
+                    if 1 <= error_line <= len(lines):
+                        error_content = lines[error_line - 1].strip()
+                    break
+
+        # Format error message
+        error_info = []
+        error_info.append(f"❌ {exc_type.__name__}: {exc_value}")
+
+        if error_line:
+            error_info.append(f"📍 Error at line {error_line}")
+            if error_content:
+                error_info.append(f"🔍 Code: {error_content}")
+
+        # Add context lines around error
+        if error_line and len(lines) > 1:
+            error_info.append("\n📋 Code context:")
+            start_line = max(1, error_line - 2)
+            end_line = min(len(lines), error_line + 2)
+
+            for i in range(start_line, end_line + 1):
+                line_content = lines[i - 1]
+                marker = ">>> " if i == error_line else "    "
+                error_info.append(f"{marker}{i:2d}: {line_content}")
+
+        output = "\n".join(error_info)
+
+    finally:
+        # Restore stdout and stderr
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+
+    return output
 
 
 # def request_human_feedback(question, context, reason_for_uncertainty):
