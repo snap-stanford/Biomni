@@ -54,7 +54,18 @@ def get_llm(
                 source = "Custom"
             elif "/" in model or any(
                 name in model.lower()
-                for name in ["llama", "mistral", "qwen", "gemma", "phi", "dolphin", "orca", "vicuna", "deepseek"]
+                for name in [
+                    "llama",
+                    "mistral",
+                    "qwen",
+                    "gemma",
+                    "phi",
+                    "dolphin",
+                    "orca",
+                    "vicuna",
+                    "deepseek",
+                    "gpt-oss",
+                ]
             ):
                 source = "Ollama"
             elif model.startswith(
@@ -133,5 +144,5 @@ def get_llm(
         return llm
     else:
         raise ValueError(
-            f"Invalid source: {source}. Valid options are 'OpenAI', 'AzureOpenAI', 'Anthropic', 'Gemini', 'Bedrock', or 'Ollama'"
+            f"Invalid source: {source}. Valid options are 'OpenAI', 'AzureOpenAI', 'Anthropic', 'Gemini', 'Groq', 'Bedrock', or 'Ollama'"
         )
