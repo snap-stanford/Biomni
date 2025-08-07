@@ -9,7 +9,7 @@ from langchain_aws import ChatBedrock
 from langchain_upstage import ChatUpstage
 from langchain_xai import ChatXAI
 from langchain_anthropic import ChatAnthropic
-
+from langchain_fireworks import ChatFireworks
 # from langchain_google_genai import ChatGoogleGenerativeAI
 
 SourceType = Literal[
@@ -23,6 +23,7 @@ SourceType = Literal[
     "MISTRAL",
     "Upstage",
     "XAI",
+    "Fireworks",
 ]
 
 
@@ -56,6 +57,8 @@ def get_llm(
             source = "Gemini"
         elif base_url is not None:
             source = "Custom"
+        elif model.startswith("accounts/fireworks/models/"):
+            source = "Fireworks"
         elif "/" in model or any(
             name in model.lower()
             for name in [
@@ -91,6 +94,7 @@ def get_llm(
             raise ValueError(
                 "Unable to determine model source. Please specify 'source' parameter."
             )
+    print ("jaechang", source)
     # Create appropriate model based on source
     if source == "OpenAI":
         return ChatOpenAI(
@@ -144,19 +148,18 @@ def get_llm(
             model_kwargs={"stop_sequences": stop_sequences, "max_tokens": 8192 * 4},
         )
     elif source == "Upstage":
-        return ChatUpstage(
-            model=model,
-            temperature=temperature,
-            stop_sequences=stop_sequences,
-            reasoning_effort="high",
-        )
-        # return ChatOpenAI(
+        # return ChatUpstage(
         #     model=model,
         #     temperature=temperature,
-        #     api_key=os.getenv("UPSTAGE_API_KEY"),
-        #     base_url="https://api.upstage.ai/v1",
         #     stop_sequences=stop_sequences,
         # )
+        return ChatOpenAI(
+            model=model,
+            temperature=temperature,
+            api_key=os.getenv("UPSTAGE_API_KEY"),
+            base_url="https://api.upstage.ai/v1",
+            stop_sequences=stop_sequences,
+        )
     elif source == "Custom":
         # Custom LLM serving such as SGLang. Must expose an openai compatible API.
         assert (
@@ -178,6 +181,20 @@ def get_llm(
             temperature=temperature,
             # stop_sequences=stop_sequences,
             # model_kwargs={"stop_sequences": stop_sequences},
+        )
+    elif source == "Fireworks":
+        # return ChatFireworks(
+        #     model=model,
+        #     temperature=temperature,
+        #     stop_sequences=stop_sequences,
+        # )
+        return ChatOpenAI(
+            model=model,
+            temperature=temperature,
+            api_key=os.getenv("FIREWORKS_API_KEY"),
+            base_url="https://api.fireworks.ai/inference/v1/",
+            stop_sequences=stop_sequences,
+            max_tokens=8192,
         )
     else:
         raise ValueError(

@@ -37,3 +37,4 @@ leidenalg
 louvain
 openpyxl
 hdbscan
+gseapy
