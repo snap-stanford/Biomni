@@ -2,6 +2,7 @@ import glob
 import inspect
 import os
 import re
+from collections.abc import Generator
 from pathlib import Path
 from typing import Any, Literal, TypedDict
 
@@ -1394,6 +1395,81 @@ Each library is listed with its description to help you understand its functiona
         self.app.checkpointer = self.checkpointer
         # display(Image(self.app.get_graph().draw_mermaid_png()))
 
+    def _prepare_resources_for_retrieval(self, prompt):
+        """Prepare resources for retrieval and return selected resource names.
+
+        Args:
+            prompt: The user's query
+
+        Returns:
+            dict: Dictionary containing selected resource names for tools, data_lake, and libraries
+        """
+        if not self.use_tool_retriever:
+            return None
+
+        # Gather all available resources
+        # 1. Tools from the registry
+        all_tools = self.tool_registry.tools if hasattr(self, "tool_registry") else []
+
+        # 2. Data lake items with descriptions
+        data_lake_path = self.path + "/data_lake"
+        data_lake_content = glob.glob(data_lake_path + "/*")
+        data_lake_items = [x.split("/")[-1] for x in data_lake_content]
+
+        # Create data lake descriptions for retrieval
+        data_lake_descriptions = []
+        for item in data_lake_items:
+            description = self.data_lake_dict.get(item, f"Data lake item: {item}")
+            data_lake_descriptions.append({"name": item, "description": description})
+
+        # Add custom data items to retrieval if they exist
+        if hasattr(self, "_custom_data") and self._custom_data:
+            for name, info in self._custom_data.items():
+                data_lake_descriptions.append({"name": name, "description": info["description"]})
+
+        # 3. Libraries with descriptions - use library_content_dict directly
+        library_descriptions = []
+        for lib_name, lib_desc in self.library_content_dict.items():
+            library_descriptions.append({"name": lib_name, "description": lib_desc})
+
+        # Add custom software items to retrieval if they exist
+        if hasattr(self, "_custom_software") and self._custom_software:
+            for name, info in self._custom_software.items():
+                # Check if it's not already in the library descriptions to avoid duplicates
+                if not any(lib["name"] == name for lib in library_descriptions):
+                    library_descriptions.append({"name": name, "description": info["description"]})
+
+        # Use retrieval to get relevant resources
+        resources = {
+            "tools": all_tools,
+            "data_lake": data_lake_descriptions,
+            "libraries": library_descriptions,
+        }
+
+        # Use prompt-based retrieval with the agent's LLM
+        selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
+        print("Using prompt-based retrieval with the agent's LLM")
+
+        # Extract the names from the selected resources for the system prompt
+        selected_resources_names = {
+            "tools": selected_resources["tools"],
+            "data_lake": [],
+            "libraries": [lib["name"] if isinstance(lib, dict) else lib for lib in selected_resources["libraries"]],
+        }
+
+        # Process data lake items to extract just the names
+        for item in selected_resources["data_lake"]:
+            if isinstance(item, dict):
+                selected_resources_names["data_lake"].append(item["name"])
+            elif isinstance(item, str) and ": " in item:
+                # If the item already has a description, extract just the name
+                name = item.split(": ")[0]
+                selected_resources_names["data_lake"].append(name)
+            else:
+                selected_resources_names["data_lake"].append(item)
+
+        return selected_resources_names
+
     def go(self, prompt):
         """Execute the agent with the given prompt.
 
@@ -1405,68 +1481,7 @@ Each library is listed with its description to help you understand its functiona
         self.user_task = prompt
 
         if self.use_tool_retriever:
-            # Gather all available resources
-            # 1. Tools from the registry
-            all_tools = self.tool_registry.tools if hasattr(self, "tool_registry") else []
-
-            # 2. Data lake items with descriptions
-            data_lake_path = self.path + "/data_lake"
-            data_lake_content = glob.glob(data_lake_path + "/*")
-            data_lake_items = [x.split("/")[-1] for x in data_lake_content]
-
-            # Create data lake descriptions for retrieval
-            data_lake_descriptions = []
-            for item in data_lake_items:
-                description = self.data_lake_dict.get(item, f"Data lake item: {item}")
-                data_lake_descriptions.append({"name": item, "description": description})
-
-            # Add custom data items to retrieval if they exist
-            if hasattr(self, "_custom_data") and self._custom_data:
-                for name, info in self._custom_data.items():
-                    data_lake_descriptions.append({"name": name, "description": info["description"]})
-
-            # 3. Libraries with descriptions - use library_content_dict directly
-            library_descriptions = []
-            for lib_name, lib_desc in self.library_content_dict.items():
-                library_descriptions.append({"name": lib_name, "description": lib_desc})
-
-            # Add custom software items to retrieval if they exist
-            if hasattr(self, "_custom_software") and self._custom_software:
-                for name, info in self._custom_software.items():
-                    # Check if it's not already in the library descriptions to avoid duplicates
-                    if not any(lib["name"] == name for lib in library_descriptions):
-                        library_descriptions.append({"name": name, "description": info["description"]})
-
-            # Use retrieval to get relevant resources
-            resources = {
-                "tools": all_tools,
-                "data_lake": data_lake_descriptions,
-                "libraries": library_descriptions,
-            }
-
-            # Use prompt-based retrieval with the agent's LLM
-            selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
-            print("Using prompt-based retrieval with the agent's LLM")
-
-            # Extract the names from the selected resources for the system prompt
-            selected_resources_names = {
-                "tools": selected_resources["tools"],
-                "data_lake": [],
-                "libraries": [lib["name"] if isinstance(lib, dict) else lib for lib in selected_resources["libraries"]],
-            }
-
-            # Process data lake items to extract just the names
-            for item in selected_resources["data_lake"]:
-                if isinstance(item, dict):
-                    selected_resources_names["data_lake"].append(item["name"])
-                elif isinstance(item, str) and ": " in item:
-                    # If the item already has a description, extract just the name
-                    name = item.split(": ")[0]
-                    selected_resources_names["data_lake"].append(name)
-                else:
-                    selected_resources_names["data_lake"].append(item)
-
-            # Update the system prompt with the selected resources
+            selected_resources_names = self._prepare_resources_for_retrieval(prompt)
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
@@ -1479,6 +1494,37 @@ Each library is listed with its description to help you understand its functiona
             self.log.append(out)
 
         return self.log, message.content
+
+    def go_stream(self, prompt) -> Generator[dict, None, None]:
+        """Execute the agent with the given prompt and return a generator that yields each step.
+
+        This function returns a generator that yields each step of the agent's execution,
+        allowing for real-time monitoring of the agent's progress.
+
+        Args:
+            prompt: The user's query
+
+        Yields:
+            dict: Each step of the agent's execution containing the current message and state
+        """
+        self.critic_count = 0
+        self.user_task = prompt
+
+        if self.use_tool_retriever:
+            selected_resources_names = self._prepare_resources_for_retrieval(prompt)
+            self.update_system_prompt_with_selected_resources(selected_resources_names)
+
+        inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
+        config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
+        self.log = []
+
+        for s in self.app.stream(inputs, stream_mode="values", config=config):
+            message = s["messages"][-1]
+            out = pretty_print(message)
+            self.log.append(out)
+
+            # Yield the current step
+            yield {"output": out}
 
     def update_system_prompt_with_selected_resources(self, selected_resources):
         """Update the system prompt with the selected resources."""
