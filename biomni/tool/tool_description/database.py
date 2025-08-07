@@ -1290,4 +1290,426 @@ description = [
             }
         ],
     },
+    {
+        "description": "Query the PubChem PUG-REST API using natural language or a direct endpoint.",
+        "name": "query_pubchem",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Direct PubChem API endpoint to query",
+                "name": "endpoint",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
+                "name": "api_key",
+                "type": "str",
+            },
+            {
+                "default": "claude-3-5-haiku-20241022",
+                "description": "Anthropic model to use for natural language processing",
+                "name": "model",
+                "type": "str",
+            },
+            {
+                "default": 5,
+                "description": "Maximum number of results to return",
+                "name": "max_results",
+                "type": "int",
+            },
+            {
+                "default": True,
+                "description": "Whether to return detailed results",
+                "name": "verbose",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Natural language query about chemical compounds",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Query the ChEMBL REST API using natural language or a direct endpoint.",
+        "name": "query_chembl",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Direct ChEMBL API endpoint to query",
+                "name": "endpoint",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
+                "name": "api_key",
+                "type": "str",
+            },
+            {
+                "default": "claude-3-5-haiku-20241022",
+                "description": "Anthropic model to use for natural language processing",
+                "name": "model",
+                "type": "str",
+            },
+            {
+                "default": 20,
+                "description": "Maximum number of results to return",
+                "name": "max_results",
+                "type": "int",
+            },
+            {
+                "default": True,
+                "description": "Whether to return detailed results",
+                "name": "verbose",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Natural language query about bioactivity data",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Query the UniChem 2.0 REST API using natural language or a direct endpoint.",
+        "name": "query_unichem",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Direct UniChem API endpoint to query",
+                "name": "endpoint",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
+                "name": "api_key",
+                "type": "str",
+            },
+            {
+                "default": "claude-3-5-haiku-20241022",
+                "description": "Anthropic model to use for natural language processing",
+                "name": "model",
+                "type": "str",
+            },
+            {
+                "default": True,
+                "description": "Whether to return detailed results",
+                "name": "verbose",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Natural language query about chemical cross-references",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Query DrugCentral database using natural language.",
+        "name": "query_drugcentral",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Not applicable for DrugCentral (database access)",
+                "name": "endpoint",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
+                "name": "api_key",
+                "type": "str",
+            },
+            {
+                "default": "claude-3-5-haiku-20241022",
+                "description": "Anthropic model to use for natural language processing",
+                "name": "model",
+                "type": "str",
+            },
+            {
+                "default": True,
+                "description": "Whether to return detailed results",
+                "name": "verbose",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Natural language query about drugs and pharmaceutical data",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Query the ClinicalTrials.gov API v2 using natural language or a direct endpoint.",
+        "name": "query_clinicaltrials",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Direct ClinicalTrials.gov API endpoint to query",
+                "name": "endpoint",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
+                "name": "api_key",
+                "type": "str",
+            },
+            {
+                "default": "claude-3-5-haiku-20241022",
+                "description": "Anthropic model to use for natural language processing",
+                "name": "model",
+                "type": "str",
+            },
+            {
+                "default": 10,
+                "description": "Maximum number of results to return",
+                "name": "max_results",
+                "type": "int",
+            },
+            {
+                "default": True,
+                "description": "Whether to return detailed results",
+                "name": "verbose",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Natural language query about clinical trials",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Query the DailyMed RESTful API using natural language or a direct endpoint.",
+        "name": "query_dailymed",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Direct DailyMed API endpoint to query",
+                "name": "endpoint",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
+                "name": "api_key",
+                "type": "str",
+            },
+            {
+                "default": "claude-3-5-haiku-20241022",
+                "description": "Anthropic model to use for natural language processing",
+                "name": "model",
+                "type": "str",
+            },
+            {
+                "default": "json",
+                "description": "Response format ('json' or 'xml')",
+                "name": "format",
+                "type": "str",
+            },
+            {
+                "default": True,
+                "description": "Whether to return detailed results",
+                "name": "verbose",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Natural language query about drug labeling information",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Query the Ontology Lookup Service (OLS) API using natural language or a direct endpoint.",
+        "name": "query_ols",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Direct OLS API endpoint to query",
+                "name": "endpoint",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
+                "name": "api_key",
+                "type": "str",
+            },
+            {
+                "default": "claude-3-5-haiku-20241022",
+                "description": "Anthropic model to use for natural language processing",
+                "name": "model",
+                "type": "str",
+            },
+            {
+                "default": 20,
+                "description": "Maximum number of results to return",
+                "name": "max_results",
+                "type": "int",
+            },
+            {
+                "default": True,
+                "description": "Whether to return detailed results",
+                "name": "verbose",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Natural language query about ontologies, terms, or biological concepts",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Query the QuickGO API using natural language or a direct endpoint.",
+        "name": "query_quickgo",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Direct QuickGO API endpoint to query",
+                "name": "endpoint",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
+                "name": "api_key",
+                "type": "str",
+            },
+            {
+                "default": "claude-3-5-haiku-20241022",
+                "description": "Anthropic model to use for natural language processing",
+                "name": "model",
+                "type": "str",
+            },
+            {
+                "default": 25,
+                "description": "Maximum number of results to return (max 100)",
+                "name": "max_results",
+                "type": "int",
+            },
+            {
+                "default": True,
+                "description": "Whether to return detailed results",
+                "name": "verbose",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Natural language query about Gene Ontology terms, annotations, or gene products",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Query the ENCODE Portal API using natural language or a direct endpoint.",
+        "name": "query_encode",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Direct ENCODE Portal API endpoint to query",
+                "name": "endpoint",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
+                "name": "api_key",
+                "type": "str",
+            },
+            {
+                "default": "claude-3-5-haiku-20241022",
+                "description": "Anthropic model to use for natural language processing",
+                "name": "model",
+                "type": "str",
+            },
+            {
+                "default": 25,
+                "description": "Maximum number of results to return (use 'all' for all results)",
+                "name": "max_results",
+                "type": "int",
+            },
+            {
+                "default": True,
+                "description": "Whether to return detailed results",
+                "name": "verbose",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Natural language query about functional genomics experiments, files, or biosamples",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Generate Python code for querying CELLxGENE Census using natural language.",
+        "name": "query_cellxgene_census",
+        "optional_parameters": [
+            {
+                "default": False,
+                "description": "If True, return only the generated Python code",
+                "name": "code_only",
+                "type": "bool",
+            },
+            {
+                "default": None,
+                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
+                "name": "api_key",
+                "type": "str",
+            },
+            {
+                "default": "claude-3-5-haiku-20241022",
+                "description": "Anthropic model to use for natural language processing",
+                "name": "model",
+                "type": "str",
+            },
+            {
+                "default": True,
+                "description": "Whether to return detailed results",
+                "name": "verbose",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Natural language query about single-cell data",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    },
 ]

@@ -49,6 +49,7 @@ class A1:
         timeout_seconds=600,
         base_url: str | None = None,
         api_key: str = "EMPTY",
+        load_datalake: bool = True,
     ):
         """Initialize the biomni agent.
 
@@ -60,6 +61,7 @@ class A1:
             timeout_seconds: Timeout for code execution in seconds
             base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
             api_key: API key for the custom LLM
+            load_datalake: If True, automatically download datalake files on initialization (default: True)
 
         """
         self.path = path
@@ -76,32 +78,36 @@ class A1:
         os.makedirs(benchmark_dir, exist_ok=True)
         os.makedirs(data_lake_dir, exist_ok=True)
 
-        expected_data_lake_files = list(data_lake_dict.keys())
+        if load_datalake:
+            expected_data_lake_files = list(data_lake_dict.keys())
 
-        # Check and download missing data lake files
-        print("Checking and downloading missing data lake files...")
-        check_and_download_s3_files(
-            s3_bucket_url="https://biomni-release.s3.amazonaws.com",
-            local_data_lake_path=data_lake_dir,
-            expected_files=expected_data_lake_files,
-            folder="data_lake",
-        )
-
-        # Check if benchmark directory structure is complete
-        benchmark_ok = False
-        if os.path.isdir(benchmark_dir):
-            patient_gene_detection_dir = os.path.join(benchmark_dir, "hle")
-            if os.path.isdir(patient_gene_detection_dir):
-                benchmark_ok = True
-
-        if not benchmark_ok:
-            print("Checking and downloading benchmark files...")
+            # Check and download missing data lake files
+            print("Checking and downloading missing data lake files...")
             check_and_download_s3_files(
                 s3_bucket_url="https://biomni-release.s3.amazonaws.com",
-                local_data_lake_path=benchmark_dir,
-                expected_files=[],  # Empty list - will download entire folder
-                folder="benchmark",
+                local_data_lake_path=data_lake_dir,
+                expected_files=expected_data_lake_files,
+                folder="data_lake",
             )
+
+            # Check if benchmark directory structure is complete
+            benchmark_ok = False
+            if os.path.isdir(benchmark_dir):
+                patient_gene_detection_dir = os.path.join(benchmark_dir, "hle")
+                if os.path.isdir(patient_gene_detection_dir):
+                    benchmark_ok = True
+
+            if not benchmark_ok:
+                print("Checking and downloading benchmark files...")
+                check_and_download_s3_files(
+                    s3_bucket_url="https://biomni-release.s3.amazonaws.com",
+                    local_data_lake_path=benchmark_dir,
+                    expected_files=[],  # Empty list - will download entire folder
+                    folder="benchmark",
+                )
+        else:
+            print("Skipping datalake download (load_datalake=False)")
+            print("Note: Some tools may require datalake files to function properly.")
 
         self.path = os.path.join(path, "biomni_data")
         module2api = read_module2api()
@@ -607,6 +613,57 @@ class A1:
             import traceback
 
             traceback.print_exc()
+            return False
+
+    def load_datalake(self):
+        """Manually load datalake files if they weren't loaded during initialization.
+
+        This method can be called to download datalake files after creating an agent
+        with load_datalake=False.
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            benchmark_dir = os.path.join(self.path, "benchmark")
+            data_lake_dir = os.path.join(self.path, "data_lake")
+
+            # Create directories if they don't exist
+            os.makedirs(benchmark_dir, exist_ok=True)
+            os.makedirs(data_lake_dir, exist_ok=True)
+
+            expected_data_lake_files = list(data_lake_dict.keys())
+
+            # Check and download missing data lake files
+            print("Manually loading datalake files...")
+            check_and_download_s3_files(
+                s3_bucket_url="https://biomni-release.s3.amazonaws.com",
+                local_data_lake_path=data_lake_dir,
+                expected_files=expected_data_lake_files,
+                folder="data_lake",
+            )
+
+            # Check if benchmark directory structure is complete
+            benchmark_ok = False
+            if os.path.isdir(benchmark_dir):
+                patient_gene_detection_dir = os.path.join(benchmark_dir, "hle")
+                if os.path.isdir(patient_gene_detection_dir):
+                    benchmark_ok = True
+
+            if not benchmark_ok:
+                print("Loading benchmark files...")
+                check_and_download_s3_files(
+                    s3_bucket_url="https://biomni-release.s3.amazonaws.com",
+                    local_data_lake_path=benchmark_dir,
+                    expected_files=[],  # Empty list - will download entire folder
+                    folder="benchmark",
+                )
+
+            print("✅ Datalake loaded successfully!")
+            return True
+
+        except Exception as e:
+            print(f"❌ Error loading datalake: {e}")
             return False
 
     def get_custom_data(self, name):

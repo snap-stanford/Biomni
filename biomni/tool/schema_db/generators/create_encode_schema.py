@@ -1,0 +1,275 @@
+import pickle
+
+# ENCODE Portal API schema
+encode_schema = {
+    'base_url': 'https://www.encodeproject.org',
+    'description': 'ENCODE Portal REST API for functional genomics and epigenomics data',
+    'docs_url': 'https://www.encodeproject.org/help/rest-api/',
+    'swagger_url': 'https://app.swaggerhub.com/apis-docs/encodeproject/api/basic_search',
+    'license': 'Public domain (US government)',
+    'format': 'JSON',
+    'rate_limit': '10 GET requests/second per user/group/company/lab',
+    
+    'main_endpoints': {
+        'search': {
+            'description': 'Search for objects across all types',
+            'url': '/search/',
+            'parameters': {
+                'searchTerm': 'Free text search query',
+                'type': 'Object type filter (Experiment, Biosample, File, etc.)',
+                'limit': 'Number of results (default 25, use "all" for all results)',
+                'frame': 'Response format (object, embedded, or default)',
+                'format': 'Response format (json for API access)',
+                'field': 'Specific fields to include in response'
+            }
+        },
+        'object_access': {
+            'description': 'Access specific objects by accession or path',
+            'url': '/{object_type}/{accession}/',
+            'examples': [
+                '/experiments/ENCSR000AKS/',
+                '/biosamples/ENCBS000AAA/',
+                '/files/ENCFF000LSP/'
+            ]
+        }
+    },
+    
+    'object_types': {
+        'Experiment': 'Functional genomics experiments (ChIP-seq, RNA-seq, etc.)',
+        'Biosample': 'Biological samples used in experiments',
+        'File': 'Data files (FASTQ, BAM, bigWig, etc.)',
+        'Dataset': 'Collections of related files',
+        'Replicate': 'Experimental replicates',
+        'Library': 'Sequencing libraries',
+        'Antibody': 'Antibodies used in experiments',
+        'Target': 'Protein or RNA targets',
+        'Lab': 'Research laboratories',
+        'Award': 'Funding awards',
+        'Publication': 'Scientific publications',
+        'Document': 'Protocol documents',
+        'Treatment': 'Experimental treatments',
+        'GeneticModification': 'Genetic modifications',
+        'Analysis': 'Computational analyses',
+        'Pipeline': 'Analysis pipelines',
+        'QualityMetric': 'Quality control metrics'
+    },
+    
+    'frame_options': {
+        'default': 'Subset of properties as defined by webapp (fastest)',
+        'object': 'All properties with embedded objects as references (consistent)',
+        'embedded': 'All properties with selected embedded objects expanded (variable)'
+    },
+    
+    'search_parameters': {
+        'searchTerm': 'Free text search across all fields',
+        'type': 'Filter by object type',
+        'limit': 'Number of results (default 25, max "all")',
+        'frame': 'Response detail level',
+        'format': 'Response format (json for API)',
+        'field': 'Specific fields to return',
+        'sort': 'Sort order for results',
+        'from': 'Starting position for pagination',
+        'mode': 'Search mode (picker, etc.)'
+    },
+    
+    'filter_syntax': {
+        'equality': 'property=value',
+        'negation': 'property!=value',
+        'wildcard': 'property=* (exists), property!=* (not exists)',
+        'range_gt': 'property=gt:value (greater than)',
+        'range_gte': 'property=gte:value (greater than or equal)',
+        'range_lt': 'property=lt:value (less than)',
+        'range_lte': 'property=lte:value (less than or equal)',
+        'nested': 'parent.child=value (search in embedded objects)'
+    },
+    
+    'common_assays': [
+        'ChIP-seq',
+        'RNA-seq',
+        'ATAC-seq',
+        'DNase-seq',
+        'WGBS',
+        'Hi-C',
+        'ChIA-PET',
+        'CAGE',
+        'RAMPAGE',
+        'shRNA knockdown followed by RNA-seq',
+        'siRNA knockdown followed by RNA-seq',
+        'CRISPRi followed by RNA-seq',
+        'single-cell RNA sequencing assay',
+        'scATAC-seq',
+        'Mint-ChIP-seq',
+        'CUT&RUN',
+        'CUT&Tag'
+    ],
+    
+    'file_formats': [
+        'fastq',
+        'bam',
+        'bigWig',
+        'bigBed',
+        'bed',
+        'gtf',
+        'tsv',
+        'txt',
+        'hdf5',
+        'hic',
+        'cool',
+        'mcool',
+        'pairs',
+        'tagAlign',
+        'bedpe'
+    ],
+    
+    'common_organisms': {
+        'human': 'Homo sapiens',
+        'mouse': 'Mus musculus',
+        'worm': 'Caenorhabditis elegans',
+        'fly': 'Drosophila melanogaster'
+    },
+    
+    'status_values': [
+        'released',
+        'submitted',
+        'in progress',
+        'deleted',
+        'replaced',
+        'revoked',
+        'archived'
+    ],
+    
+    'biosample_properties': {
+        'organism': 'replicates.library.biosample.donor.organism.scientific_name (e.g., "Homo sapiens")',
+        'biosample_term_name': 'replicates.library.biosample.biosample_ontology.term_name (e.g., "K562", "HepG2", "GM12878")',
+        'organ_slims': 'replicates.library.biosample.biosample_ontology.organ_slims (e.g., "blood", "brain", "liver")',
+        'cell_slims': 'replicates.library.biosample.biosample_ontology.cell_slims (e.g., "immune system", "stem cell")',
+        'system_slims': 'replicates.library.biosample.biosample_ontology.system_slims (e.g., "immune system", "nervous system")',
+        'classification': 'replicates.library.biosample.biosample_ontology.classification (e.g., "primary cell", "cell line", "tissue")',
+        'life_stage': 'replicates.library.biosample.life_stage (e.g., "adult", "embryonic")',
+        'sex': 'replicates.library.biosample.sex (e.g., "male", "female", "mixed")',
+        'treatments': 'replicates.library.biosample.treatments.treatment_term_name (for treated samples)'
+    },
+
+    'common_cell_types': {
+        'T_cells': 'Use biosample_ontology.term_name="CD4-positive, alpha-beta T cell" or "CD8-positive, alpha-beta T cell" or searchTerm="T cell"',
+        'B_cells': 'Use biosample_ontology.term_name="B cell" or searchTerm="B cell"',
+        'immune_cells': 'Use biosample_ontology.cell_slims="immune system"',
+        'stem_cells': 'Use biosample_ontology.cell_slims="stem cell"',
+        'cancer_cells': 'Use biosample_ontology.term_name="K562" or "HeLa-S3" or other cancer cell line names'
+    },
+
+    'examples': {
+        'search_experiments': {
+            'endpoint': '/search/',
+            'parameters': {'type': 'Experiment', 'limit': 25, 'format': 'json'}
+        },
+        'search_chip_seq': {
+            'endpoint': '/search/',
+            'parameters': {'type': 'Experiment', 'assay_title': 'ChIP-seq', 'limit': 50, 'format': 'json'}
+        },
+        'search_human_rna_seq': {
+            'endpoint': '/search/',
+            'parameters': {
+                'type': 'Experiment',
+                'assay_title': 'RNA-seq',
+                'replicates.library.biosample.donor.organism.scientific_name': 'Homo sapiens',
+                'limit': 100,
+                'format': 'json'
+            }
+        },
+        'search_atac_seq_t_cells': {
+            'endpoint': '/search/',
+            'parameters': {
+                'type': 'Experiment',
+                'assay_title': 'ATAC-seq',
+                'replicates.library.biosample.donor.organism.scientific_name': 'Homo sapiens',
+                'searchTerm': 'T cell',
+                'limit': 50,
+                'format': 'json'
+            }
+        },
+        'search_dnase_immune_cells': {
+            'endpoint': '/search/',
+            'parameters': {
+                'type': 'Experiment',
+                'assay_title': 'DNase-seq',
+                'replicates.library.biosample.biosample_ontology.cell_slims': 'immune system',
+                'limit': 50,
+                'format': 'json'
+            }
+        },
+        'search_files_by_experiment': {
+            'endpoint': '/search/',
+            'parameters': {
+                'type': 'File',
+                'dataset': '/experiments/ENCSR000AKS/',
+                'file_format': 'fastq',
+                'format': 'json'
+            }
+        },
+        'search_peak_files': {
+            'endpoint': '/search/',
+            'parameters': {
+                'type': 'File',
+                'file_format': 'bed',
+                'file_format_type': 'narrowPeak',
+                'assay_title': 'ATAC-seq',
+                'format': 'json'
+            }
+        },
+        'search_biosamples': {
+            'endpoint': '/search/',
+            'parameters': {'type': 'Biosample', 'limit': 50, 'format': 'json'}
+        },
+        'search_treated_biosamples': {
+            'endpoint': '/search/',
+            'parameters': {'type': 'Biosample', 'treatments': '*', 'format': 'json'}
+        },
+        'get_specific_experiment': {
+            'endpoint': '/experiments/ENCSR000AKS/',
+            'parameters': {'format': 'json', 'frame': 'object'}
+        },
+        'search_ctcf_data': {
+            'endpoint': '/search/',
+            'parameters': {'searchTerm': 'CTCF', 'format': 'json', 'frame': 'object'}
+        }
+    },
+    
+    'response_structure': {
+        'single_object': {
+            'description': 'Direct object access returns the object with all its properties',
+            'fields': ['@id', '@type', 'accession', 'status', 'uuid', 'date_created', 'submitted_by']
+        },
+        'search_results': {
+            'description': 'Search returns a structured response with metadata and results',
+            'fields': {
+                '@graph': 'Array of result objects',
+                'total': 'Total number of matching results',
+                'notification': 'Status message',
+                'title': 'Page title',
+                'facets': 'Available facet filters',
+                'filters': 'Applied filters',
+                'clear_filters': 'URL to clear all filters'
+            }
+        }
+    },
+    
+    'best_practices': {
+        'rate_limiting': 'Limit to 10 requests/second',
+        'format_parameter': 'Always include format=json for API access',
+        'frame_usage': 'Use frame=object for consistent results',
+        'limit_usage': 'Use limit=all with format=json for complete results',
+        'error_handling': 'Check for error status in JSON responses',
+        'pagination': 'Use from parameter for large result sets'
+    },
+    
+    'authentication': {
+        'public_access': 'GET requests work without authentication for released data',
+        'private_access': 'Authentication required for unreleased data and POST/PUT/PATCH operations'
+    }
+}
+
+with open('encode.pkl', 'wb') as f:
+    pickle.dump(encode_schema, f)
+
+print('ENCODE schema created successfully')
