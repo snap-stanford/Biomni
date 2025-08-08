@@ -10,6 +10,7 @@ from langchain_upstage import ChatUpstage
 from langchain_xai import ChatXAI
 from langchain_anthropic import ChatAnthropic
 from langchain_fireworks import ChatFireworks
+
 # from langchain_google_genai import ChatGoogleGenerativeAI
 
 SourceType = Literal[
@@ -19,12 +20,10 @@ SourceType = Literal[
     "Ollama",
     "Gemini",
     "Bedrock",
+    "Groq",
     "Custom",
-    "MISTRAL",
-    "Upstage",
-    "XAI",
-    "Fireworks",
 ]
+ALLOWED_SOURCES: set[str] = set(SourceType.__args__)
 
 
 def get_llm(
@@ -94,7 +93,7 @@ def get_llm(
             raise ValueError(
                 "Unable to determine model source. Please specify 'source' parameter."
             )
-    print ("jaechang", source)
+    print("jaechang", source)
     # Create appropriate model based on source
     if source == "OpenAI":
         return ChatOpenAI(
@@ -102,6 +101,7 @@ def get_llm(
         )
     elif source == "AzureOpenAI":
         API_VERSION = "2024-12-01-preview"
+        model = model.replace("azure-", "")
         return AzureChatOpenAI(
             openai_api_key=os.getenv("OPENAI_API_KEY"),
             azure_endpoint=os.getenv("OPENAI_ENDPOINT"),
@@ -128,6 +128,14 @@ def get_llm(
             temperature=temperature,
             api_key=os.getenv("GEMINI_API_KEY"),
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+            stop_sequences=stop_sequences,
+        )
+    elif source == "Groq":
+        return ChatOpenAI(
+            model=model,
+            temperature=temperature,
+            api_key=os.getenv("GROQ_API_KEY"),
+            base_url="https://api.groq.com/openai/v1",
             stop_sequences=stop_sequences,
         )
     elif source == "Ollama":

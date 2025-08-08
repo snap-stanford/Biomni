@@ -1,0 +1,27 @@
+# MANIFEST.in
+
+# Include all python files from the biomni package
+recursive-include biomni *.py
+
+# Include the .pkl database files
+recursive-include biomni/tool/schema_db *.pkl
+
+# Include specific files from biomni_env, but not the biomni_tools subdirectory
+recursive-include biomni_env *.py *.sh *.yml *.yaml *.txt *.md *.json *.R
+
+# Exclude specific directories that are not part of the package
+prune tutorials/data
+prune biomni_env/biomni_tools
+
+# Exclude build artifacts and caches
+global-exclude *.py[co]
+global-exclude __pycache__
+global-exclude .ruff_cache
+prune build
+prune dist
+prune *.egg-info
+
+# Include other necessary files
+include README.md
+include LICENSE
+include pyproject.toml

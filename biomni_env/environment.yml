@@ -29,6 +29,8 @@ dependencies:
       - pytest
       - transformers
       - sentencepiece
+      - mcp
+      - tooluniverse
       - python-dotenv
       - FlowKit
       - rdkit
