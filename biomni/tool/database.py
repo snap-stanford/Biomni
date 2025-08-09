@@ -4076,8 +4076,15 @@ def query_pubchem(
             endpoint = f"{base_url}/{endpoint.lstrip('/')}"
         description = "Direct query to provided endpoint"
 
-    # Add rate limiting - sleep for 0.2 seconds (5 requests per second max)
-    time.sleep(0.2)
+    # Rate limiting: allow user to configure or disable; only sleep if last request was too recent
+    if not hasattr(query_pubchem, "_last_request_time"):
+        query_pubchem._last_request_time = 0
+    min_interval = 1.0 / 5  # 5 requests per second by default
+    now = time.time()
+    elapsed = now - query_pubchem._last_request_time
+    if elapsed < min_interval:
+        time.sleep(min_interval - elapsed)
+    query_pubchem._last_request_time = time.time()
 
     # Use the common REST API helper function
     api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
@@ -4812,6 +4819,8 @@ def query_quickgo(
 
     # Validate max_results
     if max_results > 100:
+        import warnings
+        warnings.warn(f"max_results ({max_results}) exceeds QuickGO API limit (100). Setting max_results to 100.")
         max_results = 100
 
     # If using prompt, parse with Claude

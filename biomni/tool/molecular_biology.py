@@ -905,7 +905,12 @@ def design_knockout_sgrna(
 
     # Check if library file exists
     if not os.path.exists(library_path):
-        raise FileNotFoundError(f"Library file for {species} not found at path: {library_path}")
+        error_msg = f"Library file for {species} not found at path: {library_path}"
+        error_msg += "\n\nThis error typically occurs when the datalake files are not available."
+        error_msg += "\nTo resolve this:"
+        error_msg += "\n1. Initialize the agent with load_datalake=True (default)"
+        error_msg += "\n2. Or manually load the datalake: agent.load_datalake()"
+        raise FileNotFoundError(error_msg)
 
     # Load sgRNA library from S3
     try:

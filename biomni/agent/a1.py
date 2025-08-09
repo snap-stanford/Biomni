@@ -1251,12 +1251,18 @@ Each library is listed with its description to help you understand its functiona
 
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
-            messages = [SystemMessage(content=self.system_prompt)] + state["messages"]
+            # Add OpenAI-specific formatting reminders if using OpenAI models
+            system_prompt = self.system_prompt
+            if hasattr(self.llm, 'model_name') and ('gpt' in str(self.llm.model_name).lower() or 'openai' in str(type(self.llm)).lower()):
+                system_prompt += "\n\nIMPORTANT FOR GPT MODELS: You MUST use XML tags <execute> or <solution> in EVERY response. Do not use markdown code blocks (```) - use <execute> tags instead."
+
+            messages = [SystemMessage(content=system_prompt)] + state["messages"]
             response = self.llm.invoke(messages)
 
             # Parse the response
             msg = str(response.content)
 
+            # Enhanced parsing for better OpenAI compatibility
             # Check for incomplete tags and fix them
             if "<execute>" in msg and "</execute>" not in msg:
                 msg += "</execute>"
@@ -1265,9 +1271,18 @@ Each library is listed with its description to help you understand its functiona
             if "<think>" in msg and "</think>" not in msg:
                 msg += "</think>"
 
-            think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL)
-            execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL)
-            answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL)
+            # More flexible pattern matching for different LLM styles
+            think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL | re.IGNORECASE)
+            execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL | re.IGNORECASE)
+            answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL | re.IGNORECASE)
+
+            # Alternative patterns for OpenAI models that might use different formatting
+            if not execute_match:
+                # Try to find code blocks that might be intended as execute blocks
+                code_block_match = re.search(r"```(?:python|bash|r)?\s*(.*?)```", msg, re.DOTALL)
+                if code_block_match and not answer_match:
+                    # If we found a code block and no solution, treat it as execute
+                    execute_match = code_block_match
 
             # Add the message to the state before checking for errors
             state["messages"].append(AIMessage(content=msg.strip()))
