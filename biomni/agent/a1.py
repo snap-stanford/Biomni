@@ -1079,6 +1079,10 @@ If a step fails or needs modification, mark it with an X and explain why:
 3. [ ] Modified second step
 4. [ ] Third step
 
+Think in english, no matter what language the user speaks.
+
+When you save some generated files, save them in current directory.
+
 Always show the updated plan after each step so the user can track progress.
 
 At each turn, you should first provide your thinking and reasoning given the conversation history.
@@ -1587,7 +1591,7 @@ Each library is listed with its description to help you understand its functiona
             }
             # Use prompt-based retrieval with the agent's LLM
             # tool_llm = get_llm(model="solar-pro2")
-            tool_llm = self.llm
+            tool_llm = get_llm(model="us.anthropic.claude-3-7-sonnet-20250219-v1:0")
             selected_resources = self.retriever.prompt_based_retrieval(
                 prompt, resources, llm=tool_llm
             )

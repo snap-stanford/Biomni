@@ -177,8 +177,8 @@ library_content_dict = {
     "pyBigWig": "A Python library for accessing bigWig and bigBed files for genome browser track data.",
     "pymzml": "A Python module for high-throughput bioinformatics analysis of mass spectrometry data.",
     "optlang": "A Python package for modeling optimization problems symbolically.",
-    "FlowIO": "A Python package for reading and writing flow cytometry data files.",
-    "FlowUtils": "Utilities for processing and analyzing flow cytometry data.",
+    # "FlowIO": "A Python package for reading and writing flow cytometry data files.",
+    # "FlowUtils": "Utilities for processing and analyzing flow cytometry data.",
     "arboreto": "A Python package for inferring gene regulatory networks from single-cell RNA-seq data.",
     "pdbfixer": "A Python package for fixing problems in PDB files in preparation for molecular simulations.",
     # === R PACKAGES ===
