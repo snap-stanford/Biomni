@@ -18,14 +18,14 @@ dependencies = ["pydantic", "langchain", "python-dotenv"]
 Homepage = "https://github.com/snap-stanford/biomni"
 Repository = "https://github.com/snap-stanford/biomni"
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.dynamic]
 version = {attr = "biomni.version.__version__"}
 
 [tool.setuptools.packages.find]
-exclude = ["test*"]
-
-[tool.setuptools.package-data]
-"*" = ["*"]
+exclude = ["test*", "tutorials*"]
 
 [tool.ruff]
 src = ["src"]

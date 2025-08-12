@@ -10,7 +10,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_ollama import ChatOllama
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
 
-SourceType = Literal["OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Custom"]
+SourceType = Literal["OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Groq", "Custom"]
+ALLOWED_SOURCES: set[str] = set(SourceType.__args__)
 
 
 def get_llm(
@@ -35,30 +36,51 @@ def get_llm(
     """
     # Auto-detect source from model name if not specified
     if source is None:
-        if model[:7] == "claude-":
-            source = "Anthropic"
-        elif model[:4] == "gpt-":
-            source = "OpenAI"
-        elif model[:7] == "gemini-":
-            source = "Gemini"
-        elif base_url is not None:
-            source = "Custom"
-        elif "/" in model or any(
-            name in model.lower() for name in ["llama", "mistral", "qwen", "gemma", "phi", "dolphin", "orca", "vicuna"]
-        ):
-            source = "Ollama"
-        elif model.startswith(
-            ("anthropic.claude-", "amazon.titan-", "meta.llama-", "mistral.", "cohere.", "ai21.", "us.")
-        ):
-            source = "Bedrock"
+        env_source = os.getenv("LLM_SOURCE")
+        if env_source in ALLOWED_SOURCES:
+            source = env_source
         else:
-            raise ValueError("Unable to determine model source. Please specify 'source' parameter.")
+            if model[:7] == "claude-":
+                source = "Anthropic"
+            elif model[:4] == "gpt-":
+                source = "OpenAI"
+            elif model.startswith("azure-"):
+                source = "AzureOpenAI"
+            elif model[:7] == "gemini-":
+                source = "Gemini"
+            elif "groq" in model.lower():
+                source = "Groq"
+            elif base_url is not None:
+                source = "Custom"
+            elif "/" in model or any(
+                name in model.lower()
+                for name in [
+                    "llama",
+                    "mistral",
+                    "qwen",
+                    "gemma",
+                    "phi",
+                    "dolphin",
+                    "orca",
+                    "vicuna",
+                    "deepseek",
+                    "gpt-oss",
+                ]
+            ):
+                source = "Ollama"
+            elif model.startswith(
+                ("anthropic.claude-", "amazon.titan-", "meta.llama-", "mistral.", "cohere.", "ai21.", "us.")
+            ):
+                source = "Bedrock"
+            else:
+                raise ValueError("Unable to determine model source. Please specify 'source' parameter.")
 
     # Create appropriate model based on source
     if source == "OpenAI":
         return ChatOpenAI(model=model, temperature=temperature, stop_sequences=stop_sequences)
     elif source == "AzureOpenAI":
         API_VERSION = "2024-12-01-preview"
+        model = model.replace("azure-", "")
         return AzureChatOpenAI(
             openai_api_key=os.getenv("OPENAI_API_KEY"),
             azure_endpoint=os.getenv("OPENAI_ENDPOINT"),
@@ -87,11 +109,20 @@ def get_llm(
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             stop_sequences=stop_sequences,
         )
+    elif source == "Groq":
+        return ChatOpenAI(
+            model=model,
+            temperature=temperature,
+            api_key=os.getenv("GROQ_API_KEY"),
+            base_url="https://api.groq.com/openai/v1",
+            stop_sequences=stop_sequences,
+        )
     elif source == "Ollama":
         return ChatOllama(
             model=model,
             temperature=temperature,
         )
+
     # elif source == "Bedrock":
     #     return ChatBedrock(
     #         model=model,
@@ -113,5 +144,5 @@ def get_llm(
         return llm
     else:
         raise ValueError(
-            f"Invalid source: {source}. Valid options are 'OpenAI', 'AzureOpenAI', 'Anthropic', 'Gemini', 'Bedrock', or 'Ollama'"
+            f"Invalid source: {source}. Valid options are 'OpenAI', 'AzureOpenAI', 'Anthropic', 'Gemini', 'Groq', 'Bedrock', or 'Ollama'"
         )

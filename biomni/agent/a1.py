@@ -2,7 +2,8 @@ import glob
 import inspect
 import os
 import re
-from typing import Literal, TypedDict
+from pathlib import Path
+from typing import Any, Literal, TypedDict
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -12,7 +13,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from biomni.env_desc import data_lake_dict, library_content_dict
-from biomni.llm import get_llm
+from biomni.llm import SourceType, get_llm
 from biomni.model.retriever import ToolRetriever
 from biomni.tool.support_tools import run_python_repl
 from biomni.tool.tool_registry import ToolRegistry
@@ -43,6 +44,7 @@ class A1:
         self,
         path="./data",
         llm="claude-sonnet-4-20250514",
+        source: SourceType | None = None,
         use_tool_retriever=True,
         timeout_seconds=600,
         base_url: str | None = None,
@@ -53,6 +55,7 @@ class A1:
         Args:
             path: Path to the data
             llm: LLM to use for the agent
+            source (str): Source provider: "OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", or "Custom"
             use_tool_retriever: If True, use a tool retriever
             timeout_seconds: Timeout for code execution in seconds
             base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
@@ -103,7 +106,9 @@ class A1:
         self.path = os.path.join(path, "biomni_data")
         module2api = read_module2api()
 
-        self.llm = get_llm(llm, stop_sequences=["</execute>", "</solution>"], base_url=base_url, api_key=api_key)
+        self.llm = get_llm(
+            llm, stop_sequences=["</execute>", "</solution>"], source=source, base_url=base_url, api_key=api_key
+        )
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
 
@@ -239,6 +244,236 @@ class A1:
 
             traceback.print_exc()
             raise
+
+    def add_mcp(self, config_path: str | Path = "./tutorials/examples/mcp_config.yaml") -> None:
+        """
+        Add MCP (Model Context Protocol) tools from configuration file.
+
+        This method dynamically registers MCP server tools as callable functions within
+        the biomni agent system. Each MCP server is loaded as an independent module
+        with its tools exposed as synchronous wrapper functions.
+
+        Supports both manual tool definitions and automatic tool discovery from MCP servers.
+
+        Args:
+            config_path: Path to the MCP configuration YAML file containing server
+                        definitions and tool specifications.
+
+        Raises:
+            FileNotFoundError: If the config file doesn't exist
+            yaml.YAMLError: If the config file is malformed
+            RuntimeError: If MCP server initialization fails
+        """
+        import asyncio
+        import os
+        import sys
+        import types
+        from pathlib import Path
+
+        import nest_asyncio
+        import yaml
+        from mcp import ClientSession
+        from mcp.client.stdio import StdioServerParameters, stdio_client
+
+        nest_asyncio.apply()
+
+        def discover_mcp_tools_sync(server_params: StdioServerParameters) -> list[dict]:
+            """Discover available tools from MCP server synchronously."""
+            try:
+
+                async def _discover_async():
+                    async with stdio_client(server_params) as (reader, writer):
+                        async with ClientSession(reader, writer) as session:
+                            await session.initialize()
+
+                            # Get available tools
+                            tools_result = await session.list_tools()
+                            tools = tools_result.tools if hasattr(tools_result, "tools") else tools_result
+
+                            discovered_tools = []
+                            for tool in tools:
+                                if hasattr(tool, "name"):
+                                    discovered_tools.append(
+                                        {
+                                            "name": tool.name,
+                                            "description": tool.description,
+                                            "inputSchema": tool.inputSchema,
+                                        }
+                                    )
+                                else:
+                                    print(f"Warning: Skipping tool with no name attribute: {tool}")
+
+                            return discovered_tools
+
+                return asyncio.run(_discover_async())
+            except Exception as e:
+                print(f"Failed to discover tools: {e}")
+                return []
+
+        def make_mcp_wrapper(cmd: str, args: list[str], tool_name: str, doc: str, env_vars: dict = None):
+            """Create a synchronous wrapper for an async MCP tool call."""
+
+            def sync_tool_wrapper(**kwargs):
+                """Synchronous wrapper for MCP tool execution."""
+                try:
+                    server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
+
+                    async def async_tool_call():
+                        async with stdio_client(server_params) as (reader, writer):
+                            async with ClientSession(reader, writer) as session:
+                                await session.initialize()
+                                result = await session.call_tool(tool_name, kwargs)
+                                content = result.content[0]
+                                if hasattr(content, "json"):
+                                    return content.json()
+                                return content.text
+
+                    try:
+                        loop = asyncio.get_running_loop()
+                        return loop.create_task(async_tool_call())
+                    except RuntimeError:
+                        return asyncio.run(async_tool_call())
+
+                except Exception as e:
+                    raise RuntimeError(f"MCP tool execution failed for '{tool_name}': {e}") from e
+
+            sync_tool_wrapper.__name__ = tool_name
+            sync_tool_wrapper.__doc__ = doc
+            return sync_tool_wrapper
+
+        # Initialize registries if they don't exist
+        self._custom_functions = getattr(self, "_custom_functions", {})
+        self._custom_tools = getattr(self, "_custom_tools", {})
+
+        # Load and validate configuration
+        try:
+            config_content = Path(config_path).read_text(encoding="utf-8")
+            cfg: dict[str, Any] = yaml.safe_load(config_content) or {}
+        except FileNotFoundError:
+            raise FileNotFoundError(f"MCP config file not found: {config_path}") from None
+        except yaml.YAMLError as e:
+            raise yaml.YAMLError(f"Invalid YAML in MCP config: {e}") from e
+
+        mcp_servers: dict[str, Any] = cfg.get("mcp_servers", {})
+        if not mcp_servers:
+            print("Warning: No MCP servers found in configuration")
+            return
+
+        # Process each MCP server configuration
+        for server_name, server_meta in mcp_servers.items():
+            if not server_meta.get("enabled", True):
+                continue
+
+            # Validate command configuration
+            cmd_list = server_meta.get("command", [])
+            if not cmd_list or not isinstance(cmd_list, list):
+                print(f"Warning: Invalid command configuration for server '{server_name}'")
+                continue
+
+            cmd, *args = cmd_list
+
+            # Process environment variables
+            env_vars = server_meta.get("env", {})
+            if env_vars:
+                processed_env = {}
+                for key, value in env_vars.items():
+                    if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+                        var_name = value[2:-1]
+                        processed_env[key] = os.getenv(var_name, "")
+                    else:
+                        processed_env[key] = value
+                env_vars = processed_env
+
+            # Create module namespace for this MCP server
+            mcp_module_name = f"mcp_servers.{server_name}"
+            if mcp_module_name not in sys.modules:
+                sys.modules[mcp_module_name] = types.ModuleType(mcp_module_name)
+            server_module = sys.modules[mcp_module_name]
+
+            tools_config = server_meta.get("tools", [])
+
+            if not tools_config:
+                try:
+                    server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
+                    tools_config = discover_mcp_tools_sync(server_params)
+
+                    if tools_config:
+                        print(f"Discovered {len(tools_config)} tools from {server_name} MCP server")
+                    else:
+                        print(f"Warning: No tools discovered from {server_name} MCP server")
+                        continue
+
+                except Exception as e:
+                    print(f"Failed to discover tools for {server_name}: {e}")
+                    continue
+
+            # Register each tool
+            for tool_meta in tools_config:
+                if isinstance(tool_meta, dict) and "biomni_name" in tool_meta:
+                    # Manual tool definition
+                    tool_name = tool_meta.get("biomni_name")
+                    description = tool_meta.get("description", f"MCP tool: {tool_name}")
+                    parameters = tool_meta.get("parameters", {})
+                else:
+                    # Auto-discovered tool
+                    tool_name = tool_meta.get("name")
+                    description = tool_meta.get("description", f"MCP tool: {tool_name}")
+                    parameters = tool_meta.get("inputSchema", {}).get("properties", {})
+
+                if not tool_name:
+                    print(f"Warning: Skipping tool with no name in {server_name}")
+                    continue
+
+                # Create wrapper function
+                wrapper_function = make_mcp_wrapper(cmd, args, tool_name, description, env_vars)
+
+                # Add to module namespace
+                setattr(server_module, tool_name, wrapper_function)
+
+                # Build parameter lists
+                required_params, optional_params = [], []
+                for param_name, param_spec in parameters.items():
+                    param_info = {
+                        "name": param_name,
+                        "type": str(param_spec.get("type", "string")),
+                        "description": param_spec.get("description", ""),
+                        "default": param_spec.get("default", None),
+                    }
+
+                    if param_spec.get("required", False):
+                        required_params.append(param_info)
+                    else:
+                        optional_params.append(param_info)
+
+                # Create tool schema
+                tool_schema = {
+                    "name": tool_name,
+                    "description": description,
+                    "parameters": parameters,
+                    "required_parameters": required_params,
+                    "optional_parameters": optional_params,
+                    "module": mcp_module_name,
+                    "fn": wrapper_function,
+                }
+
+                # Register in tool registry
+                self.tool_registry.register_tool(tool_schema)
+
+                # Add to module2api mapping
+                if mcp_module_name not in self.module2api:
+                    self.module2api[mcp_module_name] = []
+                self.module2api[mcp_module_name].append(tool_schema)
+
+                # Add to instance registries
+                self._custom_functions[tool_name] = wrapper_function
+                self._custom_tools[tool_name] = {
+                    "name": tool_name,
+                    "description": description,
+                    "module": mcp_module_name,
+                }
+
+        # Update agent configuration
+        self.configure()
 
     def get_custom_tool(self, name):
         """Get a custom tool by name.
@@ -1092,7 +1327,7 @@ Each library is listed with its description to help you understand its functiona
             else:
                 raise ValueError(f"Unexpected next_step: {next_step}")
 
-        def self_critic(state: AgentState) -> AgentState:
+        def execute_self_critic(state: AgentState) -> AgentState:
             if self.critic_count < test_time_scale_round:
                 # Generate feedback based on message history
                 messages = state["messages"]
@@ -1127,7 +1362,7 @@ Each library is listed with its description to help you understand its functiona
         workflow.add_node("execute", execute)
 
         if self_critic:
-            workflow.add_node("self_critic", self_critic)
+            workflow.add_node("self_critic", execute_self_critic)
             # Add conditional edges
             workflow.add_conditional_edges(
                 "generate",
@@ -1392,3 +1627,157 @@ Each library is listed with its description to help you understand its functiona
             if not hasattr(builtins, "_biomni_custom_functions"):
                 builtins._biomni_custom_functions = {}
             builtins._biomni_custom_functions.update(self._custom_functions)
+
+    def create_mcp_server(self, tool_modules=None):
+        """
+        Create an MCP server object that exposes internal Biomni tools.
+        This gives you control over when and how to run the server.
+
+        Args:
+            tool_modules: List of module names to expose (default: all in self.module2api)
+
+        Returns:
+            FastMCP server object that you can run manually
+        """
+        import importlib
+        import inspect
+        from typing import Optional
+
+        from mcp.server.fastmcp import FastMCP
+
+        mcp = FastMCP("BiomniTools")
+        modules = tool_modules or list(self.module2api.keys())
+
+        registered_tools = 0
+
+        for module_name in modules:
+            try:
+                # Import the actual module
+                module = importlib.import_module(module_name)
+                # Get tools for this module
+                module_tools = self.module2api.get(module_name, [])
+
+                for tool_schema in module_tools:
+                    tool_name = tool_schema.get("name")
+                    if not tool_name:
+                        continue
+
+                    try:
+                        # Get the actual function
+                        fn = getattr(module, tool_name, None)
+                        if fn is None:
+                            fn = getattr(self, "_custom_functions", {}).get(tool_name)
+
+                        if fn is None:
+                            print(f"Warning: Could not find function '{tool_name}' in module '{module_name}'")
+                            continue
+
+                        # Extract parameters from your specific schema format
+                        required_params = tool_schema.get("required_parameters", [])
+                        optional_params = tool_schema.get("optional_parameters", [])
+
+                        # Generate the wrapper function
+                        wrapper_func = self._generate_mcp_wrapper_from_biomni_schema(
+                            fn, tool_name, required_params, optional_params
+                        )
+
+                        # Register with MCP
+                        mcp.tool()(wrapper_func)
+                        registered_tools += 1
+
+                    except Exception as e:
+                        print(f"Warning: Failed to register tool '{tool_name}': {e}")
+                        continue
+
+            except ImportError as e:
+                print(f"Warning: Could not import module '{module_name}': {e}")
+                continue
+
+        print(f"Created MCP server with {registered_tools} tools")
+        return mcp
+
+    def _generate_mcp_wrapper_from_biomni_schema(self, original_func, func_name, required_params, optional_params):
+        """Generate wrapper function based on Biomni schema format."""
+        import inspect
+
+        # Combine all parameters
+        all_params = required_params + optional_params
+
+        if not all_params:
+            # No parameters
+            def wrapper() -> dict:
+                try:
+                    result = original_func()
+                    if isinstance(result, dict):
+                        return result
+                    return {"result": result}
+                except Exception as e:
+                    return {"error": str(e)}
+
+            wrapper.__name__ = func_name
+            wrapper.__doc__ = original_func.__doc__
+            return wrapper
+
+        else:
+            # Has parameters
+            def wrapper(**kwargs) -> dict:
+                try:
+                    # Build arguments dict
+                    filtered_kwargs = {}
+
+                    # Add required parameters
+                    for param_info in required_params:
+                        param_name = param_info["name"]
+                        if param_name in kwargs and kwargs[param_name] is not None:
+                            filtered_kwargs[param_name] = kwargs[param_name]
+
+                    # Add optional parameters only if provided and not None
+                    for param_info in optional_params:
+                        param_name = param_info["name"]
+                        if param_name in kwargs and kwargs[param_name] is not None:
+                            filtered_kwargs[param_name] = kwargs[param_name]
+
+                    result = original_func(**filtered_kwargs)
+                    if isinstance(result, dict):
+                        return result
+                    return {"result": result}
+                except Exception as e:
+                    return {"error": str(e)}
+
+            # Set function metadata
+            wrapper.__name__ = func_name
+            wrapper.__doc__ = original_func.__doc__
+
+            # Create proper signature
+            new_params = []
+
+            # Map your types to Python types
+            type_map = {"str": str, "int": int, "float": float, "bool": bool, "List[str]": list[str], "dict": dict}
+
+            # Add required parameters
+            for param_info in required_params:
+                param_name = param_info["name"]
+                param_type_str = param_info["type"]
+                param_type = type_map.get(param_type_str, str)
+
+                new_params.append(inspect.Parameter(param_name, inspect.Parameter.KEYWORD_ONLY, annotation=param_type))
+
+            # Add optional parameters
+            for param_info in optional_params:
+                param_name = param_info["name"]
+                param_type_str = param_info["type"]
+                param_type = type_map.get(param_type_str, str)
+
+                # Make it optional
+                optional_type = param_type | None
+
+                new_params.append(
+                    inspect.Parameter(
+                        param_name, inspect.Parameter.KEYWORD_ONLY, default=None, annotation=optional_type
+                    )
+                )
+
+            # Set the signature
+            wrapper.__signature__ = inspect.Signature(new_params, return_annotation=dict)
+
+            return wrapper
