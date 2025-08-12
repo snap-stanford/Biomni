@@ -133,7 +133,9 @@ class parser_yes_no(BaseModel):
     check_output_error: str | None = Field(
         description="Does the given text contains a p-value? Yes if it has; No if does not."
     )
-    p_val: str | None = Field(description="p-value formatted in scientific notations")
+    p_val: str | None = Field(
+        description="The p-value extracted from the text (e.g., '0.05', '3.485e-01', '1.234e-05')"
+    )
 
 
 class data_input_check_result(BaseModel):
@@ -239,23 +241,15 @@ class UnifiedDataLoader:
     def _init_biomni_data(self):
         """Initialize biomni data lake access."""
         # Create description of available data
-        desc_parts = ["Available datasets from biomni data lake:\n"]
+        desc_parts = ["Available datasets from biomni data lake:"]
         for name, description in data_lake_dict.items():
             desc_parts.append(f"- {name}: {description}")
-
-        # Check for actual data files
-        data_lake_path = "/dfs/project/bioagentos/biomni_data_test/biomni_data/data_lake"
-        if os.path.exists(data_lake_path):
-            desc_parts.append(f"\nActual data files available in {data_lake_path}:")
-            for file in os.listdir(data_lake_path):
-                if file.endswith((".parquet", ".csv", ".tsv")):
-                    desc_parts.append(f"- {file}")
 
         self.data_desc += "\n".join(desc_parts)
 
         # Note: Actual data loading would happen on-demand through tools
         self.biomni_datasets = data_lake_dict
-        self.data_lake_path = data_lake_path if os.path.exists(data_lake_path) else None
+        self.data_lake_path = "/dfs/project/bioagentos/biomni_data_test/biomni_data/data_lake"
 
     def _init_local_data(self):
         """Initialize local data (POPPER style)."""
@@ -760,7 +754,7 @@ class BasePOPPERAgent:
 
     def __init__(
         self,
-        llm: str = "claude-3-5-sonnet-20241022",
+        llm: str = "claude-sonnet-4-20250514",
         data_path: str | None = None,
         use_biomni_tools: bool = True,
         use_biomni_data: bool = True,
@@ -1153,7 +1147,7 @@ class BasePOPPERAgent:
 
 
 def create_base_popper_agent(
-    llm: str = "claude-3-5-sonnet-20241022", data_path: str | None = None, use_biomni: bool = True, **kwargs
+    llm: str = "claude-sonnet-4-20250514", data_path: str | None = None, use_biomni: bool = True, **kwargs
 ) -> BasePOPPERAgent:
     """
     Create a configured BasePOPPERAgent instance.
@@ -1225,6 +1219,23 @@ class A1TestCodingAgent:
 
     def _create_hypothesis_testing_prompt(self, question: str) -> str:
         """Create a prompt for A1 agent focused on hypothesis testing."""
+        # Get list of available query functions from A1 agent
+        available_tools = []
+        if hasattr(self, "a1_agent") and hasattr(self.a1_agent, "module2api"):
+            for module, tools in self.a1_agent.module2api.items():
+                if module == "biomni.tool.database":
+                    for tool in tools:
+                        available_tools.append(
+                            f"  - {tool.get('name', 'unknown')}: {tool.get('description', 'No description')[:80]}..."
+                        )
+
+        tools_section = ""
+        if available_tools:
+            tools_section = f"""
+Available database query functions:
+{chr(10).join(available_tools)}
+"""
+
         return f"""
 {question}
 
@@ -1232,14 +1243,21 @@ IMPORTANT INSTRUCTIONS:
 1. You MUST perform a statistical hypothesis test based on the given hypotheses
 2. Use the available data from the data lake and database query functions
 3. Calculate a p-value for the test
-4. Your final output MUST include the p-value in this exact format: "p-value: X.XXXe-XX" or "p-value: X.XXX"
-5. Print the p-value clearly at the end of your analysis
-6. Do NOT make up fake data - use only real data from available sources
+4. When you have completed your analysis and are ready to report the final p-value, use the following format:
+
+<solution>
+p-value: X.XXXe-XX
+</solution>
+
+(Replace X.XXXe-XX with the actual p-value, e.g., 3.485e-01 or 0.05)
+
+5. Do NOT make up fake data - use only real data from available sources
+6. The <solution> tag should only appear once at the very end with the final p-value
 
 Available data:
 {self.data}
-
-Remember: The goal is to test the hypothesis statistically and report a p-value.
+{tools_section}
+Remember: The goal is to test the hypothesis statistically and report a p-value in the <solution> tag.
 """
 
     def go(self, question: str, log: dict | None = None) -> dict:
@@ -1262,6 +1280,8 @@ Remember: The goal is to test the hypothesis statistically and report a p-value.
                 else:
                     # Try to find observation blocks in the log
                     captured_output = ""
+                    import re
+
                     for entry in a1_log:
                         if isinstance(entry, str) and "<observation>" in entry:
                             obs_match = re.search(r"<observation>(.*?)</observation>", entry, re.DOTALL)
@@ -1278,7 +1298,52 @@ Remember: The goal is to test the hypothesis statistically and report a p-value.
                 # Check for p-value
                 from langchain_core.messages import HumanMessage
 
-                checker = self.output_parser.invoke([HumanMessage(content=captured_output)]).model_dump()
+                try:
+                    checker = self.output_parser.invoke([HumanMessage(content=captured_output)]).model_dump()
+                except Exception as e:
+                    if self.verbose:
+                        print("parsing error...")
+                        print(f"Error invoking output parser: {e}")
+                        print(f"Output content (first 500 chars): {captured_output[:500]}")
+
+                    # Try to extract p-value directly with regex as fallback
+                    import re
+
+                    # First try to find p-value in solution tag
+                    solution_match = re.search(
+                        r"<solution>.*?p-value:\s*([0-9.]+e?[-+]?\d*).*?</solution>",
+                        captured_output,
+                        re.IGNORECASE | re.DOTALL,
+                    )
+                    if solution_match:
+                        p_val_match = solution_match
+                    else:
+                        # Fallback to general p-value search
+                        p_val_match = re.search(r"p-value:\s*([0-9.]+e?[-+]?\d*)", captured_output, re.IGNORECASE)
+
+                    if p_val_match:
+                        try:
+                            p_val = float(p_val_match.group(1))
+                            if not np.isnan(p_val) and p_val != 0:
+                                if self.verbose:
+                                    print(f"Successfully extracted p-value via regex: {p_val}")
+
+                                if log:
+                                    log["executor"].append("Test completed successfully")
+                                    log["executor"].append(f"P-value: {p_val}")
+
+                                return {
+                                    "status": "success",
+                                    "p_val": p_val,
+                                    "captured_output": captured_output,
+                                    "generation": None,
+                                    "messages": [],
+                                    "iterations": attempt + 1,
+                                    "error": "no",
+                                }
+                        except ValueError:
+                            pass
+                    continue
 
                 if checker["check_output_error"].lower() == "yes":
                     # Extract p-value
@@ -1341,14 +1406,14 @@ class POPPERAgent(BasePOPPERAgent):
 
     def __init__(
         self,
-        llm: str = "claude-3-5-sonnet-20241022",
+        llm: str = "claude-sonnet-4-20250514",
         data_path: str | None = None,
         use_biomni_data: bool = True,
         is_local: bool = False,
         base_url: str | None = None,
         api_key: str = "EMPTY",
         use_only_database_tools: bool = True,
-        a1_llm: str = "claude-3-5-sonnet-20241022",
+        a1_llm: str = "claude-sonnet-4-20250514",
     ):
         """
         Initialize the SimplifiedPOPPERAgent.
@@ -1434,7 +1499,6 @@ class POPPERAgent(BasePOPPERAgent):
         domain: str = "biology",
         max_failed_tests: int = 10,
         relevance_checker: bool = True,
-        use_react_agent: bool = False,
     ):
         """Configure the SimplifiedPOPPERAgent with A1 integration."""
 
@@ -1540,7 +1604,7 @@ Note: The implementation will use biomni's A1 agent to execute the tests, so des
         )
 
 
-def create_popper_agent(llm: str = "claude-3-5-sonnet-20241022", data_path: str | None = None, **kwargs) -> POPPERAgent:
+def create_popper_agent(llm: str = "claude-sonnet-4-20250514", data_path: str | None = None, **kwargs) -> POPPERAgent:
     """
     Create a configured POPPERAgent instance.
 
@@ -1586,7 +1650,7 @@ def create_popper_agent(llm: str = "claude-3-5-sonnet-20241022", data_path: str 
 
 if __name__ == "__main__":
     # Example usage
-    agent = create_popper_agent(llm="claude-3-5-sonnet-20241022", use_biomni=True)
+    agent = create_popper_agent(llm="claude-sonnet-4-20250514", use_biomni=True)
 
     # Test a hypothesis
     hypothesis = "Gene X is essential for cell division in cancer cells"

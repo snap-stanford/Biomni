@@ -24,7 +24,7 @@ def test_popper():
     # Create the agent
     print("\n1. Creating POPPERAgent...")
     agent = create_popper_agent(
-        llm="claude-3-5-sonnet-20241022",
+        llm="claude-sonnet-4-20250514",
         data_path=None,  # Will use biomni data lake
         use_only_database_tools=True,
         max_num_of_tests=2,  # Limit to 2 tests for demo
