@@ -261,18 +261,68 @@ def retrieve_topk_repurposing_drugs_from_disease_txgnn(
     return summary
 
 
-def predict_protein_pocket(pdb_file_path):
+def predict_protein_pocket(pdb_file_path, score_threshold=0.3):
     """Predicts protein pockets in a given PDB file using FPocket.
+
+    This function uses the FPocket tool to identify and analyze druggable pockets
+    in protein structures. It filters pockets based on a score threshold and
+    returns detailed information about each pocket including files and properties.
 
     Parameters
     ----------
     pdb_file_path : str
         Path to the PDB file containing the protein structure
+    score_threshold : float, optional
+        Minimum score threshold for pocket filtering (default: 0.5)
 
     Returns
     -------
-    dict
-        A dictionary containing the pocket IDs as keys, their corresponding scores, volumes, pocket files as values
+    dict or str
+        If successful, returns a dictionary with pocket IDs as keys and pocket
+        information as values. Each pocket entry contains:
+        - Pocket properties (score, volume, etc.)
+        - pocket_files: List of generated PDB/PQR files for the pocket
+
+        If no pockets are found or an error occurs, returns an error message string.
+
+    Examples
+    --------
+    >>> result = predict_protein_pocket("protein.pdb", score_threshold=0.5)
+    >>> print(result)
+    {
+        '1': {
+            'Pocket': '1',
+            'Score': '0.75',
+            'Druggability_Score': '0.68',
+            'Volume': '1250.5',
+            'pocket_files': [
+                '/path/to/protein_out/pocket1_atm.pdb',
+                '/path/to/protein_out/pocket1_env_atm.pdb',
+                '/path/to/protein_out/pocket1_vert.pqr'
+            ]
+        },
+        '2': {
+            'Pocket': '2',
+            'Score': '0.62',
+            'Druggability_Score': '0.55',
+            'Volume': '890.3',
+            'pocket_files': [
+                '/path/to/protein_out/pocket2_atm.pdb',
+                '/path/to/protein_out/pocket2_env_atm.pdb',
+                '/path/to/protein_out/pocket2_vert.pqr'
+            ]
+        }
+    }
+
+    >>> # When no pockets are found
+    >>> result = predict_protein_pocket("protein_no_pockets.pdb")
+    >>> print(result)
+    "The protein does not have any druggable pockets"
+
+    >>> # When file doesn't exist
+    >>> result = predict_protein_pocket("nonexistent.pdb")
+    >>> print(result)
+    "Error: PDB file not found at nonexistent.pdb"
     """
 
     try:
@@ -282,20 +332,17 @@ def predict_protein_pocket(pdb_file_path):
 
         if not os.path.exists(pdb_file_path):
             return "Error: PDB file not found at {pdb_file_path}\n"
-
         # Execute fpocket command
         result = subprocess.run(
             command.split(), capture_output=True, text=True, check=False
         )
         if result.returncode != 0:
             return f"Error executing FPocket: {result.stderr.strip()}"
-
         # Look for output files that fpocket typically generates
         base_name = os.path.splitext(pdb_file_path)[0]
         output_dir = f"{base_name}_out"
         current_dir = os.getcwd()
         target_output_dir = os.path.join(current_dir, os.path.basename(output_dir))
-
         stdout = result.stdout.split("\n")
         keys = stdout[0].split()
         predictions = stdout[1:]
@@ -309,7 +356,7 @@ def predict_protein_pocket(pdb_file_path):
                 f"{output_dir}/pocket{pocket_id}_env_atm.pdb",
                 f"{output_dir}/pocket{pocket_id}_vert.pqr",
             ]
-            if score < 0.5:
+            if score < score_threshold:
                 for file in files:
                     os.remove(file)
                 continue
@@ -331,7 +378,11 @@ def predict_protein_pocket(pdb_file_path):
             if os.path.exists(target_output_dir):
                 shutil.rmtree(target_output_dir)
             shutil.move(output_dir, target_output_dir)
-
+        # Move the input PDB file to the final output directory
+        if os.path.exists(target_output_dir):
+            input_pdb_filename = os.path.basename(pdb_file_path)
+            target_pdb_path = os.path.join(target_output_dir, input_pdb_filename)
+            shutil.copy2(pdb_file_path, target_pdb_path)
     except FileNotFoundError:
         return "Error: FPocket not found. Please ensure FPocket is installed and in PATH.\n"
     except Exception as e:

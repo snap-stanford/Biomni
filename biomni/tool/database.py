@@ -36,7 +36,11 @@ def get_hpo_names(hpo_terms: list[str], data_lake_path: str) -> list[str]:
 
 
 def _query_llm_for_api(
-    prompt, schema, system_template, api_key=None, model="claude-3-5-haiku-20241022"
+    prompt,
+    schema,
+    system_template,
+    api_key=None,
+    model="us.anthropic.claude-3-5-haiku-20241022-v1:0",
 ):
     """Helper function to query LLMs for generating API calls based on natural language prompts.
 
@@ -55,6 +59,7 @@ def _query_llm_for_api(
     dict: Dictionary with 'success', 'data' (if successful), 'error' (if failed), and optional 'raw_response'
 
     """
+    model = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
     try:
         # Format the system prompt with schema if provided
         if schema is not None:
@@ -64,7 +69,9 @@ def _query_llm_for_api(
             system_prompt = system_template
 
         # Get LLM instance using the unified interface
-        llm = get_llm(model=model, temperature=0.0, api_key=api_key or "EMPTY")
+        llm = get_llm(
+            model=model, temperature=0.0, api_key=api_key or "EMPTY", stop_sequences=[]
+        )
 
         # Compose messages
         messages = [
@@ -1078,7 +1085,11 @@ def query_pdb_identifiers(
 
 
 def query_kegg(
-    prompt, endpoint=None, api_key=None, model="claude-3-5-haiku-20241022", verbose=True
+    prompt,
+    endpoint=None,
+    api_key=None,
+    model="us.anthropic.claude-3-5-haiku-20241022-v1:0",
+    verbose=True,
 ):
     """Take a natural language prompt and convert it to a structured KEGG API query.
 

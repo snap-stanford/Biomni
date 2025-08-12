@@ -24,6 +24,9 @@ def run_python_repl(command: str) -> str:
             exec(command, _persistent_namespace)
             output = mystdout.getvalue()
         except Exception as e:
+            # Get the output that was generated before the error
+            partial_output = mystdout.getvalue()
+
             # Get detailed error information with proper line tracking
             exc_type, exc_value, exc_traceback = sys.exc_info()
 
@@ -60,7 +63,13 @@ def run_python_repl(command: str) -> str:
                 error_details.append("\nFull Traceback:")
                 error_details.append(traceback.format_exc())
 
-            output = "\n".join(error_details)
+            error_message = "\n".join(error_details)
+
+            # Combine partial output with error message
+            if partial_output.strip():
+                output = partial_output + "\n--- ERROR OCCURRED ---\n" + error_message
+            else:
+                output = error_message
         finally:
             sys.stdout = old_stdout
         return output

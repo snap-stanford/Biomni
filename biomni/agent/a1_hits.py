@@ -314,7 +314,7 @@ class A1_HITS(A1):
             )
             retriever = db.as_retriever(
                 search_type="similarity_score_threshold",
-                search_kwargs={"k": 10, "score_threshold": 0.0},
+                search_kwargs={"k": 10, "score_threshold": 0.5},
             )
             llm = get_llm(model="mistral-small-2506")
             # llm = get_llm(model="us.anthropic.claude-3-5-sonnet-20240620-v1:0")
@@ -336,6 +336,7 @@ Only answer using information retrieved from the database - DO NOT use your gene
 Provide fix suggestions for these lines as well, but only based on database query results.
 
 Provide a concise solution. Keep your answer short and focused.
+If possible, don't modify the entire code, just provide the parts that need to be fixed and corresponding solution.
 
 Code:
 {code}

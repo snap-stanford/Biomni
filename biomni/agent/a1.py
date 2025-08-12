@@ -1083,6 +1083,10 @@ Think in english, no matter what language the user speaks.
 
 When you save some generated files, save them in current directory.
 
+Do not install any python packages. If the package is not installed, do not use it and find another way to do it.
+
+If possible, try to use python over R.
+
 Always show the updated plan after each step so the user can track progress.
 
 At each turn, you should first provide your thinking and reasoning given the conversation history.
@@ -1090,6 +1094,7 @@ After that, you have two options:
 
 1) Interact with a programming environment and receive the corresponding output within <observe></observe>. Your code should be enclosed using "<execute>" tag, for example: <execute> print("Hello World!") </execute>. IMPORTANT: You must end the code block with </execute> tag.
    - For Python code (default): <execute> print("Hello World!") </execute>
+   - For Python code: Do not use "%store" in your code.
    - For R code: <execute> #!R\nlibrary(ggplot2)\nprint("Hello from R") </execute>
    - For Bash scripts and commands: <execute> #!BASH\necho "Hello from Bash"\nls -la </execute>
    - For CLI softwares, use Bash scripts.
@@ -1197,7 +1202,7 @@ Each library is listed with its description to help you understand its functiona
             import_instruction = "IMPORTANT: When using any function, you MUST first import it from its module. For example:\nfrom [module_name] import [function_name]"
         else:
             function_intro = "In your code, you will need to import the function location using the following dictionary of functions:"
-            data_lake_intro = "You can write code to understand the data, process and utilize it for the task. Here is the list of datasets:"
+            data_lake_intro = "You can write code to understand the data, process and utilize it for the task. Here is the list of datasets. I recommend you to find the schema of the dataset first before using it:"
             library_intro = "The environment supports a list of libraries that can be directly used. Do not forget the import statement:"
             import_instruction = ""
 

@@ -1,4 +1,5 @@
 import os
+import requests
 
 import gget
 import gseapy
@@ -1880,3 +1881,71 @@ def analyze_genomic_region_overlap(region_sets, output_prefix="overlap_analysis"
     log += f"- Summary statistics saved to: {summary_file}\n"
 
     return log
+
+
+# def get_gene_symbols_from_ensembl_ids(ensembl_ids):
+#     """
+#     Convert multiple Ensembl gene IDs to gene symbols using a single API call.
+
+#     This function queries the Ensembl REST API to retrieve gene symbols (display names)
+#     for a list of Ensembl gene IDs. It uses a batch lookup approach to efficiently
+#     convert multiple IDs in a single HTTP request, which is more efficient than
+#     making individual requests for each ID.
+
+#     The function handles various Ensembl ID formats including:
+#     - ENSG IDs (e.g., ENSG00000139618)
+#     - Versioned IDs (e.g., ENSG00000139618.2)
+
+#     Args:
+#         ensembl_ids (list): List of Ensembl gene IDs to convert. Each ID should be
+#                            a string representing a valid Ensembl gene identifier.
+#                            Example: ['ENSG00000139618', 'ENSG00000141510']
+
+#     Returns:
+#         dict: Dictionary mapping Ensembl IDs to their corresponding gene symbols.
+#               Keys are the input Ensembl IDs, values are gene symbols (display names).
+#               If a gene symbol cannot be found for an ID, the value will be
+#               "symbol not found".
+#               Example: {'ENSG00000139618': 'BRCA2', 'ENSG00000141510': 'TP53'}
+
+#     Raises:
+#         requests.exceptions.HTTPError: If the API request fails (non-200 status code)
+#         requests.exceptions.RequestException: For other request-related errors
+
+#     Example:
+#         >>> ensembl_ids = ['ENSG00000139618', 'ENSG00000141510']
+#         >>> symbols = get_gene_symbols_from_ensembl_ids(ensembl_ids)
+#         >>> print(symbols)
+#         {'ENSG00000139618': 'BRCA2', 'ENSG00000141510': 'TP53'}
+
+#     Note:
+#         - This function requires an active internet connection to access the Ensembl API
+#         - The API has rate limits, so avoid making too many requests in quick succession
+#         - Invalid or obsolete Ensembl IDs will return "symbol not found"
+#     """
+#     server = "https://rest.ensembl.org"
+#     ext = "/lookup/id"
+#     headers = {"Content-Type": "application/json", "Accept": "application/json"}
+
+#     # Prepare the data for POST request
+#     data = {"ids": ensembl_ids}
+
+#     r = requests.post(server + ext, headers=headers, json=data)
+
+#     if not r.ok:
+#         r.raise_for_status()
+#         return {}
+
+#     decoded = r.json()
+
+#     # Extract gene symbols from the response
+#     result = {}
+#     for ensembl_id in ensembl_ids:
+#         if ensembl_id in decoded:
+#             result[ensembl_id] = decoded[ensembl_id].get(
+#                 "display_name", "symbol not found"
+#             )
+#         else:
+#             result[ensembl_id] = "symbol not found"
+
+#     return result
