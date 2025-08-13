@@ -2735,8 +2735,12 @@ def query_openfda(
     model="claude-3-5-haiku-20241022",
     max_results=100,
     verbose=True,
+    search_params=None,
+    sort_params=None,
+    count_params=None,
+    skip_results=0,
 ):
-    """Query the OpenFDA API using natural language or a direct endpoint.
+    """Query the OpenFDA API using natural language or direct parameters.
 
     Parameters
     ----------
@@ -2744,8 +2748,12 @@ def query_openfda(
     endpoint (str, optional): Direct OpenFDA API endpoint or full URL
     api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
     model (str): Anthropic model to use for prompt-to-endpoint conversion
-    max_results (int): Maximum number of results to return (if supported by endpoint)
+    max_results (int): Maximum number of results to return (max 1000)
     verbose (bool): Whether to return detailed results
+    search_params (dict, optional): Search parameters in format {"field": "term"} or {"field": ["term1", "term2"]}
+    sort_params (dict, optional): Sort parameters in format {"field": "asc|desc"}
+    count_params (str, optional): Field to count unique values for
+    skip_results (int): Number of results to skip for pagination (max 25000)
 
     Returns
     -------
@@ -2755,13 +2763,15 @@ def query_openfda(
     --------
     - Natural language: query_openfda("Find adverse events for Lipitor")
     - Direct endpoint: query_openfda(endpoint="https://api.fda.gov/drug/event.json?search=patient.drug.medicinalproduct:lipitor")
+    - Search params: query_openfda(search_params={"patient.drug.medicinalproduct": "lipitor"}, endpoint="/drug/event.json")
+    - Count reactions: query_openfda(count_params="patient.reaction.reactionmeddrapt.exact", endpoint="/drug/event.json")
     """
     base_url = "https://api.fda.gov"
 
-    if prompt is None and endpoint is None:
-        return {"error": "Either a prompt or an endpoint must be provided"}
+    if prompt is None and endpoint is None and search_params is None and count_params is None:
+        return {"error": "Either a prompt, endpoint, search_params, or count_params must be provided"}
 
-    # If using prompt, use Claude or Gemini to generate the endpoint
+    # If using prompt, use LLM to generate the endpoint
     if prompt:
         schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "openfda.pkl")
         if os.path.exists(schema_path):
@@ -2771,8 +2781,33 @@ def query_openfda(
             openfda_schema = None
 
         system_template = """
-        You are a biomedical informatics expert specialized in using the OpenFDA API.\n\nBased on the user's natural language request, determine the appropriate OpenFDA API endpoint and parameters.\n\nOPENFDA API SCHEMA:\n{schema}\n\nYour response should be a JSON object with the following fields:\n1. \"full_url\": The complete URL to query (including the base URL \"https://api.fda.gov\" and any parameters)\n2. \"description\": A brief description of what the query is doing\n\nSPECIAL NOTES:\n- For drug event queries, use /drug/event.json?search=...\n- For drug label queries, use /drug/label.json?search=...\n- For recall queries, use /drug/enforcement.json?search=...\n- Use max_results to limit the number of returned items if supported (limit=)\n- Always URL-encode search terms\n- Return ONLY the JSON object with no additional text.\n        """
-        # Select LLM for prompt translation
+        You are a biomedical informatics expert specialized in using the OpenFDA API.
+        
+        Based on the user's natural language request, determine the appropriate OpenFDA API endpoint and parameters.
+        
+        OPENFDA API SCHEMA:
+        {schema}
+        
+        Your response should be a JSON object with the following fields:
+        1. "full_url": The complete URL to query (including the base URL "https://api.fda.gov" and any parameters)
+        2. "description": A brief description of what the query is doing
+        
+        QUERY PARAMETERS:
+        - search: Use field:term syntax (e.g., "patient.drug.medicinalproduct:lipitor")
+        - sort: Use field:asc or field:desc (e.g., "receivedate:desc")
+        - count: Use field.exact for exact phrase counting (e.g., "patient.reaction.reactionmeddrapt.exact")
+        - limit: Maximum results (max 1000)
+        - skip: Skip results for pagination (max 25000)
+        
+        SEARCH SYNTAX:
+        - Basic: search=field:term
+        - AND: search=field1:term1+AND+field2:term2
+        - OR: search=field1:term1+field2:term2
+        - Exact: search=field:"exact phrase"
+        
+        Return ONLY the JSON object with no additional text.
+        """
+        
         llm_result = _query_llm_for_api(
             prompt=prompt,
             schema=openfda_schema,
@@ -2791,20 +2826,57 @@ def query_openfda(
                 "llm_response": llm_result.get("raw_response", "No response"),
             }
     else:
-        # Use provided endpoint directly
-        if endpoint is not None:
-            if endpoint.startswith("/"):
-                endpoint = f"{base_url}{endpoint}"
-            elif not endpoint.startswith("http"):
-                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        # Build endpoint from parameters
+        if endpoint is None:
+            return {"error": "Endpoint must be provided when not using prompt"}
+        
+        # Ensure endpoint has proper format
+        if endpoint.startswith("/"):
+            endpoint = f"{base_url}{endpoint}"
+        elif not endpoint.startswith("http"):
+            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        
+        # Build query parameters
+        params = []
+        
+        # Add search parameters
+        if search_params:
+            search_terms = []
+            for field, terms in search_params.items():
+                if isinstance(terms, list):
+                    # Multiple terms - use OR logic
+                    search_terms.extend([f"{field}:{term}" for term in terms])
+                else:
+                    # Single term
+                    search_terms.append(f"{field}:{terms}")
+            if search_terms:
+                params.append(f"search={'+'.join(search_terms)}")
+        
+        # Add count parameter
+        if count_params:
+            params.append(f"count={count_params}")
+        
+        # Add sort parameters
+        if sort_params:
+            sort_terms = []
+            for field, direction in sort_params.items():
+                sort_terms.append(f"{field}:{direction}")
+            if sort_terms:
+                params.append(f"sort={'+'.join(sort_terms)}")
+        
+        # Add limit parameter (only if not counting)
+        if not count_params and max_results:
+            params.append(f"limit={min(max_results, 1000)}")
+        
+        # Add skip parameter
+        if skip_results:
+            params.append(f"skip={min(skip_results, 25000)}")
+        
+        # Combine parameters
+        if params:
+            endpoint += "?" + "&".join(params)
+        
         description = "Direct query to OpenFDA API"
-
-    # Add max_results as a query parameter if not already present
-    if "?" in endpoint:
-        if "limit=" not in endpoint:
-            endpoint += f"&limit={max_results}"
-    else:
-        endpoint += f"?limit={max_results}"
 
     api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
@@ -4479,7 +4551,7 @@ def query_dailymed(
 
     Parameters
     ----------
-    prompt (str, required): Natural language query about drug labeling information
+    prompt (str, optional): Natural language query about drug labeling information
     endpoint (str, optional): Direct DailyMed API endpoint to query
     api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
     model (str): Anthropic model to use for natural language processing
@@ -4494,6 +4566,8 @@ def query_dailymed(
     --------
     - Natural language: query_dailymed("Find all drug names")
     - Direct endpoint: query_dailymed(endpoint="/drugnames.json")
+    - Get specific SPL: query_dailymed(endpoint="/spls/12345678-1234-1234-1234-123456789012.json")
+    - Get SPL history: query_dailymed(endpoint="/spls/12345678-1234-1234-1234-123456789012/history.json")
 
     """
     # Base URL for DailyMed API
@@ -4529,11 +4603,13 @@ def query_dailymed(
 
         SPECIAL NOTES:
         - Base URL is "https://dailymed.nlm.nih.gov/dailymed/services/v2"
-        - Available resources: spls, drugnames, drugclasses, ndcs, rxcuis, uniis, applicationnumbers
+        - Available resources: applicationnumbers, drugclasses, drugnames, ndcs, rxcuis, spls, uniis
         - For specific SPL documents, use /spls/{{SETID}} format
-        - For SPL-related data, use /spls/{{SETID}}/history, /spls/{{SETID}}/media, etc.
+        - For SPL-related data, use /spls/{{SETID}}/history, /spls/{{SETID}}/media, /spls/{{SETID}}/ndcs, /spls/{{SETID}}/packaging
         - Always append format extension (.json or .xml)
         - API only supports GET method
+        - HTTPS is required (HTTP disabled since 2016)
+        - Each resource may have optional query parameters to filter or control output
 
         Return ONLY the JSON object with no additional text.
         """
