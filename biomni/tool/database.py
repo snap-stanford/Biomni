@@ -4658,119 +4658,6 @@ def query_dailymed(
     return api_result
 
 
-def query_ols(
-    prompt=None,
-    endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
-    max_results=20,
-    verbose=True,
-):
-    """Query the Ontology Lookup Service (OLS) API using natural language or a direct endpoint.
-
-    Parameters
-    ----------
-    prompt (str, required): Natural language query about ontologies, terms, or biological concepts
-    endpoint (str, optional): Direct OLS API endpoint to query
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
-    max_results (int): Maximum number of results to return
-    verbose (bool): Whether to return detailed results
-
-    Returns
-    -------
-    dict: Dictionary containing the query results or error information
-
-    Examples
-    --------
-    - Natural language: query_ols("Find Gene Ontology terms related to apoptosis")
-    - Direct endpoint: query_ols(endpoint="/terms?q=cancer&ontology=go&rows=10")
-
-    """
-    # Base URL for OLS API
-    base_url = "https://www.ebi.ac.uk/ols4/api"
-
-    # Ensure we have either a prompt or an endpoint
-    if prompt is None and endpoint is None:
-        return {"error": "Either a prompt or an endpoint must be provided"}
-
-    # If using prompt, parse with Claude
-    if prompt:
-        # Load OLS schema
-        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "ols.pkl")
-        with open(schema_path, "rb") as f:
-            ols_schema = pickle.load(f)
-
-        # Create system prompt template
-        system_template = """
-        You are a biomedical ontology expert specialized in using the Ontology Lookup Service (OLS) API.
-
-        Based on the user's natural language request, determine the appropriate OLS API endpoint and parameters.
-
-        OLS API SCHEMA:
-        {schema}
-
-        Your response should be a JSON object with the following fields:
-        1. "full_url": The complete URL to query (including base URL and parameters)
-        2. "description": A brief description of what the query is doing
-
-        SPECIAL NOTES:
-        - Base URL is "https://www.ebi.ac.uk/ols4/api"
-        - Main endpoints: /ontologies, /terms, /properties, /individuals
-        - For term search, use /terms with q parameter for search query
-        - For specific ontologies, use ontology parameter (go, chebi, hp, mondo, etc.)
-        - Use rows parameter to limit results (max 1000)
-        - For specific terms, use /ontologies/{{ontology}}/terms/{{encoded_iri}}
-        - IRIs must be double URL encoded
-        - Common ontologies: go (Gene Ontology), chebi (Chemical Entities), hp (Human Phenotype)
-
-        Return ONLY the JSON object with no additional text.
-        """
-
-        # Query Claude to generate the API call
-        llm_result = _query_llm_for_api(
-            prompt=prompt,
-            schema=ols_schema,
-            system_template=system_template,
-            api_key=api_key,
-            model=model,
-        )
-
-        if not llm_result["success"]:
-            return llm_result
-
-        # Get the full URL from Claude's response
-        query_info = llm_result["data"]
-        endpoint = query_info.get("full_url", "")
-        description = query_info.get("description", "")
-
-        if not endpoint:
-            return {
-                "error": "Failed to generate a valid endpoint from the prompt",
-                "llm_response": llm_result.get("raw_response", "No response"),
-            }
-    else:
-        # Use provided endpoint directly
-        if endpoint is not None:
-            if endpoint.startswith("/"):
-                endpoint = f"{base_url}{endpoint}"
-            elif not endpoint.startswith("http"):
-                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
-        description = "Direct query to provided endpoint"
-
-    # Add rows parameter if not already specified and it's a search endpoint
-    if "/terms" in endpoint and "rows=" not in endpoint and "size=" not in endpoint:
-        separator = "&" if "?" in endpoint else "?"
-        endpoint += f"{separator}rows={max_results}"
-
-    # Use the common REST API helper function
-    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
-
-    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
-        return _format_query_results(api_result["result"])
-
-    return api_result
-
 
 def query_quickgo(
     prompt=None,
@@ -4784,7 +4671,7 @@ def query_quickgo(
 
     Parameters
     ----------
-    prompt (str, required): Natural language query about Gene Ontology terms, annotations, or gene products
+    prompt (str, optional): Natural language query about Gene Ontology terms, annotations, or gene products
     endpoint (str, optional): Direct QuickGO API endpoint to query
     api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
     model (str): Anthropic model to use for natural language processing
@@ -4799,9 +4686,10 @@ def query_quickgo(
     --------
     - Natural language: query_quickgo("Find GO terms related to apoptosis")
     - Direct endpoint: query_quickgo(endpoint="/ontology/go/search?query=apoptosis&limit=10")
+    - Get specific term: query_quickgo(endpoint="/ontology/go/terms/GO:0006915")
 
     """
-    # Base URL for QuickGO API
+    # Base URL for QuickGO API (corrected from documentation)
     base_url = "https://www.ebi.ac.uk/QuickGO/services"
 
     # Ensure we have either a prompt or an endpoint
@@ -4839,11 +4727,14 @@ def query_quickgo(
         - Main services: /ontology (GO/ECO terms), /annotation (GO annotations), /geneproduct (gene products)
         - For GO term search, use /ontology/go/search with query parameter
         - For specific GO terms, use /ontology/go/terms/{{go_id}}
+        - For GO term relationships, use /ontology/go/terms/{{go_id}}/children, /descendants, /ancestors
         - For annotations, use /annotation/search with various filters
         - For gene products, use /geneproduct/search
         - Use limit parameter to control results (max 100)
         - Common organisms: 9606 (human), 10090 (mouse), 7227 (fly)
         - GO aspects: biological_process, molecular_function, cellular_component
+        - Evidence codes: IEA, IDA, IPI, IMP, IGI, etc.
+        - Qualifiers: enables, involved_in, is_active_in, part_of, etc.
 
         Return ONLY the JSON object with no additional text.
         """

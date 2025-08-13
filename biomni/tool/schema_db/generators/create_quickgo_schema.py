@@ -1,6 +1,7 @@
 import pickle
+import os
 
-# QuickGO API schema
+# QuickGO API schema based on official documentation
 quickgo_schema = {
     'base_url': 'https://www.ebi.ac.uk/QuickGO/services',
     'description': 'QuickGO REST API for Gene Ontology terms, annotations, and gene products',
@@ -45,46 +46,48 @@ quickgo_schema = {
     
     'ontology_parameters': {
         'go_search': {
-            'query': 'Search term for GO terms',
-            'limit': 'Number of results to return (default 25, max 100)',
-            'page': 'Page number for pagination',
-            'usage': 'Filter by usage (Unrestricted, Restricted)',
-            'obsolete': 'Include obsolete terms (true/false)'
+            'query': 'Search term for GO terms (string)',
+            'limit': 'Number of results to return (integer, default 25, max 100)',
+            'page': 'Page number for pagination (integer)',
+            'usage': 'Filter by usage (string: Unrestricted, Restricted)',
+            'obsolete': 'Include obsolete terms (boolean: true/false)'
         },
         'go_relations': {
-            'relations': 'Comma-separated list of relations (is_a, part_of, occurs_in, regulates, etc.)'
+            'relations': 'Comma-separated list of relations (string: is_a, part_of, occurs_in, regulates, etc.)'
         }
     },
     
     'annotation_parameters': {
         'search': {
-            'geneProductId': 'Gene product identifier (e.g., UniProtKB:P12345)',
-            'goId': 'GO term identifier (e.g., GO:0008150)',
-            'goUsage': 'GO term usage (Unrestricted, Restricted)',
-            'goEvidence': 'Evidence code (IEA, IDA, IPI, etc.)',
-            'qualifier': 'Qualifier (enables, involved_in, is_active_in, etc.)',
-            'taxonId': 'NCBI taxonomy identifier',
-            'taxonUsage': 'Taxon usage (exact, descendants)',
-            'assignedBy': 'Annotation provider (e.g., UniProt, MGI)',
-            'extension': 'Annotation extension',
-            'aspect': 'GO aspect (biological_process, molecular_function, cellular_component)',
-            'geneProductType': 'Type of gene product (protein, miRNA, complex)',
-            'geneProductSubset': 'Gene product subset (e.g., Swiss-Prot, TrEMBL)',
-            'proteome': 'Proteome identifier',
-            'limit': 'Number of results to return (default 25, max 100)',
-            'page': 'Page number for pagination'
+            'geneProductId': 'Gene product identifier (string, e.g., UniProtKB:P12345)',
+            'goId': 'GO term identifier (string, e.g., GO:0008150)',
+            'goUsage': 'GO term usage (string: Unrestricted, Restricted)',
+            'goEvidence': 'Evidence code (string: IEA, IDA, IPI, etc.)',
+            'qualifier': 'Qualifier (string: enables, involved_in, is_active_in, etc.)',
+            'taxonId': 'NCBI taxonomy identifier (string, e.g., 9606)',
+            'taxonUsage': 'Taxon usage (string: exact, descendants)',
+            'assignedBy': 'Annotation provider (string, e.g., UniProt, MGI)',
+            'extension': 'Annotation extension (string)',
+            'aspect': 'GO aspect (string: biological_process, molecular_function, cellular_component)',
+            'geneProductType': 'Type of gene product (string: protein, miRNA, complex)',
+            'geneProductSubset': 'Gene product subset (string, e.g., Swiss-Prot, TrEMBL)',
+            'proteome': 'Proteome identifier (string)',
+            'limit': 'Number of results to return (integer, default 25, max 100)',
+            'page': 'Page number for pagination (integer)',
+            'includeFields': 'Fields to include in response (string, comma-separated)',
+            'excludeFields': 'Fields to exclude from response (string, comma-separated)'
         }
     },
     
     'geneproduct_parameters': {
         'search': {
-            'query': 'Search term for gene products',
-            'limit': 'Number of results to return (default 25, max 100)',
-            'page': 'Page number for pagination',
-            'type': 'Gene product type (protein, miRNA, complex)',
-            'taxonId': 'NCBI taxonomy identifier',
-            'taxonUsage': 'Taxon usage (exact, descendants)',
-            'proteome': 'Proteome identifier'
+            'query': 'Search term for gene products (string)',
+            'limit': 'Number of results to return (integer, default 25, max 100)',
+            'page': 'Page number for pagination (integer)',
+            'type': 'Gene product type (string: protein, miRNA, complex)',
+            'taxonId': 'NCBI taxonomy identifier (string, e.g., 9606)',
+            'taxonUsage': 'Taxon usage (string: exact, descendants)',
+            'proteome': 'Proteome identifier (string)'
         }
     },
     
@@ -136,40 +139,54 @@ quickgo_schema = {
     'examples': {
         'search_go_terms': {
             'endpoint': '/ontology/go/search',
-            'parameters': {'query': 'apoptosis', 'limit': 10}
+            'parameters': {'query': 'apoptosis', 'limit': 10},
+            'description': 'Search for GO terms related to apoptosis'
         },
         'get_go_term': {
             'endpoint': '/ontology/go/terms/GO:0006915',
-            'description': 'Get details for apoptotic process'
+            'description': 'Get details for apoptotic process term'
+        },
+        'get_go_children': {
+            'endpoint': '/ontology/go/terms/GO:0006915/children',
+            'description': 'Get child terms of apoptotic process'
         },
         'search_annotations': {
             'endpoint': '/annotation/search',
-            'parameters': {'goId': 'GO:0006915', 'limit': 20}
+            'parameters': {'goId': 'GO:0006915', 'limit': 20},
+            'description': 'Find annotations for apoptotic process'
         },
         'search_protein_annotations': {
             'endpoint': '/annotation/search',
-            'parameters': {'geneProductId': 'UniProtKB:P04637', 'limit': 50}
+            'parameters': {'geneProductId': 'UniProtKB:P04637', 'limit': 50},
+            'description': 'Find annotations for p53 protein'
         },
         'search_human_annotations': {
             'endpoint': '/annotation/search',
-            'parameters': {'taxonId': '9606', 'aspect': 'biological_process', 'limit': 100}
+            'parameters': {'taxonId': '9606', 'aspect': 'biological_process', 'limit': 100},
+            'description': 'Find human biological process annotations'
         },
         'search_gene_products': {
             'endpoint': '/geneproduct/search',
-            'parameters': {'query': 'p53', 'taxonId': '9606', 'limit': 10}
+            'parameters': {'query': 'p53', 'taxonId': '9606', 'limit': 10},
+            'description': 'Search for human p53 gene products'
+        },
+        'search_with_evidence': {
+            'endpoint': '/annotation/search',
+            'parameters': {'goId': 'GO:0006915', 'goEvidence': 'IDA', 'limit': 20},
+            'description': 'Find experimentally verified apoptotic process annotations'
         }
     },
     
     'response_format': {
         'structure': {
-            'numberOfHits': 'Total number of results',
+            'numberOfHits': 'Total number of results (integer)',
             'results': 'Array of result objects',
-            'pageInfo': 'Pagination information'
+            'pageInfo': 'Pagination information object'
         },
         'pagination': {
-            'resultsPerPage': 'Number of results per page',
-            'current': 'Current page number',
-            'total': 'Total number of results'
+            'resultsPerPage': 'Number of results per page (integer)',
+            'current': 'Current page number (integer)',
+            'total': 'Total number of results (integer)'
         }
     },
     
@@ -190,10 +207,28 @@ quickgo_schema = {
         'default_limit': 25,
         'max_limit': 100,
         'max_download_limit': 1000000
+    },
+    
+    'field_selection': {
+        'annotation_fields': [
+            'id', 'geneProductId', 'goId', 'goEvidence', 'qualifier', 'goAspect',
+            'assignedBy', 'taxonId', 'date', 'reference', 'annotationExtension'
+        ],
+        'ontology_fields': [
+            'id', 'name', 'definition', 'synonyms', 'isObsolete', 'aspect',
+            'ancestors', 'children', 'descendants'
+        ],
+        'geneproduct_fields': [
+            'id', 'name', 'synonyms', 'taxonId', 'type', 'proteome'
+        ]
     }
 }
 
-with open('quickgo.pkl', 'wb') as f:
+# Save the schema to the correct location
+schema_dir = os.path.dirname(os.path.abspath(__file__))
+schema_path = os.path.join(schema_dir, '..', 'quickgo.pkl')
+
+with open(schema_path, 'wb') as f:
     pickle.dump(quickgo_schema, f)
 
-print('QuickGO schema created successfully')
+print(f'QuickGO schema created successfully at {schema_path}')
