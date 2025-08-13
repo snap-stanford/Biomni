@@ -4953,6 +4953,8 @@ def query_cellxgene_census(
     --------
     - Natural language: query_cellxgene_census("Get human T cells from lung tissue")
     - Natural language: query_cellxgene_census("Find highly variable genes in mouse brain data")
+    - Natural language: query_cellxgene_census("Get cell embeddings for human brain cells")
+    - Natural language: query_cellxgene_census("Download source H5AD file for dataset ABC123")
 
     """
     # Ensure we have a prompt
@@ -4978,18 +4980,29 @@ def query_cellxgene_census(
     2. "explanation": Brief explanation of what the code does
     3. "key_functions": List of main Census functions used
 
-    SPECIAL NOTES:
+    CRITICAL REQUIREMENTS:
     - Always import cellxgene_census at the top
-    - Use context manager (with statement) for opening Census
+    - ALWAYS use context manager (with statement) for opening Census: "with cellxgene_census.open_soma() as census:"
     - Main organisms: homo_sapiens, mus_musculus
-    - Common obs filters: cell_type, tissue, disease, sex, development_stage
-    - Common var filters: feature_name, feature_biotype
-    - Use get_anndata() for getting expression data as AnnData
-    - Use get_obs() for cell metadata only
-    - Use get_var() for gene metadata only
-    - Query syntax: "column == 'value'" or "column in ['val1', 'val2']"
-    - For machine learning, use experimental.ml functions
+    - Common obs filters: cell_type, tissue, disease, sex, development_stage, assay, dataset_id
+    - Common var filters: feature_name, feature_biotype, feature_id
+    - Use get_anndata() for getting expression data as AnnData object
+    - Use get_obs() for cell metadata only (no expression data)
+    - Use get_var() for gene metadata only (no expression data)
+    - Use get_presence_matrix() for feature presence information
+    - Query syntax: "column == 'value'" or "column in ['val1', 'val2']" or "column != 'value'"
+    - For machine learning workflows, use experimental.ml.pytorch functions
     - For embeddings, use experimental.get_embedding functions
+    - For data download, use get_source_h5ad_uri() or download_source_h5ad()
+    - For versioning, use get_census_version_description() or get_census_version_directory()
+    - For processing, use experimental.pp functions (highly_variable_genes, mean_variance)
+
+    BEST PRACTICES:
+    - Always handle potential errors with try-except blocks
+    - Use descriptive variable names
+    - Add comments explaining complex queries
+    - Consider memory usage for large datasets
+    - Use specific column names when possible for efficiency
 
     Return ONLY the JSON object with no additional text.
     """
