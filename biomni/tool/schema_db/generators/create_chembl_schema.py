@@ -31,7 +31,7 @@ chembl_schema = {
             'filters': [
                 'assay_category', 'assay_cell_type', 'assay_chembl_id', 'assay_organism',
                 'assay_organism__in', 'assay_strain', 'assay_subcellular_fraction', 'assay_test_type',
-                'assay_tissue', 'assay_type', 'assay_variant_accession', 'assay_variant_mutation',
+                'assay_tissue', 'assay_type', 'assay_type__exact', 'assay_variant_accession', 'assay_variant_mutation',
                 'bao_format', 'cell_chembl_id', 'confidence_score', 'curated_by', 'description',
                 'description__icontains', 'document_chembl_id', 'relationship_description',
                 'relationship_type', 'src_assay_id', 'src_id', 'tissue_chembl_id', 'variant_id'
@@ -43,7 +43,7 @@ chembl_schema = {
             'filters': [
                 'level1', 'level1_description', 'level2', 'level2_description', 'level3',
                 'level3_description', 'level4', 'level4_description', 'level5', 'level5_description',
-                'who_name', 'who_name__icontains'
+                'level5__startswith', 'who_name', 'who_name__icontains'
             ]
         },
         'binding_site': {
@@ -67,7 +67,7 @@ chembl_schema = {
             'url': '/cell_line',
             'filters': [
                 'cell_chembl_id', 'cell_name', 'cell_name__icontains', 'cell_source_organism',
-                'cell_source_tissue', 'cell_source_tissue__icontains', 'clo_id', 'efo_id',
+                'cell_source_tissue', 'cell_source_tissue__icontains', 'cell_source_tissue__iendswith', 'clo_id', 'efo_id',
                 'cellosaurus_id', 'cellosaurus_accession_id'
             ]
         },
@@ -100,18 +100,18 @@ chembl_schema = {
             'description': 'Molecule/biotherapeutics information',
             'url': '/molecule',
             'filters': [
-                'availability_type', 'biotherapeutic', 'black_box_warning', 'chebi_par_id',
+                'availability_type', 'atc_classifications__level5__startswith', 'biotherapeutic', 'black_box_warning', 'chebi_par_id',
                 'dosed_ingredient', 'first_approval', 'first_approval__gte', 'first_approval__lte',
                 'helm_notation', 'helm_notation__icontains', 'indication_class', 'inorganic_flag',
                 'max_phase', 'max_phase__gte', 'max_phase__lte', 'molecule_chembl_id',
-                'molecule_properties__acd_most_apka', 'molecule_properties__acd_most_bpka',
+                'molecule_chembl_id__in', 'molecule_properties__acd_most_apka', 'molecule_properties__acd_most_bpka',
                 'molecule_properties__acd_logp', 'molecule_properties__acd_logp__gte',
                 'molecule_properties__acd_logp__lte', 'molecule_properties__alogp',
                 'molecule_properties__alogp__gte', 'molecule_properties__alogp__lte',
                 'molecule_properties__aromatic_rings', 'molecule_properties__full_molformula',
                 'molecule_properties__full_mwt', 'molecule_properties__full_mwt__gte',
-                'molecule_properties__full_mwt__lte', 'molecule_properties__hba',
-                'molecule_properties__hba__gte', 'molecule_properties__hba__lte',
+                'molecule_properties__full_mwt__lte', 'molecule_properties__full_mwt__range',
+                'molecule_properties__hba', 'molecule_properties__hba__gte', 'molecule_properties__hba__lte',
                 'molecule_properties__hbd', 'molecule_properties__hbd__gte',
                 'molecule_properties__hbd__lte', 'molecule_properties__molecular_species',
                 'molecule_properties__mw_freebase', 'molecule_properties__mw_freebase__gte',
@@ -144,7 +144,7 @@ chembl_schema = {
             'filters': [
                 'assay_chembl_id', 'binding_site_chembl_id', 'cell_chembl_id', 'confidence_score',
                 'cross_references', 'organism', 'organism__in', 'pref_name', 'pref_name__icontains',
-                'pref_name__contains', 'protein_classification', 'target_chembl_id',
+                'pref_name__contains', 'pref_name__istartswith', 'pref_name__iregex', 'protein_classification', 'target_chembl_id',
                 'target_components__accession', 'target_components__accession__icontains',
                 'target_components__component_id', 'target_components__component_type',
                 'target_components__db_source', 'target_components__description',
@@ -211,6 +211,8 @@ chembl_schema = {
         'istartswith': 'Case insensitive starts with',
         'endswith': 'Ends with query',
         'iendswith': 'Case insensitive ends with',
+        'regex': 'Regular expression query',
+        'iregex': 'Case insensitive regular expression query',
         'gt': 'Greater than',
         'gte': 'Greater than or equal',
         'lt': 'Less than',
@@ -218,6 +220,74 @@ chembl_schema = {
         'range': 'Within a range of values',
         'in': 'Appears within list of query values',
         'isnull': 'Field is null'
+    },
+    
+    'filter_examples': {
+        'exact_match': {
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/assay?assay_type__exact=B',
+            'description': 'Exact match with query',
+            'filter_types': ['exact', 'iexact']
+        },
+        'wildcard_search': {
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/assay?description__icontains=toxicity',
+            'description': 'Wild card search with query',
+            'filter_types': ['contains', 'icontains']
+        },
+        'starts_with': {
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/target?pref_name__istartswith=serotonin',
+            'description': 'Starts with query',
+            'filter_types': ['startswith', 'istartswith']
+        },
+        'ends_with': {
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/cell_line?cell_source_tissue__iendswith=carcinoma',
+            'description': 'Ends with query',
+            'filter_types': ['endswith', 'iendswith']
+        },
+        'regex_query': {
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/target?pref_name__iregex=(cdk1|cdk2)',
+            'description': 'Regular expression query',
+            'filter_types': ['regex', 'iregex']
+        },
+        'greater_than': {
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/molecule?molecule_properties__full_mwt__gte=100',
+            'description': 'Greater than (or equal)',
+            'filter_types': ['gt', 'gte']
+        },
+        'less_than': {
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/molecule?molecule_properties__alogp__lte=5',
+            'description': 'Less than (or equal)',
+            'filter_types': ['lt', 'lte']
+        },
+        'range_values': {
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/molecule?molecule_properties__full_mwt__range=200,500',
+            'description': 'Within a range of values',
+            'filter_types': ['range']
+        },
+        'in_list': {
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/molecule?molecule_chembl_id__in=CHEMBL25,CHEMBL941,CHEMBL1000',
+            'description': 'Appears within list of query values',
+            'filter_types': ['in']
+        },
+        'null_check': {
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/assay?assay_tissue__isnull=false',
+            'description': 'Field is null',
+            'filter_types': ['isnull']
+        }
+    },
+    
+    'workflow_examples': {
+        'step1_atc_molecules': {
+            'description': 'Return the distinct set of molecules that match ATC codes starting with A10',
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/molecule?atc_classifications__level5__startswith=A10'
+        },
+        'step2_activities': {
+            'description': 'Return activities for specific molecules with pChEMBL value >= 6',
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/activity?molecule_chembl_id=CHEMBL429910&pchembl_value__gte=6'
+        },
+        'step3_target_details': {
+            'description': 'Return additional target data (name, organism, target type, accessions)',
+            'url': 'https://www.ebi.ac.uk/chembl/api/data/target/CHEMBL216'
+        }
     },
     
     'common_filters': {
@@ -229,7 +299,10 @@ chembl_schema = {
         'molecule_properties__mw_freebase__lte': 'Molecular weight less than or equal to',
         'molecule_properties__alogp__lte': 'LogP less than or equal to',
         'molecule_properties__hba__lte': 'Hydrogen bond acceptors less than or equal to',
-        'molecule_properties__hbd__lte': 'Hydrogen bond donors less than or equal to'
+        'molecule_properties__hbd__lte': 'Hydrogen bond donors less than or equal to',
+        'atc_classifications__level5__startswith': 'ATC classification codes starting with specific prefix',
+        'molecule_chembl_id__in': 'Multiple ChEMBL molecule IDs (comma-separated)',
+        'pref_name__iregex': 'Target name using regular expression (case insensitive)'
     },
     
     'examples': {
@@ -243,7 +316,14 @@ chembl_schema = {
         'substructure_search': 'substructure/CN(CCCN)c1cccc2ccccc12',
         'molecule_image': 'image/CHEMBL25.svg',
         'mechanism_of_action': 'mechanism?molecule_chembl_id=CHEMBL25',
-        'protein_classification': 'protein_class?protein_class_desc__icontains=kinase'
+        'protein_classification': 'protein_class?protein_class_desc__icontains=kinase',
+        'atc_diabetes_drugs': 'molecule?atc_classifications__level5__startswith=A10',
+        'multiple_molecules': 'molecule?molecule_chembl_id__in=CHEMBL25,CHEMBL941,CHEMBL1000',
+        'cdk_targets_regex': 'target?pref_name__iregex=(cdk1|cdk2)',
+        'molecular_weight_range': 'molecule?molecule_properties__full_mwt__range=200,500',
+        'toxicity_assays': 'assay?description__icontains=toxicity',
+        'serotonin_targets': 'target?pref_name__istartswith=serotonin',
+        'carcinoma_cell_lines': 'cell_line?cell_source_tissue__iendswith=carcinoma'
     }
 }
 
