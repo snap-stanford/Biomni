@@ -51,6 +51,7 @@ def _query_llm_for_api(prompt, schema, system_template, api_key=None, model="cla
     dict: Dictionary with 'success', 'data' (if successful), 'error' (if failed), and optional 'raw_response'
 
     """
+    llm_text = "No content found"  # Initialize variable
     try:
         # Format the system prompt with schema if provided
         if schema is not None:
@@ -89,7 +90,7 @@ def _query_llm_for_api(prompt, schema, system_template, api_key=None, model="cla
         return {
             "success": False,
             "error": f"Failed to parse LLM response: {str(e)}",
-            "raw_response": llm_text if "llm_text" in locals() else "No content found",
+            "raw_response": llm_text if 'llm_text' in locals() else "No content found",
         }
     except Exception as e:
         return {"success": False, "error": f"Error querying LLM: {str(e)}"}
@@ -2704,10 +2705,11 @@ def query_monarch(
             }
     else:
         # Use provided endpoint directly
-        if endpoint.startswith("/"):
-            endpoint = f"{base_url}{endpoint}"
-        elif not endpoint.startswith("http"):
-            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
         description = "Direct query to Monarch API"
 
     # Add max_results as a query parameter if not already present
@@ -2790,10 +2792,11 @@ def query_openfda(
             }
     else:
         # Use provided endpoint directly
-        if endpoint.startswith("/"):
-            endpoint = f"{base_url}{endpoint}"
-        elif not endpoint.startswith("http"):
-            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
         description = "Direct query to OpenFDA API"
 
     # Add max_results as a query parameter if not already present
@@ -4070,10 +4073,11 @@ def query_pubchem(
             }
     else:
         # Use provided endpoint directly
-        if endpoint.startswith("/"):
-            endpoint = f"{base_url}{endpoint}"
-        elif not endpoint.startswith("http"):
-            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
         description = "Direct query to provided endpoint"
 
     # Rate limiting: allow user to configure or disable; only sleep if last request was too recent
@@ -4153,12 +4157,19 @@ def query_chembl(
 
         SPECIAL NOTES:
         - Base URL is "https://www.ebi.ac.uk/chembl/api/data"
-        - Common resources: molecule, activity, assay, target, mechanism
-        - Use filters like max_phase=4 for approved drugs, assay_type=B for binding assays
-        - For similarity searches use /similarity/{{smiles}}/{{cutoff}}
-        - For substructure searches use /substructure/{{smiles}}
-        - Default format is JSON, can specify .xml, .yaml, .svg for images
+        - Main resources: activity, assay, atc_class, binding_site, biotherapeutic, cell_line, 
+          chembl_id_lookup, document, mechanism, molecule, molecule_form, target, target_component, 
+          protein_class, source
+        - Special endpoints: image/{chembl_id}, substructure/{smiles_or_chembl_id}, 
+          similarity/{smiles_or_chembl_id}/{cutoff}
+        - Common filters: max_phase=4 (approved drugs), assay_type=B (binding), F (functional), 
+          A (ADMET), standard_type (IC50, Ki, EC50), pchembl_value (negative log activity)
+        - Molecular properties: molecule_properties__mw_freebase__lte (MW), 
+          molecule_properties__alogp__lte (LogP), molecule_properties__hba__lte (HBA), 
+          molecule_properties__hbd__lte (HBD)
+        - Default format is JSON, can specify .xml, .yaml, .png, .svg for images
         - Use pagination with limit and offset parameters
+        - For similarity searches, cutoff should be 0-100 (e.g., 80 for 80% similarity)
 
         Return ONLY the JSON object with no additional text.
         """
@@ -4187,10 +4198,11 @@ def query_chembl(
             }
     else:
         # Use provided endpoint directly
-        if endpoint.startswith("/"):
-            endpoint = f"{base_url}{endpoint}"
-        elif not endpoint.startswith("http"):
-            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
         description = "Direct query to provided endpoint"
 
     # Add pagination if not already specified
@@ -4220,7 +4232,7 @@ def query_unichem(
 
     Parameters
     ----------
-    prompt (str, required): Natural language query about chemical cross-references
+    prompt (str, optional): Natural language query about chemical cross-references
     endpoint (str, optional): Direct UniChem API endpoint to query
     api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
     model (str): Anthropic model to use for natural language processing
@@ -4233,11 +4245,14 @@ def query_unichem(
     Examples
     --------
     - Natural language: query_unichem("Find cross-references for aspirin")
-    - Direct endpoint: query_unichem(endpoint="/compounds", data={"compound": "RYYVLZVUVIJVGH-UHFFFAOYSA-N", "sourceID": 1, "type": "inchikey"})
+    - Direct endpoint: query_unichem(endpoint="/compounds")
+    - Compound search: query_unichem(endpoint="/compounds", data={"type": "inchikey", "compound": "LMXNVOREDXZICN-WDSOQIARSA-N"})
+    - Connectivity search: query_unichem(endpoint="/connectivity", data={"type": "inchi", "compound": "InChI=1S/C7H8N4O2/c1-10-5-4(8-3-9-5)6(12)11(2)7(10)13/h3H,1-2H3,(H,8,9)", "searchComponents": True})
+    - Get sources: query_unichem(endpoint="/sources")
 
     """
-    # Base URL for UniChem API
-    base_url = "https://www.ebi.ac.uk/unichem/beta/api/v1"
+    # Base URL for UniChem API (corrected from beta to production)
+    base_url = "https://www.ebi.ac.uk/unichem/api/v1"
 
     # Ensure we have either a prompt or an endpoint
     if prompt is None and endpoint is None:
@@ -4260,18 +4275,20 @@ def query_unichem(
         {schema}
 
         Your response should be a JSON object with the following fields:
-        1. "endpoint": The API endpoint to use (e.g., "/compounds", "/sources")
+        1. "endpoint": The API endpoint to use (e.g., "/compounds", "/sources", "/connectivity")
         2. "method": HTTP method ("GET" or "POST")
         3. "data": POST data if method is POST (null for GET requests)
         4. "description": A brief description of what the query is doing
 
         SPECIAL NOTES:
-        - Base URL is "https://www.ebi.ac.uk/unichem/beta/api/v1"
-        - Most searches use POST method to /compounds endpoint
-        - Common identifier types: inchikey, smiles, inchi
-        - Source IDs: 1=ChEMBL, 2=DrugBank, 5=PubChem, 7=ChEBI, etc.
-        - For compound searches, include compound, sourceID, and type in data
-        - For source information, use GET /sources
+        - Base URL is "https://www.ebi.ac.uk/unichem/api/v1"
+        - Compound searches use POST method to /compounds endpoint
+        - Connectivity searches use POST method to /connectivity endpoint
+        - Source information uses GET method to /sources endpoint
+        - Valid identifier types: uci, inchi, inchikey, sourceID
+        - For compound/connectivity searches, include type and compound (or sourceID if type is sourceID)
+        - For connectivity searches, can include searchComponents boolean parameter
+        - Common source IDs: 1=ChEMBL, 2=DrugBank, 5=PubChem, 7=ChEBI
 
         Return ONLY the JSON object with no additional text.
         """
@@ -4309,6 +4326,9 @@ def query_unichem(
 
     else:
         # Use provided endpoint directly
+        if endpoint is None:
+            return {"error": "Endpoint cannot be None when prompt is not provided"}
+        
         if endpoint.startswith("/"):
             full_url = f"{base_url}{endpoint}"
         elif not endpoint.startswith("http"):
@@ -4331,114 +4351,6 @@ def query_unichem(
         return _format_query_results(api_result["result"])
 
     return api_result
-
-
-def query_drugcentral(
-    prompt=None,
-    endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
-    verbose=True,
-):
-    """Query DrugCentral database using natural language.
-
-    Note: DrugCentral is a PostgreSQL database, not a REST API. This function
-    provides information about DrugCentral and suggests alternative access methods.
-
-    Parameters
-    ----------
-    prompt (str, required): Natural language query about drugs and pharmaceutical data
-    endpoint (str, optional): Not applicable for DrugCentral (database access)
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
-    verbose (bool): Whether to return detailed results
-
-    Returns
-    -------
-    dict: Dictionary containing information about DrugCentral access methods
-
-    Examples
-    --------
-    - Natural language: query_drugcentral("How can I access aspirin data from DrugCentral?")
-
-    """
-    # Load DrugCentral schema
-    schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "drugcentral.pkl")
-    with open(schema_path, "rb") as f:
-        drugcentral_schema = pickle.load(f)
-
-    # Since DrugCentral is a database, not a REST API, provide guidance
-    if prompt:
-        # Create system prompt template
-        system_template = """
-        You are a pharmaceutical database expert specialized in DrugCentral.
-
-        DrugCentral is a PostgreSQL database, not a REST API. Based on the user's query,
-        provide helpful information about how to access DrugCentral data.
-
-        DRUGCENTRAL SCHEMA:
-        {schema}
-
-        Your response should be a JSON object with the following fields:
-        1. "access_method": The recommended way to access the data
-        2. "description": A detailed explanation of how to get the requested information
-        3. "alternatives": List of alternative access methods
-        4. "example_operation": Suggested operation from the schema if applicable
-
-        SPECIAL NOTES:
-        - DrugCentral requires database connection credentials
-        - Default public access: dbhost=unmtid-dbs.net, dbport=5433, dbname=drugcentral
-        - Available operations include: list_products, get_structure_by_synonym, search_indications
-        - Smart API interface available at https://drugcentral.org/OpenAPI
-        - Docker container available for local deployment
-        - Data downloads available at https://drugcentral.org/download
-
-        Return ONLY the JSON object with no additional text.
-        """
-
-        # Query Claude to generate guidance
-        llm_result = _query_llm_for_api(
-            prompt=prompt,
-            schema=drugcentral_schema,
-            system_template=system_template,
-            api_key=api_key,
-            model=model,
-        )
-
-        if not llm_result["success"]:
-            return llm_result
-
-        # Get the guidance from Claude's response
-        guidance_info = llm_result["data"]
-
-        result = {
-            "success": True,
-            "database_type": "PostgreSQL",
-            "access_method": guidance_info.get("access_method", "Database connection required"),
-            "description": guidance_info.get("description", "DrugCentral is a PostgreSQL database"),
-            "alternatives": guidance_info.get("alternatives", []),
-            "example_operation": guidance_info.get("example_operation", ""),
-            "connection_info": drugcentral_schema.get("default_connection", {}),
-            "smart_api": drugcentral_schema.get("alternative_access", {}).get("smart_api", ""),
-            "download_url": drugcentral_schema.get("alternative_access", {}).get("download", ""),
-            "docker_url": drugcentral_schema.get("alternative_access", {}).get("docker", ""),
-            "note": "DrugCentral requires database connection. Consider using the Smart API interface or downloading the data for local use."
-        }
-
-        if not verbose:
-            return {
-                "access_method": result["access_method"],
-                "description": result["description"],
-                "smart_api": result["smart_api"]
-            }
-
-        return result
-
-    else:
-        return {
-            "error": "A prompt is required for DrugCentral queries",
-            "info": "DrugCentral is a PostgreSQL database. Please provide a query about pharmaceutical data."
-        }
 
 
 def query_clinicaltrials(
@@ -4534,10 +4446,11 @@ def query_clinicaltrials(
             }
     else:
         # Use provided endpoint directly
-        if endpoint.startswith("/"):
-            endpoint = f"{base_url}{endpoint}"
-        elif not endpoint.startswith("http"):
-            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
         description = "Direct query to provided endpoint"
 
     # Add pageSize if not already specified and not a specific study lookup
@@ -4649,10 +4562,11 @@ def query_dailymed(
             }
     else:
         # Use provided endpoint directly
-        if endpoint.startswith("/"):
-            endpoint = f"{base_url}{endpoint}"
-        elif not endpoint.startswith("http"):
-            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
         description = "Direct query to provided endpoint"
 
         # Add format extension if not present
@@ -4761,10 +4675,11 @@ def query_ols(
             }
     else:
         # Use provided endpoint directly
-        if endpoint.startswith("/"):
-            endpoint = f"{base_url}{endpoint}"
-        elif not endpoint.startswith("http"):
-            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
         description = "Direct query to provided endpoint"
 
     # Add rows parameter if not already specified and it's a search endpoint
@@ -4881,10 +4796,11 @@ def query_quickgo(
             }
     else:
         # Use provided endpoint directly
-        if endpoint.startswith("/"):
-            endpoint = f"{base_url}{endpoint}"
-        elif not endpoint.startswith("http"):
-            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
         description = "Direct query to provided endpoint"
 
     # Add limit parameter if not already specified
@@ -5018,10 +4934,11 @@ def query_encode(
             }
     else:
         # Use provided endpoint directly
-        if endpoint.startswith("/"):
-            endpoint = f"{base_url}{endpoint}"
-        elif not endpoint.startswith("http"):
-            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
         description = "Direct query to provided endpoint"
 
     # Ensure format=json is included for API access

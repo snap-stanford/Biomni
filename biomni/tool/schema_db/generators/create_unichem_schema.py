@@ -1,35 +1,49 @@
 import pickle
 
-# UniChem schema
+# UniChem schema based on official API documentation
 unichem_schema = {
-    'base_url': 'https://www.ebi.ac.uk/unichem/beta/api/v1',
+    'base_url': 'https://www.ebi.ac.uk/unichem/api/v1',
     'description': 'UniChem 2.0 REST API for chemical cross-references',
-    'docs_url': 'https://www.ebi.ac.uk/unichem/api/docs',
+    'docs_url': 'https://chembl.gitbook.io/unichem/api/',
     'license': 'CC0 (service/data)',
-    'method': 'POST',
     
     'endpoints': {
-        'compounds': {
-            'description': 'Search for compounds by InChI Key, SMILES, or other identifiers',
-            'url': '/compounds',
-            'method': 'POST',
-            'parameters': {
-                'compound': 'The compound identifier (InChI Key, SMILES, etc.)',
-                'sourceID': 'Source database ID (1=ChEMBL, 2=DrugBank, etc.)',
-                'type': 'Type of identifier (inchikey, smiles, etc.)'
-            }
-        },
         'sources': {
             'description': 'Get information about available data sources',
             'url': '/sources',
-            'method': 'GET'
+            'method': 'GET',
+            'parameters': {
+                'source_id': 'Optional: Specific source ID to get details for (e.g., /sources/1)'
+            }
+        },
+        'compounds': {
+            'description': 'Search for compounds by InChI Key, InChI, source compound ID, or UCI',
+            'url': '/compounds',
+            'method': 'POST',
+            'parameters': {
+                'type': 'Type of identifier: uci, inchi, inchikey, or sourceID',
+                'compound': 'Compound representation (ignored when type is sourceID)',
+                'sourceID': 'Unique ID on the source database (only when type is sourceID)'
+            }
+        },
+        'connectivity': {
+            'description': 'Find compounds by InChI connectivity layers (formula, connections, H atoms, charge)',
+            'url': '/connectivity',
+            'method': 'POST',
+            'parameters': {
+                'type': 'Type of identifier: uci, inchi, inchikey, or sourceID',
+                'compound': 'Compound representation (ignored when type is sourceID)',
+                'sourceID': 'Unique ID on the source database (only when type is sourceID)',
+                'searchComponents': 'Boolean: whether to use individual components of mixtures (default: false)'
+            }
         }
     },
     
     'identifier_types': [
-        'inchikey',
-        'smiles',
-        'inchi'
+        'uci',           # Unique Compound ID
+        'inchi',         # InChI string
+        'inchikey',      # InChI Key
+        'sourceID'       # Source compound ID
     ],
     
     'common_sources': {
@@ -95,22 +109,41 @@ unichem_schema = {
             'endpoint': '/compounds',
             'method': 'POST',
             'data': {
-                'compound': 'RYYVLZVUVIJVGH-UHFFFAOYSA-N',
-                'sourceID': 1,
-                'type': 'inchikey'
+                'type': 'inchikey',
+                'compound': 'LMXNVOREDXZICN-WDSOQIARSA-N'
             }
         },
-        'search_by_smiles': {
+        'search_by_inchi': {
             'endpoint': '/compounds',
             'method': 'POST',
             'data': {
-                'compound': 'CC(=O)OC1=CC=CC=C1C(=O)O',
-                'sourceID': 1,
-                'type': 'smiles'
+                'type': 'inchi',
+                'compound': 'InChI=1S/C7H8N4O2/c1-10-5-4(8-3-9-5)6(12)11(2)7(10)13/h3H,1-2H3,(H,8,9)'
             }
         },
-        'get_sources': {
+        'search_by_source_id': {
+            'endpoint': '/compounds',
+            'method': 'POST',
+            'data': {
+                'type': 'sourceID',
+                'sourceID': 'CHEMBL25'
+            }
+        },
+        'connectivity_search': {
+            'endpoint': '/connectivity',
+            'method': 'POST',
+            'data': {
+                'type': 'inchi',
+                'compound': 'InChI=1S/C7H8N4O2.C2H7NO/c1-10-5-4(8-3-9-5)6(12)11(2)7(10)13;3-1-2-4/h3H,1-2H3,(H,8,9);4H,1-3H2',
+                'searchComponents': True
+            }
+        },
+        'get_all_sources': {
             'endpoint': '/sources',
+            'method': 'GET'
+        },
+        'get_specific_source': {
+            'endpoint': '/sources/1',
             'method': 'GET'
         }
     }
