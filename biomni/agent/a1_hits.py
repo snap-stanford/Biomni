@@ -26,13 +26,94 @@ from .a1 import AgentState
 from biomni.llm import get_llm
 from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
-from langchain_aws import ChatBedrock
 
 
 class A1_HITS(A1):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.timer = {"generate": 0.0, "execute": 0.0, "error_fixing": 0.0}
+
+    def _initialize_error_fixing_history(self, state):
+        """Initialize error fixing history in state if not present."""
+        if "error_fixing_history" not in state:
+            state["error_fixing_history"] = []
+
+    def _setup_error_fixing_retriever(self):
+        """Set up and return the FAISS retriever for error fixing."""
+        # Constants for configuration
+        RAG_DB_PATH = "/workdir_efs/jaechang/work2/biomni_hits_test/rag_db/faiss_index"
+        SEARCH_K = 10
+        SCORE_THRESHOLD = 0.7
+
+        embeddings = BedrockEmbeddings(normalize=True)
+
+        db = FAISS.load_local(
+            RAG_DB_PATH,
+            embeddings,
+            allow_dangerous_deserialization=True,
+        )
+
+        return db.as_retriever(
+            search_type="similarity_score_threshold",
+            search_kwargs={"k": SEARCH_K, "score_threshold": SCORE_THRESHOLD},
+        )
+
+    def _get_error_fixing_llm(self):
+        """Get the LLM model for error fixing."""
+        # Using mistral-small-2506 as the primary model
+        # Alternative models are commented out for future reference
+        return get_llm(model="mistral-small-2506")
+        # Alternative options:
+        # return get_llm(model="us.anthropic.claude-3-5-sonnet-20240620-v1:0")
+        # return ChatBedrock(model="us.anthropic.claude-3-5-sonnet-20240620-v1:0")
+
+    def _create_qa_chain(self, llm, retriever):
+        """Create and return the conversational retrieval chain."""
+        return ConversationalRetrievalChain.from_llm(
+            llm,
+            retriever,
+            response_if_no_docs_found="",
+        )
+
+    def _create_error_fixing_prompt(self, code, output):
+        """Create the error fixing prompt with code and output."""
+        return f"""I encountered an error while executing the code.
+
+1. Your purpose is to fix errors based on database queries only.
+If you cannot obtain useful and relevant information from the database query, DO NOT provide any response.
+Only answer using information retrieved from the database - DO NOT use your general knowledge.
+
+2. In addition to the error line, check subsequent lines of code that may also contain potential errors.
+Provide fix suggestions for these lines as well, but only based on database query results.
+
+Provide a concise solution. Keep your answer short and focused.
+If possible, don't modify the entire code, just provide the parts that need to be fixed and corresponding solution.
+
+Code:
+{code}
+======================
+Output:
+{output}
+        """
+
+    def _get_error_fixing_answer(self, qa_chain, question, state):
+        """Get the error fixing answer from the QA chain."""
+        try:
+            result = qa_chain.invoke(
+                {"question": question, "chat_history": state["error_fixing_history"]}
+            )
+            return result["answer"]
+        except Exception as e:
+            # Fallback in case of retrieval failure
+            return f"Error fixing retrieval failed: {str(e)}"
+
+    def _update_error_fixing_metrics(self, start_time, question, answer, state):
+        """Update timing metrics and error fixing history."""
+        end_time = time.time()
+        self.timer["error_fixing"] += end_time - start_time
+
+        # Update conversation history
+        state["error_fixing_history"].extend([question, answer])
 
     def go(self, prompt, additional_system_prompt=None):
         """Execute the agent with the given prompt.
@@ -302,55 +383,34 @@ class A1_HITS(A1):
             return state
 
         def error_fixing(code, output, state):
-            t1 = time.time()
-            if "error_fixing_history" not in state:
-                state["error_fixing_history"] = []
-            embeddings = BedrockEmbeddings(normalize=True)
-
-            db = FAISS.load_local(
-                "/workdir_efs/jaechang/work2/biomni_hits_test/rag_db/faiss_index",
-                embeddings,
-                allow_dangerous_deserialization=True,
-            )
-            retriever = db.as_retriever(
-                search_type="similarity_score_threshold",
-                search_kwargs={"k": 10, "score_threshold": 0.5},
-            )
-            llm = get_llm(model="mistral-small-2506")
-            # llm = get_llm(model="us.anthropic.claude-3-5-sonnet-20240620-v1:0")
-            # llm = ChatBedrock(
-            #     model="us.anthropic.claude-3-5-sonnet-20240620-v1:0",
-            # )
-            qa = ConversationalRetrievalChain.from_llm(
-                llm,
-                retriever,
-                response_if_no_docs_found="",
-            )
-            question = f"""I encountered an error while executing the code. 
-
-1. Your purpose is to fix errors based on database queries only. 
-If you cannot obtain useful and relevant information from the database query, DO NOT provide any response.
-Only answer using information retrieved from the database - DO NOT use your general knowledge.
-
-2. In addition to the error line, check subsequent lines of code that may also contain potential errors.
-Provide fix suggestions for these lines as well, but only based on database query results.
-
-Provide a concise solution. Keep your answer short and focused.
-If possible, don't modify the entire code, just provide the parts that need to be fixed and corresponding solution.
-
-Code:
-{code}
-======================
-Output:
-{output}
             """
-            answer = qa.invoke(
-                {"question": question, "chat_history": state["error_fixing_history"]}
-            )["answer"]
-            t2 = time.time()
-            self.timer["error_fixing"] += t2 - t1
-            state["error_fixing_history"].append(question)
-            state["error_fixing_history"].append(answer)
+            Provides error fixing suggestions using RAG-based retrieval.
+
+            Args:
+                code: The code that caused the error
+                output: The error output/message
+                state: The current agent state
+
+            Returns:
+                str: Error fixing suggestion from the retrieval system
+            """
+            start_time = time.time()
+
+            # Initialize error fixing history if not present
+            self._initialize_error_fixing_history(state)
+
+            # Set up retrieval components
+            retriever = self._setup_error_fixing_retriever()
+            llm = self._get_error_fixing_llm()
+            qa_chain = self._create_qa_chain(llm, retriever)
+
+            # Generate and execute query
+            question = self._create_error_fixing_prompt(code, output)
+            answer = self._get_error_fixing_answer(qa_chain, question, state)
+
+            # Update timing and history
+            self._update_error_fixing_metrics(start_time, question, answer, state)
+
             return answer
 
         def routing_function(
@@ -439,7 +499,6 @@ Output:
             )
         workflow.add_edge("execute", "generate")
         workflow.add_edge(START, "generate")
-
         # Compile the workflow
         self.app = workflow.compile()
         self.checkpointer = MemorySaver()

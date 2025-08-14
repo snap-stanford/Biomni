@@ -39,3 +39,5 @@ openpyxl
 hdbscan
 gseapy
 gget
+pymed
+scholarly
