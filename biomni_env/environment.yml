@@ -39,4 +39,8 @@ dependencies:
       - pytest
       - transformers
       - sentencepiece
+      - mcp
+      - tooluniverse
       - python-dotenv
+      - langchain_google_genai
+      - langchain_ollama

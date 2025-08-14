@@ -24,11 +24,18 @@ bash setup.sh
 If you already installed the base version, and just wants to add the additional packages in the new release, you can simply do:
 
 ```bash
-bash new_software_v004.sh
+bash new_software_v005.sh
 ```
 
 Note: we have only tested this setup.sh script with Ubuntu 22.04, 64 bit.
 
+- (c) If you want to use a reduced conda environment without R or CLI tools, run the following script:
+
+```bash
+conda env create -f fixed_env.yml
+```
+
+This contains most of the packages from environment.yml and bio_env.yml, and requires a disk of at elast 13GB quota.
 
 3. Lastly, to activate the biomni environment:
 ```bash
