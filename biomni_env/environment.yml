@@ -20,11 +20,10 @@ dependencies:
       - gradio
       - langchain
       - langgraph==0.3.18
-      - langchain_openai
-      - langchain_anthropic
-      - langchain_community
-      - langchain-google-genai
-      - langchain_ollama
+      - langchain-openai
+      - langchain-anthropic
+      - langchain-ollama
+      - langchain-community
       - openai
       - beautifulsoup4
       - lxml
@@ -42,5 +41,3 @@ dependencies:
       - mcp
       - tooluniverse
       - python-dotenv
-      - langchain_google_genai
-      - langchain_ollama

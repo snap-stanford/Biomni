@@ -41,3 +41,21 @@ This contains most of the packages from environment.yml and bio_env.yml, and req
 ```bash
 conda activate biomni_e1
 ```
+
+#### 📦 Langchain Package Support
+
+The Biomni environment comes with a minimal set of langchain packages by default:
+- `langchain-openai` - for OpenAI model support
+- `langchain-anthropic` - for Anthropic model support
+- `langchain-ollama` - for Ollama model support
+
+If you need support for other external models or services, you'll need to install additional langchain packages manually. For example:
+
+```bash
+# For AWS Bedrock support
+pip install langchain-aws
+
+# For Google Gemini support
+pip install langchain-google-genai
+
+```

@@ -2,13 +2,7 @@ import os
 from typing import Literal, Optional
 
 import openai
-from langchain_anthropic import ChatAnthropic
-
-# from langchain_aws import ChatBedrock
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_ollama import ChatOllama
-from langchain_openai import AzureChatOpenAI, ChatOpenAI
 
 SourceType = Literal["OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Groq", "Custom"]
 ALLOWED_SOURCES: set[str] = set(SourceType.__args__)
@@ -77,8 +71,21 @@ def get_llm(
 
     # Create appropriate model based on source
     if source == "OpenAI":
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-openai package is required for OpenAI models. Install with: pip install langchain-openai"
+            )
         return ChatOpenAI(model=model, temperature=temperature, stop_sequences=stop_sequences)
+
     elif source == "AzureOpenAI":
+        try:
+            from langchain_openai import AzureChatOpenAI
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-openai package is required for Azure OpenAI models. Install with: pip install langchain-openai"
+            )
         API_VERSION = "2024-12-01-preview"
         model = model.replace("azure-", "")
         return AzureChatOpenAI(
@@ -88,13 +95,21 @@ def get_llm(
             openai_api_version=API_VERSION,
             temperature=temperature,
         )
+
     elif source == "Anthropic":
+        try:
+            from langchain_anthropic import ChatAnthropic
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-anthropic package is required for Anthropic models. Install with: pip install langchain-anthropic"
+            )
         return ChatAnthropic(
             model=model,
             temperature=temperature,
             max_tokens=8192,
             stop_sequences=stop_sequences,
         )
+
     elif source == "Gemini":
         # If you want to use ChatGoogleGenerativeAI, you need to pass the stop sequences upon invoking the model.
         # return ChatGoogleGenerativeAI(
@@ -102,6 +117,12 @@ def get_llm(
         #     temperature=temperature,
         #     google_api_key=api_key,
         # )
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-openai package is required for Gemini models. Install with: pip install langchain-openai"
+            )
         return ChatOpenAI(
             model=model,
             temperature=temperature,
@@ -109,7 +130,14 @@ def get_llm(
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             stop_sequences=stop_sequences,
         )
+
     elif source == "Groq":
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-openai package is required for Groq models. Install with: pip install langchain-openai"
+            )
         return ChatOpenAI(
             model=model,
             temperature=temperature,
@@ -117,20 +145,40 @@ def get_llm(
             base_url="https://api.groq.com/openai/v1",
             stop_sequences=stop_sequences,
         )
+
     elif source == "Ollama":
+        try:
+            from langchain_ollama import ChatOllama
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-ollama package is required for Ollama models. Install with: pip install langchain-ollama"
+            )
         return ChatOllama(
             model=model,
             temperature=temperature,
         )
 
-    # elif source == "Bedrock":
-    #     return ChatBedrock(
-    #         model=model,
-    #         temperature=temperature,
-    #         stop_sequences=stop_sequences,
-    #         region_name=os.getenv("AWS_REGION", "us-east-1"),
-    #     )
+    elif source == "Bedrock":
+        try:
+            from langchain_aws import ChatBedrock
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-aws package is required for Bedrock models. Install with: pip install langchain-aws"
+            )
+        return ChatBedrock(
+            model=model,
+            temperature=temperature,
+            stop_sequences=stop_sequences,
+            region_name=os.getenv("AWS_REGION", "us-east-1"),
+        )
+
     elif source == "Custom":
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-openai package is required for custom models. Install with: pip install langchain-openai"
+            )
         # Custom LLM serving such as SGLang. Must expose an openai compatible API.
         assert base_url is not None, "base_url must be provided for customly served LLMs"
         llm = ChatOpenAI(
@@ -142,6 +190,7 @@ def get_llm(
             api_key=api_key,
         )
         return llm
+
     else:
         raise ValueError(
             f"Invalid source: {source}. Valid options are 'OpenAI', 'AzureOpenAI', 'Anthropic', 'Gemini', 'Groq', 'Bedrock', or 'Ollama'"

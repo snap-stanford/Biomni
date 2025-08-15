@@ -183,7 +183,7 @@ dependencies:
   - pillow=11.3.0
   - pip=25.2
   - pixman=0.46.4
-  - plannotate=1.2.0
+  # - plannotate=1.2.0
   - prometheus-cpp=1.3.0
   - prompt-toolkit=3.0.51
   - protobuf=6.31.1
@@ -437,7 +437,7 @@ dependencies:
       - langchain-anthropic==0.3.18
       - langchain-community==0.3.27
       - langchain-core==0.3.72
-      - langchain-google-genai==2.1.8
+      # - langchain-google-genai==2.1.8
       - langchain-ollama==0.3.6
       - langchain-openai==0.3.28
       - langchain-text-splitters==0.3.9
