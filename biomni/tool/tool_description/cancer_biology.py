@@ -171,4 +171,72 @@ description = [
             }
         ],
     },
+    {
+        "description": "CNVkit-based copy number workflow performing CNV segmentation, purity & ploidy approximation, simplified HRD-style metrics, and focal amplification/deletion detection in selected genes.",
+        "name": "analyze_copy_number_purity_ploidy_and_focal_events",
+        "optional_parameters": [
+            {
+                "name": "normal_bam",
+                "type": "str",
+                "default": None,
+                "description": "Path to matched normal BAM (recommended for CNVkit)",
+            },
+            {
+                "name": "output_dir",
+                "type": "str",
+                "default": "cn_analysis_results",
+                "description": "Directory to store CNVkit workflow outputs",
+            },
+            {
+                "name": "targets_bed",
+                "type": "str",
+                "default": None,
+                "description": "BED file of target regions for CNVkit (panel/exome)",
+            },
+            {
+                "name": "antitargets_bed",
+                "type": "str",
+                "default": None,
+                "description": "BED file of antitarget regions for CNVkit",
+            },
+            {
+                "name": "gene_bed",
+                "type": "str",
+                "default": None,
+                "description": "Gene BED (chrom, start, end, gene) for focal event annotation",
+            },
+            {
+                "name": "focal_genes",
+                "type": "list[str]",
+                "default": None,
+                "description": "Genes to highlight for focal events (defaults: MYC, ERBB2, CDKN2A)",
+            },
+            {
+                "name": "log2_amp_threshold",
+                "type": "float",
+                "default": 1.0,
+                "description": "Log2 ratio threshold for focal amplification calls",
+            },
+            {
+                "name": "log2_del_threshold",
+                "type": "float",
+                "default": -1.0,
+                "description": "Log2 ratio threshold for focal deep deletion calls",
+            },
+        ],
+        "required_parameters": [
+            {
+                "name": "tumor_bam",
+                "type": "str",
+                "default": None,
+                "description": "Path to tumor BAM (indexed)",
+            },
+            {
+                "name": "reference_genome",
+                "type": "str",
+                "default": None,
+                "description": "Path to reference genome FASTA",
+            },
+        ],
+    },
 ]
