@@ -91,6 +91,7 @@ library_content_dict = {
     "pyliftover": "[Python Package] A Python implementation of UCSC liftOver tool for converting genomic coordinates between genome assemblies.",
     "biopandas": "[Python Package] A package that provides pandas DataFrames for working with molecular structures and biological data.",
     "biotite": "[Python Package] A comprehensive library for computational molecular biology, providing tools for sequence analysis, structure analysis, and more.",
+    "lazyslide": "[Python Package] A Python framework that brings interoperable, reproducible whole slide image analysis, enabling seamless histopathology workflows from preprocessing to deep learning.",
     # Genomics & Variant Analysis (Python)
     "gget": "[Python Package] A toolkit for accessing genomic databases and retrieving sequences, annotations, and other genomic data.",
     "lifelines": "[Python Package] A complete survival analysis library for fitting models, plotting, and statistical tests.",
