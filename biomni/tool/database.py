@@ -2677,7 +2677,7 @@ def query_openfda(
             return llm_result
         query_info = llm_result["data"]
         endpoint = query_info.get("full_url", "")
-        description = query_info.get("description", "")
+        query_info.get("description", "")
         if not endpoint:
             return {
                 "error": "Failed to generate a valid endpoint from the prompt",
@@ -2689,7 +2689,6 @@ def query_openfda(
             endpoint = f"{base_url}{endpoint}"
         elif not endpoint.startswith("http"):
             endpoint = f"{base_url}/{endpoint.lstrip('/')}"
-        description = "Direct query to OpenFDA API"
 
     # Add max_results as a query parameter if not already present
     if "?" in endpoint:
@@ -2697,6 +2696,139 @@ def query_openfda(
             endpoint += f"&limit={max_results}"
     else:
         endpoint += f"?limit={max_results}"
+
+
+def query_clinicaltrials(
+    prompt: str | None = None,
+    endpoint: str | None = None,
+    term: str | None = None,
+    status: str | None = None,
+    condition: str | None = None,
+    intervention: str | None = None,
+    location: str | None = None,
+    phase: str | None = None,
+    page_size: int = 10,
+    max_pages: int = 1,
+    page_token: str | None = None,
+    api_key: str | None = None,
+    model: str = "claude-3-5-haiku-20241022",
+    verbose: bool = True,
+):
+    """Query ClinicalTrials.gov API for clinical studies.
+
+    Modes:
+    - Direct URL: set `endpoint` to a full URL or a path (e.g., "/studies?query.term=breast%20cancer").
+    - Structured params: provide `term`, `status`, `condition`, etc.
+    - Natural language: provide `prompt` and the function will infer structured params.
+
+    Returns a dict with aggregated results across pages (up to `max_pages`).
+    """
+    base_url = "https://clinicaltrials.gov/api/v2"
+
+    # If natural language prompt is provided, ask LLM to produce parameters
+    if prompt and not endpoint and not term:
+        system_template = (
+            "You translate natural language into ClinicalTrials.gov API parameters.\n"
+            "Return ONLY a JSON object with keys among: \n"
+            '{"term": str, "status": str, "condition": str, "intervention": str, "location": str, "phase": str, "page_size": int}.\n'
+            "Do not include explanations. Keep values concise (e.g., status like 'RECRUITING', phase like 'PHASE3')."
+        )
+
+        llm_result = _query_llm_for_api(
+            prompt=prompt,
+            schema=None,
+            system_template=system_template,
+            api_key=api_key,
+            model=model,
+        )
+        if llm_result.get("success"):
+            mapping = llm_result["data"] or {}
+            term = mapping.get("term", term)
+            status = mapping.get("status", status)
+            condition = mapping.get("condition", condition)
+            intervention = mapping.get("intervention", intervention)
+            location = mapping.get("location", location)
+            phase = mapping.get("phase", phase)
+            page_size = int(mapping.get("page_size", page_size) or page_size)
+
+    # If endpoint provided, normalize to full URL
+    description = "ClinicalTrials.gov studies query"
+    if endpoint:
+        if endpoint.startswith("/"):
+            endpoint = f"{base_url}{endpoint}"
+        elif not endpoint.startswith("http"):
+            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+
+        api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+        if not verbose and api_result.get("success") and "result" in api_result:
+            return _format_query_results(api_result["result"])
+        return api_result
+
+    # Otherwise build params for /studies
+    if not term and not condition and not intervention and not status:
+        return {"error": "Provide at least one of: prompt, term, condition, intervention, status, or a direct endpoint"}
+
+    url = f"{base_url}/studies"
+
+    def build_params(token: str | None) -> dict[str, Any]:
+        params: dict[str, Any] = {"pageSize": max(1, min(int(page_size), 100))}
+        if term:
+            params["query.term"] = term
+        if status:
+            params["filter.overallStatus"] = status
+        if condition:
+            params["filter.condition"] = condition
+        if intervention:
+            params["filter.intervention"] = intervention
+        if location:
+            params["filter.location"] = location
+        if phase:
+            params["filter.phase"] = phase
+        if token:
+            params["pageToken"] = token
+        return params
+
+    aggregated = {
+        "success": True,
+        "query_info": {
+            "endpoint": url,
+            "description": description,
+            "parameters": {
+                "term": term,
+                "status": status,
+                "condition": condition,
+                "intervention": intervention,
+                "location": location,
+                "phase": phase,
+                "page_size": page_size,
+                "max_pages": max_pages,
+            },
+        },
+        "result": {"studies": [], "page_count": 0},
+    }
+
+    current_token = page_token
+    pages_fetched = 0
+    while pages_fetched < max_pages:
+        params = build_params(current_token)
+        page_resp = _query_rest_api(endpoint=url, method="GET", params=params, description=description)
+        if not page_resp.get("success"):
+            return page_resp
+
+        data = page_resp.get("result") or {}
+        studies = data.get("studies") or data.get("items") or []
+        aggregated["result"]["studies"].extend(studies)
+        pages_fetched += 1
+        aggregated["result"]["page_count"] = pages_fetched
+
+        # Continue if next token present
+        current_token = data.get("nextPageToken") or data.get("nextPage") or None
+        if not current_token:
+            break
+
+    if not verbose:
+        return _format_query_results(aggregated)
+    return aggregated
 
     api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
