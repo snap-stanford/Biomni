@@ -858,6 +858,7 @@ def read_module2api():
         "pathology",
         "pharmacology",
         "physiology",
+        "preprocessing",
         "synthetic_biology",
         "systems_biology",
         "support_tools",
