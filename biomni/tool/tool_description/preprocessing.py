@@ -5,7 +5,7 @@ This module contains the API descriptions for all preprocessing tools,
 formatted for the Biomni agent system.
 """
 
-preprocessing_tools = [
+description = [
     {
         "name": "load_and_inspect_data",
         "description": "Load dataset from various formats (CSV, Excel, JSON, Parquet) and provide comprehensive inspection including shape, data types, missing values, duplicates, and statistical summaries.",
