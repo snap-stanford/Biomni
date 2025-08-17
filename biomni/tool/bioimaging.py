@@ -8,17 +8,6 @@ import torch
 import torch.serialization
 from nnunet.inference.predict import predict_from_folder
 
-# TODO: This code should ensure prerequisites are met to run this, and call this function with the correct params
-# - The correct model weights need to be downloaded for `task_id`
-# - Formatted data with correct filenames (eg `BRAT_0000.nii.gz`)
-# - Should call `segment_with_nn_unet` with the correct parameters --
-#   some of these probably need to be specified by the user, while some
-#   can probably be inferred automatically
-#   - image_path (user-specified)
-#   - output_dir (user-specified)
-#   - task_id (automatically)
-#   - model_type (automatically)
-#   - folds (automatically)
 
 # Apply safe globals for torch serialization
 torch.serialization.add_safe_globals([tuple, list, dict, set, int, float, str, bytes, bytearray])
