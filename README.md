@@ -132,6 +132,44 @@ export LLM_SOURCE="Groq" # Optional: set this to use models served by Groq
 
 Some Python packages are not installed by default in the Biomni environment due to dependency conflicts. If you need these features, you must install the packages manually and may need to uncomment relevant code in the codebase. See the up-to-date list and details in [docs/known_conflicts.md](./docs/known_conflicts.md).
 
+### Configuration Management
+
+Biomni now includes a centralized configuration system (`biomni.config.BiomniConfig`) that provides a clean way to manage settings across the entire application. This allows you to set defaults for model selection, timeouts, data paths, and more without modifying code or passing parameters repeatedly. The configuration system maintains full backward compatibility - all existing code continues to work exactly as before.
+
+**Global Configuration**: The system uses a global default configuration that automatically applies to all database query functions and LLM operations. You can modify this global config to change defaults across the entire application:
+
+```python
+from biomni.config import default_config
+from biomni.agent import A1
+
+# Modify global defaults (affects all database queries and LLM calls)
+default_config.llm_model = "claude-3-5-sonnet-20241022"
+default_config.timeout_seconds = 1200
+
+# All agents and database functions will now use these defaults
+agent = A1()  # Uses global config defaults
+```
+
+**Custom Configuration**: You can also create custom configs for specific agent instances:
+
+```python
+from biomni.config import BiomniConfig
+from biomni.agent import A1
+
+# Create a custom configuration for this agent only
+config = BiomniConfig(
+    llm_model="gpt-4",
+    timeout_seconds=1200,
+    data_path="./my_data"
+)
+
+# Initialize agent with custom config
+agent = A1(config=config)
+
+# Or override specific settings
+agent = A1(config=config, llm="claude-sonnet-4-20250514")  # llm parameter overrides config
+```
+
 ### Basic Usage
 
 Once inside the environment, you can start using Biomni:
