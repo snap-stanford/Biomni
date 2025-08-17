@@ -6,7 +6,7 @@ import signal
 from collections.abc import Sequence
 from functools import wraps
 from multiprocessing import Process, Queue
-from typing import Annotated, TypedDict
+from typing import TYPE_CHECKING, Annotated, Optional, TypedDict
 
 from langchain_core.messages import BaseMessage, SystemMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -25,6 +25,9 @@ from biomni.utils import (
     read_module2api,
 )
 
+if TYPE_CHECKING:
+    from biomni.config import BiomniConfig
+
 
 # Define the AgentState TypedDict for our custom implementation
 class AgentState(TypedDict):
@@ -37,11 +40,33 @@ class AgentState(TypedDict):
 class react:
     def __init__(
         self,
-        path="./data",
-        llm="claude-3-7-sonnet-latest",
-        use_tool_retriever=False,
-        timeout_seconds=600,
+        path: str | None = None,
+        llm: str | None = None,
+        use_tool_retriever: bool | None = None,
+        timeout_seconds: int | None = None,
+        config: Optional["BiomniConfig"] = None,
     ):
+        # Use config values for unspecified parameters
+        if config is not None:
+            if path is None:
+                path = config.data_path
+            if llm is None:
+                llm = config.llm_model
+            if use_tool_retriever is None:
+                use_tool_retriever = config.use_tool_retriever
+            if timeout_seconds is None:
+                timeout_seconds = config.timeout_seconds
+
+        # Use defaults if still not specified
+        if path is None:
+            path = "./data"
+        if llm is None:
+            llm = "claude-3-7-sonnet-latest"
+        if use_tool_retriever is None:
+            use_tool_retriever = False
+        if timeout_seconds is None:
+            timeout_seconds = 600
+
         self.path = path
         if not os.path.exists(path):
             os.makedirs(path)
@@ -52,7 +77,7 @@ class react:
 
         module2api = read_module2api()
 
-        self.llm = get_llm(llm)
+        self.llm = get_llm(llm, config=config)
         tools = []
         for module, api_list in module2api.items():
             print("Registering tools from module:", module)

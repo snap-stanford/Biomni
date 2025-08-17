@@ -1,20 +1,24 @@
 import os
-from typing import Literal, Optional
+from typing import TYPE_CHECKING, Literal, Optional
 
 import openai
 from langchain_core.language_models.chat_models import BaseChatModel
+
+if TYPE_CHECKING:
+    from biomni.config import BiomniConfig
 
 SourceType = Literal["OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Groq", "Custom"]
 ALLOWED_SOURCES: set[str] = set(SourceType.__args__)
 
 
 def get_llm(
-    model: str = "claude-3-5-sonnet-20241022",
-    temperature: float = 0.7,
+    model: str | None = None,
+    temperature: float | None = None,
     stop_sequences: list[str] | None = None,
     source: SourceType | None = None,
     base_url: str | None = None,
-    api_key: str = "EMPTY",
+    api_key: str | None = None,
+    config: Optional["BiomniConfig"] = None,
 ) -> BaseChatModel:
     """
     Get a language model instance based on the specified model name and source.
@@ -27,7 +31,28 @@ def get_llm(
                       If None, will attempt to auto-detect from model name
         base_url (str): The base URL for custom model serving (e.g., "http://localhost:8000/v1"), default is None
         api_key (str): The API key for the custom llm
+        config (BiomniConfig): Optional configuration object. If provided, unspecified parameters will use config values
     """
+    # Use config values for any unspecified parameters
+    if config is not None:
+        if model is None:
+            model = config.llm_model
+        if temperature is None:
+            temperature = config.temperature
+        if source is None:
+            source = config.source
+        if base_url is None:
+            base_url = config.base_url
+        if api_key is None:
+            api_key = config.api_key or "EMPTY"
+
+    # Use defaults if still not specified
+    if model is None:
+        model = "claude-3-5-sonnet-20241022"
+    if temperature is None:
+        temperature = 0.7
+    if api_key is None:
+        api_key = "EMPTY"
     # Auto-detect source from model name if not specified
     if source is None:
         env_source = os.getenv("LLM_SOURCE")
