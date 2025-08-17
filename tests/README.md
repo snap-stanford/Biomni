@@ -1,232 +1,180 @@
-# Biomni Tools Testing Suite
+# Biomni Agent Test Suite
 
-This directory contains comprehensive tests for all Biomni tools implemented in Phase 1 and Phase 2.
+This directory contains comprehensive test suites for the Biomni agent, demonstrating the integration of ChEMBL Beaker cheminformatic tools, database APIs, and drug safety analysis capabilities.
 
-## Test Structure
+## Test Files
 
-```
-tests/
-├── README.md                 # This file
-├── requirements.txt          # Test dependencies
-├── conftest.py              # Pytest configuration and fixtures
-├── run_tests.py             # Test runner script
-├── test_drug_tools.py       # Tests for Phase 1 drug & clinical trials tools
-├── test_knowledge_tools.py  # Tests for Phase 2 knowledge & ontology tools
-└── test_utils.py            # Utility tests and helper functions
-```
+### 1. `agent_test_chembl_cheminformatics.py`
+**Comprehensive Cheminformatic Analysis for Drug Discovery**
 
-## Tested Tools
+This test demonstrates the full capabilities of ChEMBL Beaker integration for drug discovery workflows.
 
-### Phase 1: Drug & Clinical Trials Tools
-- `query_pubchem` - PubChem PUG-REST API
-- `query_chembl` - ChEMBL REST API
-- `query_unichem` - UniChem 2.0 API
-- `query_drugcentral` - DrugCentral database
-- `query_clinicaltrials` - ClinicalTrials.gov API v2
-- `query_dailymed` - DailyMed RESTful API
+#### Test 1: Comprehensive Cheminformatic Analysis
+- **Chemical Structure Validation**: Canonicalization and standardization using ChEMBL Beaker
+- **Physicochemical Property Analysis**: Comprehensive property calculation with ChEMBL and RDKit descriptors
+- **Format Conversion**: Multi-format molecular representation (SMILES, InChI, InChIKey, MOL files)
+- **Structural Alert Analysis**: Safety assessment using toxicophore detection
+- **Database Integration**: Cross-reference with PubChem for additional chemical information
+- **Drug Discovery Assessment**: Evaluation of drug-likeness and development potential
 
-### Phase 2: Knowledge & Ontology Tools
-- `query_ols` - Ontology Lookup Service API
-- `query_quickgo` - QuickGO Gene Ontology API
-- `query_encode` - ENCODE Portal API
-- `query_cellxgene_census` - CELLxGENE Census Python API
+#### Test 2: Multi-Compound Comparison
+- **Individual Compound Analysis**: Systematic evaluation of multiple compounds
+- **Comparative Analysis**: Molecular weight, lipophilicity, and structural alert comparison
+- **Database Cross-Reference**: PubChem queries for biological activity and safety data
+- **Lead Optimization Assessment**: Ranking and structural modification suggestions
+- **Formulation Analysis**: Solubility and bioavailability assessment
 
-## Test Categories
+### 2. `agent_test_drug_safety_analysis.py`
+**Drug Safety Analysis and Risk Assessment**
 
-### Unit Tests
-- Mock API responses
-- Parameter validation
-- Error handling
-- Response format validation
-- Schema loading
+This test demonstrates comprehensive drug safety analysis using multiple data sources and cheminformatic tools.
 
-### Integration Tests
-- Real API calls (requires network)
-- End-to-end functionality
-- Performance testing
+#### Test 1: Comprehensive Drug Safety Analysis
+- **Cheminformatic Safety Assessment**: Structural alert analysis using ChEMBL Beaker
+- **FDA Safety Database Analysis**: Adverse event reports and safety signal analysis
+- **Clinical Trial Safety Data**: Safety outcomes from clinical studies
+- **Drug-Drug Interaction Analysis**: Interaction mechanism and severity assessment
+- **Risk Assessment and Mitigation**: Systematic safety evaluation and monitoring strategies
+- **Regulatory Compliance Analysis**: Safety guideline adherence and compliance assessment
 
-### Utility Tests
-- Schema validation
-- Helper function testing
-- Documentation validation
+#### Test 2: Drug Combination Safety Analysis
+- **Structural Interaction Analysis**: Molecular compatibility assessment
+- **Drug-Drug Interaction Assessment**: Comprehensive interaction analysis
+- **Safety Signal Analysis**: Combination-specific adverse event analysis
+- **Clinical Trial Safety Review**: Combination therapy safety outcomes
+- **Patient Population Risk Assessment**: Population-specific safety concerns
+- **Risk Mitigation and Monitoring**: Monitoring protocols and safety measures
+- **Regulatory and Clinical Guidelines**: Compliance and guideline assessment
 
-## Running Tests
+## Key Features Demonstrated
+
+### ChEMBL Beaker Integration (Cheminformatic Tools)
+- **Structure Standardization**: Chemical structure validation and canonicalization
+- **Property Calculation**: Comprehensive physicochemical property analysis
+- **Format Conversion**: Multi-format molecular representation
+- **Structural Alert Analysis**: Safety assessment using toxicophore detection
+- **Molecular Image Generation**: SVG and 2D coordinate generation
+- **Clear Distinction**: Separate from ChEMBL Database bioactivity queries
+
+### Enhanced ChEMBL Database Integration
+- **Multiple Query Types**: Molecule name, ChEMBL ID, SMILES similarity, natural language, direct endpoint
+- **Reliable API Access**: Robust error handling and fallback mechanisms
+- **Bioactivity Data**: Comprehensive bioactivity and safety information retrieval
+- **Molecular Properties**: Drug-likeness scores and physicochemical properties
+- **Cross-Reference Capabilities**: Integration with other databases and tools
+- **Clear Distinction**: Separate from ChEMBL Beaker cheminformatic tools
+- **Improved API Patterns**: Full-text search, substructure/similarity search, drug metadata, ATC classifications
+- **Efficient Queries**: Support for 'only=' parameter to reduce response fields
+- **Practical Usage**: Based on official ChEMBL documentation and real-world usage patterns
+
+### Database Integration
+- **PubChem Queries**: Chemical information retrieval and cross-referencing
+- **FDA Database Access**: Adverse event reports and safety signal analysis
+- **Clinical Trial Data**: Safety outcomes from clinical studies
+- **Drug-Drug Interaction Data**: Comprehensive interaction assessment
+
+### Workflow Automation
+- **Systematic Analysis**: Structured workflows for drug discovery and safety assessment
+- **Multi-Source Integration**: Combined analysis from multiple databases
+- **Decision Support**: Clear recommendations and risk assessment
+- **Research Documentation**: Detailed logs and comprehensive reports
+
+## Running the Tests
 
 ### Prerequisites
+- Biomni agent with ChEMBL Beaker integration
+- Access to OpenAI API (or other LLM provider)
+- Required Python packages installed
 
-1. Install test dependencies:
+### Execution
 ```bash
-pip install -r tests/requirements.txt
+# Run ChEMBL cheminformatic analysis tests
+python tests/agent_test_chembl_cheminformatics.py
+
+# Run drug safety analysis tests
+python tests/agent_test_drug_safety_analysis.py
+
+# Test improved ChEMBL database function
+python tests/test_improved_chembl.py
+
+# Test ChEMBL Database vs Beaker distinction
+python tests/test_chembl_distinction.py
+
+# Test improved ChEMBL API patterns
+python tests/test_improved_chembl_api.py
 ```
 
-2. Install Biomni package:
-```bash
-pip install -e .
-```
+### Expected Outputs
+Each test provides:
+- **Detailed Research Logs**: Step-by-step analysis with timestamps
+- **Comprehensive Reports**: Structured analysis results and recommendations
+- **Risk Assessments**: Clear risk levels and mitigation strategies
+- **Decision Support**: Actionable recommendations for drug development
 
-3. Set up environment variables (optional):
-```bash
-export ANTHROPIC_API_KEY="your-api-key"  # For LLM integration tests
-```
+## Use Cases
 
-### Quick Start
+### Drug Discovery
+- Lead compound identification and optimization
+- Structure-activity relationship analysis
+- Drug-likeness assessment
+- Formulation strategy development
 
-Run all unit tests (no network required):
-```bash
-python tests/run_tests.py
-```
+### Drug Safety
+- Preclinical safety assessment
+- Clinical trial safety monitoring
+- Post-marketing safety surveillance
+- Risk-benefit analysis
 
-Run with verbose output:
-```bash
-python tests/run_tests.py --verbose
-```
+### Regulatory Compliance
+- Safety guideline adherence
+- Regulatory submission support
+- Compliance monitoring
+- Risk communication
 
-### Test Categories
+### Clinical Practice
+- Drug combination safety assessment
+- Patient-specific risk evaluation
+- Monitoring protocol development
+- Safety guideline implementation
 
-Run only unit tests:
-```bash
-python tests/run_tests.py --type unit
-```
+## Technical Capabilities
 
-Run only integration tests (requires network):
-```bash
-python tests/run_tests.py --type integration --integration
-```
+### Cheminformatic Analysis
+- **Molecular Structure Processing**: SMILES, InChI, MOL file handling
+- **Property Calculation**: LogP, molecular weight, drug-likeness scores
+- **Safety Assessment**: Structural alert and toxicophore detection
+- **Format Conversion**: Multi-format molecular representation
 
-Run drug tools tests only:
-```bash
-python tests/run_tests.py --type drug
-```
+### Database Integration
+- **Multi-Source Queries**: PubChem, FDA, ClinicalTrials.gov
+- **Cross-Reference Analysis**: Integrated data from multiple sources
+- **Real-Time Updates**: Current safety and regulatory information
+- **Comprehensive Coverage**: Chemical, biological, and clinical data
 
-Run knowledge tools tests only:
-```bash
-python tests/run_tests.py --type knowledge
-```
+### Workflow Automation
+- **Systematic Analysis**: Structured workflows for complex analyses
+- **Decision Support**: Clear recommendations and risk assessment
+- **Documentation**: Comprehensive research logs and reports
+- **Scalability**: Handles multiple compounds and complex scenarios
 
-### Using pytest directly
+## Integration Benefits
 
-Run all tests:
-```bash
-pytest tests/ -v
-```
+### For Drug Discovery
+- **Accelerated Analysis**: Automated cheminformatic workflows
+- **Comprehensive Assessment**: Multi-source data integration
+- **Risk Mitigation**: Early safety assessment and alert detection
+- **Decision Support**: Clear recommendations for lead optimization
 
-Run specific test file:
-```bash
-pytest tests/test_drug_tools.py -v
-```
+### For Drug Safety
+- **Proactive Monitoring**: Early detection of safety signals
+- **Comprehensive Assessment**: Multi-dimensional safety analysis
+- **Risk Communication**: Clear risk levels and mitigation strategies
+- **Regulatory Support**: Compliance and guideline adherence
 
-Run tests with coverage:
-```bash
-pytest tests/ --cov=biomni.tool.database --cov-report=html
-```
+### For Clinical Practice
+- **Patient Safety**: Individualized risk assessment
+- **Drug Combination Safety**: Polypharmacy risk evaluation
+- **Monitoring Protocols**: Evidence-based safety monitoring
+- **Clinical Decision Support**: Informed therapeutic decisions
 
-Skip integration tests:
-```bash
-pytest tests/ -m "not integration"
-```
-
-## Test Configuration
-
-### Markers
-- `@pytest.mark.unit` - Unit tests (no network)
-- `@pytest.mark.integration` - Integration tests (requires network)
-- `@pytest.mark.slow` - Slow-running tests
-
-### Fixtures
-- `mock_anthropic_api` - Mock Anthropic API responses
-- `mock_requests` - Mock HTTP requests
-- `tool_functions` - Dictionary of all tool functions
-- `test_prompts` - Common test prompts for different categories
-
-## Test Coverage
-
-The test suite covers:
-
-1. **Functionality Testing**
-   - Natural language prompt processing
-   - Direct endpoint access
-   - Parameter validation
-   - Response formatting
-
-2. **Error Handling**
-   - Missing parameters
-   - Invalid API keys
-   - Network errors
-   - Malformed responses
-
-3. **Integration Testing**
-   - Real API connectivity
-   - End-to-end workflows
-   - Performance validation
-
-4. **Schema Validation**
-   - Schema file existence
-   - Schema structure validation
-   - Generator script validation
-
-## Continuous Integration
-
-For CI/CD pipelines, use:
-
-```bash
-# Install dependencies
-pip install -r tests/requirements.txt
-pip install -e .
-
-# Run unit tests only (no network required)
-python tests/run_tests.py --type unit
-
-# Run with coverage
-pytest tests/ -m "not integration" --cov=biomni.tool.database --cov-report=xml
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Import Errors**
-   - Ensure Biomni is installed: `pip install -e .`
-   - Check Python path includes project root
-
-2. **Missing Dependencies**
-   - Install test requirements: `pip install -r tests/requirements.txt`
-   - Check dependency versions
-
-3. **API Key Issues**
-   - Set `ANTHROPIC_API_KEY` environment variable
-   - Use mock tests if no API key available
-
-4. **Network Issues**
-   - Skip integration tests: `pytest -m "not integration"`
-   - Check firewall/proxy settings
-
-### Debug Mode
-
-Run tests with maximum verbosity:
-```bash
-pytest tests/ -vvv --tb=long --capture=no
-```
-
-## Contributing
-
-When adding new tools:
-
-1. Add tests to appropriate test file
-2. Update this README
-3. Add any new dependencies to requirements.txt
-4. Ensure tests pass in both unit and integration modes
-
-## Performance Benchmarks
-
-Expected test performance:
-- Unit tests: < 30 seconds
-- Integration tests: < 2 minutes (network dependent)
-- Full test suite: < 3 minutes
-
-## Test Data
-
-Tests use:
-- Mock responses for unit tests
-- Real API endpoints for integration tests
-- Minimal data requests to avoid rate limiting
-- Cached responses where possible
+These tests demonstrate the full potential of the Biomni agent for drug discovery, safety analysis, and clinical decision support, showcasing the power of integrated cheminformatic tools and database APIs.

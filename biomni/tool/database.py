@@ -33,7 +33,7 @@ def get_hpo_names(hpo_terms: list[str], data_lake_path: str) -> list[str]:
     return hpo_names
 
 
-def _query_llm_for_api(prompt, schema, system_template, api_key=None, model="claude-3-5-haiku-20241022"):
+def _query_llm_for_api(prompt, schema, system_template, api_key=None, model="gpt-4o-mini"):
     """Helper function to query LLMs for generating API calls based on natural language prompts.
 
     Supports multiple model providers including Claude, Gemini, GPT, and others via the unified get_llm interface.
@@ -4174,19 +4174,25 @@ def query_pubchem(
 def query_chembl(
     prompt=None,
     endpoint=None,
+    chembl_id=None,
+    smiles=None,
+    molecule_name=None,
     api_key=None,
-    model="claude-3-5-haiku-20241022",
+    model="gpt-4o-mini",
     max_results=20,
     verbose=True,
 ):
-    """Query the ChEMBL REST API using natural language or a direct endpoint.
+    """Query the ChEMBL REST API using natural language, direct endpoint, or specific identifiers.
 
     Parameters
     ----------
-    prompt (str, required): Natural language query about bioactivity data
+    prompt (str, optional): Natural language query about bioactivity data
     endpoint (str, optional): Direct ChEMBL API endpoint to query
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
+    chembl_id (str, optional): Specific ChEMBL ID to query (e.g., 'CHEMBL25')
+    smiles (str, optional): SMILES string for similarity/substructure search
+    molecule_name (str, optional): Molecule name for lookup
+    api_key (str, optional): OpenAI API key. If None, will use OPENAI_API_KEY env variable
+    model (str): OpenAI model to use for natural language processing
     max_results (int): Maximum number of results to return
     verbose (bool): Whether to return detailed results
 
@@ -4198,84 +4204,182 @@ def query_chembl(
     --------
     - Natural language: query_chembl("Find approved drugs with kinase activity")
     - Direct endpoint: query_chembl(endpoint="molecule?max_phase=4")
+    - ChEMBL ID: query_chembl(chembl_id="CHEMBL25")
+    - SMILES similarity: query_chembl(smiles="CC(=O)OC1=CC=CC=C1C(=O)O", similarity_cutoff=80)
+    - Molecule name: query_chembl(molecule_name="aspirin")
 
     """
     # Base URL for ChEMBL API
     base_url = "https://www.ebi.ac.uk/chembl/api/data"
 
-    # Ensure we have either a prompt or an endpoint
-    if prompt is None and endpoint is None:
-        return {"error": "Either a prompt or an endpoint must be provided"}
+    # Handle specific identifier parameters first (most reliable)
+    if chembl_id:
+        endpoint = f"{base_url}/molecule/{chembl_id}.json"
+        description = f"Direct lookup for ChEMBL ID: {chembl_id} (most reliable method)"
+    elif smiles:
+        endpoint = f"{base_url}/similarity/{smiles}/80.json"  # Default similarity cutoff
+        description = f"Similarity search for SMILES: {smiles} with 80% cutoff"
+    elif molecule_name:
+        endpoint = f"{base_url}/molecule/search.json?q={molecule_name}&limit={max_results}"
+        description = f"Search for molecule with name containing: {molecule_name}"
+    elif prompt:
+        # Try LLM-based parsing with fallback
+        try:
+            # Load ChEMBL schema
+            schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "chembl.pkl")
+            with open(schema_path, "rb") as f:
+                chembl_schema = pickle.load(f)
 
-    # If using prompt, parse with Claude
-    if prompt:
-        # Load ChEMBL schema
-        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "chembl.pkl")
-        with open(schema_path, "rb") as f:
-            chembl_schema = pickle.load(f)
+            # Create system prompt template
+            system_template = """
+            You are a bioactivity data expert specialized in using the ChEMBL REST API.
 
-        # Create system prompt template
-        system_template = """
-        You are a bioactivity data expert specialized in using the ChEMBL REST API.
+            Based on the user's natural language request, determine the appropriate ChEMBL API endpoint and parameters.
 
-        Based on the user's natural language request, determine the appropriate ChEMBL API endpoint and parameters.
+            CHEMBL API SCHEMA:
+            {schema}
 
-        CHEMBL API SCHEMA:
-        {schema}
+            Your response should be a JSON object with the following fields:
+            1. "full_url": The complete URL to query (including base URL and parameters)
+            2. "description": A brief description of what the query is doing
 
-        Your response should be a JSON object with the following fields:
-        1. "full_url": The complete URL to query (including base URL and parameters)
-        2. "description": A brief description of what the query is doing
+            SPECIAL NOTES:
+            - Base URL is "https://www.ebi.ac.uk/chembl/api/data"
+            
+            # IMPORTANT ENDPOINTS:
+            - Molecule search: /molecule/search.json?q={search_term} (full-text search)
+            - Molecule by ID: /molecule/{chembl_id}.json (direct lookup)
+            - Image: /image/{chembl_id}.svg or /molecule/{chembl_id}.svg
+            - Substructure: /substructure/{smiles}.json (valid SMILES required)
+            - Similarity: /similarity/{smiles}/{cutoff}.json (cutoff 70-90 typical)
+            
+            # BIOACTIVITY DATA:
+            - Activities: /activity.json?molecule_chembl_id={chembl_id}&limit=20
+            - Assays: /assay.json?molecule_chembl_id={chembl_id}&limit=20
+            - Use only= parameter to reduce fields: &only=target_chembl_id,standard_type,standard_value
+            
+            # DRUG METADATA:
+            - Drug info: /drug.json?molecule_chembl_id={chembl_id} (use parent ID)
+            - Indications: /drug_indication.json?molecule_chembl_id={chembl_id}
+            - Mechanisms: /mechanism.json?molecule_chembl_id={chembl_id}
+            - ATC: /atc_class.json?molecule_chembl_id={chembl_id}
+            
+            # COMMON FILTERS:
+            - max_phase=4 (approved drugs)
+            - assay_type=B (binding), F (functional), A (ADMET)
+            - standard_type=IC50, Ki, EC50
+            - pchembl_value__gte=5 (activity threshold)
+            
+            # FORMAT NOTES:
+            - Add .json for JSON output (default is XML)
+            - Use /search.json for full-text search (not ?search=)
+            - Use parent ChEMBL IDs for drug endpoints
+            - Use raw SMILES (don't double-encode)
 
-        SPECIAL NOTES:
-        - Base URL is "https://www.ebi.ac.uk/chembl/api/data"
-        - Main resources: activity, assay, atc_class, binding_site, biotherapeutic, cell_line, 
-          chembl_id_lookup, document, mechanism, molecule, molecule_form, target, target_component, 
-          protein_class, source
-        - Special endpoints: image/{chembl_id}, substructure/{smiles_or_chembl_id}, 
-          similarity/{smiles_or_chembl_id}/{cutoff}
-        - Common filters: max_phase=4 (approved drugs), assay_type=B (binding), F (functional), 
-          A (ADMET), standard_type (IC50, Ki, EC50), pchembl_value (negative log activity)
-        - Molecular properties: molecule_properties__mw_freebase__lte (MW), 
-          molecule_properties__alogp__lte (LogP), molecule_properties__hba__lte (HBA), 
-          molecule_properties__hbd__lte (HBD)
-        - Default format is JSON, can specify .xml, .yaml, .png, .svg for images
-        - Use pagination with limit and offset parameters
-        - For similarity searches, cutoff should be 0-100 (e.g., 80 for 80% similarity)
+            Return ONLY the JSON object with no additional text.
+            """
 
-        Return ONLY the JSON object with no additional text.
-        """
+            # Query LLM to generate the API call
+            llm_result = _query_llm_for_api(
+                prompt=prompt,
+                schema=chembl_schema,
+                system_template=system_template,
+                api_key=api_key,
+                model=model,
+            )
 
-        # Query Claude to generate the API call
-        llm_result = _query_llm_for_api(
-            prompt=prompt,
-            schema=chembl_schema,
-            system_template=system_template,
-            api_key=api_key,
-            model=model,
-        )
+            if llm_result["success"]:
+                # Get the full URL from LLM's response
+                query_info = llm_result["data"]
+                endpoint = query_info.get("full_url", "")
+                description = query_info.get("description", "")
 
-        if not llm_result["success"]:
-            return llm_result
+                if endpoint:
+                    # Successfully got endpoint from LLM
+                    pass
+                else:
+                    raise Exception("No endpoint generated from LLM")
+            else:
+                raise Exception(f"LLM failed: {llm_result.get('error', 'Unknown error')}")
 
-        # Get the full URL from Claude's response
-        query_info = llm_result["data"]
-        endpoint = query_info.get("full_url", "")
-        description = query_info.get("description", "")
-
-        if not endpoint:
-            return {
-                "error": "Failed to generate a valid endpoint from the prompt",
-                "llm_response": llm_result.get("raw_response", "No response"),
-            }
-    else:
+        except Exception as e:
+            # Fall back to generic endpoint mapping for common query types
+            prompt_lower = prompt.lower()
+            
+            # Extract potential molecule names or keywords from the prompt
+            words = prompt.split()
+            potential_molecule = None
+            
+            # Look for common molecule indicators - skip common words and look for longer, more specific terms
+            common_words = {'find', 'search', 'get', 'show', 'list', 'target', 'targets', 'binding', 'for', 'the', 'a', 'an', 'and', 'or', 'with', 'using', 'via', 'through', 'from', 'in', 'on', 'at', 'to', 'of', 'by'}
+            
+            for word in words:
+                word_lower = word.lower()
+                # Skip common words and look for longer, more specific terms that could be molecule names
+                if (len(word) > 4 and word.isalpha() and 
+                    word_lower not in common_words and
+                    not word_lower.startswith('che') and  # Skip words starting with common prefixes
+                    not word_lower.endswith('ing')):  # Skip gerunds
+                    potential_molecule = word
+                    break
+            
+            if "binding" in prompt_lower and "target" in prompt_lower:
+                # Try to find binding targets - use molecule if found, otherwise generic
+                if potential_molecule:
+                    endpoint = f"{base_url}/molecule/search.json?q={potential_molecule}&limit={max_results}"
+                    description = f"Search for {potential_molecule} binding targets in ChEMBL database"
+                else:
+                    endpoint = f"{base_url}/activity.json?standard_type=IC50&limit={max_results}"
+                    description = "Search for binding activities with IC50 values"
+            elif "molecule" in prompt_lower or "compound" in prompt_lower or "drug" in prompt_lower:
+                # Molecule search
+                if potential_molecule:
+                    endpoint = f"{base_url}/molecule/search.json?q={potential_molecule}&limit={max_results}"
+                    description = f"Search for molecule {potential_molecule} in ChEMBL database"
+                else:
+                    endpoint = f"{base_url}/molecule/search.json?q=molecule&limit={max_results}"
+                    description = "Search for molecules in ChEMBL database"
+            elif "activity" in prompt_lower or "bioactivity" in prompt_lower:
+                # Bioactivity search
+                endpoint = f"{base_url}/activity.json?limit={max_results}"
+                description = "Search for bioactivity data in ChEMBL database"
+            elif "assay" in prompt_lower:
+                # Assay search
+                endpoint = f"{base_url}/assay.json?limit={max_results}"
+                description = "Search for assay data in ChEMBL database"
+            elif "target" in prompt_lower:
+                # Target search
+                endpoint = f"{base_url}/target.json?limit={max_results}"
+                description = "Search for target data in ChEMBL database"
+            elif "image" in prompt_lower:
+                # Image search
+                if potential_molecule:
+                    endpoint = f"{base_url}/molecule/search.json?q={potential_molecule}&limit={max_results}"
+                    description = f"Search for {potential_molecule} images in ChEMBL database"
+                else:
+                    endpoint = f"{base_url}/molecule/search.json?q=molecule&limit={max_results}"
+                    description = "Search for molecule images in ChEMBL database"
+            else:
+                # Generic search - use first meaningful word or fallback
+                if potential_molecule:
+                    endpoint = f"{base_url}/molecule/search.json?q={potential_molecule}&limit={max_results}"
+                    description = f"Generic search for {potential_molecule} in ChEMBL database"
+                else:
+                    endpoint = f"{base_url}/molecule/search.json?q=molecule&limit={max_results}"
+                    description = f"Generic search in ChEMBL database for: {prompt[:50]}..."
+    elif endpoint:
         # Use provided endpoint directly
-        if endpoint is not None:
-            if endpoint.startswith("/"):
-                endpoint = f"{base_url}{endpoint}"
-            elif not endpoint.startswith("http"):
-                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        if endpoint.startswith("/"):
+            endpoint = f"{base_url}{endpoint}"
+        elif not endpoint.startswith("http"):
+            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
         description = "Direct query to provided endpoint"
+    else:
+        # No valid parameters provided
+        return {
+            "success": False,
+            "error": "No query parameters provided. Use prompt, endpoint, chembl_id, smiles, or molecule_name."
+        }
 
     # Add pagination if not already specified
     if "?" in endpoint:
@@ -4429,7 +4533,7 @@ def query_clinicaltrials(
     prompt=None,
     endpoint=None,
     api_key=None,
-    model="claude-3-5-haiku-20241022",
+    model="gpt-4o-mini",
     max_results=10,
     verbose=True,
 ):
@@ -4490,6 +4594,11 @@ def query_clinicaltrials(
         - Use filter.studyType for study types (INTERVENTIONAL, OBSERVATIONAL)
         - Use pageSize parameter to limit results (max 1000)
         - For specific studies, use /studies/{{nctId}}
+        
+        CORRECT PHASE FILTERING:
+        - Use filter.phase=PHASE1, PHASE2, PHASE3, PHASE4 (comma-separated for multiple phases)
+        - Do NOT use filter.phase=PHASE3 (single value with equals)
+        - Example: filter.phase=PHASE1,PHASE2 for early phase trials
 
         Return ONLY the JSON object with no additional text.
         """
@@ -4532,6 +4641,16 @@ def query_clinicaltrials(
 
     # Use the common REST API helper function
     api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+
+    # Handle API parameter errors with fallback for ClinicalTrials.gov
+    if not api_result.get("success", False) and "400" in str(api_result.get("error", "")):
+        # Try simplified query without problematic filters
+        if "filter.phase" in endpoint:
+            simplified_endpoint = endpoint.replace("&filter.phase=PHASE3", "").replace("filter.phase=PHASE3&", "")
+            if simplified_endpoint != endpoint:
+                api_result = _query_rest_api(endpoint=simplified_endpoint, method="GET", description=f"{description} (simplified)")
+                if api_result.get("success", False):
+                    api_result["note"] = "Query simplified due to API parameter restrictions"
 
     if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
@@ -4792,11 +4911,17 @@ def query_encode(
     max_results=25,
     verbose=True,
 ):
-    """Query the ENCODE Portal API using natural language or a direct endpoint.
+    """Query the ENCODE Portal API to help users locate functional genomics data.
+
+    This function is designed to help users find and explore ENCODE data including:
+    - Experiments (ChIP-seq, RNA-seq, ATAC-seq, DNase-seq, WGBS, etc.)
+    - Files (BAM, BED, bigWig, fastq, etc.)
+    - Biosamples (cell lines, tissues, primary cells)
+    - Datasets and replicates
 
     Parameters
     ----------
-    prompt (str, required): Natural language query about functional genomics experiments, files, or biosamples
+    prompt (str, required): Natural language query about functional genomics data you want to find
     endpoint (str, optional): Direct ENCODE Portal API endpoint to query
     api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
     model (str): Anthropic model to use for natural language processing
@@ -4805,11 +4930,14 @@ def query_encode(
 
     Returns
     -------
-    dict: Dictionary containing the query results or error information
+    dict: Dictionary containing the query results with data location information
 
     Examples
     --------
-    - Natural language: query_encode("Find ChIP-seq experiments for CTCF in human")
+    - Find experiments: query_encode("Find ChIP-seq experiments for CTCF in human K562 cells")
+    - Find files: query_encode("Find BAM files from ATAC-seq experiments in mouse brain")
+    - Find biosamples: query_encode("Find human primary T cells from blood")
+    - Find datasets: query_encode("Find RNA-seq datasets from human liver tissue")
     - Direct endpoint: query_encode(endpoint="/search/?type=Experiment&assay_title=ChIP-seq&format=json")
 
     """
@@ -4829,52 +4957,49 @@ def query_encode(
 
         # Create system prompt template
         system_template = """
-        You are a functional genomics expert specialized in using the ENCODE Portal REST API.
+        You are a functional genomics expert specialized in helping users locate data in the ENCODE Portal.
 
-        Based on the user's natural language request, determine the appropriate ENCODE Portal API endpoint and parameters.
+        Your goal is to help users find the specific functional genomics data they need. Based on the user's request, 
+        determine the most appropriate ENCODE Portal API endpoint and parameters to locate their data.
 
         ENCODE PORTAL API SCHEMA:
         {schema}
 
         Your response should be a JSON object with the following fields:
         1. "full_url": The complete URL to query (including base URL and parameters)
-        2. "description": A brief description of what the query is doing
+        2. "description": A clear description of what data the query will help locate
+        3. "data_type": The type of data being searched (Experiment, File, Biosample, etc.)
+        4. "search_strategy": Brief explanation of the search approach used
 
-        CRITICAL RULES - FOLLOW THESE EXACTLY:
-        1. NEVER use multiple values for the same parameter (e.g., assay_title=ATAC-seq&assay_title=DNase-seq is INVALID)
-        2. For multiple assays, choose ONE primary assay or use searchTerm instead
-        3. For cell types like "T cells", ALWAYS use searchTerm="T cell" - this is the most reliable approach
-        4. Keep queries SIMPLE - avoid more than 3-4 filter parameters
-        5. For organism filtering, use: replicates.library.biosample.donor.organism.scientific_name="Homo sapiens"
+        CRITICAL RULES FOR SIMPLE, EFFECTIVE QUERIES:
+        1. KEEP QUERIES SIMPLE - use only 1-3 parameters maximum for better results
+        2. Start with basic searches and let users refine based on results
+        3. Use searchTerm for text-based searches (most reliable for complex terms)
+        4. Avoid complex nested property paths when possible
+        5. For organism filtering, use simple organism names: "Homo sapiens", "Mus musculus"
 
-        VALID BIOSAMPLE PROPERTIES (use these exact paths):
-        - replicates.library.biosample.donor.organism.scientific_name (e.g., "Homo sapiens")
-        - replicates.library.biosample.biosample_ontology.term_name (e.g., "K562", "HepG2")
-        - replicates.library.biosample.biosample_ontology.cell_slims (e.g., "immune system")
-        - replicates.library.biosample.biosample_ontology.organ_slims (e.g., "blood", "brain")
-        - replicates.library.biosample.life_stage (e.g., "adult")
-        - replicates.library.biosample.sex (e.g., "male", "female")
+        SIMPLE QUERY PATTERNS (PREFERRED):
+        - Basic experiment search: /search/?type=Experiment&assay_title=ChIP-seq&format=json
+        - Text-based search: /search/?searchTerm=CTCF&format=json
+        - File type search: /search/?type=File&file_format=bam&format=json
+        - Biosample search: /search/?type=Biosample&format=json
+        - Dataset search: /search/?type=Dataset&format=json
 
-        INVALID PROPERTIES (DO NOT USE):
-        - replicates.library.biosample.summary
-        - replicates.library.biosample.classifications
-        - replicates.library.biosample.cell_type
+        COMMON ASSAY TYPES (choose ONE per query):
+        - ChIP-seq, RNA-seq, ATAC-seq, DNase-seq, WGBS, Hi-C, CAGE, ChIA-PET
 
-        QUERY CONSTRUCTION RULES:
-        - Base URL is "https://www.encodeproject.org"
-        - Main endpoint is /search/ for searching objects
-        - Always include format=json for API access
-        - Use type parameter to filter by object type (Experiment, Biosample, File, etc.)
-        - Use frame=object for consistent results with all properties
-        - Common assays: ChIP-seq, RNA-seq, ATAC-seq, DNase-seq, WGBS (choose ONE per query)
-        - Use limit parameter to control results (default 25, use "all" for all)
+        COMMON FILE FORMATS:
+        - bam, fastq, bigWig, bigBed, bed, narrowPeak, broadPeak
 
-        EXAMPLES OF CORRECT QUERIES:
-        - T cell ATAC-seq: /search/?type=Experiment&assay_title=ATAC-seq&searchTerm=T%20cell&format=json
-        - Human ChIP-seq: /search/?type=Experiment&assay_title=ChIP-seq&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&format=json
-        - ATAC-seq peak files: /search/?type=File&file_format=bed&assay_title=ATAC-seq&searchTerm=T%20cell&format=json
+        SIMPLE EXAMPLES:
+        - Find ChIP-seq experiments: /search/?type=Experiment&assay_title=ChIP-seq&format=json
+        - Find CTCF data: /search/?searchTerm=CTCF&format=json
+        - Find BAM files: /search/?type=File&file_format=bam&format=json
+        - Find human experiments: /search/?type=Experiment&searchTerm=human&format=json
+        - Find mouse brain data: /search/?type=Experiment&searchTerm=mouse%20brain&format=json
 
-        Return ONLY the JSON object with no additional text.
+        IMPORTANT: Return ONLY a valid JSON object with no additional text, code comments, or explanations.
+        The response must be parseable JSON starting with {{ and ending with }}.
         """
 
         # Query Claude to generate the API call
@@ -4922,6 +5047,30 @@ def query_encode(
     # Use the common REST API helper function
     api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
+    # Add data location information to the result
+    if api_result.get("success", False):
+        # Extract data_type and search_strategy from the query_info if available
+        data_type = query_info.get("data_type", "Unknown") if 'query_info' in locals() else "Unknown"
+        search_strategy = query_info.get("search_strategy", "Direct query") if 'query_info' in locals() else "Direct query"
+        
+        api_result["data_type"] = data_type
+        api_result["search_strategy"] = search_strategy
+        api_result["data_location_info"] = {
+            "description": description,
+            "data_type": data_type,
+            "search_strategy": search_strategy,
+            "endpoint_used": endpoint
+        }
+
+    # Handle API parameter errors with fallback for ENCODE
+    if not api_result.get("success", False) and "404" in str(api_result.get("error", "")):
+        # Try simplified query with basic search
+        if prompt and "transcription factor" in prompt.lower():
+            simplified_endpoint = f"{base_url}/search/?type=Experiment&assay_title=ChIP-seq&searchTerm=transcription%20factor&format=json&limit={max_results}"
+            api_result = _query_rest_api(endpoint=simplified_endpoint, method="GET", description=f"{description} (simplified)")
+            if api_result.get("success", False):
+                api_result["note"] = "Query simplified due to API endpoint restrictions"
+
     if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
@@ -4935,11 +5084,14 @@ def query_cellxgene_census(
     model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
-    """Generate Python code for querying CELLxGENE Census using natural language.
+    """Generate Python code for querying CELLxGENE Census to help users locate single-cell data.
+
+    This function helps users find and explore single-cell gene expression data from the CELLxGENE Census,
+    including data discovery, filtering, and analysis workflows.
 
     Parameters
     ----------
-    prompt (str, required): Natural language query about single-cell data
+    prompt (str, required): Natural language query about single-cell data you want to find or analyze
     code_only (bool): If True, return only the generated Python code
     api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
     model (str): Anthropic model to use for natural language processing
@@ -4947,14 +5099,19 @@ def query_cellxgene_census(
 
     Returns
     -------
-    dict: Dictionary containing the generated Python code and explanation
+    dict: Dictionary containing the generated Python code and explanation for data location
 
     Examples
     --------
-    - Natural language: query_cellxgene_census("Get human T cells from lung tissue")
-    - Natural language: query_cellxgene_census("Find highly variable genes in mouse brain data")
-    - Natural language: query_cellxgene_census("Get cell embeddings for human brain cells")
-    - Natural language: query_cellxgene_census("Download source H5AD file for dataset ABC123")
+    - Data discovery: query_cellxgene_census("Find all human brain datasets in the genexcell census")
+    - Cell type exploration: query_cellxgene_census("Get human T cells from lung tissue")
+    - Gene analysis: query_cellxgene_census("Find highly variable genes in mouse brain data")
+    - Dataset exploration: query_cellxgene_census("Show me all available mouse datasets")
+    - Cell embeddings: query_cellxgene_census("Get cell embeddings for human brain cells")
+    - Tissue comparison: query_cellxgene_census("Compare gene expression between human liver and kidney")
+    - Metadata exploration: query_cellxgene_census("Explore available cell metadata columns")
+    - Gene metadata: query_cellxgene_census("Get gene metadata for specific genes")
+    - Cross-reference data: query_cellxgene_census("Find cross-references using gget cellxgene")
 
     """
     # Ensure we have a prompt
@@ -4968,43 +5125,153 @@ def query_cellxgene_census(
 
     # Create system prompt template
     system_template = """
-    You are a single-cell genomics expert specialized in using the CELLxGENE Census Python API.
+    You are a single-cell genomics expert specialized in helping users locate and explore data in the CELLxGENE Census.
 
-    Based on the user's natural language request, generate Python code that uses the CELLxGENE Census API.
+    Your goal is to help users find the specific single-cell data they need and provide executable Python code to access and analyze it.
+    Based on the user's request, generate complete, runnable Python code that uses the CELLxGENE Census API.
 
     CELLXGENE CENSUS API SCHEMA:
     {schema}
 
     Your response should be a JSON object with the following fields:
-    1. "python_code": Complete Python code to accomplish the task
-    2. "explanation": Brief explanation of what the code does
-    3. "key_functions": List of main Census functions used
+    1. "python_code": Complete, executable Python code that accomplishes the task
+    2. "explanation": Clear explanation of what the code does and what data it will find
+    3. "data_strategy": Brief explanation of the approach used
 
-    CRITICAL REQUIREMENTS:
-    - Always import cellxgene_census at the top
-    - ALWAYS use context manager (with statement) for opening Census: "with cellxgene_census.open_soma() as census:"
-    - Main organisms: homo_sapiens, mus_musculus
-    - Common obs filters: cell_type, tissue, disease, sex, development_stage, assay, dataset_id
-    - Common var filters: feature_name, feature_biotype, feature_id
-    - Use get_anndata() for getting expression data as AnnData object
-    - Use get_obs() for cell metadata only (no expression data)
-    - Use get_var() for gene metadata only (no expression data)
-    - Use get_presence_matrix() for feature presence information
+    CRITICAL REQUIREMENTS FOR EXECUTABLE CODE:
+    - Always import required libraries: import cellxgene_census
+    - ALWAYS open census: census = cellxgene_census.open_soma()
+    - ALWAYS close census: census.close()
+    - Main organisms: "homo_sapiens", "mus_musculus" (use quotes)
+    - Use get_anndata() for expression data (returns AnnData object)
+    - Use get_obs() for cell metadata only (faster for exploration), Common obs filters: cell_type, tissue_general, disease, sex, development_stage, assay, dataset_id, is_primary_data
+    - Use get_var() for gene metadata only, Common var filters: feature_name, feature_id, feature_length
     - Query syntax: "column == 'value'" or "column in ['val1', 'val2']" or "column != 'value'"
-    - For machine learning workflows, use experimental.ml.pytorch functions
-    - For embeddings, use experimental.get_embedding functions
-    - For data download, use get_source_h5ad_uri() or download_source_h5ad()
-    - For versioning, use get_census_version_description() or get_census_version_directory()
-    - For processing, use experimental.pp functions (highly_variable_genes, mean_variance)
+    - For machine learning: use experimental.ml.pytorch functions
+    - For embeddings: use experimental.get_embedding functions
+    - For data download: use get_source_h5ad_uri() or download_source_h5ad()
+    - For processing: use experimental.pp functions (highly_variable_genes, mean_variance)
+    - For cross-references: use gget.cellxgene() function
+    - For metadata exploration: use census["census_data"]["homo_sapiens"].obs.keys()
 
-    BEST PRACTICES:
-    - Always handle potential errors with try-except blocks
+    CODE GENERATION PATTERNS:
+    - Always include print statements to show what data was found
+    - Use try-except blocks for error handling
+    - Add comments explaining each step
     - Use descriptive variable names
-    - Add comments explaining complex queries
-    - Consider memory usage for large datasets
-    - Use specific column names when possible for efficiency
+    - Consider memory usage - use get_obs() before get_anndata() for large datasets
+    - Always close the census connection
+    - Use exact parameter names: organism, obs_value_filter, var_value_filter, obs_column_names, var_column_names
+    - For gget integration: import gget and use gget.cellxgene() for cross-references
+    - For metadata exploration: use census["census_data"]["organism"].obs.keys() or .var.keys()
+    - For complex queries: combine multiple conditions with "and" in value_filter
 
-    Return ONLY the JSON object with no additional text.
+    COMMON TASKS AND CODE PATTERNS:
+    
+    1. Opening the Census:
+    ```python
+    import cellxgene_census
+    census = cellxgene_census.open_soma()
+    # Don't forget to close: census.close()
+    ```
+
+    2. Querying Expression Data (get_anndata):
+    ```python
+    import cellxgene_census
+    census = cellxgene_census.open_soma()
+    
+    adata = cellxgene_census.get_anndata(
+        census=census,
+        organism="Homo sapiens",
+        var_value_filter="feature_id in ['ENSG00000161798', 'ENSG00000188229']",
+        obs_value_filter="cell_type == 'B cell' and tissue_general == 'lung' and disease == 'COVID-19' and is_primary_data == True",
+        obs_column_names=["sex"],
+    )
+    print(f"Found {adata.n_obs} cells with {adata.n_vars} genes")
+    census.close()
+    ```
+
+    3. Querying Cell Metadata (get_obs):
+    ```python
+    import cellxgene_census
+    census = cellxgene_census.open_soma()
+    
+    cell_metadata_b_cell = cellxgene_census.get_obs(
+        census,
+        "homo_sapiens",
+        value_filter="cell_type == 'B cell' and tissue_general == 'lung' and is_primary_data==True",
+        column_names=["disease"],
+    )
+    print(cell_metadata_b_cell.value_counts())
+    census.close()
+    ```
+
+    4. Querying Gene Metadata (get_var):
+    ```python
+    import cellxgene_census
+    census = cellxgene_census.open_soma()
+    
+    gene_metadata = cellxgene_census.get_var(
+        census,
+        "homo_sapiens",
+        value_filter="feature_id in ['ENSG00000161798', 'ENSG00000188229']",
+        column_names=["feature_name", "feature_length"],
+    )
+    print(gene_metadata)
+    census.close()
+    ```
+
+    5. Exploring Available Metadata:
+    ```python
+    import cellxgene_census
+    census = cellxgene_census.open_soma()
+    
+    # Get available cell metadata columns
+    keys = list(census["census_data"]["homo_sapiens"].obs.keys())
+    print("Available cell metadata columns:", keys)
+    
+    # Get available gene metadata columns
+    gene_keys = list(census["census_data"]["homo_sapiens"].ms["RNA"].var.keys())
+    print("Available gene metadata columns:", gene_keys)
+    census.close()
+    ```
+
+    6. Using gget for Cross-references:
+    ```python
+    import gget
+    import cellxgene_census
+    
+    # Get cross-references for a gene
+    refs = gget.cellxgene("ENSG00000139618", species="human")
+    print(refs)
+    
+    # Get cross-references for multiple genes
+    refs_multi = gget.cellxgene(["ENSG00000139618", "ENSG00000157764"], species="human")
+    print(refs_multi)
+    ```
+
+    7. Advanced Querying with Multiple Filters:
+    ```python
+    import cellxgene_census
+    census = cellxgene_census.open_soma()
+    
+    # Complex query with multiple conditions
+    adata = cellxgene_census.get_anndata(
+        census=census,
+        organism="Homo sapiens",
+        obs_value_filter="tissue_general == 'brain' and cell_type == 'neuron' and is_primary_data == True",
+        var_value_filter="feature_name in ['GAPDH', 'ACTB', 'TUBB']",
+        obs_column_names=["sex", "development_stage", "disease"],
+        var_column_names=["feature_name", "feature_length"]
+    )
+    print(f"Brain neurons: {adata.n_obs} cells, {adata.n_vars} genes")
+    census.close()
+    ```
+
+    IMPORTANT: Return ONLY a valid JSON object with no additional text, code comments, or explanations.
+    The response must be parseable JSON starting with {{ and ending with }}.
+    
+    CRITICAL: Do NOT return Python code directly. Return a JSON object with the "python_code" field containing the code.
     """
 
     # Query Claude to generate the Python code
@@ -5017,13 +5284,23 @@ def query_cellxgene_census(
     )
 
     if not llm_result["success"]:
-        return llm_result
-
-    # Get the response from Claude
-    code_info = llm_result["data"]
-    python_code = code_info.get("python_code", "")
-    explanation = code_info.get("explanation", "")
-    key_functions = code_info.get("key_functions", [])
+        # Check if the LLM returned code directly instead of JSON
+        raw_response = llm_result.get("raw_response", "")
+        if raw_response and ("import cellxgene_census" in raw_response or "census = cellxgene_census.open_soma()" in raw_response):
+            # LLM returned code directly, wrap it in a proper response
+            python_code = raw_response.strip()
+            explanation = "Generated Python code for CELLxGENE Census data exploration"
+            key_functions = ["cellxgene_census.open_soma", "get_anndata", "get_obs", "get_var"]
+            data_strategy = "Direct code generation for data exploration"
+        else:
+            return llm_result
+    else:
+        # Get the response from LLM
+        code_info = llm_result["data"]
+        python_code = code_info.get("python_code", "")
+        explanation = code_info.get("explanation", "")
+        key_functions = code_info.get("key_functions", [])
+        data_strategy = code_info.get("data_strategy", "")
 
     if not python_code:
         return {
@@ -5041,9 +5318,16 @@ def query_cellxgene_census(
         "python_code": python_code,
         "explanation": explanation,
         "key_functions": key_functions,
+        "data_strategy": data_strategy,
         "api_type": "Python API",
         "package": "cellxgene-census",
         "installation": cellxgene_census_schema.get("installation", {}),
+        "data_location_info": {
+            "explanation": explanation,
+            "data_strategy": data_strategy,
+            "key_functions": key_functions,
+            "api_type": "Python API"
+        },
         "note": "This is a Python API. Execute the generated code in a Python environment with cellxgene-census installed."
     }
 

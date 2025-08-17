@@ -1,9 +1,9 @@
 import pickle
 
-# ChEMBL schema based on official documentation at https://www.ebi.ac.uk/chembl/api/data/docs
+# ChEMBL schema based on official documentation and practical usage notes
 chembl_schema = {
     'base_url': 'https://www.ebi.ac.uk/chembl/api/data',
-    'description': 'ChEMBL REST API for bioactivity data',
+    'description': 'ChEMBL REST API for bioactivity data, drug information, and cheminformatic analysis',
     'docs_url': 'https://www.ebi.ac.uk/chembl/api/data/docs',
     'license': 'CC BY-SA 3.0',
     
@@ -182,21 +182,31 @@ chembl_schema = {
     },
     
     'special_endpoints': {
+        'molecule_search': {
+            'description': 'Full-text search for molecules (Elastic search) - often returns parent first',
+            'url': '/molecule/search.json?q={search_term}',
+            'note': 'Use /search.json flavor for full-text search. Replace {search_term} with molecule name or text'
+        },
+        'molecule_by_id': {
+            'description': 'Direct lookup by ChEMBL ID (parent record)',
+            'url': '/molecule/{chembl_id}.json',
+            'note': 'Replace {chembl_id} with actual ChEMBL ID (e.g., CHEMBL25). Returns parent record.'
+        },
         'image': {
             'description': 'Graphical (png, svg, json) representation of Molecule',
             'url': '/image/{chembl_id}',
             'formats': ['png', 'svg', 'json'],
-            'note': 'Replace {chembl_id} with actual ChEMBL ID'
+            'note': 'Replace {chembl_id} with actual ChEMBL ID. Also accepts /molecule/{chembl_id}.svg'
         },
         'substructure': {
-            'description': 'Molecule substructure search',
-            'url': '/substructure/{smiles_or_chembl_id}',
-            'note': 'Replace {smiles_or_chembl_id} with SMILES string or ChEMBL ID'
+            'description': 'Molecule substructure search using SMILES',
+            'url': '/substructure/{smiles}.json',
+            'note': 'Replace {smiles} with valid (clean) SMILES string. Expects valid SMILES.'
         },
         'similarity': {
-            'description': 'Molecule similarity search',
-            'url': '/similarity/{smiles_or_chembl_id}/{similarity_cutoff}',
-            'note': 'Replace {smiles_or_chembl_id} with SMILES string or ChEMBL ID, {similarity_cutoff} with 0-100'
+            'description': 'Molecule similarity search with Tanimoto cutoff',
+            'url': '/similarity/{smiles}/{cutoff}.json',
+            'note': 'Replace {smiles} with SMILES string, {cutoff} with 0-100 (70-90 typical, higher=fewer hits)'
         }
     },
     
@@ -306,16 +316,37 @@ chembl_schema = {
     },
     
     'examples': {
+        # Molecule search and lookup
+        'molecule_search': 'molecule/search.json?q=aspirin',
+        'molecule_by_id': 'molecule/CHEMBL25.json',
+        'molecule_image': 'image/CHEMBL25.svg',
+        
+        # Structure search
+        'similarity_search': 'similarity/CC(=O)Oc1ccccc1C(=O)O/80.json',
+        'substructure_search': 'substructure/CC(=O)Oc1ccccc1C(=O)O.json',
+        
+        # Bioactivity data
+        'activities_by_molecule': 'activity.json?molecule_chembl_id=CHEMBL25&limit=20',
+        'activities_with_only': 'activity.json?molecule_chembl_id=CHEMBL25&only=target_chembl_id,standard_type,standard_value,standard_units&pchembl_value__gte=5&limit=20',
+        'assays_by_molecule': 'assay.json?molecule_chembl_id=CHEMBL25&limit=20',
+        
+        # Drug metadata
+        'drug_info': 'drug.json?molecule_chembl_id=CHEMBL25',
+        'drug_indications': 'drug_indication.json?molecule_chembl_id=CHEMBL25',
+        'mechanism_of_action': 'mechanism.json?molecule_chembl_id=CHEMBL25',
+        
+        # Cross-references and classifications
+        'atc_classifications': 'atc_class.json?molecule_chembl_id=CHEMBL25',
+        'xref_sources': 'xref_source.json',
+        'api_status': 'status.json',
+        
+        # General queries
         'approved_drugs': 'molecule?max_phase=4',
         'kinase_targets': 'target?pref_name__contains=kinase',
         'molecular_weight_filter': 'molecule?molecule_properties__mw_freebase__lte=300',
         'binding_assays': 'assay?assay_type=B',
         'ic50_activities': 'activity?standard_type=IC50&pchembl_value__gte=6',
         'human_targets': 'target?organism=Homo sapiens',
-        'similarity_search': 'similarity/CC(=O)Oc1ccccc1C(=O)O/80',
-        'substructure_search': 'substructure/CN(CCCN)c1cccc2ccccc12',
-        'molecule_image': 'image/CHEMBL25.svg',
-        'mechanism_of_action': 'mechanism?molecule_chembl_id=CHEMBL25',
         'protein_classification': 'protein_class?protein_class_desc__icontains=kinase',
         'atc_diabetes_drugs': 'molecule?atc_classifications__level5__startswith=A10',
         'multiple_molecules': 'molecule?molecule_chembl_id__in=CHEMBL25,CHEMBL941,CHEMBL1000',
@@ -324,6 +355,16 @@ chembl_schema = {
         'toxicity_assays': 'assay?description__icontains=toxicity',
         'serotonin_targets': 'target?pref_name__istartswith=serotonin',
         'carcinoma_cell_lines': 'cell_line?cell_source_tissue__iendswith=carcinoma'
+    },
+    
+    'important_notes': {
+        'formats': 'Default format is XML. Add .json or ?format=json for JSON output.',
+        'search_endpoint': 'Full-text search requires /search.json (not just ?search=).',
+        'parent_aggregation': 'Drug endpoint aggregates on parent. Use parent ChEMBL ID (e.g., CHEMBL25, not salt forms).',
+        'pagination': 'Use page_meta.next and follow offset for more pages.',
+        'only_parameter': 'Use only= to reduce response fields for faster queries.',
+        'smiles_encoding': 'Use raw SMILES or single proper encoder. Don\'t URL-encode twice.',
+        'svg_handling': 'Some clients choke on SVG output. Save to file if expecting JSON.'
     }
 }
 

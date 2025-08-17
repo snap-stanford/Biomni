@@ -1335,13 +1335,37 @@ description = [
         ],
     },
     {
-        "description": "Query the ChEMBL REST API using natural language or a direct endpoint.",
+        "description": "Query the ChEMBL DATABASE for bioactivity data, drug information, and molecular properties. This is for retrieving bioactivity data, drug development phases, target information, and molecular properties from the ChEMBL bioactivity database. Use ChEMBL ID (e.g., 'CHEMBL25') for most reliable results.",
         "name": "query_chembl",
         "optional_parameters": [
             {
                 "default": None,
-                "description": "Direct ChEMBL API endpoint to query",
+                "description": "Natural language query about bioactivity data, drug information, or molecular properties",
+                "name": "prompt",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Direct ChEMBL database API endpoint to query",
                 "name": "endpoint",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Specific ChEMBL ID to query (e.g., 'CHEMBL25') - MOST RELIABLE METHOD",
+                "name": "chembl_id",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "SMILES string for similarity/substructure search in ChEMBL database",
+                "name": "smiles",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Molecule name for lookup in ChEMBL database (e.g., 'aspirin')",
+                "name": "molecule_name",
                 "type": "str",
             },
             {
@@ -1369,14 +1393,7 @@ description = [
                 "type": "bool",
             },
         ],
-        "required_parameters": [
-            {
-                "default": None,
-                "description": "Natural language query about bioactivity data",
-                "name": "prompt",
-                "type": "str",
-            }
-        ],
+        "required_parameters": [],
     },
     {
         "description": "Query the UniChem 2.0 REST API using natural language or a direct endpoint.",
@@ -1416,44 +1433,7 @@ description = [
             }
         ],
     },
-    {
-        "description": "Query DrugCentral database using natural language.",
-        "name": "query_drugcentral",
-        "optional_parameters": [
-            {
-                "default": None,
-                "description": "Not applicable for DrugCentral (database access)",
-                "name": "endpoint",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
-                "default": True,
-                "description": "Whether to return detailed results",
-                "name": "verbose",
-                "type": "bool",
-            },
-        ],
-        "required_parameters": [
-            {
-                "default": None,
-                "description": "Natural language query about drugs and pharmaceutical data",
-                "name": "prompt",
-                "type": "str",
-            }
-        ],
-    },
+
     {
         "description": "Query the ClinicalTrials.gov API v2 using natural language or a direct endpoint.",
         "name": "query_clinicaltrials",
@@ -1542,50 +1522,7 @@ description = [
             }
         ],
     },
-    {
-        "description": "Query the Ontology Lookup Service (OLS) API using natural language or a direct endpoint.",
-        "name": "query_ols",
-        "optional_parameters": [
-            {
-                "default": None,
-                "description": "Direct OLS API endpoint to query",
-                "name": "endpoint",
-                "type": "str",
-            },
-            {
-                "default": None,
-                "description": "Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable",
-                "name": "api_key",
-                "type": "str",
-            },
-            {
-                "default": "claude-3-5-haiku-20241022",
-                "description": "Anthropic model to use for natural language processing",
-                "name": "model",
-                "type": "str",
-            },
-            {
-                "default": 20,
-                "description": "Maximum number of results to return",
-                "name": "max_results",
-                "type": "int",
-            },
-            {
-                "default": True,
-                "description": "Whether to return detailed results",
-                "name": "verbose",
-                "type": "bool",
-            },
-        ],
-        "required_parameters": [
-            {
-                "default": None,
-                "description": "Natural language query about ontologies, terms, or biological concepts",
-                "name": "prompt",
-                "type": "str",
-            }
-        ],
-    },
+
     {
         "description": "Query the QuickGO API using natural language or a direct endpoint.",
         "name": "query_quickgo",
@@ -1631,7 +1568,7 @@ description = [
         ],
     },
     {
-        "description": "Query the ENCODE Portal API using natural language or a direct endpoint.",
+        "description": "Query the ENCODE Portal API to help users locate functional genomics data including experiments, files, biosamples, and datasets.",
         "name": "query_encode",
         "optional_parameters": [
             {
@@ -1668,14 +1605,14 @@ description = [
         "required_parameters": [
             {
                 "default": None,
-                "description": "Natural language query about functional genomics experiments, files, or biosamples",
+                "description": "Natural language query about functional genomics data you want to find (experiments, files, biosamples, datasets)",
                 "name": "prompt",
                 "type": "str",
             }
         ],
     },
     {
-        "description": "Generate Python code for querying CELLxGENE Census using natural language.",
+        "description": "Generate Python code for querying CELLxGENE Census to help users locate and explore single-cell gene expression data.",
         "name": "query_cellxgene_census",
         "optional_parameters": [
             {
@@ -1706,7 +1643,7 @@ description = [
         "required_parameters": [
             {
                 "default": None,
-                "description": "Natural language query about single-cell data",
+                "description": "Natural language query about single-cell data you want to find or analyze",
                 "name": "prompt",
                 "type": "str",
             }
