@@ -8,7 +8,6 @@ import torch
 import torch.serialization
 from nnunet.inference.predict import predict_from_folder
 
-
 # Apply safe globals for torch serialization
 torch.serialization.add_safe_globals([tuple, list, dict, set, int, float, str, bytes, bytearray])
 torch.serialization.add_safe_globals([complex, slice, range])
