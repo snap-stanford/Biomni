@@ -20,7 +20,7 @@ description = [
                 "description": "Task ID defined by nnU-Net (e.g., 'Task001_BrainTumour').",
                 "name": "task_id",
                 "type": "str",
-            }
+            },
         ],
         "optional_parameters": [
             {
@@ -70,7 +70,7 @@ description = [
                 "description": "Path to nnUNet results folder. If not specified, will use environment variable nnUNet_RESULTS_FOLDER or default locations.",
                 "name": "results_folder",
                 "type": "str",
-            }
+            },
         ],
     },
     {
@@ -88,7 +88,7 @@ description = [
                 "description": "Directory to save the split modality files.",
                 "name": "output_dir",
                 "type": "str",
-            }
+            },
         ],
         "optional_parameters": [
             {
@@ -114,7 +114,7 @@ description = [
                 "description": "Directory to save prepared files.",
                 "name": "output_dir",
                 "type": "str",
-            }
+            },
         ],
         "optional_parameters": [
             {
@@ -140,7 +140,7 @@ description = [
                 "description": "Path to segmentation file to overlay on the MRI.",
                 "name": "segmentation",
                 "type": "str",
-            }
+            },
         ],
         "optional_parameters": [
             {
@@ -156,5 +156,5 @@ description = [
         "name": "setup_nnunet_environment",
         "required_parameters": [],
         "optional_parameters": [],
-    }
+    },
 ]
