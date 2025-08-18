@@ -150,26 +150,6 @@ default_config.timeout_seconds = 1200
 agent = A1()  # Uses global config defaults
 ```
 
-**Custom Configuration**: You can also create custom configs for specific agent instances:
-
-```python
-from biomni.config import BiomniConfig
-from biomni.agent import A1
-
-# Create a custom configuration for this agent only
-config = BiomniConfig(
-    llm_model="gpt-4",
-    timeout_seconds=1200,
-    data_path="./my_data"
-)
-
-# Initialize agent with custom config
-agent = A1(config=config)
-
-# Or override specific settings
-agent = A1(config=config, llm="claude-sonnet-4-20250514")  # llm parameter overrides config
-```
-
 ### Basic Usage
 
 Once inside the environment, you can start using Biomni:
