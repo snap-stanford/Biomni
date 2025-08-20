@@ -4,7 +4,7 @@ import os
 import re
 from collections.abc import Generator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Optional, TypedDict
+from typing import Any, Literal, Optional, TypedDict
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -13,6 +13,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
+from biomni.config import default_config
 from biomni.env_desc import data_lake_dict, library_content_dict
 from biomni.llm import SourceType, get_llm
 from biomni.model.retriever import ToolRetriever
@@ -29,9 +30,6 @@ from biomni.utils import (
     run_with_timeout,
     textify_api_dict,
 )
-
-if TYPE_CHECKING:
-    from biomni.config import BiomniConfig
 
 if os.path.exists(".env"):
     load_dotenv(".env", override=False)
@@ -53,7 +51,6 @@ class A1:
         timeout_seconds: int | None = None,
         base_url: str | None = None,
         api_key: str | None = None,
-        config: Optional["BiomniConfig"] = None,
     ):
         """Initialize the biomni agent.
 
@@ -65,37 +62,23 @@ class A1:
             timeout_seconds: Timeout for code execution in seconds
             base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
             api_key: API key for the custom LLM
-            config: Optional BiomniConfig object. If provided, unspecified parameters will use config values
 
         """
-        # Use config values for unspecified parameters
-        if config is not None:
-            if path is None:
-                path = config.data_path
-            if llm is None:
-                llm = config.llm_model
-            if source is None:
-                source = config.source
-            if use_tool_retriever is None:
-                use_tool_retriever = config.use_tool_retriever
-            if timeout_seconds is None:
-                timeout_seconds = config.timeout_seconds
-            if base_url is None:
-                base_url = config.base_url
-            if api_key is None:
-                api_key = config.api_key
-
-        # Use defaults if still not specified
+        # Use default_config values for unspecified parameters
         if path is None:
-            path = "./data"
+            path = default_config.data_path
         if llm is None:
-            llm = "claude-sonnet-4-20250514"
+            llm = default_config.llm_model
+        if source is None:
+            source = default_config.source
         if use_tool_retriever is None:
-            use_tool_retriever = True
+            use_tool_retriever = default_config.use_tool_retriever
         if timeout_seconds is None:
-            timeout_seconds = 600
+            timeout_seconds = default_config.timeout_seconds
+        if base_url is None:
+            base_url = default_config.base_url
         if api_key is None:
-            api_key = "EMPTY"
+            api_key = default_config.api_key if default_config.api_key else "EMPTY"
 
         self.path = path
 
@@ -147,7 +130,7 @@ class A1:
             source=source,
             base_url=base_url,
             api_key=api_key,
-            config=config,
+            config=default_config,
         )
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
@@ -1726,7 +1709,6 @@ Each library is listed with its description to help you understand its functiona
         """
         import importlib
         import inspect
-        from typing import Optional
 
         from mcp.server.fastmcp import FastMCP
 

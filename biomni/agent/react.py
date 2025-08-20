@@ -6,7 +6,7 @@ import signal
 from collections.abc import Sequence
 from functools import wraps
 from multiprocessing import Process, Queue
-from typing import TYPE_CHECKING, Annotated, Optional, TypedDict
+from typing import Annotated, Optional, TypedDict
 
 from langchain_core.messages import BaseMessage, SystemMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -14,6 +14,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 
+from biomni.config import default_config
 from biomni.env_desc import data_lake_dict, library_content_dict
 from biomni.llm import get_llm
 from biomni.model.retriever import ToolRetriever
@@ -24,9 +25,6 @@ from biomni.utils import (
     pretty_print,
     read_module2api,
 )
-
-if TYPE_CHECKING:
-    from biomni.config import BiomniConfig
 
 
 # Define the AgentState TypedDict for our custom implementation
@@ -44,28 +42,16 @@ class react:
         llm: str | None = None,
         use_tool_retriever: bool | None = None,
         timeout_seconds: int | None = None,
-        config: Optional["BiomniConfig"] = None,
     ):
-        # Use config values for unspecified parameters
-        if config is not None:
-            if path is None:
-                path = config.data_path
-            if llm is None:
-                llm = config.llm_model
-            if use_tool_retriever is None:
-                use_tool_retriever = config.use_tool_retriever
-            if timeout_seconds is None:
-                timeout_seconds = config.timeout_seconds
-
-        # Use defaults if still not specified
+        # Use default_config values for unspecified parameters
         if path is None:
-            path = "./data"
+            path = default_config.data_path
         if llm is None:
-            llm = "claude-3-7-sonnet-latest"
+            llm = default_config.llm_model
         if use_tool_retriever is None:
-            use_tool_retriever = False
+            use_tool_retriever = default_config.use_tool_retriever
         if timeout_seconds is None:
-            timeout_seconds = 600
+            timeout_seconds = default_config.timeout_seconds
 
         self.path = path
         if not os.path.exists(path):
@@ -77,7 +63,7 @@ class react:
 
         module2api = read_module2api()
 
-        self.llm = get_llm(llm, config=config)
+        self.llm = get_llm(llm, config=default_config)
         tools = []
         for module, api_list in module2api.items():
             print("Registering tools from module:", module)

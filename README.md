@@ -134,21 +134,23 @@ Some Python packages are not installed by default in the Biomni environment due 
 
 ### Configuration Management
 
-Biomni now includes a centralized configuration system (`biomni.config.BiomniConfig`) that provides a clean way to manage settings across the entire application. This allows you to set defaults for model selection, timeouts, data paths, and more without modifying code or passing parameters repeatedly. The configuration system maintains full backward compatibility - all existing code continues to work exactly as before.
-
-**Global Configuration**: The system uses a global default configuration that automatically applies to all database query functions and LLM operations. You can modify this global config to change defaults across the entire application:
+Biomni includes a centralized configuration system that provides flexible ways to manage settings. You can configure Biomni through environment variables, runtime modifications, or direct parameters.
 
 ```python
 from biomni.config import default_config
 from biomni.agent import A1
 
-# Modify global defaults (affects all database queries and LLM calls)
-default_config.llm_model = "claude-3-5-sonnet-20241022"
+# RECOMMENDED: Modify global defaults for consistency
+default_config.llm_model = "gpt-4"
 default_config.timeout_seconds = 1200
 
-# All agents and database functions will now use these defaults
-agent = A1()  # Uses global config defaults
+# All agents AND database queries use these defaults
+agent = A1()  # Everything uses gpt-4, 1200s timeout
 ```
+
+**Note**: Direct parameters to `A1()` only affect that agent's reasoning, not database queries. For consistent configuration across all operations, use `default_config` or environment variables.
+
+For detailed configuration options, see the **[Configuration Guide](docs/configuration.md)**.
 
 ### Basic Usage
 

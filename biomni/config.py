@@ -58,6 +58,14 @@ class BiomniConfig:
             self.llm_model = os.getenv("BIOMNI_LLM_MODEL")
         if os.getenv("BIOMNI_USE_TOOL_RETRIEVER"):
             self.use_tool_retriever = os.getenv("BIOMNI_USE_TOOL_RETRIEVER").lower() == "true"
+        if os.getenv("BIOMNI_TEMPERATURE"):
+            self.temperature = float(os.getenv("BIOMNI_TEMPERATURE"))
+        if os.getenv("BIOMNI_CUSTOM_BASE_URL"):
+            self.base_url = os.getenv("BIOMNI_CUSTOM_BASE_URL")
+        if os.getenv("BIOMNI_CUSTOM_API_KEY"):
+            self.api_key = os.getenv("BIOMNI_CUSTOM_API_KEY")
+        if os.getenv("BIOMNI_SOURCE"):
+            self.source = os.getenv("BIOMNI_SOURCE")
 
     def to_dict(self) -> dict:
         """Convert config to dictionary for easy access."""
