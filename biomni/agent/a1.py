@@ -84,10 +84,28 @@ class A1:
         print("\n" + "=" * 50)
         print("🔧 BIOMNI CONFIGURATION")
         print("=" * 50)
+
+        # Get the actual LLM values that will be used by the agent
+        agent_llm = llm if llm is not None else default_config.llm_model
+        agent_source = source if source is not None else default_config.source
+
+        # Show default config (database LLM)
+        print("📋 DEFAULT CONFIG (Including Database LLM):")
         config_dict = default_config.to_dict()
         for key, value in config_dict.items():
             if value is not None:
                 print(f"  {key.replace('_', ' ').title()}: {value}")
+
+        # Show agent-specific LLM if different from default
+        if agent_llm != default_config.llm_model or agent_source != default_config.source:
+            print("\n🤖 AGENT LLM (Constructor Override):")
+            print(f"  LLM Model: {agent_llm}")
+            print(f"  Source: {agent_source}")
+            if base_url is not None:
+                print(f"  Base URL: {base_url}")
+            if api_key is not None and api_key != "EMPTY":
+                print(f"  API Key: {'*' * 8 + api_key[-4:] if len(api_key) > 8 else '***'}")
+
         print("=" * 50 + "\n")
 
         self.path = path
