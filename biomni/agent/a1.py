@@ -100,7 +100,8 @@ class A1:
         if agent_llm != default_config.llm_model or agent_source != default_config.source:
             print("\n🤖 AGENT LLM (Constructor Override):")
             print(f"  LLM Model: {agent_llm}")
-            print(f"  Source: {agent_source}")
+            if agent_source is not None:
+                print(f"  Source: {agent_source}")
             if base_url is not None:
                 print(f"  Base URL: {base_url}")
             if api_key is not None and api_key != "EMPTY":
