@@ -80,6 +80,16 @@ class A1:
         if api_key is None:
             api_key = default_config.api_key if default_config.api_key else "EMPTY"
 
+        # Display configuration in a nice, readable format
+        print("\n" + "=" * 50)
+        print("🔧 BIOMNI CONFIGURATION")
+        print("=" * 50)
+        config_dict = default_config.to_dict()
+        for key, value in config_dict.items():
+            if value is not None:
+                print(f"  {key.replace('_', ' ').title()}: {value}")
+        print("=" * 50 + "\n")
+
         self.path = path
 
         if not os.path.exists(path):
