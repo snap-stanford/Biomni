@@ -7,12 +7,13 @@ biomni API Reference
 
    api/agent/a1
    api/agent/env_collection
+   api/agent/function_generator
    api/agent/qa_llm
    api/agent/react
    api/biorxiv_scripts/extract_biorxiv_tasks
    api/biorxiv_scripts/generate_function
-   api/biorxiv_scripts/generation_tools_all_subjects
    api/biorxiv_scripts/process_all_subjects
+   api/config
    api/model/retriever
    api/task/base_task
    api/task/hle
