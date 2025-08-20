@@ -45,9 +45,9 @@ class react:
     ):
         # Use default_config values for unspecified parameters
         if path is None:
-            path = default_config.data_path
+            path = default_config.path
         if llm is None:
-            llm = default_config.llm_model
+            llm = default_config.llm
         if use_tool_retriever is None:
             use_tool_retriever = default_config.use_tool_retriever
         if timeout_seconds is None:

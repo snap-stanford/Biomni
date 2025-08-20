@@ -66,9 +66,9 @@ class A1:
         """
         # Use default_config values for unspecified parameters
         if path is None:
-            path = default_config.data_path
+            path = default_config.path
         if llm is None:
-            llm = default_config.llm_model
+            llm = default_config.llm
         if source is None:
             source = default_config.source
         if use_tool_retriever is None:
@@ -86,7 +86,7 @@ class A1:
         print("=" * 50)
 
         # Get the actual LLM values that will be used by the agent
-        agent_llm = llm if llm is not None else default_config.llm_model
+        agent_llm = llm if llm is not None else default_config.llm
         agent_source = source if source is not None else default_config.source
 
         # Show default config (database LLM)
@@ -97,7 +97,7 @@ class A1:
                 print(f"  {key.replace('_', ' ').title()}: {value}")
 
         # Show agent-specific LLM if different from default
-        if agent_llm != default_config.llm_model or agent_source != default_config.source:
+        if agent_llm != default_config.llm or agent_source != default_config.source:
             print("\n🤖 AGENT LLM (Constructor Override):")
             print(f"  LLM Model: {agent_llm}")
             if agent_source is not None:

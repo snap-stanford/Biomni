@@ -9,11 +9,11 @@ from biomni.config import default_config
 from biomni.agent import A1
 
 # Option 1: Modify global defaults (affects everything)
-default_config.llm_model = "gpt-4"
+default_config.llm = "gpt-4"
 default_config.timeout_seconds = 1200
 
 # Option 2: Use environment variables (set in .env file)
-# BIOMNI_LLM_MODEL=gpt-4
+# BIOMNI_LLM=gpt-4
 # BIOMNI_TIMEOUT_SECONDS=1200
 
 agent = A1()  # Uses your configuration
@@ -31,9 +31,9 @@ ANTHROPIC_API_KEY=your_key
 OPENAI_API_KEY=your_key
 
 # Optional Settings
-BIOMNI_LLM_MODEL=claude-3-5-sonnet-20241022
+BIOMNI_LLM=claude-3-5-sonnet-20241022
 BIOMNI_TIMEOUT_SECONDS=1200
-BIOMNI_DATA_PATH=/path/to/data
+BIOMNI_PATH=/path/to/data
 ```
 
 ### 2. Runtime Configuration (Recommended for Scripts)
@@ -42,7 +42,7 @@ BIOMNI_DATA_PATH=/path/to/data
 from biomni.config import default_config
 
 # Changes apply to all agents and database queries
-default_config.llm_model = "gpt-4"
+default_config.llm = "gpt-4"
 default_config.timeout_seconds = 1200
 ```
 
@@ -59,7 +59,7 @@ agent = A1(llm="claude-3-5-sonnet-20241022")
 
 ```python
 # Use GPT-4 everywhere
-default_config.llm_model = "gpt-4"
+default_config.llm = "gpt-4"
 agent = A1()
 ```
 
@@ -67,7 +67,7 @@ agent = A1()
 
 ```python
 # Cheaper model for database queries
-default_config.llm_model = "claude-3-5-haiku-20241022"
+default_config.llm = "claude-3-5-haiku-20241022"
 
 # More powerful model for agent reasoning
 agent = A1(llm="claude-3-5-sonnet-20241022")
@@ -79,7 +79,7 @@ agent = A1(llm="claude-3-5-sonnet-20241022")
 default_config.source = "Custom"
 default_config.base_url = "http://localhost:8000/v1"
 default_config.api_key = "local_key"
-default_config.llm_model = "local-llama-70b"
+default_config.llm = "local-llama-70b"
 ```
 
 ## All Available Settings
@@ -99,9 +99,9 @@ AWS_REGION=us-east-1
 OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
 
 # Biomni Settings
-BIOMNI_DATA_PATH=/path/to/data              # Default: ./data
+BIOMNI_PATH=/path/to/data                   # Default: ./data
 BIOMNI_TIMEOUT_SECONDS=1200                 # Default: 600
-BIOMNI_LLM_MODEL=model_name                 # Default: claude-sonnet-4-20250514
+BIOMNI_LLM=model_name                        # Default: claude-sonnet-4-20250514
 BIOMNI_TEMPERATURE=0.7                      # Default: 0.7
 BIOMNI_USE_TOOL_RETRIEVER=true             # Default: true
 BIOMNI_SOURCE=Anthropic                     # Auto-detected if not set
@@ -115,9 +115,9 @@ BIOMNI_CUSTOM_API_KEY=custom_key
 from biomni.config import default_config
 
 # All available settings
-default_config.data_path = "./data"
+default_config.path = "./data"
 default_config.timeout_seconds = 600
-default_config.llm_model = "claude-sonnet-4-20250514"
+default_config.llm = "claude-sonnet-4-20250514"
 default_config.temperature = 0.7
 default_config.use_tool_retriever = True
 default_config.source = None  # Auto-detected

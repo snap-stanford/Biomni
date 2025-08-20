@@ -23,18 +23,18 @@ class BiomniConfig:
         config = BiomniConfig()
 
         # Override specific settings
-        config = BiomniConfig(llm_model="gpt-4", timeout_seconds=1200)
+        config = BiomniConfig(llm="gpt-4", timeout_seconds=1200)
 
         # Modify after creation
-        config.data_path = "./custom_data"
+        config.path = "./custom_data"
     """
 
     # Data and execution settings
-    data_path: str = "./data"
+    path: str = "./data"
     timeout_seconds: int = 600
 
     # LLM settings (API keys still from environment)
-    llm_model: str = "claude-sonnet-4-20250514"
+    llm: str = "claude-sonnet-4-20250514"
     temperature: float = 0.7
 
     # Tool settings
@@ -50,12 +50,13 @@ class BiomniConfig:
     def __post_init__(self):
         """Load any environment variable overrides if they exist."""
         # Check for environment variable overrides (optional)
-        if os.getenv("BIOMNI_DATA_PATH"):
-            self.data_path = os.getenv("BIOMNI_DATA_PATH")
+        # Support both old and new names for backwards compatibility
+        if os.getenv("BIOMNI_PATH") or os.getenv("BIOMNI_DATA_PATH"):
+            self.path = os.getenv("BIOMNI_PATH") or os.getenv("BIOMNI_DATA_PATH")
         if os.getenv("BIOMNI_TIMEOUT_SECONDS"):
             self.timeout_seconds = int(os.getenv("BIOMNI_TIMEOUT_SECONDS"))
-        if os.getenv("BIOMNI_LLM_MODEL"):
-            self.llm_model = os.getenv("BIOMNI_LLM_MODEL")
+        if os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL"):
+            self.llm = os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL")
         if os.getenv("BIOMNI_USE_TOOL_RETRIEVER"):
             self.use_tool_retriever = os.getenv("BIOMNI_USE_TOOL_RETRIEVER").lower() == "true"
         if os.getenv("BIOMNI_TEMPERATURE"):
@@ -70,9 +71,9 @@ class BiomniConfig:
     def to_dict(self) -> dict:
         """Convert config to dictionary for easy access."""
         return {
-            "data_path": self.data_path,
+            "path": self.path,
             "timeout_seconds": self.timeout_seconds,
-            "llm_model": self.llm_model,
+            "llm": self.llm,
             "temperature": self.temperature,
             "use_tool_retriever": self.use_tool_retriever,
             "base_url": self.base_url,

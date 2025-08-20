@@ -53,7 +53,7 @@ def _query_llm_for_api(prompt, schema, system_template):
     try:
         from biomni.config import default_config
 
-        model = default_config.llm_model
+        model = default_config.llm
         api_key = default_config.api_key
     except ImportError:
         model = "claude-3-5-haiku-20241022"
