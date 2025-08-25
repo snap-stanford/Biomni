@@ -216,12 +216,6 @@ def get_llm(
             temperature=temperature,
             # model_kwargs={"stop_sequences": stop_sequences, "max_tokens": 8192 * 4},
         )
-    elif source == "Bedrock":
-        return ChatBedrock(
-            model=model,
-            temperature=temperature,
-            model_kwargs={"stop_sequences": stop_sequences, "max_tokens": 8192 * 4},
-        )
     elif source == "Upstage":
         # return ChatUpstage(
         #     model=model,
