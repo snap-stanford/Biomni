@@ -13,8 +13,11 @@ dependencies:
       - scikit-learn
       - gradio
       - langchain
-      - langgraph
-      - langchain_openai
+      - langgraph==0.3.18
+      - langchain-openai
+      - langchain-anthropic
+      - langchain-ollama
+      - langchain-community
       - openai
       - beautifulsoup4
       - lxml

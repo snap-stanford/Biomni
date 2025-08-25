@@ -51,8 +51,6 @@ def _query_llm_for_api(
     prompt (str): Natural language query to process
     schema (dict): API schema to include in the system prompt
     system_template (str): Template string for the system prompt (should have {schema} placeholder)
-    api_key (str, optional): API key for the model provider. If None, will use appropriate env variable
-    model (str): Model to use (defaults to claude-3-5-haiku-20241022)
 
     Returns
     -------
@@ -68,10 +66,15 @@ def _query_llm_for_api(
         else:
             system_prompt = system_template
 
-        # Get LLM instance using the unified interface
-        llm = get_llm(
-            model=model, temperature=0.0, api_key=api_key or "EMPTY", stop_sequences=[]
-        )
+        # Get LLM instance using the unified interface with config
+        try:
+            from biomni.config import default_config
+
+            llm = get_llm(
+                model=model, temperature=0.0, api_key=api_key, config=default_config
+            )
+        except ImportError:
+            llm = get_llm(model=model, temperature=0.0, api_key=api_key or "EMPTY")
 
         # Compose messages
         messages = [
@@ -469,8 +472,6 @@ def _format_query_results(result, options=None):
 def query_uniprot(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     max_results=5,
 ):
     """Query the UniProt REST API using either natural language or a direct endpoint.
@@ -480,8 +481,6 @@ def query_uniprot(
     prompt (str, required): Natural language query about proteins (e.g., "Find information about human insulin")
     endpoint (str, optional): Full or partial UniProt API endpoint URL to query directly
                             (e.g., "https://rest.uniprot.org/uniprotkb/P01308")
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     max_results (int): Maximum number of results to return
 
     Returns
@@ -726,8 +725,6 @@ def query_alphafold(
 def query_interpro(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     max_results=3,
 ):
     """Query the InterPro REST API using natural language or a direct endpoint.
@@ -737,9 +734,7 @@ def query_interpro(
     prompt (str, required): Natural language query about protein domains or families
     endpoint (str, optional): Direct endpoint path or full URL (e.g., "/entry/interpro/IPR023411"
                              or "https://www.ebi.ac.uk/interpro/api/entry/interpro/IPR023411")
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
     max_results (int): Maximum number of results to return per page
-    model (str): Anthropic model to use
 
     Returns
     -------
@@ -798,8 +793,6 @@ def query_interpro(
             prompt=prompt,
             schema=interpro_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -843,8 +836,6 @@ def query_interpro(
 def query_pdb(
     prompt=None,
     query=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     max_results=3,
 ):
     """Query the RCSB PDB database using natural language or a direct structured query.
@@ -853,8 +844,6 @@ def query_pdb(
     ----------
     prompt (str, required): Natural language query about protein structures
     query (dict, optional): Direct structured query in RCSB Search API format (overrides prompt)
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     max_results (int): Maximum number of results to return
 
     Returns
@@ -1084,21 +1073,14 @@ def query_pdb_identifiers(
         return {"error": f"Error retrieving PDB details: {str(e)}"}
 
 
-def query_kegg(
-    prompt,
-    endpoint=None,
-    api_key=None,
-    model="us.anthropic.claude-3-5-haiku-20241022-v1:0",
-    verbose=True,
-):
+def query_kegg(prompt, endpoint=None, verbose=True):
     """Take a natural language prompt and convert it to a structured KEGG API query.
 
     Parameters
     ----------
     prompt (str): Natural language query about KEGG data (e.g., "Find human pathways related to glycolysis")
-    api_key (str): Anthropic API key. If None, will look for ANTHROPIC_API_KEY environment variable
-    model (str): Anthropic model to use
-    max_results (int): Maximum number of results to return
+    endpoint (str, optional): Direct KEGG API endpoint to query
+    verbose (bool): Whether to print verbose output
 
     Returns
     -------
@@ -1143,13 +1125,11 @@ def query_kegg(
         - For "Convert NCBI gene ID 672 to KEGG ID": {{"full_url": "https://rest.kegg.jp/conv/genes/ncbi-geneid:672", "description": "Converting NCBI Gene ID 672 to KEGG gene identifier"}}
         """
 
-        # Query Claude to generate the API call
+        # Query LLM to generate the API call
         llm_result = _query_llm_for_api(
             prompt=prompt,
             schema=kegg_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -1192,8 +1172,6 @@ def query_kegg(
 def query_stringdb(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     download_image=False,
     output_dir=None,
     verbose=True,
@@ -1204,8 +1182,6 @@ def query_stringdb(
     ----------
     prompt (str, required): Natural language query about protein interactions
     endpoint (str, optional): Full URL to query directly (overrides prompt)
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     download_image (bool): Whether to download image results (for image endpoints)
     output_dir (str, optional): Directory to save downloaded files (default: current directory)
 
@@ -1374,8 +1350,6 @@ def query_iucn(
     prompt=None,
     endpoint=None,
     token="",
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query the IUCN Red List API using natural language or a direct endpoint.
@@ -1385,8 +1359,7 @@ def query_iucn(
     prompt (str, required): Natural language query about species conservation status
     endpoint (str, optional): API endpoint name (e.g., "species/id/12392") or full URL
     token (str): IUCN API token - required for all queries
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
+    verbose (bool): Whether to print verbose output
 
     Returns
     -------
@@ -1445,8 +1418,6 @@ def query_iucn(
             prompt=prompt,
             schema=iucn_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -1500,8 +1471,6 @@ def query_iucn(
 def query_paleobiology(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query the Paleobiology Database (PBDB) API using natural language or a direct endpoint.
@@ -1510,8 +1479,7 @@ def query_paleobiology(
     ----------
     prompt (str, required): Natural language query about fossil records
     endpoint (str, optional): API endpoint name or full URL
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
+    verbose (bool): Whether to print verbose output
 
     Returns
     -------
@@ -1566,8 +1534,6 @@ def query_paleobiology(
             prompt=prompt,
             schema=pbdb_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -1644,8 +1610,6 @@ def query_paleobiology(
 def query_jaspar(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query the JASPAR REST API using natural language or a direct endpoint.
@@ -1654,8 +1618,7 @@ def query_jaspar(
     ----------
     prompt (str, required): Natural language query about transcription factor binding profiles
     endpoint (str, optional): API endpoint path (e.g., "/matrix/MA0002.2/") or full URL
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
+    verbose (bool): Whether to print verbose output
 
     Returns
     -------
@@ -1708,8 +1671,6 @@ def query_jaspar(
             prompt=prompt,
             schema=jaspar_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -1760,8 +1721,6 @@ def query_jaspar(
 def query_worms(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query the World Register of Marine Species (WoRMS) REST API using natural language or a direct endpoint.
@@ -1770,8 +1729,7 @@ def query_worms(
     ----------
     prompt (str, required): Natural language query about marine species
     endpoint (str, optional): Full URL or endpoint specification
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
+    verbose (bool): Whether to print verbose output
 
     Returns
     -------
@@ -1825,8 +1783,6 @@ def query_worms(
             prompt=prompt,
             schema=worms_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -1873,8 +1829,6 @@ def query_worms(
 def query_cbioportal(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query the cBioPortal REST API using natural language or a direct endpoint.
@@ -1883,8 +1837,7 @@ def query_cbioportal(
     ----------
     prompt (str, required): Natural language query about cancer genomics data
     endpoint (str, optional): API endpoint path (e.g., "/studies/brca_tcga/patients") or full URL
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
+    verbose (bool): Whether to print verbose output
 
     Returns
     -------
@@ -1941,8 +1894,6 @@ def query_cbioportal(
             prompt=prompt,
             schema=cbioportal_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -1989,8 +1940,6 @@ def query_cbioportal(
 def query_clinvar(
     prompt=None,
     search_term=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     max_results=3,
 ):
     """Take a natural language prompt and convert it to a structured ClinVar query.
@@ -1998,10 +1947,8 @@ def query_clinvar(
     Parameters
     ----------
     prompt (str): Natural language query about genetic variants (e.g., "Find pathogenic BRCA1 variants")
-    api_key (str): Anthropic API key. If None, will look for ANTHROPIC_API_KEY environment variable
-    model (str): Anthropic model to use
+    search_term (str): Direct search term in ClinVar syntax
     max_results (int): Maximum number of results to return
-    verbose (bool): Whether to return verbose results
 
     Returns
     -------
@@ -2078,8 +2025,6 @@ def query_clinvar(
 def query_geo(
     prompt=None,
     search_term=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     max_results=3,
 ):
     """Query the NCBI Gene Expression Omnibus (GEO) using natural language or a direct search term.
@@ -2088,10 +2033,7 @@ def query_geo(
     ----------
     prompt (str, required): Natural language query about RNA-seq, microarray, or other expression data
     search_term (str, optional): Direct search term in GEO syntax
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     max_results (int): Maximum number of results to return
-    verbose (bool): Whether to return verbose results
 
     Returns
     -------
@@ -2152,8 +2094,6 @@ def query_geo(
             prompt=prompt,
             schema=geo_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -2183,8 +2123,6 @@ def query_geo(
 def query_dbsnp(
     prompt=None,
     search_term=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     max_results=3,
 ):
     """Query the NCBI dbSNP database using natural language or a direct search term.
@@ -2193,10 +2131,7 @@ def query_dbsnp(
     ----------
     prompt (str, required): Natural language query about genetic variants/SNPs
     search_term (str, optional): Direct search term in dbSNP syntax
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     max_results (int): Maximum number of results to return
-    verbose (bool): Whether to return detailed results
 
     Returns
     -------
@@ -2248,8 +2183,6 @@ def query_dbsnp(
             prompt=prompt,
             schema=dbsnp_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -2278,8 +2211,6 @@ def query_dbsnp(
 def query_ucsc(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query the UCSC Genome Browser API using natural language or a direct endpoint.
@@ -2288,9 +2219,6 @@ def query_ucsc(
     ----------
     prompt (str, required): Natural language query about genomic data
     endpoint (str, optional): Full URL or endpoint specification with parameters
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
-    max_items (int): Maximum number of items to return in results
     verbose (bool): Whether to return detailed results
 
     Returns
@@ -2348,8 +2276,6 @@ def query_ucsc(
             prompt=prompt,
             schema=ucsc_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -2394,8 +2320,6 @@ def query_ucsc(
 def query_ensembl(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query the Ensembl REST API using natural language or a direct endpoint.
@@ -2404,9 +2328,6 @@ def query_ensembl(
     ----------
     prompt (str, required): Natural language query about genomic data
     endpoint (str, optional): Direct API endpoint to query (e.g., "lookup/symbol/human/BRCA2") or full URL
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
-    max_results (int): Maximum number of results to return
     verbose (bool): Whether to return detailed results
 
     Returns
@@ -2466,8 +2387,6 @@ def query_ensembl(
             prompt=prompt,
             schema=ensembl_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -2641,8 +2560,6 @@ def query_opentarget(
     prompt=None,
     query=None,
     variables=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=False,
 ):
     """Query the OpenTargets Platform API using natural language or a direct GraphQL query.
@@ -2652,8 +2569,6 @@ def query_opentarget(
     prompt (str, required): Natural language query about drug targets, diseases, and mechanisms
     query (str, optional): Direct GraphQL query string
     variables (dict, optional): Variables for the GraphQL query
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     verbose (bool): Whether to return detailed results
 
     Returns
@@ -2710,8 +2625,6 @@ def query_opentarget(
             prompt=prompt,
             schema=opentarget_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -2754,8 +2667,6 @@ def query_opentarget(
 def query_monarch(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     max_results=2,
     verbose=False,
 ):
@@ -2765,8 +2676,6 @@ def query_monarch(
     ----------
     prompt (str, optional): Natural language query about genes, diseases, phenotypes, etc.
     endpoint (str, optional): Direct Monarch API endpoint or full URL
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for prompt-to-endpoint conversion
     max_results (int): Maximum number of results to return (if supported by endpoint)
     verbose (bool): Whether to return detailed results
 
@@ -2835,8 +2744,6 @@ def query_monarch(
             prompt=prompt,
             schema=monarch_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
         if not llm_result["success"]:
             return llm_result
@@ -2884,8 +2791,6 @@ def query_monarch(
 def query_openfda(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     max_results=100,
     verbose=True,
 ):
@@ -2895,8 +2800,6 @@ def query_openfda(
     ----------
     prompt (str, optional): Natural language query about drugs, adverse events, recalls, etc.
     endpoint (str, optional): Direct OpenFDA API endpoint or full URL
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for prompt-to-endpoint conversion
     max_results (int): Maximum number of results to return (if supported by endpoint)
     verbose (bool): Whether to return detailed results
 
@@ -2932,14 +2835,11 @@ def query_openfda(
             prompt=prompt,
             schema=openfda_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
         if not llm_result["success"]:
             return llm_result
         query_info = llm_result["data"]
         endpoint = query_info.get("full_url", "")
-        description = query_info.get("description", "")
         if not endpoint:
             return {
                 "error": "Failed to generate a valid endpoint from the prompt",
@@ -2951,7 +2851,6 @@ def query_openfda(
             endpoint = f"{base_url}{endpoint}"
         elif not endpoint.startswith("http"):
             endpoint = f"{base_url}/{endpoint.lstrip('/')}"
-        description = "Direct query to OpenFDA API"
 
     # Add max_results as a query parameter if not already present
     if "?" in endpoint:
@@ -2959,6 +2858,141 @@ def query_openfda(
             endpoint += f"&limit={max_results}"
     else:
         endpoint += f"?limit={max_results}"
+
+
+def query_clinicaltrials(
+    prompt: str | None = None,
+    endpoint: str | None = None,
+    term: str | None = None,
+    status: str | None = None,
+    condition: str | None = None,
+    intervention: str | None = None,
+    location: str | None = None,
+    phase: str | None = None,
+    page_size: int = 10,
+    max_pages: int = 1,
+    page_token: str | None = None,
+    verbose: bool = True,
+):
+    """Query ClinicalTrials.gov API for clinical studies.
+
+    Modes:
+    - Direct URL: set `endpoint` to a full URL or a path (e.g., "/studies?query.term=breast%20cancer").
+    - Structured params: provide `term`, `status`, `condition`, etc.
+    - Natural language: provide `prompt` and the function will infer structured params.
+
+    Returns a dict with aggregated results across pages (up to `max_pages`).
+    """
+    base_url = "https://clinicaltrials.gov/api/v2"
+
+    # If natural language prompt is provided, ask LLM to produce parameters
+    if prompt and not endpoint and not term:
+        system_template = (
+            "You translate natural language into ClinicalTrials.gov API parameters.\n"
+            "Return ONLY a JSON object with keys among: \n"
+            '{"term": str, "status": str, "condition": str, "intervention": str, "location": str, "phase": str, "page_size": int}.\n'
+            "Do not include explanations. Keep values concise (e.g., status like 'RECRUITING', phase like 'PHASE3')."
+        )
+
+        llm_result = _query_llm_for_api(
+            prompt=prompt,
+            schema=None,
+            system_template=system_template,
+        )
+        if llm_result.get("success"):
+            mapping = llm_result["data"] or {}
+            term = mapping.get("term", term)
+            status = mapping.get("status", status)
+            condition = mapping.get("condition", condition)
+            intervention = mapping.get("intervention", intervention)
+            location = mapping.get("location", location)
+            phase = mapping.get("phase", phase)
+            page_size = int(mapping.get("page_size", page_size) or page_size)
+
+    # If endpoint provided, normalize to full URL
+    description = "ClinicalTrials.gov studies query"
+    if endpoint:
+        if endpoint.startswith("/"):
+            endpoint = f"{base_url}{endpoint}"
+        elif not endpoint.startswith("http"):
+            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+
+        api_result = _query_rest_api(
+            endpoint=endpoint, method="GET", description=description
+        )
+        if not verbose and api_result.get("success") and "result" in api_result:
+            return _format_query_results(api_result["result"])
+        return api_result
+
+    # Otherwise build params for /studies
+    if not term and not condition and not intervention and not status:
+        return {
+            "error": "Provide at least one of: prompt, term, condition, intervention, status, or a direct endpoint"
+        }
+
+    url = f"{base_url}/studies"
+
+    def build_params(token: str | None) -> dict[str, Any]:
+        params: dict[str, Any] = {"pageSize": max(1, min(int(page_size), 100))}
+        if term:
+            params["query.term"] = term
+        if status:
+            params["filter.overallStatus"] = status
+        if condition:
+            params["filter.condition"] = condition
+        if intervention:
+            params["filter.intervention"] = intervention
+        if location:
+            params["filter.location"] = location
+        if phase:
+            params["filter.phase"] = phase
+        if token:
+            params["pageToken"] = token
+        return params
+
+    aggregated = {
+        "success": True,
+        "query_info": {
+            "endpoint": url,
+            "description": description,
+            "parameters": {
+                "term": term,
+                "status": status,
+                "condition": condition,
+                "intervention": intervention,
+                "location": location,
+                "phase": phase,
+                "page_size": page_size,
+                "max_pages": max_pages,
+            },
+        },
+        "result": {"studies": [], "page_count": 0},
+    }
+
+    current_token = page_token
+    pages_fetched = 0
+    while pages_fetched < max_pages:
+        params = build_params(current_token)
+        page_resp = _query_rest_api(
+            endpoint=url, method="GET", params=params, description=description
+        )
+        if not page_resp.get("success"):
+            return page_resp
+
+        data = page_resp.get("result") or {}
+        studies = data.get("studies") or data.get("items") or []
+        aggregated["result"]["studies"].extend(studies)
+        pages_fetched += 1
+        aggregated["result"]["page_count"] = pages_fetched
+
+        # Continue if next token present
+        current_token = data.get("nextPageToken") or data.get("nextPage") or None
+        if not current_token:
+            break
+
+    if not verbose:
+        return _format_query_results(aggregated)
+    return aggregated
 
     api_result = _query_rest_api(
         endpoint=endpoint, method="GET", description=description
@@ -2978,8 +3012,6 @@ def query_openfda(
 def query_gwas_catalog(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     max_results=3,
 ):
     """Query the GWAS Catalog API using natural language or a direct endpoint.
@@ -2988,10 +3020,7 @@ def query_gwas_catalog(
     ----------
     prompt (str, required): Natural language query about GWAS data
     endpoint (str, optional): Full API endpoint to query (e.g., "https://www.ebi.ac.uk/gwas/rest/api/studies?diseaseTraitId=EFO_0001360")
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     max_results (int): Maximum number of results to return
-    verbose (bool): Whether to return detailed results
 
     Returns
     -------
@@ -3048,8 +3077,6 @@ def query_gwas_catalog(
             prompt=prompt,
             schema=gwas_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -3090,8 +3117,6 @@ def query_gwas_catalog(
 def query_gnomad(
     prompt=None,
     gene_symbol=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query gnomAD for variants in a gene using natural language or direct gene symbol.
@@ -3100,8 +3125,7 @@ def query_gnomad(
     ----------
     prompt (str, required): Natural language query about genetic variants
     gene_symbol (str, optional): Gene symbol (e.g., "BRCA1")
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
+    verbose (bool): Whether to print verbose output
 
     Returns
     -------
@@ -3156,8 +3180,6 @@ def query_gnomad(
             prompt=prompt,
             schema=gnomad_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -3306,8 +3328,6 @@ def query_reactome(
     endpoint=None,
     download=False,
     output_dir=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query the Reactome database using natural language or a direct endpoint.
@@ -3318,8 +3338,6 @@ def query_reactome(
     endpoint (str, optional): Direct API endpoint or full URL
     download (bool): Whether to download pathway diagrams
     output_dir (str, optional): Directory to save downloaded files
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     verbose (bool): Whether to return detailed results
 
     Returns
@@ -3383,8 +3401,6 @@ def query_reactome(
             prompt=prompt,
             schema=reactome_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -3480,8 +3496,6 @@ def query_reactome(
 def query_regulomedb(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=False,
 ):
     """Query the RegulomeDB database using natural language or direct variant/coordinate specification.
@@ -3489,10 +3503,7 @@ def query_regulomedb(
     Parameters
     ----------
     prompt (str, required): Natural language query about regulatory elements
-    variant (str, optional): Specific variant ID (e.g., rs35675666)
-    coordinates (str, optional): Genomic coordinates in format chr:start-end (e.g., "chr11:5246919-5246919")
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
+    endpoint (str, optional): The full endpoint to query (e.g., "https://regulomedb.org/regulome-search/?regions=chr11:5246919-5246919&genome=GRCh38")
     verbose (bool): Whether to return detailed results
 
     Returns
@@ -3542,8 +3553,6 @@ def query_regulomedb(
             prompt=prompt,
             schema=None,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -3584,8 +3593,6 @@ def query_regulomedb(
 def query_pride(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     max_results=3,
 ):
     """Query the PRIDE (PRoteomics IDEntifications) database using natural language or a direct endpoint.
@@ -3594,10 +3601,7 @@ def query_pride(
     ----------
     prompt (str, required): Natural language query about proteomics data
     endpoint (str, optional): The full endpoint to query (e.g., "https://www.ebi.ac.uk/pride/ws/archive/v2/projects?keyword=breast%20cancer")
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     max_results (int): Maximum number of results to return
-    verbose (bool): Whether to return detailed results
 
     Returns
     -------
@@ -3651,8 +3655,6 @@ def query_pride(
             prompt=prompt,
             schema=pride_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -3692,8 +3694,6 @@ def query_pride(
 def query_gtopdb(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query the Guide to PHARMACOLOGY database (GtoPdb) using natural language or a direct endpoint.
@@ -3702,8 +3702,6 @@ def query_gtopdb(
     ----------
     prompt (str, required): Natural language query about drug targets, ligands, and interactions
     endpoint (str, optional): Full API endpoint to query (e.g., "https://www.guidetopharmacology.org/services/targets?type=GPCR&name=beta-2")
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     verbose (bool): Whether to return detailed results
 
     Returns
@@ -3759,8 +3757,6 @@ def query_gtopdb(
             prompt=prompt,
             schema=gtopdb_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -3985,8 +3981,6 @@ def get_genes_near_ccre(
 def query_remap(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query the ReMap database for regulatory elements and transcription factor binding sites.
@@ -3995,8 +3989,6 @@ def query_remap(
     ----------
     prompt (str, required): Natural language query about transcription factors and binding sites
     endpoint (str, optional): Full API endpoint to query (e.g., "https://remap.univ-amu.fr/api/v1/catalogue/tf?tf=CTCF")
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     verbose (bool): Whether to return detailed results
 
     Returns
@@ -4051,8 +4043,6 @@ def query_remap(
             prompt=prompt,
             schema=remap_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -4099,8 +4089,6 @@ def query_remap(
 def query_mpd(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query the Mouse Phenome Database (MPD) for mouse strain phenotype data.
@@ -4109,8 +4097,6 @@ def query_mpd(
     ----------
     prompt (str, required): Natural language query about mouse phenotypes, strains, or measurements
     endpoint (str, optional): Full API endpoint to query (e.g., "https://phenomedoc.jax.org/MPD_API/strains")
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     verbose (bool): Whether to return detailed results
 
     Returns
@@ -4165,8 +4151,6 @@ def query_mpd(
             prompt=prompt,
             schema=mpd_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:
@@ -4213,8 +4197,6 @@ def query_mpd(
 def query_emdb(
     prompt=None,
     endpoint=None,
-    api_key=None,
-    model="claude-3-5-haiku-20241022",
     verbose=True,
 ):
     """Query the Electron Microscopy Data Bank (EMDB) for 3D macromolecular structures.
@@ -4223,8 +4205,6 @@ def query_emdb(
     ----------
     prompt (str, required): Natural language query about EM structures and associated data
     endpoint (str, optional): Full API endpoint to query (e.g., "https://www.ebi.ac.uk/emdb/api/search")
-    api_key (str, optional): Anthropic API key. If None, will use ANTHROPIC_API_KEY env variable
-    model (str): Anthropic model to use for natural language processing
     verbose (bool): Whether to return detailed results
 
     Returns
@@ -4281,8 +4261,6 @@ def query_emdb(
             prompt=prompt,
             schema=emdb_schema,
             system_template=system_template,
-            api_key=api_key,
-            model=model,
         )
 
         if not llm_result["success"]:

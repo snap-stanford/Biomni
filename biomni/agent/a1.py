@@ -2,8 +2,9 @@ import glob
 import inspect
 import os
 import re
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, Optional, TypedDict
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -12,6 +13,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
+from biomni.config import default_config
 from biomni.env_desc import data_lake_dict, library_content_dict
 from biomni.llm import SourceType, get_llm
 from biomni.model.retriever import ToolRetriever
@@ -42,13 +44,13 @@ class AgentState(TypedDict):
 class A1:
     def __init__(
         self,
-        path="./data",
-        llm="claude-sonnet-4-20250514",
+        path: str | None = None,
+        llm: str | None = None,
         source: SourceType | None = None,
-        use_tool_retriever=True,
-        timeout_seconds=600,
+        use_tool_retriever: bool | None = None,
+        timeout_seconds: int | None = None,
         base_url: str | None = None,
-        api_key: str = "EMPTY",
+        api_key: str | None = None,
     ):
         """Initialize the biomni agent.
 
@@ -62,6 +64,53 @@ class A1:
             api_key: API key for the custom LLM
 
         """
+        # Use default_config values for unspecified parameters
+        if path is None:
+            path = default_config.path
+        if llm is None:
+            llm = default_config.llm
+        if source is None:
+            source = default_config.source
+        if use_tool_retriever is None:
+            use_tool_retriever = default_config.use_tool_retriever
+        if timeout_seconds is None:
+            timeout_seconds = default_config.timeout_seconds
+        if base_url is None:
+            base_url = default_config.base_url
+        if api_key is None:
+            api_key = default_config.api_key if default_config.api_key else "EMPTY"
+
+        # Display configuration in a nice, readable format
+        print("\n" + "=" * 50)
+        print("🔧 BIOMNI CONFIGURATION")
+        print("=" * 50)
+
+        # Get the actual LLM values that will be used by the agent
+        agent_llm = llm if llm is not None else default_config.llm
+        agent_source = source if source is not None else default_config.source
+
+        # Show default config (database LLM)
+        print("📋 DEFAULT CONFIG (Including Database LLM):")
+        config_dict = default_config.to_dict()
+        for key, value in config_dict.items():
+            if value is not None:
+                print(f"  {key.replace('_', ' ').title()}: {value}")
+
+        # Show agent-specific LLM if different from default
+        if agent_llm != default_config.llm or agent_source != default_config.source:
+            print("\n🤖 AGENT LLM (Constructor Override):")
+            print(f"  LLM Model: {agent_llm}")
+            if agent_source is not None:
+                print(f"  Source: {agent_source}")
+            if base_url is not None:
+                print(f"  Base URL: {base_url}")
+            if api_key is not None and api_key != "EMPTY":
+                print(
+                    f"  API Key: {'*' * 8 + api_key[-4:] if len(api_key) > 8 else '***'}"
+                )
+
+        print("=" * 50 + "\n")
+
         self.path = path
 
         if not os.path.exists(path):
@@ -112,6 +161,7 @@ class A1:
             source=source,
             base_url=base_url,
             api_key=api_key,
+            config=default_config,
         )
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
@@ -1539,54 +1589,52 @@ Each library is listed with its description to help you understand its functiona
         self.app.checkpointer = self.checkpointer
         # display(Image(self.app.get_graph().draw_mermaid_png()))
 
-    def go(self, prompt):
-        """Execute the agent with the given prompt.
+    def _prepare_resources_for_retrieval(self, prompt):
+        """Prepare resources for retrieval and return selected resource names.
 
         Args:
             prompt: The user's query
 
+        Returns:
+            dict: Dictionary containing selected resource names for tools, data_lake, and libraries
         """
-        self.critic_count = 0
-        self.user_task = prompt
-        if self.use_tool_retriever:
-            # Gather all available resources
-            # 1. Tools from the registry
-            all_tools = (
-                self.tool_registry.tools if hasattr(self, "tool_registry") else []
-            )
+        if not self.use_tool_retriever:
+            return None
+        # Gather all available resources
+        # 1. Tools from the registry
+        all_tools = self.tool_registry.tools if hasattr(self, "tool_registry") else []
 
-            # 2. Data lake items with descriptions
-            data_lake_path = self.path + "/data_lake"
-            data_lake_content = glob.glob(data_lake_path + "/*")
-            data_lake_items = [x.split("/")[-1] for x in data_lake_content]
+        # 2. Data lake items with descriptions
+        data_lake_path = self.path + "/data_lake"
+        data_lake_content = glob.glob(data_lake_path + "/*")
+        data_lake_items = [x.split("/")[-1] for x in data_lake_content]
 
-            # Create data lake descriptions for retrieval
-            data_lake_descriptions = []
-            for item in data_lake_items:
-                description = self.data_lake_dict.get(item, f"Data lake item: {item}")
+        # Create data lake descriptions for retrieval
+        data_lake_descriptions = []
+        for item in data_lake_items:
+            description = self.data_lake_dict.get(item, f"Data lake item: {item}")
+            data_lake_descriptions.append({"name": item, "description": description})
+
+        # Add custom data items to retrieval if they exist
+        if hasattr(self, "_custom_data") and self._custom_data:
+            for name, info in self._custom_data.items():
                 data_lake_descriptions.append(
-                    {"name": item, "description": description}
+                    {"name": name, "description": info["description"]}
                 )
 
-            # Add custom data items to retrieval if they exist
-            if hasattr(self, "_custom_data") and self._custom_data:
-                for name, info in self._custom_data.items():
-                    data_lake_descriptions.append(
+        # 3. Libraries with descriptions - use library_content_dict directly
+        library_descriptions = []
+        for lib_name, lib_desc in self.library_content_dict.items():
+            library_descriptions.append({"name": lib_name, "description": lib_desc})
+
+        # Add custom software items to retrieval if they exist
+        if hasattr(self, "_custom_software") and self._custom_software:
+            for name, info in self._custom_software.items():
+                # Check if it's not already in the library descriptions to avoid duplicates
+                if not any(lib["name"] == name for lib in library_descriptions):
+                    library_descriptions.append(
                         {"name": name, "description": info["description"]}
                     )
-            # 3. Libraries with descriptions - use library_content_dict directly
-            library_descriptions = []
-            for lib_name, lib_desc in self.library_content_dict.items():
-                library_descriptions.append({"name": lib_name, "description": lib_desc})
-
-            # Add custom software items to retrieval if they exist
-            if hasattr(self, "_custom_software") and self._custom_software:
-                for name, info in self._custom_software.items():
-                    # Check if it's not already in the library descriptions to avoid duplicates
-                    if not any(lib["name"] == name for lib in library_descriptions):
-                        library_descriptions.append(
-                            {"name": name, "description": info["description"]}
-                        )
 
             # Use retrieval to get relevant resources
             resources = {
@@ -1602,26 +1650,26 @@ Each library is listed with its description to help you understand its functiona
             )
             print("Using prompt-based retrieval with the agent's LLM")
 
-            # Extract the names from the selected resources for the system prompt
-            selected_resources_names = {
-                "tools": selected_resources["tools"],
-                "data_lake": [],
-                "libraries": [
-                    lib["name"] if isinstance(lib, dict) else lib
-                    for lib in selected_resources["libraries"]
-                ],
-            }
+        # Extract the names from the selected resources for the system prompt
+        selected_resources_names = {
+            "tools": selected_resources["tools"],
+            "data_lake": [],
+            "libraries": [
+                lib["name"] if isinstance(lib, dict) else lib
+                for lib in selected_resources["libraries"]
+            ],
+        }
 
-            # Process data lake items to extract just the names
-            for item in selected_resources["data_lake"]:
-                if isinstance(item, dict):
-                    selected_resources_names["data_lake"].append(item["name"])
-                elif isinstance(item, str) and ": " in item:
-                    # If the item already has a description, extract just the name
-                    name = item.split(": ")[0]
-                    selected_resources_names["data_lake"].append(name)
-                else:
-                    selected_resources_names["data_lake"].append(item)
+        # Process data lake items to extract just the names
+        for item in selected_resources["data_lake"]:
+            if isinstance(item, dict):
+                selected_resources_names["data_lake"].append(item["name"])
+            elif isinstance(item, str) and ": " in item:
+                # If the item already has a description, extract just the name
+                name = item.split(": ")[0]
+                selected_resources_names["data_lake"].append(name)
+            else:
+                selected_resources_names["data_lake"].append(item)
 
             # Update the system prompt with the selected resources
             self.update_system_prompt_with_selected_resources(selected_resources_names)
@@ -1636,7 +1684,39 @@ Each library is listed with its description to help you understand its functiona
             self.log.append(out)
             yield out
 
-        return self.log, message.content
+            # Yield the current step
+            yield {"output": out}
+
+    def go_stream(self, prompt) -> Generator[dict, None, None]:
+        """Execute the agent with the given prompt and return a generator that yields each step.
+
+        This function returns a generator that yields each step of the agent's execution,
+        allowing for real-time monitoring of the agent's progress.
+
+        Args:
+            prompt: The user's query
+
+        Yields:
+            dict: Each step of the agent's execution containing the current message and state
+        """
+        self.critic_count = 0
+        self.user_task = prompt
+
+        if self.use_tool_retriever:
+            selected_resources_names = self._prepare_resources_for_retrieval(prompt)
+            self.update_system_prompt_with_selected_resources(selected_resources_names)
+
+        inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
+        config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
+        self.log = []
+
+        for s in self.app.stream(inputs, stream_mode="values", config=config):
+            message = s["messages"][-1]
+            out = pretty_print(message)
+            self.log.append(out)
+
+            # Yield the current step
+            yield {"output": out}
 
     def update_system_prompt_with_selected_resources(self, selected_resources):
         """Update the system prompt with the selected resources."""
@@ -1803,7 +1883,6 @@ Each library is listed with its description to help you understand its functiona
         """
         import importlib
         import inspect
-        from typing import Optional
 
         from mcp.server.fastmcp import FastMCP
 

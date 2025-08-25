@@ -191,7 +191,6 @@ main() {
     echo -e "\n${YELLOW}Step 6: Installing command-line bioinformatics tools...${NC}"
     install_cli_tools
 
-
     # Setup completed
     echo -e "\n${GREEN}=== Biomni Environment Setup Completed! ===${NC}"
     echo -e "You can now run the example analysis with: ${YELLOW}python bio_analysis_example.py${NC}"

@@ -83,7 +83,6 @@ The system is organized into modular layers and components:
 │   ├── biorxiv_scripts/
 │   │   ├── extract_biorxiv_tasks.py
 │   │   ├── generate_function.py
-│   │   ├── generation_tools_all_subjects.py
 │   │   └── process_all_subjects.py
 │   ├── model/
 │   │   ├── __init__.py

@@ -1,6 +1,7 @@
 import os
-from typing import Literal, Optional
+from typing import TYPE_CHECKING, Literal, Optional
 
+import openai
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_ollama import ChatOllama
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
@@ -12,6 +13,9 @@ from langchain_anthropic import ChatAnthropic
 from langchain_fireworks import ChatFireworks
 
 # from langchain_google_genai import ChatGoogleGenerativeAI
+
+if TYPE_CHECKING:
+    from biomni.config import BiomniConfig
 
 SourceType = Literal[
     "OpenAI",
@@ -27,12 +31,13 @@ ALLOWED_SOURCES: set[str] = set(SourceType.__args__)
 
 
 def get_llm(
-    model: str = "claude-3-5-sonnet-20241022",
-    temperature: float = 0.7,
+    model: str | None = None,
+    temperature: float | None = None,
     stop_sequences: list[str] | None = None,
     source: SourceType | None = None,
     base_url: str | None = None,
-    api_key: str = "EMPTY",
+    api_key: str | None = None,
+    config: Optional["BiomniConfig"] = None,
 ) -> BaseChatModel:
     """
     Get a language model instance based on the specified model name and source.
@@ -45,7 +50,28 @@ def get_llm(
                       If None, will attempt to auto-detect from model name
         base_url (str): The base URL for custom model serving (e.g., "http://localhost:8000/v1"), default is None
         api_key (str): The API key for the custom llm
+        config (BiomniConfig): Optional configuration object. If provided, unspecified parameters will use config values
     """
+    # Use config values for any unspecified parameters
+    if config is not None:
+        if model is None:
+            model = config.llm_model
+        if temperature is None:
+            temperature = config.temperature
+        if source is None:
+            source = config.source
+        if base_url is None:
+            base_url = config.base_url
+        if api_key is None:
+            api_key = config.api_key or "EMPTY"
+
+    # Use defaults if still not specified
+    if model is None:
+        model = "claude-3-5-sonnet-20241022"
+    if temperature is None:
+        temperature = 0.7
+    if api_key is None:
+        api_key = "EMPTY"
     # Auto-detect source from model name if not specified
     if source is None:
         if model[:7] == "claude-":
@@ -96,10 +122,23 @@ def get_llm(
 
     # Create appropriate model based on source
     if source == "OpenAI":
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-openai package is required for OpenAI models. Install with: pip install langchain-openai"
+            )
         return ChatOpenAI(
             model=model, temperature=temperature, stop_sequences=stop_sequences
         )
+
     elif source == "AzureOpenAI":
+        try:
+            from langchain_openai import AzureChatOpenAI
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-openai package is required for Azure OpenAI models. Install with: pip install langchain-openai"
+            )
         API_VERSION = "2024-12-01-preview"
         model = model.replace("azure-", "")
         return AzureChatOpenAI(
@@ -109,13 +148,21 @@ def get_llm(
             openai_api_version=API_VERSION,
             temperature=temperature,
         )
+
     elif source == "Anthropic":
+        try:
+            from langchain_anthropic import ChatAnthropic
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-anthropic package is required for Anthropic models. Install with: pip install langchain-anthropic"
+            )
         return ChatAnthropic(
             model=model,
             temperature=temperature,
             max_tokens=8192,
             stop_sequences=stop_sequences,
         )
+
     elif source == "Gemini":
         # If you want to use ChatGoogleGenerativeAI, you need to pass the stop sequences upon invoking the model.
         # return ChatGoogleGenerativeAI(
@@ -123,6 +170,12 @@ def get_llm(
         #     temperature=temperature,
         #     google_api_key=api_key,
         # )
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-openai package is required for Gemini models. Install with: pip install langchain-openai"
+            )
         return ChatOpenAI(
             model=model,
             temperature=temperature,
@@ -130,7 +183,14 @@ def get_llm(
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             stop_sequences=stop_sequences,
         )
+
     elif source == "Groq":
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-openai package is required for Groq models. Install with: pip install langchain-openai"
+            )
         return ChatOpenAI(
             model=model,
             temperature=temperature,
@@ -138,7 +198,14 @@ def get_llm(
             base_url="https://api.groq.com/openai/v1",
             stop_sequences=stop_sequences,
         )
+
     elif source == "Ollama":
+        try:
+            from langchain_ollama import ChatOllama
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-ollama package is required for Ollama models. Install with: pip install langchain-ollama"
+            )
         return ChatOllama(
             model=model,
             temperature=temperature,
@@ -168,7 +235,28 @@ def get_llm(
             base_url="https://api.upstage.ai/v1",
             stop_sequences=stop_sequences,
         )
+
+    elif source == "Bedrock":
+        try:
+            from langchain_aws import ChatBedrock
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-aws package is required for Bedrock models. Install with: pip install langchain-aws"
+            )
+        return ChatBedrock(
+            model=model,
+            temperature=temperature,
+            stop_sequences=stop_sequences,
+            region_name=os.getenv("AWS_REGION", "us-east-1"),
+        )
+
     elif source == "Custom":
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            raise ImportError(  # noqa: B904
+                "langchain-openai package is required for custom models. Install with: pip install langchain-openai"
+            )
         # Custom LLM serving such as SGLang. Must expose an openai compatible API.
         assert (
             base_url is not None

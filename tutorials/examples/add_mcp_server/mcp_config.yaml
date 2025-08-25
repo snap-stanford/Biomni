@@ -11,7 +11,7 @@ mcp_servers:
 
   # Custom Local MCP Server - Only add tools necessary
   pubmed:
-    command: ["python", "-m", "biomni.tool.mcp_tools.pubmed_mcp"]
+    command: ["python", "-m", "biomni.tool.example_mcp_tools.pubmed_mcp"]
     enabled: true
     tools:
       - biomni_name: search_pubmed

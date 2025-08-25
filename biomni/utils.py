@@ -65,31 +65,33 @@ def run_bash_script(script: str) -> str:
         Output of the Bash script
 
     Example:
-        ```
-        # Example of a complex Bash script
-        script = '''
-        #!/bin/bash
+        This is how to use the function
 
-        # Define variables
-        DATA_DIR="/path/to/data"
-        OUTPUT_FILE="results.txt"
+        .. code-block:: python
 
-        # Create output directory if it doesn't exist
-        mkdir -p $(dirname $OUTPUT_FILE)
+            # Example of a complex Bash script
+            script = '''
+            #!/bin/bash
 
-        # Loop through files
-        for file in $DATA_DIR/*.txt; do
-            echo "Processing $file..."
-            # Count lines in each file
-            line_count=$(wc -l < $file)
-            echo "$file: $line_count lines" >> $OUTPUT_FILE
-        done
+            # Define variables
+            DATA_DIR="/path/to/data"
+            OUTPUT_FILE="results.txt"
 
-        echo "Processing complete. Results saved to $OUTPUT_FILE"
-        '''
-        result = run_bash_script(script)
-        print(result)
-        ```
+            # Create output directory if it doesn't exist
+            mkdir -p $(dirname $OUTPUT_FILE)
+
+            # Loop through files
+            for file in $DATA_DIR/*.txt; do
+                echo "Processing $file..."
+                # Count lines in each file
+                line_count=$(wc -l < $file)
+                echo "$file: $line_count lines" >> $OUTPUT_FILE
+            done
+
+            echo "Processing complete. Results saved to $OUTPUT_FILE"
+            '''
+            result = run_bash_script(script)
+            print(result)
 
     """
     try:
