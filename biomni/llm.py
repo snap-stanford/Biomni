@@ -1,7 +1,6 @@
 import os
 from typing import TYPE_CHECKING, Literal, Optional
 
-import openai
 from langchain_core.language_models.chat_models import BaseChatModel
 
 if TYPE_CHECKING:

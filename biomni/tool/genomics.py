@@ -182,7 +182,6 @@ def annotate_celltype_with_panhumanpy(
     import json
     import shutil
     import subprocess
-    import sys
     import tempfile
 
     def conda_env_exists(env_name):

@@ -78,8 +78,6 @@ ignore = [
     "D203",
     # We want docstrings to start immediately after the opening triple quote
     "D213",
-    # Imports unused
-    "F401",
     # camcelcase imported as lowercase
     "N813",
     # module import not at top level of file

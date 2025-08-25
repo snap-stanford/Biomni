@@ -6,7 +6,7 @@ import signal
 from collections.abc import Sequence
 from functools import wraps
 from multiprocessing import Process, Queue
-from typing import Annotated, Optional, TypedDict
+from typing import Annotated, TypedDict
 
 from langchain_core.messages import BaseMessage, SystemMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder

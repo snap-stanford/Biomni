@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 
 from Bio import Entrez
 from mcp.server.fastmcp import FastMCP

@@ -4,7 +4,7 @@ import os
 import re
 from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Literal, Optional, TypedDict
+from typing import Any, Literal, TypedDict
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -21,7 +21,6 @@ from biomni.tool.support_tools import run_python_repl
 from biomni.tool.tool_registry import ToolRegistry
 from biomni.utils import (
     check_and_download_s3_files,
-    download_and_unzip,
     function_to_api_schema,
     pretty_print,
     read_module2api,
@@ -1737,7 +1736,6 @@ Each library is listed with its description to help you understand its functiona
             FastMCP server object that you can run manually
         """
         import importlib
-        import inspect
 
         from mcp.server.fastmcp import FastMCP
 
