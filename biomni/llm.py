@@ -61,6 +61,8 @@ def get_llm(
         else:
             if model[:7] == "claude-":
                 source = "Anthropic"
+            elif model[:7] == "gpt-oss":
+                source = "Ollama"
             elif model[:4] == "gpt-":
                 source = "OpenAI"
             elif model.startswith("azure-"):
@@ -83,7 +85,6 @@ def get_llm(
                     "orca",
                     "vicuna",
                     "deepseek",
-                    "gpt-oss",
                 ]
             ):
                 source = "Ollama"
