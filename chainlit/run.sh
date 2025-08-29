@@ -1,0 +1,1 @@
+chainlit run run.py -w -h --host 0.0.0.0

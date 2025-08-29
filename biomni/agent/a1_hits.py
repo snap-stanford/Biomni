@@ -225,6 +225,104 @@ Output:
 
         return self.log, message
 
+    def go_stream(self, prompt, additional_system_prompt=None):
+        """Execute the agent with the given prompt.
+
+        Args:
+            prompt: The user's query
+
+        """
+        self.critic_count = 0
+        self.user_task = prompt
+        if self.use_tool_retriever:
+            # Gather all available resources
+            # 1. Tools from the registry
+            all_tools = (
+                self.tool_registry.tools if hasattr(self, "tool_registry") else []
+            )
+
+            # 2. Data lake items with descriptions
+            data_lake_path = self.path + "/data_lake"
+            data_lake_content = glob.glob(data_lake_path + "/*")
+            data_lake_items = [x.split("/")[-1] for x in data_lake_content]
+
+            # Create data lake descriptions for retrieval
+            data_lake_descriptions = []
+            for item in data_lake_items:
+                description = self.data_lake_dict.get(item, f"Data lake item: {item}")
+                data_lake_descriptions.append(
+                    {"name": item, "description": description}
+                )
+
+            # Add custom data items to retrieval if they exist
+            if hasattr(self, "_custom_data") and self._custom_data:
+                for name, info in self._custom_data.items():
+                    data_lake_descriptions.append(
+                        {"name": name, "description": info["description"]}
+                    )
+            # 3. Libraries with descriptions - use library_content_dict directly
+            library_descriptions = []
+            for lib_name, lib_desc in self.library_content_dict.items():
+                library_descriptions.append({"name": lib_name, "description": lib_desc})
+
+            # Add custom software items to retrieval if they exist
+            if hasattr(self, "_custom_software") and self._custom_software:
+                for name, info in self._custom_software.items():
+                    # Check if it's not already in the library descriptions to avoid duplicates
+                    if not any(lib["name"] == name for lib in library_descriptions):
+                        library_descriptions.append(
+                            {"name": name, "description": info["description"]}
+                        )
+
+            # Use retrieval to get relevant resources
+            resources = {
+                "tools": all_tools,
+                "data_lake": data_lake_descriptions,
+                "libraries": library_descriptions,
+            }
+            # Use prompt-based retrieval with the agent's LLM
+            tool_llm = get_llm(model="us.anthropic.claude-3-7-sonnet-20250219-v1:0")
+            selected_resources = self.retriever.prompt_based_retrieval(
+                prompt, resources, llm=tool_llm
+            )
+            print("Using prompt-based retrieval with the agent's LLM")
+            # Extract the names from the selected resources for the system prompt
+            selected_resources_names = {
+                "tools": selected_resources["tools"],
+                "data_lake": [],
+                "libraries": [
+                    lib["name"] if isinstance(lib, dict) else lib
+                    for lib in selected_resources["libraries"]
+                ],
+            }
+
+            # Process data lake items to extract just the names
+            for item in selected_resources["data_lake"]:
+                if isinstance(item, dict):
+                    selected_resources_names["data_lake"].append(item["name"])
+                elif isinstance(item, str) and ": " in item:
+                    # If the item already has a description, extract just the name
+                    name = item.split(": ")[0]
+                    selected_resources_names["data_lake"].append(name)
+                else:
+                    selected_resources_names["data_lake"].append(item)
+
+            # Update the system prompt with the selected resources
+            self.update_system_prompt_with_selected_resources(selected_resources_names)
+
+        if additional_system_prompt:
+            self.system_prompt += "\n----\n" + additional_system_prompt
+
+        inputs = {"messages": prompt, "next_step": None}
+        config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
+        self.log = [self.system_prompt]
+        for s in self.app.stream(
+            inputs, stream_mode="messages", config=config, subgraphs=True
+        ):
+            # message chunk는 바로 Print하고 각 turn의 모아진 메세지는 모았다가 return
+            if type(s[1][0]) == AIMessageChunk:
+                yield s[1][0].content
+
     def configure(self, self_critic=False, test_time_scale_round=0):
         super().configure(
             self_critic=self_critic, test_time_scale_round=test_time_scale_round
