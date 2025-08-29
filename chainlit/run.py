@@ -36,6 +36,9 @@ async def start_chat():
 
 @cl.on_message  # this function will be called every time a user inputs a message in the UI
 async def main(user_message: cl.Message):
+    # msg = cl.Message(content='![예시 이미지](./public/example.png)')
+    # await msg.send()
+    # return
     """
     This function is called every time a user inputs a message in the UI.
     It sends back an intermediate response from the tool, followed by the final answer.
@@ -50,7 +53,7 @@ async def main(user_message: cl.Message):
     # Processing images exclusively
     for file in user_message.elements:
         print(file.path, file.name)
-        os.system(f"cp {file.path} {file.name}")
+        os.system(f"cp {file.path} '{file.name}'")
         user_prompt += f"\n - user uploaded file: {file.name}\n"
 
     # await cl.Message(content="jaechang3").send()
@@ -65,6 +68,8 @@ async def main(user_message: cl.Message):
             agent_input.append(AIMessage(content=message["content"]))
     
     async with cl.Step(name="Plan and execute") as chainlit_step:
+        chainlit_step.output = "Initilizing..."
+        await chainlit_step.update()
         message_stream = agent.go_stream(agent_input)
         # msg = cl.Message(content="")
         # await msg.send()
@@ -90,8 +95,11 @@ async def main(user_message: cl.Message):
                 full_message += chunk
                 step_message += chunk
             full_message = modify_chunk(full_message)
+            full_message = detect_image_name_and_move_to_public(full_message)
             chainlit_step.output = full_message
             await chainlit_step.update()
+
+    step_message = detect_image_name_and_move_to_public(step_message)
 
     if "<solution>" in step_message and "</solution>" not in step_message:
         step_message += "</solution>"
@@ -122,3 +130,67 @@ def modify_chunk(chunk):
         if tag1 in retval:
             retval = retval.replace(tag1, tag2)
     return retval
+
+
+def detect_image_name_and_move_to_public(content):
+    public_dir = f"{current_abs_dir}/public"  # 이 경로를 원하는 값으로 수정하세요
+    
+    """
+    마크다운 텍스트에서 이미지를 찾아서 ./public 폴더로 옮기고 랜덤 prefix를 추가합니다.
+    
+    Args:
+        content (str): 마크다운 텍스트
+        
+    Returns:
+        str: 수정된 마크다운 텍스트
+    """
+    import re
+    import os
+    import shutil
+    import random
+    import string
+    
+    # public 디렉토리가 없으면 생성
+    # public_dir = "./public"  # 이 줄은 제거됨
+    os.makedirs(public_dir, exist_ok=True)
+    
+    # 마크다운 이미지 패턴 찾기: ![alt text](image_path) 또는 ![alt text](image_path "title")
+    image_pattern = r'!\[([^\]]*)\]\(([^)]+?)(?:\s+"[^"]*")?\)'
+    
+    def replace_image(match):
+        alt_text = match.group(1)
+        image_path = match.group(2).strip()
+        
+        # URL이거나 이미 public 폴더에 있는 경우는 건드리지 않음
+        if image_path.startswith(('http://', 'https://', './public/', 'public/')):
+            return match.group(0)
+        
+        # 파일이 존재하는지 확인
+        if not os.path.exists(image_path):
+            return match.group(0)  # 파일이 없으면 원본 그대로 반환
+        
+        # 랜덤 prefix 생성 (6자리)
+        random_prefix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+        
+        # 파일 확장자 추출
+        file_name = os.path.basename(image_path)
+        name, ext = os.path.splitext(file_name)
+        
+        # 새 파일명 생성
+        new_file_name = f"{random_prefix}_{file_name}"
+        new_file_path = os.path.join(public_dir, new_file_name)
+        
+        try:
+            # 파일 복사
+            shutil.copy2(image_path, new_file_path)
+            
+            # 새로운 마크다운 이미지 링크 반환
+            return f"![{alt_text}](./public/{new_file_name})"
+        except Exception as e:
+            print(f"Error moving image {image_path}: {e}")
+            return match.group(0)  # 에러가 발생하면 원본 그대로 반환
+    
+    # 모든 이미지 패턴을 찾아서 교체
+    modified_content = re.sub(image_pattern, replace_image, content)
+    
+    return modified_content

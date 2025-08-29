@@ -74,51 +74,45 @@ def get_llm(
         api_key = "EMPTY"
     # Auto-detect source from model name if not specified
     if source is None:
-        if model[:7] == "claude-":
-            source = "Anthropic"
-        elif model[:4] == "gpt-":
-            source = "OpenAI"
-        elif model[:7] == "gemini-":
-            source = "Gemini"
-        elif base_url is not None:
-            source = "Custom"
-        elif model.startswith("accounts/fireworks/models/"):
-            source = "Fireworks"
-        elif "/" in model or any(
-            name in model.lower()
-            for name in [
-                "llama",
-                "qwen",
-                "gemma",
-                "phi",
-                "dolphin",
-                "orca",
-                "vicuna",
-            ]
-        ):
-            source = "Ollama"
-        elif model.startswith(
-            (
-                "us.anthropic.claude-",
-                "amazon.titan-",
-                "meta.llama-",
-                "mistral.",
-                "cohere.",
-                "ai21.",
-                "us.",
-            )
-        ):
-            source = "Bedrock"
-        elif model.startswith(("mistral-")):
-            source = "MISTRAL"
-        elif model.startswith(("solar-")):
-            source = "Upstage"
-        elif model.startswith(("grok-")):
-            source = "XAI"
+        env_source = os.getenv("LLM_SOURCE")
+        if env_source in ALLOWED_SOURCES:
+            source = env_source
         else:
-            raise ValueError(
-                "Unable to determine model source. Please specify 'source' parameter."
-            )
+            if model[:7] == "claude-":
+                source = "Anthropic"
+            elif model[:7] == "gpt-oss":
+                source = "Ollama"
+            elif model[:4] == "gpt-":
+                source = "OpenAI"
+            elif model.startswith("azure-"):
+                source = "AzureOpenAI"
+            elif model[:7] == "gemini-":
+                source = "Gemini"
+            elif "groq" in model.lower():
+                source = "Groq"
+            elif base_url is not None:
+                source = "Custom"
+            elif "/" in model or any(
+                name in model.lower()
+                for name in [
+                    "llama",
+                    "mistral",
+                    "qwen",
+                    "gemma",
+                    "phi",
+                    "dolphin",
+                    "orca",
+                    "vicuna",
+                    "deepseek",
+                ]
+            ):
+                source = "Ollama"
+            elif model.startswith(
+                ("anthropic.claude-", "amazon.titan-", "meta.llama-", "mistral.", "cohere.", "ai21.", "us.")
+            ):
+                source = "Bedrock"
+            else:
+                raise ValueError("Unable to determine model source. Please specify 'source' parameter.")
 
     # Create appropriate model based on source
     if source == "OpenAI":

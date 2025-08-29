@@ -39,3 +39,5 @@ pymed
 scholarly
 chainlit==2.6
 faiss-cpu
+biopython
+biopandas
