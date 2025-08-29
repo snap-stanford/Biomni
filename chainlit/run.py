@@ -2,18 +2,19 @@ import chainlit as cl
 from biomni.agent import A1_HITS
 from langchain_core.messages import (
     AIMessage,
+    AIMessageChunk,
     HumanMessage,
     SystemMessage,
 )
 import os
-
+import re
 llm = "gemini-2.5-pro"
 agent = A1_HITS(
     path="/workdir_efs/jaechang/work2/biomni_hits_test/biomni_data",
     llm=llm,
     use_tool_retriever=True,
 )
-
+current_abs_dir = "/workdir_efs/jaechang/work2/biomni_hits_test"
 
 @cl.on_chat_start
 async def start_chat():
@@ -21,16 +22,15 @@ async def start_chat():
     from datetime import datetime
     import pytz
 
-    current_abs_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(current_abs_dir)
 
     # Create directory with current Korean time
     korea_tz = pytz.timezone("Asia/Seoul")
     current_time = datetime.now(korea_tz)
     dir_name = current_time.strftime("%Y%m%d_%H%M%S")
-    os.makedirs(f"logs/{dir_name}", exist_ok=True)
-    os.chdir(f"logs/{dir_name}")
-
+    os.makedirs(f"chainlit_logs/{dir_name}", exist_ok=True)
+    os.chdir(f"chainlit_logs/{dir_name}")
+    print ("current dir", os.getcwd())
     cl.user_session.set("message_history", [])
 
 
@@ -63,31 +63,62 @@ async def main(user_message: cl.Message):
             agent_input.append(HumanMessage(content=message["content"]))
         elif message["role"] == "assistant":
             agent_input.append(AIMessage(content=message["content"]))
-    full_message = ""
-    msg = cl.Message(content="")
+    
+    async with cl.Step(name="Plan and execute") as chainlit_step:
+        message_stream = agent.go_stream(agent_input)
+        # msg = cl.Message(content="")
+        # await msg.send()
+        full_message = ""
+        step_message = ""
+        step = 1
+        for chunk in message_stream:
+            this_step = chunk[1][1]["langgraph_step"]
+            if this_step != step:
+                step_message = ""
+                step = this_step
+                if full_message.count("```") % 2 == 1:
+                    full_message += "```\n"
+
+            if chunk[1][1]["langgraph_node"] == "generate" and type(chunk[1][0]) == AIMessageChunk:
+                chunk = chunk[1][0].content
+            elif chunk[1][1]["langgraph_node"] == "execute":
+                chunk = chunk[1][0].content
+            else:
+                continue
+
+            if type(chunk) == str:
+                full_message += chunk
+                step_message += chunk
+            full_message = modify_chunk(full_message)
+            chainlit_step.output = full_message
+            await chainlit_step.update()
+
+    if "<solution>" in step_message and "</solution>" not in step_message:
+        step_message += "</solution>"
+
+    solution_match = re.search(
+        r"<solution>(.*?)</solution>", step_message, re.DOTALL
+    )
+    if solution_match:
+        final_message = solution_match.group(1)
+    else:
+        final_message = step_message
+    msg = cl.Message(content=final_message)
     await msg.send()
-
-    full_message = ""
-    for chunk in agent.go_stream(agent_input):
-        print(chunk, end="")
-        full_message += chunk
-        await msg.stream_token(chunk)
-        # You can update the message content during streaming
-
-        for tag1, tag2 in [
-            ("<execute>", "```"),
-            ("</execute>", "```"),
-            ("<solution>", ""),
-            ("</solution>", ""),
-        ]:
-            if tag1 in full_message:
-                full_message = full_message.replace(tag1, tag2)
-                msg.content = full_message
-                await msg.update()
-
-    # Final update after streaming is complete
-    await msg.update()
+    print (step_message)
     message_history.append({"role": "assistant", "content": full_message})
 
 
-a = 1
+def modify_chunk(chunk):
+    retval = chunk
+    for tag1, tag2 in [
+        ("<execute>", "\n```python\n"),
+        ("</execute>", "```\n"),
+        ("<solution>", ""),
+        ("</solution>", ""),
+        ("<observation>", "```\n#Execute result\n"),
+        ("</observation>", "```\n"),
+    ]:
+        if tag1 in retval:
+            retval = retval.replace(tag1, tag2)
+    return retval

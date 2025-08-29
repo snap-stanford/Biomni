@@ -1,8 +1,12 @@
-langchain_anthropic
+langchain
+langgraph
+langchain_openai
 langchain_community
+langchain_anthropic
 langchain-google-genai
 langchain_ollama
 langchain_upstage
 langchain_mistralai
 langchain_aws
 langchain-xai
+langchain_fireworks

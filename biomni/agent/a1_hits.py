@@ -320,8 +320,9 @@ Output:
             inputs, stream_mode="messages", config=config, subgraphs=True
         ):
             # message chunk는 바로 Print하고 각 turn의 모아진 메세지는 모았다가 return
-            if type(s[1][0]) == AIMessageChunk:
-                yield s[1][0].content
+            yield s
+            # if type(s[1][0]) == AIMessageChunk:
+            #     yield s[1][0].content
 
     def configure(self, self_critic=False, test_time_scale_round=0):
         super().configure(

@@ -5,10 +5,6 @@ scipy
 statsmodels
 scikit-learn
 gradio
-langchain
-langgraph
-langchain_openai
-langchain_community
 openai
 beautifulsoup4
 lxml
@@ -41,3 +37,5 @@ gseapy
 gget
 pymed
 scholarly
+chainlit==2.6
+faiss-cpu
