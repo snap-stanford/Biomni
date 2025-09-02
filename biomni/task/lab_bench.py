@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from bioagentos.task.base_task import base_task
+
+from biomni.task.base_task import base_task
 
 np.random.seed(42)
 
@@ -102,8 +103,6 @@ We require this because we use automatic parsing.
         }
 
     def output_class(self):
-        from typing import Optional
-
         from pydantic import BaseModel, Field
 
         class MultipleChoiceOutput(BaseModel):

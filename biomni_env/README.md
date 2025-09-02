@@ -37,12 +37,25 @@ conda env create -f fixed_env.yml
 
 This contains most of the packages from environment.yml and bio_env.yml, and requires a disk of at elast 13GB quota.
 
+- (d) **Python 3.10 Environment for Copy Number Analysis**: If you specifically need to use the `analyze_copy_number_purity_ploidy_and_focal_events` function, we provide a Python 3.10 environment option. This function has specific dependency requirements that are best met with Python 3.10. To set up this environment:
+
+```bash
+conda env create -f bio_env_py310.yml
+```
+
+This environment is optimized for copy number variation analysis and includes the necessary packages for purity, ploidy, and focal event detection.
+
 3. Lastly, to activate the biomni environment:
 ```bash
 conda activate biomni_e1
 ```
 
-#### 📦 Langchain Package Support
+For the Python 3.10 environment specifically:
+```bash
+conda activate biomni_py310
+```
+
+### 📦 Langchain Package Support
 
 The Biomni environment comes with a minimal set of langchain packages by default:
 - `langchain-openai` - for OpenAI model support

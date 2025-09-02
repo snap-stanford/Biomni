@@ -13,6 +13,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
+from biomni.config import default_config
 from biomni.env_desc import data_lake_dict, library_content_dict
 from biomni.llm import SourceType, get_llm
 from biomni.model.retriever import ToolRetriever
@@ -20,7 +21,6 @@ from biomni.tool.support_tools import run_python_repl
 from biomni.tool.tool_registry import ToolRegistry
 from biomni.utils import (
     check_and_download_s3_files,
-    download_and_unzip,
     function_to_api_schema,
     pretty_print,
     read_module2api,
@@ -43,13 +43,14 @@ class AgentState(TypedDict):
 class A1:
     def __init__(
         self,
-        path="./data",
-        llm="claude-sonnet-4-20250514",
+        path: str | None = None,
+        llm: str | None = None,
         source: SourceType | None = None,
-        use_tool_retriever=True,
-        timeout_seconds=600,
+        use_tool_retriever: bool | None = None,
+        timeout_seconds: int | None = None,
         base_url: str | None = None,
-        api_key: str = "EMPTY",
+        api_key: str | None = None,
+        expected_data_lake_files: list | None = None,
     ):
         """Initialize the biomni agent.
 
@@ -63,6 +64,51 @@ class A1:
             api_key: API key for the custom LLM
 
         """
+        # Use default_config values for unspecified parameters
+        if path is None:
+            path = default_config.path
+        if llm is None:
+            llm = default_config.llm
+        if source is None:
+            source = default_config.source
+        if use_tool_retriever is None:
+            use_tool_retriever = default_config.use_tool_retriever
+        if timeout_seconds is None:
+            timeout_seconds = default_config.timeout_seconds
+        if base_url is None:
+            base_url = default_config.base_url
+        if api_key is None:
+            api_key = default_config.api_key if default_config.api_key else "EMPTY"
+
+        # Display configuration in a nice, readable format
+        print("\n" + "=" * 50)
+        print("🔧 BIOMNI CONFIGURATION")
+        print("=" * 50)
+
+        # Get the actual LLM values that will be used by the agent
+        agent_llm = llm if llm is not None else default_config.llm
+        agent_source = source if source is not None else default_config.source
+
+        # Show default config (database LLM)
+        print("📋 DEFAULT CONFIG (Including Database LLM):")
+        config_dict = default_config.to_dict()
+        for key, value in config_dict.items():
+            if value is not None:
+                print(f"  {key.replace('_', ' ').title()}: {value}")
+
+        # Show agent-specific LLM if different from default
+        if agent_llm != default_config.llm or agent_source != default_config.source:
+            print("\n🤖 AGENT LLM (Constructor Override):")
+            print(f"  LLM Model: {agent_llm}")
+            if agent_source is not None:
+                print(f"  Source: {agent_source}")
+            if base_url is not None:
+                print(f"  Base URL: {base_url}")
+            if api_key is not None and api_key != "EMPTY":
+                print(f"  API Key: {'*' * 8 + api_key[-4:] if len(api_key) > 8 else '***'}")
+
+        print("=" * 50 + "\n")
+
         self.path = path
 
         if not os.path.exists(path):
@@ -77,7 +123,8 @@ class A1:
         os.makedirs(benchmark_dir, exist_ok=True)
         os.makedirs(data_lake_dir, exist_ok=True)
 
-        expected_data_lake_files = list(data_lake_dict.keys())
+        if expected_data_lake_files is None:
+            expected_data_lake_files = list(data_lake_dict.keys())
 
         # Check and download missing data lake files
         print("Checking and downloading missing data lake files...")
@@ -108,7 +155,12 @@ class A1:
         module2api = read_module2api()
 
         self.llm = get_llm(
-            llm, stop_sequences=["</execute>", "</solution>"], source=source, base_url=base_url, api_key=api_key
+            llm,
+            stop_sequences=["</execute>", "</solution>"],
+            source=source,
+            base_url=base_url,
+            api_key=api_key,
+            config=default_config,
         )
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
@@ -1686,8 +1738,6 @@ Each library is listed with its description to help you understand its functiona
             FastMCP server object that you can run manually
         """
         import importlib
-        import inspect
-        from typing import Optional
 
         from mcp.server.fastmcp import FastMCP
 

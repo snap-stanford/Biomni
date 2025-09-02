@@ -16,7 +16,6 @@ def query_chatnt(question, sequence, device=-1):
     str
         Answer to the question
     """
-    import torch
     from transformers import pipeline
 
     pipe = pipeline(model="InstaDeepAI/ChatNT", trust_remote_code=True, device=device)
@@ -56,7 +55,6 @@ def perform_flux_balance_analysis(model_file, constraints=None, objective_reacti
     str
         Research log summarizing the FBA process and results
     """
-    import os
 
     import cobra
     import pandas as pd
@@ -320,7 +318,6 @@ def simulate_metabolic_network_perturbation(
     str
         Research log summarizing the steps taken and results obtained
     """
-    import os
 
     import cobra
     import numpy as np
@@ -627,7 +624,6 @@ def compare_protein_structures(pdb_file1, pdb_file2, chain_id1="A", chain_id2="A
     str
         A research log summarizing the structural comparison analysis
     """
-    import os
     import warnings
 
     import numpy as np
@@ -810,7 +806,6 @@ def simulate_renin_angiotensin_system_dynamics(
     str
         Research log summarizing the simulation steps and results
     """
-    import os
 
     import numpy as np
     import pandas as pd

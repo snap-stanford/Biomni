@@ -134,8 +134,6 @@ class humanity_last_exam(base_task):
         }
 
     def output_class(self):
-        from typing import Optional
-
         from pydantic import BaseModel, Field
 
         class MultipleChoiceOutput(BaseModel):
