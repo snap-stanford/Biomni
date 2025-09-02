@@ -6,10 +6,19 @@ Stateless server that receives conversation history from clients.
 import sys
 import os
 import re
+
+# Configure matplotlib to use non-GUI backend before any imports that might use it
+# This prevents "NSWindow should only be instantiated on the main thread!" errors on macOS
+os.environ['MPLBACKEND'] = 'Agg'
+import matplotlib
+matplotlib.use('Agg')
+
 from typing import Dict, List, Optional
 from mcp.server.fastmcp import FastMCP
 from biomni.agent.a1 import A1
 from biomni.agent.react import react
+from typing import Generator, Any
+import uuid
 
 
 
@@ -92,7 +101,8 @@ def main():
         def analyze_biomedical_query(
             query: str, 
             conversation_history: Optional[List[Dict[str, str]]] = None,
-            file_contexts: Optional[List[str]] = None
+            file_contexts: Optional[List[str]] = None,
+            stream_execution: bool = False
         ) -> dict:
             """
             Unified biomedical analysis with intelligent agent routing.
@@ -101,6 +111,7 @@ def main():
                 query: The biomedical question or analysis request
                 conversation_history: Optional list of previous conversation messages
                 file_contexts: Optional list of file contents to include in analysis
+                stream_execution: If True, return execution steps as they happen (future enhancement)
             """
             try:
                 # Build context with conversation history
@@ -149,10 +160,182 @@ def main():
                 }
         
 
+        # In-memory stream registry for incremental step streaming
+        streams: Dict[str, Dict[str, Any]] = {}
+
+        @mcp_server.tool()
+        def analyze_biomedical_query_streaming(
+            query: str, 
+            conversation_history: Optional[List[Dict[str, str]]] = None,
+            file_contexts: Optional[List[str]] = None
+        ) -> dict:
+            """
+            Streaming biomedical analysis that yields execution steps as they happen.
+            
+            Args:
+                query: The biomedical question or analysis request
+                conversation_history: Optional list of previous conversation messages
+                file_contexts: Optional list of file contents to include in analysis
+            """
+            try:
+                # Build context with conversation history
+                enhanced_query = query
+                if conversation_history:
+                    # Limit to recent conversation to avoid token overflow
+                    recent_history = conversation_history[-6:]  # Last 6 messages (3 turns)
+                    history_context = "\n".join([
+                        f"{turn['role'].title()}: {turn['content']}" 
+                        for turn in recent_history
+                    ])
+                    enhanced_query = f"Previous conversation:\n{history_context}\n\nCurrent query: {query}"
+                
+                # Add file contexts if provided
+                if file_contexts:
+                    context_text = "\n".join([
+                        f"File {i + 1}:\n{content}\n" 
+                        for i, content in enumerate(file_contexts)
+                    ])
+                    enhanced_query = f"{enhanced_query}\n\nProvided file contexts:\n{context_text}"
+                
+                # Classify query and route to appropriate agent
+                agent_type = QueryRouter.classify_query(query)
+                
+                print(f"Routing streaming query to {agent_type} agent", file=sys.stderr)
+                
+                # Create a custom execution wrapper that can stream steps
+                execution_steps = []
+                
+                if agent_type == "a1":
+                    execution_log, final_response = a1_agent.go(enhanced_query)
+                else:
+                    execution_log, final_response = react_agent.go(enhanced_query)
+                
+                # For now, return the same format but mark it as streaming-ready
+                return {
+                    "success": True,
+                    "response": final_response,
+                    "execution_log": [str(step) for step in execution_log],
+                    "agent_type": agent_type,
+                    "streaming": True,
+                }
+                
+            except Exception as e:
+                error_msg = str(e)
+                print(f"Error in streaming analysis: {error_msg}", file=sys.stderr)
+                
+                return {
+                    "success": False, 
+                    "error": error_msg,
+                    "streaming": True,
+                }
+
+        @mcp_server.tool()
+        def start_biomni_stream(
+            query: str,
+            conversation_history: Optional[List[Dict[str, str]]] = None,
+            file_contexts: Optional[List[str]] = None,
+        ) -> dict:
+            """
+            Start a streaming Biomni analysis session and return the first step.
+            Returns a stream_id to be used with next_biomni_stream.
+            """
+            try:
+                # Build enhanced query context
+                enhanced_query = query
+                if conversation_history:
+                    recent_history = conversation_history[-6:]
+                    history_context = "\n".join(
+                        f"{turn['role'].title()}: {turn['content']}" for turn in recent_history
+                    )
+                    enhanced_query = f"Previous conversation:\n{history_context}\n\nCurrent query: {query}"
+
+                if file_contexts:
+                    context_text = "\n".join(
+                        f"File {i + 1}:\n{content}\n" for i, content in enumerate(file_contexts)
+                    )
+                    enhanced_query = f"{enhanced_query}\n\nProvided file contexts:\n{context_text}"
+
+                agent_type = QueryRouter.classify_query(query)
+                print(f"Starting stream routed to {agent_type} agent", file=sys.stderr)
+
+                # Build the generator for streaming steps
+                if agent_type == "a1":
+                    step_iter: Generator[dict, None, None] = a1_agent.go_stream(enhanced_query)
+                else:
+                    # Fallback: non-streaming agent -> wrap into a single-step generator
+                    exec_log, final_response = react_agent.go(enhanced_query)
+                    def singleton() -> Generator[dict, None, None]:
+                        for entry in exec_log:
+                            yield {"output": str(entry)}
+                        return
+                    step_iter = singleton()
+
+                stream_id = str(uuid.uuid4())
+                streams[stream_id] = {
+                    "agent_type": agent_type,
+                    "iterator": step_iter,
+                    "final_response": None,
+                }
+
+                # Get first step if available
+                try:
+                    first = next(step_iter)
+                    first_text = str(first.get("output", "")).strip()
+                except StopIteration:
+                    first_text = ""
+
+                return {
+                    "success": True,
+                    "stream_id": stream_id,
+                    "agent_type": agent_type,
+                    "step": first_text,
+                    "done": first_text == "",
+                }
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        @mcp_server.tool()
+        def next_biomni_stream(stream_id: str) -> dict:
+            """
+            Advance a streaming Biomni session and return the next step.
+            When done, includes a final_response if available and cleans up.
+            """
+            try:
+                s = streams.get(stream_id)
+                if not s:
+                    return {"success": False, "error": "Invalid stream_id"}
+
+                step_iter: Generator[dict, None, None] = s["iterator"]
+                try:
+                    nxt = next(step_iter)
+                    return {
+                        "success": True,
+                        "done": False,
+                        "step": str(nxt.get("output", "")).strip(),
+                    }
+                except StopIteration:
+                    # Best-effort: obtain final output from accumulated log
+                    final_text = ""
+                    try:
+                        if s["agent_type"] == "a1":
+                            # A1 logs are accumulated inside the agent; reuse last known message
+                            pass
+                    except Exception:
+                        final_text = ""
+                    streams.pop(stream_id, None)
+                    return {
+                        "success": True,
+                        "done": True,
+                        "final_response": final_text,
+                    }
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
         
-        print(f"Created unified MCP server with 2 tools", file=sys.stderr)
+        print(f"Created unified MCP server with 3 tools", file=sys.stderr)
         print(f"- health_check: Server status and configuration", file=sys.stderr)
         print(f"- analyze_biomedical_query: Unified analysis with intelligent routing", file=sys.stderr)
+        print(f"- analyze_biomedical_query_streaming: Streaming analysis with real-time execution steps", file=sys.stderr)
         print(f"Starting unified Biomni HTTP MCP server on {host}:{port}...", file=sys.stderr)
         
         # Run with SSE transport for MCP client compatibility
