@@ -1245,9 +1245,58 @@ Each library is listed with its description to help you understand its functiona
             custom_software=custom_software if custom_software else None,
         )
 
+        # Sanitize messages function.
+        def sanitize_messages(messages):
+            """
+            Ensure each message in the messages list has a non-empty string as its content.
+            If the content is a list or other type, join/convert it to a string.
+            If the resulting string is empty, substitute a placeholder.
+            Works for both dict-based messages and object-based messages (e.g., SystemMessage).
+            """
+            # Process each message in the list.
+            for i, msg in enumerate(messages):
+                # Determine whether msg supports dict-like access.
+                if hasattr(msg, "get"):
+                    # msg is likely a dict.
+                    content = msg.get("content")
+                    if not isinstance(content, str):
+                        if isinstance(content, list):
+                            # Join list items if any, filtering out empty items.
+                            joined = " ".join(str(item) for item in content if item)
+                            messages[i]["content"] = joined if joined.strip() else "No content provided."
+                        else:
+                            messages[i]["content"] = str(content) if content is not None else "No content provided."
+                    else:
+                        if not content.strip():
+                            messages[i]["content"] = "No content provided."
+                elif hasattr(msg, "content"):
+                    # msg is an object with a 'content' attribute
+                    content = getattr(msg, "content", None)
+                    # Determine the new content value.
+                    if not isinstance(content, str):
+                        if isinstance(content, list):
+                            joined = " ".join(str(item) for item in content if item)
+                            new_content = joined if joined.strip() else "No content provided."
+                        else:
+                            new_content = str(content) if content is not None else "No content provided."
+                    else:
+                        new_content = content if content.strip() else "No content provided."
+                    # Try to update the content. If the object is immutable, re-create the message.
+                    try:
+                        setattr(msg, "content", new_content)
+                    except Exception:
+                        # Re-create new message object assuming its constructor accepts a content parameter.
+                        messages[i] = type(msg)(content=new_content)
+                else:
+                    # If the message is neither a dict nor has a 'content' attribute, skip it.
+                    continue
+            return messages
+            
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
             messages = [SystemMessage(content=self.system_prompt)] + state["messages"]
+            # Sanitize messages to ensure each 'content' is a nonempty string.
+            messages = sanitize_messages(messages)
             response = self.llm.invoke(messages)
 
             # Parse the response
