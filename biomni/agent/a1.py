@@ -1283,7 +1283,7 @@ Each library is listed with its description to help you understand its functiona
                         new_content = content if content.strip() else "No content provided."
                     # Try to update the content. If the object is immutable, re-create the message.
                     try:
-                        setattr(msg, "content", new_content)
+                        msg.content = new_content
                     except Exception:
                         # Re-create new message object assuming its constructor accepts a content parameter.
                         messages[i] = type(msg)(content=new_content)
@@ -1291,7 +1291,7 @@ Each library is listed with its description to help you understand its functiona
                     # If the message is neither a dict nor has a 'content' attribute, skip it.
                     continue
             return messages
-            
+
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
             messages = [SystemMessage(content=self.system_prompt)] + state["messages"]
