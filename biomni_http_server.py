@@ -102,6 +102,7 @@ def main():
             query: str, 
             conversation_history: Optional[List[Dict[str, str]]] = None,
             file_contexts: Optional[List[str]] = None,
+            files: Optional[List[Dict[str, str]]] = None,
             stream_execution: bool = False
         ) -> dict:
             """
@@ -125,13 +126,26 @@ def main():
                     ])
                     enhanced_query = f"Previous conversation:\n{history_context}\n\nCurrent query: {query}"
                 
-                # Add file contexts if provided
-                if file_contexts:
-                    context_text = "\n".join([
-                        f"File {i + 1}:\n{content}\n" 
-                        for i, content in enumerate(file_contexts)
-                    ])
-                    enhanced_query = f"{enhanced_query}\n\nProvided file contexts:\n{context_text}"
+                # Handle raw files (bytes_b64) by writing to temp files and passing paths
+                temp_paths: list[str] = []
+                if files:
+                    import base64
+                    import tempfile
+                    for i, f in enumerate(files):
+                        try:
+                            name = f.get("name") or f"uploaded_file_{i}"
+                            data_b64 = f.get("bytes_b64") or ""
+                            raw = base64.b64decode(data_b64)
+                            fd, tmp_path = tempfile.mkstemp(prefix="biomni_", suffix=f"_{name}")
+                            with os.fdopen(fd, "wb") as fh:
+                                fh.write(raw)
+                            temp_paths.append(tmp_path)
+                        except Exception:
+                            continue
+
+                    if temp_paths:
+                        path_list = "\n".join(temp_paths)
+                        enhanced_query = f"{enhanced_query}\n\nUploaded files (local paths):\n{path_list}"
                 
                 # Classify query and route to appropriate agent
                 agent_type = QueryRouter.classify_query(query)
@@ -143,6 +157,16 @@ def main():
                 else:
                     execution_log, final_response = react_agent.go(enhanced_query)
                 
+                try:
+                    # Best-effort cleanup
+                    for p in temp_paths:
+                        try:
+                            os.remove(p)
+                        except Exception:
+                            pass
+                finally:
+                    pass
+
                 return {
                     "success": True,
                     "response": final_response,
@@ -167,7 +191,8 @@ def main():
         def analyze_biomedical_query_streaming(
             query: str, 
             conversation_history: Optional[List[Dict[str, str]]] = None,
-            file_contexts: Optional[List[str]] = None
+            file_contexts: Optional[List[str]] = None,
+            files: Optional[List[Dict[str, str]]] = None,
         ) -> dict:
             """
             Streaming biomedical analysis that yields execution steps as they happen.
@@ -189,13 +214,26 @@ def main():
                     ])
                     enhanced_query = f"Previous conversation:\n{history_context}\n\nCurrent query: {query}"
                 
-                # Add file contexts if provided
-                if file_contexts:
-                    context_text = "\n".join([
-                        f"File {i + 1}:\n{content}\n" 
-                        for i, content in enumerate(file_contexts)
-                    ])
-                    enhanced_query = f"{enhanced_query}\n\nProvided file contexts:\n{context_text}"
+                # Handle raw files (bytes_b64) by writing to temp files and passing paths
+                temp_paths: list[str] = []
+                if files:
+                    import base64
+                    import tempfile
+                    for i, f in enumerate(files):
+                        try:
+                            name = f.get("name") or f"uploaded_file_{i}"
+                            data_b64 = f.get("bytes_b64") or ""
+                            raw = base64.b64decode(data_b64)
+                            fd, tmp_path = tempfile.mkstemp(prefix="biomni_", suffix=f"_{name}")
+                            with os.fdopen(fd, "wb") as fh:
+                                fh.write(raw)
+                            temp_paths.append(tmp_path)
+                        except Exception:
+                            continue
+
+                    if temp_paths:
+                        path_list = "\n".join(temp_paths)
+                        enhanced_query = f"{enhanced_query}\n\nUploaded files (local paths):\n{path_list}"
                 
                 # Classify query and route to appropriate agent
                 agent_type = QueryRouter.classify_query(query)
@@ -211,6 +249,15 @@ def main():
                     execution_log, final_response = react_agent.go(enhanced_query)
                 
                 # For now, return the same format but mark it as streaming-ready
+                try:
+                    for p in temp_paths:
+                        try:
+                            os.remove(p)
+                        except Exception:
+                            pass
+                finally:
+                    pass
+
                 return {
                     "success": True,
                     "response": final_response,
@@ -234,6 +281,7 @@ def main():
             query: str,
             conversation_history: Optional[List[Dict[str, str]]] = None,
             file_contexts: Optional[List[str]] = None,
+            files: Optional[List[Dict[str, str]]] = None,
         ) -> dict:
             """
             Start a streaming Biomni analysis session and return the first step.
@@ -249,11 +297,25 @@ def main():
                     )
                     enhanced_query = f"Previous conversation:\n{history_context}\n\nCurrent query: {query}"
 
-                if file_contexts:
-                    context_text = "\n".join(
-                        f"File {i + 1}:\n{content}\n" for i, content in enumerate(file_contexts)
-                    )
-                    enhanced_query = f"{enhanced_query}\n\nProvided file contexts:\n{context_text}"
+                temp_paths: list[str] = []
+                if files:
+                    import base64
+                    import tempfile
+                    for i, f in enumerate(files):
+                        try:
+                            name = f.get("name") or f"uploaded_file_{i}"
+                            data_b64 = f.get("bytes_b64") or ""
+                            raw = base64.b64decode(data_b64)
+                            fd, tmp_path = tempfile.mkstemp(prefix="biomni_", suffix=f"_{name}")
+                            with os.fdopen(fd, "wb") as fh:
+                                fh.write(raw)
+                            temp_paths.append(tmp_path)
+                        except Exception:
+                            continue
+
+                    if temp_paths:
+                        path_list = "\n".join(temp_paths)
+                        enhanced_query = f"{enhanced_query}\n\nUploaded files (local paths):\n{path_list}"
 
                 agent_type = QueryRouter.classify_query(query)
                 print(f"Starting stream routed to {agent_type} agent", file=sys.stderr)
@@ -275,6 +337,7 @@ def main():
                     "agent_type": agent_type,
                     "iterator": step_iter,
                     "final_response": None,
+                    "temp_paths": temp_paths,
                 }
 
                 # Get first step if available
@@ -322,7 +385,16 @@ def main():
                             pass
                     except Exception:
                         final_text = ""
-                    streams.pop(stream_id, None)
+                    # Cleanup temp files created for this stream
+                    try:
+                        s_local = streams.get(stream_id) or {}
+                        for p in s_local.get("temp_paths", []) or []:
+                            try:
+                                os.remove(p)
+                            except Exception:
+                                pass
+                    finally:
+                        streams.pop(stream_id, None)
                     return {
                         "success": True,
                         "done": True,
