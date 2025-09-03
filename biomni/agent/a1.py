@@ -467,11 +467,19 @@ class A1:
                     tool_name = tool_meta.get("biomni_name")
                     description = tool_meta.get("description", f"MCP tool: {tool_name}")
                     parameters = tool_meta.get("parameters", {})
+                    # For manual tools, check if each parameter has a "required" field
+                    required_param_names = []
+                    for param_name, param_spec in parameters.items():
+                        if param_spec.get("required", False):
+                            required_param_names.append(param_name)
                 else:
                     # Auto-discovered tool
                     tool_name = tool_meta.get("name")
                     description = tool_meta.get("description", f"MCP tool: {tool_name}")
-                    parameters = tool_meta.get("inputSchema", {}).get("properties", {})
+                    input_schema = tool_meta.get("inputSchema", {})
+                    parameters = input_schema.get("properties", {})
+                    # For auto-discovered tools, get required list from inputSchema top level
+                    required_param_names = input_schema.get("required", [])
 
                 if not tool_name:
                     print(f"Warning: Skipping tool with no name in {server_name}")
@@ -493,7 +501,8 @@ class A1:
                         "default": param_spec.get("default", None),
                     }
 
-                    if param_spec.get("required", False):
+                    # Check if parameter is required based on the required_param_names list
+                    if param_name in required_param_names:
                         required_params.append(param_info)
                     else:
                         optional_params.append(param_info)
