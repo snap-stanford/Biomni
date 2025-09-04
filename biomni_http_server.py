@@ -6,6 +6,7 @@ Stateless server that receives conversation history from clients.
 import sys
 import os
 import re
+import time
 
 # Configure matplotlib to use non-GUI backend before any imports that might use it
 # This prevents "NSWindow should only be instantiated on the main thread!" errors on macOS
@@ -97,317 +98,228 @@ def main():
                 "data_path": biomni_data_path
             }
         
-        @mcp_server.tool()
-        def analyze_biomedical_query(
-            query: str, 
-            conversation_history: Optional[List[Dict[str, str]]] = None,
-            file_contexts: Optional[List[str]] = None,
-            files: Optional[List[Dict[str, str]]] = None,
-            stream_execution: bool = False
-        ) -> dict:
-            """
-            Unified biomedical analysis with intelligent agent routing.
-            
-            Args:
-                query: The biomedical question or analysis request
-                conversation_history: Optional list of previous conversation messages
-                file_contexts: Optional list of file contents to include in analysis
-                stream_execution: If True, return execution steps as they happen (future enhancement)
-            """
-            try:
-                # Build context with conversation history
-                enhanced_query = query
-                if conversation_history:
-                    # Limit to recent conversation to avoid token overflow
-                    recent_history = conversation_history[-6:]  # Last 6 messages (3 turns)
-                    history_context = "\n".join([
-                        f"{turn['role'].title()}: {turn['content']}" 
-                        for turn in recent_history
-                    ])
-                    enhanced_query = f"Previous conversation:\n{history_context}\n\nCurrent query: {query}"
-                
-                # Handle raw files (bytes_b64) by writing to temp files and passing paths
-                temp_paths: list[str] = []
-                if files:
-                    import base64
-                    import tempfile
-                    for i, f in enumerate(files):
-                        try:
-                            name = f.get("name") or f"uploaded_file_{i}"
-                            data_b64 = f.get("bytes_b64") or ""
-                            raw = base64.b64decode(data_b64)
-                            fd, tmp_path = tempfile.mkstemp(prefix="biomni_", suffix=f"_{name}")
-                            with os.fdopen(fd, "wb") as fh:
-                                fh.write(raw)
-                            temp_paths.append(tmp_path)
-                        except Exception:
-                            continue
-
-                    if temp_paths:
-                        path_list = "\n".join(temp_paths)
-                        enhanced_query = f"{enhanced_query}\n\nUploaded files (local paths):\n{path_list}"
-                
-                # Classify query and route to appropriate agent
-                agent_type = QueryRouter.classify_query(query)
-                
-                print(f"Routing query to {agent_type} agent", file=sys.stderr)
-                
-                if agent_type == "a1":
-                    execution_log, final_response = a1_agent.go(enhanced_query)
-                else:
-                    execution_log, final_response = react_agent.go(enhanced_query)
-                
-                try:
-                    # Best-effort cleanup
-                    for p in temp_paths:
-                        try:
-                            os.remove(p)
-                        except Exception:
-                            pass
-                finally:
-                    pass
-
-                return {
-                    "success": True,
-                    "response": final_response,
-                    "execution_log": [str(step) for step in execution_log],
-                    "agent_type": agent_type,
-                }
-                
-            except Exception as e:
-                error_msg = str(e)
-                print(f"Error in analyze_biomedical_query: {error_msg}", file=sys.stderr)
-                
-                return {
-                    "success": False, 
-                    "error": error_msg,
-                }
-        
-
         # In-memory stream registry for incremental step streaming
         streams: Dict[str, Dict[str, Any]] = {}
 
-        @mcp_server.tool()
-        def analyze_biomedical_query_streaming(
-            query: str, 
-            conversation_history: Optional[List[Dict[str, str]]] = None,
-            file_contexts: Optional[List[str]] = None,
-            files: Optional[List[Dict[str, str]]] = None,
-        ) -> dict:
-            """
-            Streaming biomedical analysis that yields execution steps as they happen.
+        def _build_enhanced_query(query: str, conversation_history, files) -> tuple[str, list[str]]:
+            # Build context with conversation history
+            enhanced_query = query
+            if conversation_history:
+                # Limit to recent conversation to avoid token overflow
+                recent_history = conversation_history[-6:]  # Last 6 messages (3 turns)
+                history_context = "\n".join([f"{turn['role'].title()}: {turn['content']}" for turn in recent_history])
+                enhanced_query = f"Previous conversation:\n{history_context}\n\nCurrent query: {query}"
+
+            # Handle raw files (bytes_b64) by writing to temp files and passing paths
+            temp_paths: list[str] = []
+            if files:
+                import base64
+                import tempfile
+                for i, f in enumerate(files):
+                    try:
+                        name = f.get("name") or f"uploaded_file_{i}"
+                        data_b64 = f.get("bytes_b64") or ""
+                        raw = base64.b64decode(data_b64)
+                        fd, tmp_path = tempfile.mkstemp(prefix="biomni_", suffix=f"_{name}")
+                        with os.fdopen(fd, "wb") as fh:
+                            fh.write(raw)
+                        temp_paths.append(tmp_path)
+                    except Exception:
+                        continue
+
+                if temp_paths:
+                    path_list = "\n".join(temp_paths)
+                    enhanced_query = f"{enhanced_query}\n\nUploaded files (local paths):\n{path_list}"
+
+            return enhanced_query, temp_paths
+
+        def _collect_generated_images(working_dir: str = "./") -> tuple[list[dict[str, str]], list[str]]:
+            """Collect generated image files and return as base64 encoded data with file paths for cleanup."""
+            import base64
+            import glob
+            import mimetypes
             
-            Args:
-                query: The biomedical question or analysis request
-                conversation_history: Optional list of previous conversation messages
-                file_contexts: Optional list of file contents to include in analysis
-            """
-            try:
-                # Build context with conversation history
-                enhanced_query = query
-                if conversation_history:
-                    # Limit to recent conversation to avoid token overflow
-                    recent_history = conversation_history[-6:]  # Last 6 messages (3 turns)
-                    history_context = "\n".join([
-                        f"{turn['role'].title()}: {turn['content']}" 
-                        for turn in recent_history
-                    ])
-                    enhanced_query = f"Previous conversation:\n{history_context}\n\nCurrent query: {query}"
-                
-                # Handle raw files (bytes_b64) by writing to temp files and passing paths
-                temp_paths: list[str] = []
-                if files:
-                    import base64
-                    import tempfile
-                    for i, f in enumerate(files):
-                        try:
-                            name = f.get("name") or f"uploaded_file_{i}"
-                            data_b64 = f.get("bytes_b64") or ""
-                            raw = base64.b64decode(data_b64)
-                            fd, tmp_path = tempfile.mkstemp(prefix="biomni_", suffix=f"_{name}")
-                            with os.fdopen(fd, "wb") as fh:
-                                fh.write(raw)
-                            temp_paths.append(tmp_path)
-                        except Exception:
-                            continue
-
-                    if temp_paths:
-                        path_list = "\n".join(temp_paths)
-                        enhanced_query = f"{enhanced_query}\n\nUploaded files (local paths):\n{path_list}"
-                
-                # Classify query and route to appropriate agent
-                agent_type = QueryRouter.classify_query(query)
-                
-                print(f"Routing streaming query to {agent_type} agent", file=sys.stderr)
-                
-                # Create a custom execution wrapper that can stream steps
-                execution_steps = []
-                
-                if agent_type == "a1":
-                    execution_log, final_response = a1_agent.go(enhanced_query)
-                else:
-                    execution_log, final_response = react_agent.go(enhanced_query)
-                
-                # For now, return the same format but mark it as streaming-ready
-                try:
-                    for p in temp_paths:
-                        try:
-                            os.remove(p)
-                        except Exception:
-                            pass
-                finally:
-                    pass
-
-                return {
-                    "success": True,
-                    "response": final_response,
-                    "execution_log": [str(step) for step in execution_log],
-                    "agent_type": agent_type,
-                    "streaming": True,
-                }
-                
-            except Exception as e:
-                error_msg = str(e)
-                print(f"Error in streaming analysis: {error_msg}", file=sys.stderr)
-                
-                return {
-                    "success": False, 
-                    "error": error_msg,
-                    "streaming": True,
-                }
+            image_extensions = ["*.png", "*.jpg", "*.jpeg", "*.svg", "*.pdf", "*.html"]
+            generated_images = []
+            image_paths = []
+            
+            for ext in image_extensions:
+                for img_path in glob.glob(os.path.join(working_dir, ext)):
+                    try:
+                        # Only collect files that were recently created (within last minute)
+                        if os.path.getmtime(img_path) > (time.time() - 60):
+                            with open(img_path, "rb") as f:
+                                img_bytes = f.read()
+                            
+                            mime_type, _ = mimetypes.guess_type(img_path)
+                            if not mime_type:
+                                mime_type = "application/octet-stream"
+                            
+                            generated_images.append({
+                                "name": os.path.basename(img_path),
+                                "mime_type": mime_type,
+                                "bytes_b64": base64.b64encode(img_bytes).decode("utf-8"),
+                                "size": len(img_bytes)
+                            })
+                            image_paths.append(img_path)
+                    except Exception:
+                        continue
+            
+            return generated_images, image_paths
 
         @mcp_server.tool()
-        def start_biomni_stream(
+        def analyze_biomedical_query(
             query: str,
             conversation_history: Optional[List[Dict[str, str]]] = None,
             file_contexts: Optional[List[str]] = None,
             files: Optional[List[Dict[str, str]]] = None,
+            stream: bool = False,
+            stream_id: Optional[str] = None,
         ) -> dict:
             """
-            Start a streaming Biomni analysis session and return the first step.
-            Returns a stream_id to be used with next_biomni_stream.
+            Unified biomedical analysis with intelligent agent routing.
+
+            Args:
+                query: The biomedical question or analysis request
+                conversation_history: Optional list of previous conversation messages
+                file_contexts: Optional list of file contents to include in analysis (unused; reserved)
+                files: Optional list of raw files as {name, bytes_b64}
+                stream: If True, start/continue streaming steps
+                stream_id: If provided with stream=True, advances an existing stream
             """
             try:
-                # Build enhanced query context
-                enhanced_query = query
-                if conversation_history:
-                    recent_history = conversation_history[-6:]
-                    history_context = "\n".join(
-                        f"{turn['role'].title()}: {turn['content']}" for turn in recent_history
-                    )
-                    enhanced_query = f"Previous conversation:\n{history_context}\n\nCurrent query: {query}"
-
-                temp_paths: list[str] = []
-                if files:
-                    import base64
-                    import tempfile
-                    for i, f in enumerate(files):
+                if stream:
+                    # Advance existing stream if stream_id provided
+                    if stream_id:
                         try:
-                            name = f.get("name") or f"uploaded_file_{i}"
-                            data_b64 = f.get("bytes_b64") or ""
-                            raw = base64.b64decode(data_b64)
-                            fd, tmp_path = tempfile.mkstemp(prefix="biomni_", suffix=f"_{name}")
-                            with os.fdopen(fd, "wb") as fh:
-                                fh.write(raw)
-                            temp_paths.append(tmp_path)
-                        except Exception:
-                            continue
+                            s = streams.get(stream_id)
+                            if not s:
+                                return {"success": False, "error": "Invalid stream_id"}
 
-                    if temp_paths:
-                        path_list = "\n".join(temp_paths)
-                        enhanced_query = f"{enhanced_query}\n\nUploaded files (local paths):\n{path_list}"
+                            step_iter: Generator[dict, None, None] = s["iterator"]
+                            try:
+                                nxt = next(step_iter)
+                                return {
+                                    "success": True,
+                                    "done": False,
+                                    "step": str(nxt.get("output", "")).strip(),
+                                }
+                            except StopIteration:
+                                # Collect any generated images before cleanup
+                                generated_images, image_paths = _collect_generated_images()
+                                
+                                # Cleanup temp files and image files
+                                try:
+                                    s_local = streams.get(stream_id) or {}
+                                    # Clean up temp input files
+                                    for p in s_local.get("temp_paths", []) or []:
+                                        try:
+                                            os.remove(p)
+                                        except Exception:
+                                            pass
+                                    # Clean up generated image files after sending
+                                    for img_path in image_paths:
+                                        try:
+                                            os.remove(img_path)
+                                        except Exception:
+                                            pass
+                                finally:
+                                    streams.pop(stream_id, None)
+                                return {
+                                    "success": True,
+                                    "done": True,
+                                    "final_response": "",
+                                    "generated_images": generated_images,
+                                }
+                        except Exception as e:
+                            return {"success": False, "error": str(e)}
 
+                    # Start a new streaming session
+                    enhanced_query, temp_paths = _build_enhanced_query(query, conversation_history, files)
+                    agent_type = QueryRouter.classify_query(query)
+                    print(f"Starting unified stream routed to {agent_type} agent", file=sys.stderr)
+
+                    # Build the generator for streaming steps
+                    if agent_type == "a1":
+                        step_iter: Generator[dict, None, None] = a1_agent.go_stream(enhanced_query)
+                    else:
+                        # Fallback: wrap non-streaming logs into a generator
+                        exec_log, _ = react_agent.go(enhanced_query)
+                        def singleton() -> Generator[dict, None, None]:
+                            for entry in exec_log:
+                                yield {"output": str(entry)}
+                            return
+                        step_iter = singleton()
+
+                    sid = str(uuid.uuid4())
+                    streams[sid] = {
+                        "agent_type": agent_type,
+                        "iterator": step_iter,
+                        "final_response": None,
+                        "temp_paths": temp_paths,
+                    }
+
+                    # Get first step if available
+                    try:
+                        first = next(step_iter)
+                        first_text = str(first.get("output", "")).strip()
+                    except StopIteration:
+                        first_text = ""
+
+                    return {
+                        "success": True,
+                        "stream_id": sid,
+                        "agent_type": agent_type,
+                        "step": first_text,
+                        "done": first_text == "",
+                    }
+
+                # Non-streaming path
+                enhanced_query, temp_paths = _build_enhanced_query(query, conversation_history, files)
                 agent_type = QueryRouter.classify_query(query)
-                print(f"Starting stream routed to {agent_type} agent", file=sys.stderr)
+                print(f"Routing unified query to {agent_type} agent", file=sys.stderr)
 
-                # Build the generator for streaming steps
                 if agent_type == "a1":
-                    step_iter: Generator[dict, None, None] = a1_agent.go_stream(enhanced_query)
+                    execution_log, final_response = a1_agent.go(enhanced_query)
                 else:
-                    # Fallback: non-streaming agent -> wrap into a single-step generator
-                    exec_log, final_response = react_agent.go(enhanced_query)
-                    def singleton() -> Generator[dict, None, None]:
-                        for entry in exec_log:
-                            yield {"output": str(entry)}
-                        return
-                    step_iter = singleton()
+                    execution_log, final_response = react_agent.go(enhanced_query)
 
-                stream_id = str(uuid.uuid4())
-                streams[stream_id] = {
-                    "agent_type": agent_type,
-                    "iterator": step_iter,
-                    "final_response": None,
-                    "temp_paths": temp_paths,
-                }
+                # Collect any generated images
+                generated_images, image_paths = _collect_generated_images()
 
-                # Get first step if available
                 try:
-                    first = next(step_iter)
-                    first_text = str(first.get("output", "")).strip()
-                except StopIteration:
-                    first_text = ""
+                    # Clean up temp input files
+                    for p in temp_paths:
+                        try:
+                            os.remove(p)
+                        except Exception:
+                            pass
+                    # Clean up generated image files after sending
+                    for img_path in image_paths:
+                        try:
+                            os.remove(img_path)
+                        except Exception:
+                            pass
+                finally:
+                    pass
 
                 return {
                     "success": True,
-                    "stream_id": stream_id,
+                    "response": final_response,
+                    "execution_log": [str(step) for step in execution_log],
                     "agent_type": agent_type,
-                    "step": first_text,
-                    "done": first_text == "",
+                    "generated_images": generated_images,
                 }
-            except Exception as e:
-                return {"success": False, "error": str(e)}
 
-        @mcp_server.tool()
-        def next_biomni_stream(stream_id: str) -> dict:
-            """
-            Advance a streaming Biomni session and return the next step.
-            When done, includes a final_response if available and cleans up.
-            """
-            try:
-                s = streams.get(stream_id)
-                if not s:
-                    return {"success": False, "error": "Invalid stream_id"}
-
-                step_iter: Generator[dict, None, None] = s["iterator"]
-                try:
-                    nxt = next(step_iter)
-                    return {
-                        "success": True,
-                        "done": False,
-                        "step": str(nxt.get("output", "")).strip(),
-                    }
-                except StopIteration:
-                    # Best-effort: obtain final output from accumulated log
-                    final_text = ""
-                    try:
-                        if s["agent_type"] == "a1":
-                            # A1 logs are accumulated inside the agent; reuse last known message
-                            pass
-                    except Exception:
-                        final_text = ""
-                    # Cleanup temp files created for this stream
-                    try:
-                        s_local = streams.get(stream_id) or {}
-                        for p in s_local.get("temp_paths", []) or []:
-                            try:
-                                os.remove(p)
-                            except Exception:
-                                pass
-                    finally:
-                        streams.pop(stream_id, None)
-                    return {
-                        "success": True,
-                        "done": True,
-                        "final_response": final_text,
-                    }
             except Exception as e:
-                return {"success": False, "error": str(e)}
+                error_msg = str(e)
+                print(f"Error in analyze_biomedical_query: {error_msg}", file=sys.stderr)
+                return {"success": False, "error": error_msg}
 
         
-        print(f"Created unified MCP server with 3 tools", file=sys.stderr)
+        print(f"Created unified MCP server with 2 tools", file=sys.stderr)
         print(f"- health_check: Server status and configuration", file=sys.stderr)
-        print(f"- analyze_biomedical_query: Unified analysis with intelligent routing", file=sys.stderr)
-        print(f"- analyze_biomedical_query_streaming: Streaming analysis with real-time execution steps", file=sys.stderr)
+        print(f"- analyze_biomedical_query: Unified analysis with optional streaming", file=sys.stderr)
         print(f"Starting unified Biomni HTTP MCP server on {host}:{port}...", file=sys.stderr)
         
         # Run with SSE transport for MCP client compatibility

@@ -1044,6 +1044,12 @@ When calling the existing python functions in the function dictionary, YOU MUST 
 For example, result = understand_scRNA(XXX) print(result)
 Otherwise the system will not be able to know what has been done.
 
+IMPORTANT: When creating plots or visualizations, ALWAYS save them to files instead of using plt.show().
+Use plt.savefig() to save plots as PNG, SVG, or PDF files. For example:
+- plt.savefig('analysis_plot.png', dpi=300, bbox_inches='tight')
+- plt.savefig('results_figure.svg', format='svg', bbox_inches='tight')
+These saved plots will be automatically collected and made available to the user as interactive, downloadable images.
+
 For R code, use the #!R marker at the beginning of your code block to indicate it's R code.
 For Bash scripts and commands, use the #!BASH marker at the beginning of your code block. This allows for both simple commands and multi-line scripts with variables, loops, conditionals, loops, and other Bash features.
 
