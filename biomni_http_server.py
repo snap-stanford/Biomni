@@ -20,6 +20,12 @@ from biomni.agent.a1 import A1
 from biomni.agent.react import react
 from typing import Generator, Any
 import uuid
+# Message parsing utilities
+try:
+    from collate_utils.message_parsing import parse_blocks
+except Exception:
+    raise Exception("Could not import parse_blocks from collate_utils.message_parsing")
+
 
 
 
@@ -196,14 +202,51 @@ def main():
                             if not s:
                                 return {"success": False, "error": "Invalid stream_id"}
 
+                            # If we have queued block events from prior outputs, serve those first
+                            events: list[dict[str, Any]] = s.get("events") or []
+                            if events:
+                                evt = events.pop(0)
+                                s["events"] = events
+                                # Back-compat: include 'step' when this is a delta event
+                                resp: Dict[str, Any] = {"success": True, "done": False, "block": evt}
+                                if evt.get("event") == "delta":
+                                    resp["step"] = evt.get("text", "")
+                                else:
+                                    resp["step"] = ""
+                                return resp
+
                             step_iter: Generator[dict, None, None] = s["iterator"]
                             try:
                                 nxt = next(step_iter)
-                                return {
-                                    "success": True,
-                                    "done": False,
-                                    "step": str(nxt.get("output", "")).strip(),
-                                }
+                                output_text = str(nxt.get("output", "")).strip()
+                                # Convert output_text into block events
+                                new_events: list[dict[str, Any]] = []
+                                blocks = parse_blocks(output_text) or []
+                                for b in blocks:
+                                    block_id = str(uuid.uuid4())
+                                    block_type = getattr(b, "type", None) or (b.get("type") if isinstance(b, dict) else None)
+                                    block_text = getattr(b, "text", None) or (b.get("text") if isinstance(b, dict) else "")
+                                    if not block_type:
+                                        continue
+                                    new_events.append({"event": "block_start", "block_id": block_id, "block_type": block_type})
+                                    if block_text:
+                                        new_events.append({"event": "delta", "block_id": block_id, "block_type": block_type, "text": block_text})
+                                    new_events.append({"event": "block_end", "block_id": block_id, "block_type": block_type})
+
+                                # If no blocks were found, fallback to a single delta event without block typing
+                                if not new_events and output_text:
+                                    block_id = str(uuid.uuid4())
+                                    new_events = [
+                                        {"event": "block_start", "block_id": block_id, "block_type": "think"},
+                                        {"event": "delta", "block_id": block_id, "block_type": "think", "text": output_text},
+                                        {"event": "block_end", "block_id": block_id, "block_type": "think"},
+                                    ]
+
+                                s["events"] = new_events[1:] if len(new_events) > 1 else []
+                                first_evt = new_events[0] if new_events else {"event": "delta", "block_id": str(uuid.uuid4()), "block_type": "think", "text": ""}
+                                resp: Dict[str, Any] = {"success": True, "done": False, "block": first_evt}
+                                resp["step"] = first_evt.get("text", "") if first_evt.get("event") == "delta" else ""
+                                return resp
                             except StopIteration:
                                 # Collect any generated images before cleanup
                                 generated_images, image_paths = _collect_generated_images()
@@ -257,22 +300,51 @@ def main():
                         "iterator": step_iter,
                         "final_response": None,
                         "temp_paths": temp_paths,
+                        "events": [],
                     }
 
                     # Get first step if available
                     try:
                         first = next(step_iter)
                         first_text = str(first.get("output", "")).strip()
+                        # Pre-populate events from the first output
+                        new_events: list[dict[str, Any]] = []
+                        blocks = parse_blocks(first_text) or []
+                        for b in blocks:
+                            block_id = str(uuid.uuid4())
+                            block_type = getattr(b, "type", None) or (b.get("type") if isinstance(b, dict) else None)
+                            block_text = getattr(b, "text", None) or (b.get("text") if isinstance(b, dict) else "")
+                            if not block_type:
+                                continue
+                            new_events.append({"event": "block_start", "block_id": block_id, "block_type": block_type})
+                            if block_text:
+                                new_events.append({"event": "delta", "block_id": block_id, "block_type": block_type, "text": block_text})
+                            new_events.append({"event": "block_end", "block_id": block_id, "block_type": block_type})
+                        if not new_events and first_text:
+                            block_id = str(uuid.uuid4())
+                            new_events = [
+                                {"event": "block_start", "block_id": block_id, "block_type": "think"},
+                                {"event": "delta", "block_id": block_id, "block_type": "think", "text": first_text},
+                                {"event": "block_end", "block_id": block_id, "block_type": "think"},
+                            ]
+                        streams[sid]["events"] = new_events[1:] if len(new_events) > 1 else []
+                        first_event = new_events[0] if new_events else None
                     except StopIteration:
                         first_text = ""
+                        first_event = None
 
-                    return {
+                    resp: Dict[str, Any] = {
                         "success": True,
                         "stream_id": sid,
                         "agent_type": agent_type,
-                        "step": first_text,
                         "done": first_text == "",
                     }
+                    if first_event is not None:
+                        resp["block"] = first_event
+                        resp["step"] = first_event.get("text", "") if first_event.get("event") == "delta" else ""
+                    else:
+                        resp["step"] = first_text
+                    return resp
 
                 # Non-streaming path
                 enhanced_query, temp_paths = _build_enhanced_query(query, conversation_history, files)
