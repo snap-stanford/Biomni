@@ -25,6 +25,7 @@ try:
     from collate_utils.message_parsing import parse_blocks
 except Exception:
     raise Exception("Could not import parse_blocks from collate_utils.message_parsing")
+    
 
 
 
