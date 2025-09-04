@@ -223,6 +223,108 @@ Let’s build it together.
 
 More to come!
 
+## 🐳 Docker Deployment
+
+For production deployment or containerized environments, Biomni provides a Docker image with the HTTP MCP server.
+
+### Building the Docker Image
+
+```bash
+# Clone the repository
+git clone https://github.com/snap-stanford/Biomni.git
+cd Biomni
+
+# Build the Docker image (takes 15-30 minutes, ~15GB final size)
+./build_docker.sh
+```
+
+Or manually:
+```bash
+docker build -t biomni:latest .
+```
+
+⚠️ **Build Requirements:**
+- **20GB+** free disk space
+- **4GB+** RAM allocated to Docker
+- **15-30 minutes** build time (downloads hundreds of bioinformatics packages)
+
+### Running the Container
+
+#### Basic Usage
+```bash
+# Run with minimal configuration (A1 agent only)
+docker run -d -p 3900:3900 \
+  -e ANTHROPIC_API_KEY=your_anthropic_key_here \
+  -e BIOMNI_ENABLE_REACT=false \
+  --name biomni-server \
+  biomni:latest
+```
+
+#### Production Deployment
+```bash
+# Run with persistent data and full configuration
+docker run -d \
+  -p 3900:3900 \
+  -v biomni-data:/app/biomni_data \
+  -e ANTHROPIC_API_KEY=your_key \
+  -e BIOMNI_LLM_MODEL=claude-3-5-sonnet-20241022 \
+  -e BIOMNI_ENABLE_REACT=true \
+  -e BIOMNI_DEFAULT_AGENT=a1 \
+  -e BIOMNI_A1_TIMEOUT=600 \
+  -e BIOMNI_REACT_TIMEOUT=300 \
+  --restart unless-stopped \
+  --name biomni-server \
+  biomni:latest
+```
+
+#### Environment Variables
+- `BIOMNI_HOST`: Server bind host (default: `0.0.0.0`)
+- `BIOMNI_PORT`: Server bind port (default: `3900`)
+- `BIOMNI_DATA_PATH`: Data directory path (default: `/app/biomni_data`)
+- `BIOMNI_LLM_MODEL`: LLM model (default: `claude-3-5-sonnet-20241022`)
+- `BIOMNI_A1_TIMEOUT`: A1 agent timeout seconds (default: `600`)
+- `BIOMNI_REACT_TIMEOUT`: ReAct agent timeout seconds (default: `300`)
+- `BIOMNI_DEFAULT_AGENT`: Default routing (`a1`|`react`, default: `a1`)
+- `BIOMNI_ENABLE_REACT`: Enable ReAct agent (`true`|`false`, default: `true`)
+
+### Testing the Server
+
+```bash
+# Test health endpoint
+curl http://localhost:3900/health
+
+# Check container logs
+docker logs biomni-server
+
+# Test MCP health check tool
+curl -X POST http://localhost:3900/sse \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "health_check",
+      "arguments": {}
+    }
+  }'
+```
+
+### Kubernetes Deployment
+
+The Docker image is designed for Kubernetes deployment with:
+- Configurable via environment variables
+- Health check endpoints for probes
+- Persistent volume support for data
+- Graceful shutdown handling
+- Resource-efficient configuration options
+
+For Kubernetes integration, the image works with standard Helm charts and supports:
+- ConfigMaps and Secrets for configuration
+- PersistentVolumeClaims for data persistence  
+- Service discovery for inter-service communication
+- Horizontal Pod Autoscaling (with appropriate resource limits)
+
 ## 🌐 Web Interface
 
 Experience Biomni through our no-code web interface at **[biomni.stanford.edu](https://biomni.stanford.edu)**.

@@ -2,6 +2,16 @@
 """
 Unified HTTP MCP Server exposing both Biomni A1 and ReAct agents with intelligent routing.
 Stateless server that receives conversation history from clients.
+
+Environment Variables:
+    BIOMNI_HOST: Server bind host (default: 0.0.0.0)
+    BIOMNI_PORT: Server bind port (default: 3900)
+    BIOMNI_DATA_PATH: Path to biomni data directory (default: ./biomni_data)
+    BIOMNI_LLM_MODEL: LLM model to use (default: claude-3-5-sonnet-20241022)
+    BIOMNI_A1_TIMEOUT: A1 agent timeout in seconds (default: 600)
+    BIOMNI_REACT_TIMEOUT: ReAct agent timeout in seconds (default: 300)
+    BIOMNI_DEFAULT_AGENT: Default agent for routing (a1|react, default: a1)
+    BIOMNI_ENABLE_REACT: Enable ReAct agent (true|false, default: true)
 """
 import sys
 import os
@@ -34,15 +44,23 @@ class QueryRouter:
     #TODO: Add a more sophisticated query router
     """Intelligent routing between A1 and ReAct agents."""
     
-    @classmethod
-    def classify_query(cls, query: str) -> str:
+    def __init__(self, default_agent: str, react_enabled: bool):
+        self.default_agent = default_agent
+        self.react_enabled = react_enabled
+    
+    def classify_query(self, query: str) -> str:
         """
         Classify query to determine which agent to use.
         
         Returns:
             "a1" for code execution needs, "react" for tool-based queries
         """
-        return "a1"
+        # If ReAct is disabled, always use A1
+        if not self.react_enabled:
+            return "a1"
+        
+        # Use configured default agent (can be overridden by future logic)
+        return self.default_agent
 
 
 def main():
@@ -50,41 +68,54 @@ def main():
     try:
         print("Initializing unified Biomni server...", file=sys.stderr)
         
-        # Use absolute path to biomni_data to avoid path resolution issues
-        biomni_data_path = os.path.abspath("./biomni_data")
+        # Read configuration from environment
+        biomni_data_path = os.path.abspath(os.environ.get("BIOMNI_DATA_PATH", "./biomni_data"))
+        llm_model = os.environ.get("BIOMNI_LLM_MODEL", "claude-3-5-sonnet-20241022")
+        a1_timeout = int(os.environ.get("BIOMNI_A1_TIMEOUT", "600"))
+        react_timeout = int(os.environ.get("BIOMNI_REACT_TIMEOUT", "300"))
+        default_agent = os.environ.get("BIOMNI_DEFAULT_AGENT", "a1").lower()
+        enable_react = os.environ.get("BIOMNI_ENABLE_REACT", "true").lower() in ("true", "1", "yes")
+        
         if not os.path.exists(biomni_data_path):
             print(f"Warning: biomni_data path not found at {biomni_data_path}", file=sys.stderr)
         
-        # Initialize both agents
+        # Initialize A1 agent (always required)
         print("Initializing A1 agent...", file=sys.stderr)
         a1_agent = A1(
             path=biomni_data_path,
-            llm="claude-3-5-sonnet-20241022",
+            llm=llm_model,
             use_tool_retriever=True,
-            timeout_seconds=600,
+            timeout_seconds=a1_timeout,
         )
         
-        print("Initializing ReAct agent...", file=sys.stderr)
-        react_agent = react(
-            path=biomni_data_path,
-            llm="claude-3-5-sonnet-20241022", 
-            use_tool_retriever=True,
-            timeout_seconds=300,
-        )
-        
-        # Configure ReAct agent
-        react_agent.configure(
-            plan=True,
-            reflect=True,
-            data_lake=True,
-            library_access=True,
-        )
-        
+        # Initialize ReAct agent only if enabled
+        react_agent = None
+        if enable_react:
+            print("Initializing ReAct agent...", file=sys.stderr)
+            react_agent = react(
+                path=biomni_data_path,
+                llm=llm_model, 
+                use_tool_retriever=True,
+                timeout_seconds=react_timeout,
+            )
+            
+            # Configure ReAct agent
+            react_agent.configure(
+                plan=True,
+                reflect=True,
+                data_lake=True,
+                library_access=True,
+            )
+        else:
+            print("ReAct agent disabled via BIOMNI_ENABLE_REACT", file=sys.stderr)
 
         
         # Get server configuration
         port = int(os.environ.get("BIOMNI_PORT", "3900"))
-        host = os.environ.get("BIOMNI_HOST", "127.0.0.1")
+        host = os.environ.get("BIOMNI_HOST", "0.0.0.0")
+        
+        # Create query router
+        query_router = QueryRouter(default_agent, enable_react)
         
         # Create MCP server
         print("Creating unified MCP server...", file=sys.stderr)
@@ -97,12 +128,19 @@ def main():
         @mcp_server.tool()
         def health_check() -> dict:
             """Health check endpoint to verify server is running."""
+            agents = ["a1"]
+            if enable_react:
+                agents.append("react")
+            
             return {
                 "status": "healthy", 
                 "server": "BiomniUnified", 
                 "port": port,
-                "agents": ["a1", "react"],
-                "data_path": biomni_data_path
+                "host": host,
+                "agents": agents,
+                "default_agent": default_agent,
+                "data_path": biomni_data_path,
+                "llm_model": llm_model
             }
         
         # In-memory stream registry for incremental step streaming
@@ -280,20 +318,24 @@ def main():
 
                     # Start a new streaming session
                     enhanced_query, temp_paths = _build_enhanced_query(query, conversation_history, files)
-                    agent_type = QueryRouter.classify_query(query)
+                    agent_type = query_router.classify_query(query)
                     print(f"Starting unified stream routed to {agent_type} agent", file=sys.stderr)
 
                     # Build the generator for streaming steps
                     if agent_type == "a1":
                         step_iter: Generator[dict, None, None] = a1_agent.go_stream(enhanced_query)
                     else:
-                        # Fallback: wrap non-streaming logs into a generator
-                        exec_log, _ = react_agent.go(enhanced_query)
-                        def singleton() -> Generator[dict, None, None]:
-                            for entry in exec_log:
-                                yield {"output": str(entry)}
-                            return
-                        step_iter = singleton()
+                        # Use ReAct agent if available, otherwise fallback to A1
+                        if react_agent is not None:
+                            exec_log, _ = react_agent.go(enhanced_query)
+                            def singleton() -> Generator[dict, None, None]:
+                                for entry in exec_log:
+                                    yield {"output": str(entry)}
+                                return
+                            step_iter = singleton()
+                        else:
+                            # Fallback to A1 if ReAct is disabled
+                            step_iter = a1_agent.go_stream(enhanced_query)
 
                     sid = str(uuid.uuid4())
                     streams[sid] = {
@@ -349,13 +391,19 @@ def main():
 
                 # Non-streaming path
                 enhanced_query, temp_paths = _build_enhanced_query(query, conversation_history, files)
-                agent_type = QueryRouter.classify_query(query)
+                agent_type = query_router.classify_query(query)
                 print(f"Routing unified query to {agent_type} agent", file=sys.stderr)
 
                 if agent_type == "a1":
                     execution_log, final_response = a1_agent.go(enhanced_query)
                 else:
-                    execution_log, final_response = react_agent.go(enhanced_query)
+                    # Use ReAct agent if available, otherwise fallback to A1
+                    if react_agent is not None:
+                        execution_log, final_response = react_agent.go(enhanced_query)
+                    else:
+                        # Fallback to A1 if ReAct is disabled
+                        execution_log, final_response = a1_agent.go(enhanced_query)
+                        agent_type = "a1"  # Update agent_type for response
 
                 # Collect any generated images
                 generated_images, image_paths = _collect_generated_images()
