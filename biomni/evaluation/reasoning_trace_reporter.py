@@ -5,15 +5,12 @@ This module provides functionality to generate detailed HTML reports of biomni's
 including all tool calls, code execution, and reasoning steps for evaluation purposes.
 """
 
-import json
 import os
 import re
-import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
-import pandas as pd
 from jinja2 import Template
 
 
