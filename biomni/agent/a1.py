@@ -2,6 +2,8 @@ import glob
 import inspect
 import os
 import re
+import sys
+import time
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any, Literal, TypedDict
@@ -51,6 +53,8 @@ class A1:
         base_url: str | None = None,
         api_key: str | None = None,
         expected_data_lake_files: list | None = None,
+        trace_tracking: bool = False,
+        trace_output_dir: str = "evaluation_results/reasoning_traces",
     ):
         """Initialize the biomni agent.
 
@@ -62,6 +66,9 @@ class A1:
             timeout_seconds: Timeout for code execution in seconds
             base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
             api_key: API key for the custom LLM
+            expected_data_lake_files: List of expected data lake files
+            trace_tracking: Whether to enable trace tracking for detailed reasoning reports
+            trace_output_dir: Directory to save trace reports
 
         """
         # Use default_config values for unspecified parameters
@@ -171,6 +178,30 @@ class A1:
 
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
+
+        # Initialize trace tracking
+        self.trace_tracking = trace_tracking
+        if self.trace_tracking:
+            # Set matplotlib backend to avoid GUI issues
+            os.environ["MPLBACKEND"] = "Agg"
+
+            # Import ReasoningTraceReporter here to avoid circular imports
+            from biomni.evaluation.reasoning_trace_reporter import ReasoningTraceReporter
+
+            self.trace_reporter = ReasoningTraceReporter(trace_output_dir)
+        else:
+            self.trace_reporter = None
+
+        # Enhanced logging for trace analysis
+        self.enhanced_log = []
+        self.current_query = None
+        self.execution_start_time = None
+
+        # Terminal output capture
+        self.terminal_output_buffer = []
+        self.original_stdout = sys.stdout
+        self.original_stderr = sys.stderr
+
         self.configure()
 
     def add_tool(self, api):
@@ -1528,24 +1559,48 @@ Each library is listed with its description to help you understand its functiona
         Args:
             prompt: The user's query
 
+        Returns:
+            Tuple of (log, final_message_content)
         """
-        self.critic_count = 0
-        self.user_task = prompt
+        # Start trace reporting
+        if self.trace_tracking:
+            self.trace_reporter.start_trace(prompt)
+            self.current_query = prompt
+            self.execution_start_time = time.time()
+            self.enhanced_log = []
 
-        if self.use_tool_retriever:
-            selected_resources_names = self._prepare_resources_for_retrieval(prompt)
-            self.update_system_prompt_with_selected_resources(selected_resources_names)
+            # Add initial query to terminal output
+            self.trace_reporter.add_terminal_output(f"Query: {prompt}", "query")
 
-        inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
-        config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
-        self.log = []
+        # Start terminal capture
+        self._start_terminal_capture()
 
-        for s in self.app.stream(inputs, stream_mode="values", config=config):
-            message = s["messages"][-1]
-            out = pretty_print(message)
-            self.log.append(out)
+        try:
+            self.critic_count = 0
+            self.user_task = prompt
 
-        return self.log, message.content
+            if self.use_tool_retriever:
+                selected_resources_names = self._prepare_resources_for_retrieval(prompt)
+                self.update_system_prompt_with_selected_resources(selected_resources_names)
+
+            inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
+            config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
+            self.log = []
+
+            for s in self.app.stream(inputs, stream_mode="values", config=config):
+                message = s["messages"][-1]
+                out = pretty_print(message)
+                self.log.append(out)
+
+            # Process trace reporting
+            if self.trace_tracking:
+                self._process_trace_reporting(self.log, message.content)
+
+            return self.log, message.content
+
+        finally:
+            # Stop terminal capture
+            self._stop_terminal_capture()
 
     def go_stream(self, prompt) -> Generator[dict, None, None]:
         """Execute the agent with the given prompt and return a generator that yields each step.
@@ -1559,6 +1614,13 @@ Each library is listed with its description to help you understand its functiona
         Yields:
             dict: Each step of the agent's execution containing the current message and state
         """
+        # Start trace reporting
+        if self.trace_tracking:
+            self.trace_reporter.start_trace(prompt)
+            self.current_query = prompt
+            self.execution_start_time = time.time()
+            self.enhanced_log = []
+
         self.critic_count = 0
         self.user_task = prompt
 
@@ -1575,8 +1637,16 @@ Each library is listed with its description to help you understand its functiona
             out = pretty_print(message)
             self.log.append(out)
 
+            # Add to enhanced log for trace analysis
+            if self.trace_tracking:
+                self.enhanced_log.append(out)
+
             # Yield the current step
             yield {"output": out}
+
+        # Process trace reporting after completion
+        if self.trace_tracking:
+            self._process_trace_reporting(self.enhanced_log, message.content)
 
     def update_system_prompt_with_selected_resources(self, selected_resources):
         """Update the system prompt with the selected resources."""
@@ -1725,6 +1795,87 @@ Each library is listed with its description to help you understand its functiona
             if not hasattr(builtins, "_biomni_custom_functions"):
                 builtins._biomni_custom_functions = {}
             builtins._biomni_custom_functions.update(self._custom_functions)
+
+        # Add custom plot saving function if trace tracking is enabled
+        if self.trace_tracking and self.trace_reporter:
+            import builtins
+            from datetime import datetime
+
+            import matplotlib.pyplot as plt
+
+            from biomni.tool.support_tools import _persistent_namespace
+
+            # Store original savefig if not already stored
+            if not hasattr(plt, "_original_savefig"):
+                plt._original_savefig = plt.savefig
+
+            # Override plt.savefig to save to query folder
+            def custom_savefig(*args, **kwargs):
+                """
+                Override plt.savefig to save to query folder when trace tracking is enabled.
+                This ensures all plots are saved in the query-specific directory.
+                """
+                if self.trace_tracking and self.trace_reporter:
+                    # Determine filename
+                    if args and isinstance(args[0], str):
+                        filename = args[0]
+                        other_args = args[1:]
+                    else:
+                        # Generate filename based on number of existing plots
+                        plot_count = len(self.trace_reporter.trace_data["generated_plots"]) + 1
+                        filename = f"plot_{plot_count}.png"
+                        other_args = args
+
+                    # Ensure filename has .png extension
+                    if not filename.endswith(".png"):
+                        filename += ".png"
+
+                    # Save to query folder
+                    plot_path = self.trace_reporter.query_folder / filename
+                    result = plt._original_savefig(plot_path, *other_args, **kwargs)
+
+                    # Add to generated plots list for final report
+                    plot_info = {
+                        "name": filename.replace(".png", ""),
+                        "path": str(plot_path),
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                    self.trace_reporter.trace_data["generated_plots"].append(plot_info)
+
+                    print(f"Plot saved to query folder: {plot_path}")
+                    return result
+                else:
+                    # Fall back to original savefig
+                    return plt._original_savefig(*args, **kwargs)
+
+            # Replace plt.savefig with our custom version
+            plt.savefig = custom_savefig
+
+            # Inject the modified plt into the namespace
+            _persistent_namespace["plt"] = plt
+
+            # Also provide a convenience function
+            def save_plot_to_query_folder(filename=None, **kwargs):
+                """
+                Convenience function to save plot to query folder.
+                This is equivalent to plt.savefig() when trace tracking is enabled.
+
+                Args:
+                    filename: Optional filename for the plot
+                    **kwargs: Additional arguments to pass to plt.savefig()
+                """
+                if filename:
+                    return plt.savefig(filename, **kwargs)
+                else:
+                    return plt.savefig(**kwargs)
+
+            # Inject the convenience function
+            _persistent_namespace["save_plot_to_query_folder"] = save_plot_to_query_folder
+
+            # Also make it available in builtins
+            if not hasattr(builtins, "_biomni_custom_functions"):
+                builtins._biomni_custom_functions = {}
+            builtins._biomni_custom_functions["save_plot_to_query_folder"] = save_plot_to_query_folder
 
     def create_mcp_server(self, tool_modules=None):
         """
@@ -1877,3 +2028,271 @@ Each library is listed with its description to help you understand its functiona
             wrapper.__signature__ = inspect.Signature(new_params, return_annotation=dict)
 
             return wrapper
+
+    def _start_terminal_capture(self):
+        """Start capturing terminal output."""
+        if self.trace_tracking:
+            self.terminal_output_buffer = []
+
+            # Create a custom stdout that captures output
+            class CapturingStdout:
+                def __init__(self, original_stdout, buffer, reporter):
+                    self.original_stdout = original_stdout
+                    self.buffer = buffer
+                    self.reporter = reporter
+
+                def write(self, text):
+                    self.original_stdout.write(text)
+                    self.buffer.append(text)
+                    if self.reporter and hasattr(self.reporter, "add_terminal_output"):
+                        self.reporter.add_terminal_output(text, "stdout")
+
+                def flush(self):
+                    self.original_stdout.flush()
+
+            sys.stdout = CapturingStdout(self.original_stdout, self.terminal_output_buffer, self.trace_reporter)
+
+    def _stop_terminal_capture(self):
+        """Stop capturing terminal output."""
+        if self.trace_tracking:
+            sys.stdout = self.original_stdout
+            sys.stderr = self.original_stderr
+
+    def _process_trace_reporting(self, log: list[Any], final_content: str):
+        """
+        Process the execution log to generate trace report.
+
+        Args:
+            log: The execution log from the agent
+            final_content: The final content returned by the agent
+        """
+        if not self.trace_tracking or not self.trace_reporter:
+            return
+
+        # Parse the log to extract trace information
+        self.trace_reporter.parse_agent_log(log)
+
+        # Add performance metrics
+        if self.execution_start_time:
+            execution_time = time.time() - self.execution_start_time
+            self.trace_reporter.trace_data["performance_metrics"]["total_execution_time"] = execution_time
+
+        # End the trace
+        self.trace_reporter.end_trace(final_content)
+
+    def generate_trace_report(self, filename: str | None = None) -> str:
+        """
+        Generate an HTML trace report for the last execution.
+
+        Args:
+            filename: Optional filename for the report
+
+        Returns:
+            Path to the generated HTML file
+        """
+        if not self.trace_tracking or not self.trace_reporter:
+            raise RuntimeError("Trace tracking is not enabled")
+
+        return self.trace_reporter.generate_html_report(filename)
+
+    def generate_final_user_report(self, filename: str | None = None) -> str:
+        """
+        Generate a clean, final user report with plots and evidence.
+
+        Args:
+            filename: Optional filename for the report
+
+        Returns:
+            Path to the generated HTML file
+        """
+        if not self.trace_tracking or not self.trace_reporter:
+            raise RuntimeError("Trace tracking is not enabled")
+
+        return self.trace_reporter.generate_final_user_report(filename)
+
+    def capture_plot(self, plot_name: str = None) -> str:
+        """
+        Capture the current matplotlib plot and save it.
+
+        Args:
+            plot_name: Optional name for the plot file
+
+        Returns:
+            Path to the saved plot file
+        """
+        if not self.trace_tracking or not self.trace_reporter:
+            raise RuntimeError("Trace tracking is not enabled")
+
+        return self.trace_reporter.capture_plot(plot_name)
+
+    def set_final_result(self, result: str):
+        """
+        Set the final result for the query.
+
+        Args:
+            result: The final result text
+        """
+        if not self.trace_tracking or not self.trace_reporter:
+            raise RuntimeError("Trace tracking is not enabled")
+
+        self.trace_reporter.set_final_result(result)
+
+    def capture_current_plot(self, plot_name: str = None) -> str:
+        """
+        Capture the current plot and save it to the query folder.
+        This method can be called from within the agent's execution.
+
+        Args:
+            plot_name: Optional name for the plot file
+
+        Returns:
+            Path to the saved plot file
+        """
+        if not self.trace_tracking or not self.trace_reporter:
+            return None
+
+        try:
+            import matplotlib.pyplot as plt
+
+            # Check if there's a current figure
+            if not plt.get_fignums():
+                print("Warning: No active plot to capture")
+                return None
+
+            # Capture the current figure
+            if not plot_name:
+                plot_name = f"plot_{len(self.trace_reporter.trace_data['generated_plots']) + 1}"
+
+            return self.capture_plot(plot_name)
+
+        except Exception as e:
+            print(f"Warning: Could not capture current plot: {e}")
+            return None
+
+    def save_complete_terminal_output(self, filename: str | None = None) -> str:
+        """
+        Save the complete terminal output to a text file.
+
+        Args:
+            filename: Optional filename for the output file
+
+        Returns:
+            Path to the saved text file
+        """
+        if not self.trace_tracking or not self.trace_reporter:
+            raise RuntimeError("Trace tracking is not enabled")
+
+        return self.trace_reporter.save_complete_terminal_output(filename)
+
+    def get_trace_data(self) -> dict[str, Any]:
+        """
+        Get the current trace data for analysis.
+
+        Returns:
+            Dictionary containing trace data
+        """
+        if not self.trace_tracking or not self.trace_reporter:
+            return {}
+
+        return self.trace_reporter.trace_data
+
+    def add_custom_trace_step(self, step_type: str, content: Any, metadata: dict | None = None):
+        """
+        Add a custom step to the trace for additional analysis.
+
+        Args:
+            step_type: Type of the step
+            content: Content of the step
+            metadata: Additional metadata
+        """
+        if self.trace_tracking and self.trace_reporter:
+            self.trace_reporter.add_step(step_type, content, metadata)
+
+    def analyze_tool_usage_patterns(self) -> dict[str, Any]:
+        """
+        Analyze tool usage patterns from the trace data.
+
+        Returns:
+            Dictionary containing analysis results
+        """
+        if not self.trace_tracking or not self.trace_reporter:
+            return {}
+
+        trace_data = self.trace_reporter.trace_data
+        analysis = {
+            "total_tool_calls": len(trace_data.get("tool_calls", [])),
+            "tool_usage_frequency": {},
+            "code_execution_frequency": {},
+            "reasoning_steps_breakdown": {},
+            "performance_metrics": trace_data["performance_metrics"],
+        }
+
+        # Analyze tool usage frequency
+        for tool_call in trace_data.get("tool_calls", []):
+            tool_name = tool_call["tool_name"]
+            analysis["tool_usage_frequency"][tool_name] = analysis["tool_usage_frequency"].get(tool_name, 0) + 1
+
+        # Analyze code execution patterns
+        for code_exec in trace_data["code_executions"]:
+            code_type = "generated" if code_exec["is_generated"] else "pre_written"
+            analysis["code_execution_frequency"][code_type] = analysis["code_execution_frequency"].get(code_type, 0) + 1
+
+        # Analyze reasoning steps
+        for step in trace_data["steps"]:
+            step_type = step["type"]
+            analysis["reasoning_steps_breakdown"][step_type] = (
+                analysis["reasoning_steps_breakdown"].get(step_type, 0) + 1
+            )
+
+            # Count code generation steps separately
+            if step_type == "code_generation":
+                analysis["code_execution_frequency"]["generated"] = (
+                    analysis["code_execution_frequency"].get("generated", 0) + 1
+                )
+
+        return analysis
+
+    def export_trace_data(self, format: str = "json", filename: str | None = None) -> str:
+        """
+        Export trace data in various formats for further analysis.
+
+        Args:
+            format: Export format ('json', 'csv', 'pickle')
+            filename: Optional filename for export
+
+        Returns:
+            Path to the exported file
+        """
+        if not self.trace_tracking or not self.trace_reporter:
+            raise RuntimeError("Trace tracking is not enabled")
+
+        import json
+        import pickle
+        from datetime import datetime
+
+        import pandas as pd
+
+        if not filename:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"trace_data_{timestamp}.{format}"
+
+        # Use query_folder if available, otherwise fall back to output_dir
+        if hasattr(self.trace_reporter, "query_folder") and self.trace_reporter.query_folder:
+            filepath = self.trace_reporter.query_folder / filename
+        else:
+            filepath = self.trace_reporter.output_dir / filename
+
+        if format == "json":
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(self.trace_reporter.trace_data, f, indent=2, default=str)
+        elif format == "csv":
+            # Convert steps to DataFrame
+            steps_df = pd.DataFrame(self.trace_reporter.trace_data["steps"])
+            steps_df.to_csv(filepath, index=False)
+        elif format == "pickle":
+            with open(filepath, "wb") as f:
+                pickle.dump(self.trace_reporter.trace_data, f)
+        else:
+            raise ValueError(f"Unsupported format: {format}")
+
+        return str(filepath)

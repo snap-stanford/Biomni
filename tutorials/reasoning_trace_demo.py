@@ -16,7 +16,6 @@ The queries are designed to:
 
 import os
 import sys
-from datetime import datetime
 from pathlib import Path
 
 # Set matplotlib backend to avoid GUI issues
@@ -25,7 +24,7 @@ os.environ["MPLBACKEND"] = "Agg"
 # Add the biomni package to the path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from biomni.agent.a1_with_trace import A1WithTrace
+from biomni.agent.a1 import A1
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -70,10 +69,10 @@ def main():
     print()
 
     # Initialize the agent with trace reporting
-    agent = A1WithTrace(
+    agent = A1(
         path="./biomni_data",  # Use biomni data directory
         llm="claude-sonnet-4-20250514",  # Use Claude Sonnet 4
-        enable_trace_reporting=True,
+        trace_tracking=True,  # Enable trace tracking
         trace_output_dir="evaluation_results/reasoning_trace_demo",
         timeout_seconds=600,
     )
@@ -151,10 +150,10 @@ def interactive_demo_mode():
     print("   - Complex problem solving")
     print("   - Code generation and execution")
 
-    agent = A1WithTrace(
+    agent = A1(
         path="./biomni_data",  # Use biomni data directory
         llm="claude-sonnet-4-20250514",  # Use Claude Sonnet 4
-        enable_trace_reporting=True,
+        trace_tracking=True,  # Enable trace tracking
         trace_output_dir="evaluation_results/reasoning_trace_demo",
         timeout_seconds=600,
     )
