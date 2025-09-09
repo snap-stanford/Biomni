@@ -41,7 +41,11 @@ class A1_HITS(A1):
     def _setup_error_fixing_retriever(self):
         """Set up and return the FAISS retriever for error fixing."""
         # Constants for configuration
-        RAG_DB_PATH = "/workdir_efs/jaechang/work2/biomni_hits_test/rag_db/faiss_index"
+        # Get current file location
+        import os
+
+        CURRENT_FILE_PATH = os.path.abspath(__file__)
+        RAG_DB_PATH = "{CURRENT_FILE_PATH}/../rag_db/faiss_index"
         SEARCH_K = 10
         SCORE_THRESHOLD = 0.7
 
