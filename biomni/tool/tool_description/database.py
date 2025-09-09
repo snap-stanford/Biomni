@@ -778,4 +778,48 @@ description = [
             }
         ],
     },
+    {
+        "description": "Query Synapse REST API for biomedical datasets and files using natural language or structured search parameters. Supports optional authentication via SYNAPSE_AUTH_TOKEN environment variable. Results include 'access_restricted' property - if true, dataset requires approval via Synapse web interface and cannot be immediately accessed.",
+        "name": "query_synapse",
+        "optional_parameters": [
+            {
+                "name": "query_term",
+                "type": "str|list[str]",
+                "description": "Specific search terms for Synapse search",
+                "default": None,
+            },
+            {
+                "name": "return_fields",
+                "type": "list[str]",
+                "description": "Fields to return in results",
+                "default": ["name", "node_type", "description"],
+            },
+            {
+                "name": "max_results",
+                "type": "int",
+                "description": "Maximum number of results to return. Default 20 is optimal for most searches. Use up to 50 if extensive results are desired for comprehensive analysis.",
+                "default": 20,
+            },
+            {
+                "name": "query_type",
+                "type": "str",
+                "description": "Type of entity to search for (file, project, folder, etc.)",
+                "default": "file",
+            },
+            {
+                "name": "verbose",
+                "type": "bool",
+                "description": "Whether to return full API response or formatted results",
+                "default": True,
+            },
+        ],
+        "required_parameters": [
+            {
+                "name": "prompt",
+                "type": "str",
+                "description": "Natural language query about biomedical data (e.g., 'Find drug screening datasets')",
+                "default": None,
+            }
+        ],
+    },
 ]

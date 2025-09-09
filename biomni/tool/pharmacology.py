@@ -2261,7 +2261,6 @@ def _process_ddinter_data_inline(data_lake_path, output_dir):
     """
     import os
     import pickle
-    from collections import defaultdict
     from pathlib import Path
 
     import pandas as pd
@@ -2339,7 +2338,6 @@ def _standardize_drug_name_processing(drug_name):
 
 def _build_drug_registry_inline(dataframes):
     """Build comprehensive drug registry from all interactions."""
-    import pandas as pd
 
     drug_registry = {}
 
