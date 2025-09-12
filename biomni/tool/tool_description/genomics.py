@@ -458,4 +458,55 @@ description = [
             }
         ],
     },
+    {
+        "description": "Generate average protein embeddings for a list of Ensembl gene IDs using ESM (Evolutionary Scale Modeling) "
+        "protein language models. This function fetches all protein isoform sequences for each gene, "
+        "computes embeddings for each isoform using the specified ESM model and layer, then averages "
+        "the embeddings across all isoforms to create a single representative embedding per gene. "
+        "The embeddings can be optionally saved as PyTorch tensors for future use. "
+        "Memory-friendly implementation with rolling averages, small batch processing, and automatic memory "
+        "management. Automatically handles GPU/CPU device selection and includes error recovery for out-of-memory "
+        "situations by falling back to single-sequence processing.",
+        "name": "generate_gene_embeddings_with_ESM_models",
+        "optional_parameters": [
+            {
+                "default": "esm2_t6_8M_UR50D",
+                "description": "ESM model name to use for generating embeddings",
+                "name": "model_name",
+                "type": "str",
+            },
+            {
+                "default": 6,
+                "description": "Which layer of the ESM model to extract embeddings from, generally use last layer",
+                "name": "layer",
+                "type": "int",
+            },
+            {
+                "default": None,
+                "description": "Optional path to save embeddings as PyTorch dictionary",
+                "name": "save_path",
+                "type": "str",
+            },
+            {
+                "default": 1,
+                "description": "Number of sequences to process at once to manage memory usage",
+                "name": "batch_size",
+                "type": "int",
+            },
+            {
+                "default": 1024,
+                "description": "Maximum sequence length to process, longer sequences are filtered out",
+                "name": "max_sequence_length",
+                "type": "int",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "List of Ensembl gene IDs (e.g., ['ENSG00000012048', 'ENSG00000012049'])",
+                "name": "ensembl_gene_ids",
+                "type": "List[str]",
+            }
+        ],
+    },
 ]
