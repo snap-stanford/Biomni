@@ -227,3 +227,8 @@ data/ddinter_raw/
 # Sphinx build
 /docs/build/
 /docs/source/api/
+
+# chainlit
+chainlit/.chainlit/
+chainlit/README.md
+chainlit/chainlit.md

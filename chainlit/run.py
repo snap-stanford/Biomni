@@ -35,12 +35,14 @@ async def start_chat():
     # Create directory with current Korean time
     korea_tz = pytz.timezone("Asia/Seoul")
     current_time = datetime.now(korea_tz)
-    dir_name = current_time.strftime("%Y%m%d_%H%M%S")
+    conversation_id = current_time.strftime("%Y%m%d_%H%M%S")
+    dir_name = conversation_id
     log_dir = f"chainlit_logs/{dir_name}"
     os.makedirs(log_dir, exist_ok=True)
     os.chdir(log_dir)
     print("current dir", os.getcwd())
     cl.user_session.set("message_history", [])
+    cl.user_session.set("conversation_id", conversation_id)
 
 
 @cl.on_message
@@ -91,6 +93,10 @@ def _convert_to_agent_format(message_history: list) -> list:
 
 async def _process_agent_response(agent_input: list, message_history: list):
     """Process agent response and handle streaming."""
+
+    with open(f"conversion_history.txt", "a") as f:
+        f.write(agent_input[-1].content + "\n")
+
     async with cl.Step(name="Plan and execute") as chainlit_step:
         chainlit_step.output = "Initializing..."
         await chainlit_step.update()
@@ -104,6 +110,9 @@ async def _process_agent_response(agent_input: list, message_history: list):
     await cl.Message(content=final_message).send()
 
     print(step_message)
+
+    with open(f"conversion_history.txt", "a") as f:
+        f.write(raw_full_message + "\n")
     message_history.append({"role": "assistant", "content": raw_full_message})
 
 
@@ -139,6 +148,8 @@ async def _handle_message_stream(message_stream, chainlit_step):
         await chainlit_step.update()
 
     step_message = _detect_image_name_and_move_to_public(step_message)
+    step_message = _modify_chunk(step_message)
+
     return full_message, step_message, raw_full_message
 
 
@@ -164,22 +175,152 @@ def _extract_final_message(step_message: str) -> str:
     return solution_match.group(1) if solution_match else step_message
 
 
+def _detect_code_type(code: str) -> str:
+    """
+    Detect code type based on markers and content.
+
+    Args:
+        code: Code content to analyze
+
+    Returns:
+        Code type string for markdown code block (python, r, bash)
+    """
+    code_stripped = code.strip()
+
+    # Check for explicit markers
+    if (
+        code_stripped.startswith("#!R")
+        or code_stripped.startswith("# R code")
+        or code_stripped.startswith("# R script")
+    ):
+        return "r"
+    elif (
+        code_stripped.startswith("#!BASH")
+        or code_stripped.startswith("# Bash script")
+        or code_stripped.startswith("#!CLI")
+    ):
+        return "bash"
+
+    # Heuristic detection based on common patterns
+    # R patterns
+    r_patterns = [
+        r"\blibrary\(",
+        r"\brequire\(",
+        r"<-",
+        r"\$",
+        r"\.R\b",
+        r"\bdata\.frame\(",
+        r"\bggplot\(",
+        r"\bc\(",
+    ]
+
+    # Bash patterns
+    bash_patterns = [
+        r"^#!",
+        r"\becho\b",
+        r"\bls\b",
+        r"\bcd\b",
+        r"\bmkdir\b",
+        r"\bcp\b",
+        r"\bmv\b",
+        r"\brm\b",
+        r"\bgrep\b",
+        r"\bawk\b",
+        r"\bsed\b",
+        r"\|\s*\w+",  # pipe commands
+    ]
+
+    # Count pattern matches
+    r_score = sum(1 for pattern in r_patterns if re.search(pattern, code_stripped))
+    bash_score = sum(
+        1 for pattern in bash_patterns if re.search(pattern, code_stripped)
+    )
+
+    # Determine code type based on scores
+    if r_score > 0 and r_score >= bash_score:
+        return "r"
+    elif bash_score > 0:
+        return "bash"
+    else:
+        return "python"  # Default to python
+
+
 def _modify_chunk(chunk: str) -> str:
     """Modify chunk content by replacing tags."""
     retval = chunk
     tag_replacements = [
-        ("<execute>", "\n```python\n"),
+        ("<execute>", "\n```CODE_TYPE\n"),
         ("</execute>", "```\n"),
         ("<solution>", ""),
         ("</solution>", ""),
         ("<observation>", "```\n#Execute result\n"),
-        ("</observation>", "```\n"),
+        ("</observation>", "\n```\n"),
     ]
 
     for tag1, tag2 in tag_replacements:
         if tag1 in retval:
             retval = retval.replace(tag1, tag2)
+
+    # Handle existing CODE_TYPE placeholders in already generated code blocks
+    retval = _replace_code_type_placeholders(retval)
+
+    # Replace biomni imports with hits imports in code blocks
+    retval = _replace_biomni_imports(retval)
+
     return retval
+
+
+def _replace_code_type_placeholders(content: str) -> str:
+    """Replace CODE_TYPE placeholders with detected code types."""
+    # Pattern to find code blocks with CODE_TYPE placeholder
+    code_type_pattern = r"```CODE_TYPE\n(.*?)```"
+
+    def replace_code_type(match):
+        code_content = match.group(1)
+        code_type = _detect_code_type(code_content)
+        return f"```{code_type}\n{code_content}```"
+
+    # Handle closed code blocks with CODE_TYPE
+    content = re.sub(code_type_pattern, replace_code_type, content, flags=re.DOTALL)
+
+    # Handle open code blocks that start with ```CODE_TYPE
+    open_code_pattern = r"```CODE_TYPE\n(.*?)(?=```|\Z)"
+
+    def replace_open_code_type(match):
+        code_content = match.group(1)
+        code_type = _detect_code_type(code_content)
+        return f"```{code_type}\n{code_content}"
+
+    content = re.sub(
+        open_code_pattern, replace_open_code_type, content, flags=re.DOTALL
+    )
+
+    return content
+
+
+def _replace_biomni_imports(content: str) -> str:
+    """Replace 'from biomni.' with 'from hits.' in code blocks."""
+    # Pattern to find code blocks (both with specific language and generic)
+    code_block_pattern = r"```(\w+)?\n(.*?)```"
+
+    def replace_imports_in_code(match):
+        language = match.group(1) if match.group(1) else ""
+        code_content = match.group(2)
+
+        # Replace biomni imports with hits imports
+        modified_code = code_content.replace("from biomni.", "from hits.")
+
+        if language:
+            return f"```{language}\n{modified_code}```"
+        else:
+            return f"```\n{modified_code}```"
+
+    # Apply replacement to all code blocks
+    content = re.sub(
+        code_block_pattern, replace_imports_in_code, content, flags=re.DOTALL
+    )
+
+    return content
 
 
 def _detect_image_name_and_move_to_public(content: str) -> str:

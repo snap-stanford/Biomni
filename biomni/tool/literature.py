@@ -7,7 +7,8 @@ from urllib.parse import urljoin
 import PyPDF2
 import requests
 from bs4 import BeautifulSoup
-from googlesearch import search
+
+# from googlesearch import search
 
 
 def fetch_supplementary_info_from_doi(doi: str, output_dir: str = "supplementary_info"):
@@ -212,6 +213,8 @@ def search_google(query: str, num_results: int = 3, language: str = "en") -> lis
         List[dict]: List of dictionaries containing search results with title and URL
 
     """
+    from googlesearch import search
+
     try:
         results_string = ""
         search_query = f"{query}"

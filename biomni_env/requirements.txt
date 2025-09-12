@@ -41,3 +41,5 @@ chainlit==2.6
 faiss-cpu
 biopython
 biopandas
+pypdf2
+googlesearch-python

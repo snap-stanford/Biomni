@@ -1,8 +1,15 @@
 import contextlib
 import re
+import os
 
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
+from langchain_community.vectorstores import FAISS
+from langchain_aws.embeddings.bedrock import BedrockEmbeddings
+
+import warnings
+
+warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class ToolRetriever:
@@ -154,3 +161,78 @@ IMPORTANT GUIDELINES:
                 ]
 
         return selected_indices
+
+
+class ToolRetrieverByRAG:
+    """Retrieve tools from the RAG database."""
+
+    def __init__(self):
+        pass
+
+    def prompt_based_retrieval(self, query: str) -> dict:
+        """Use a prompt-based approach to retrieve the most relevant resources for a query.
+
+        Args:
+            query: The user's query
+            resources: A dictionary with keys 'tools', 'data_lake', and 'libraries',
+                      each containing a list of available resources
+            llm: Optional LLM instance to use for retrieval (if None, will create a new one)
+
+        Returns:
+            A dictionary with the same keys, but containing only the most relevant resources
+
+        """
+        # Create a prompt for the LLM to select relevant resources
+        rag_query = f"""
+You are an expert biomedical research assistant. Your task is to select the relevant resources to help answer a user's query.
+
+USER QUERY: {query}
+
+Be generous in your selection - include resources that might be useful for the task, even if they're not explicitly mentioned in the query.
+It's better to include slightly more resources than to miss potentially useful ones.
+
+IMPORTANT GUIDELINES:
+1. Be generous but not excessive - aim to include all potentially relevant resources
+2. ALWAYS prioritize database tools for general queries - include as many database tools as possible
+4. For wet lab sequence type of queries, ALWAYS include molecular biology tools
+5. For data lake items, include datasets that could provide useful information
+6. For libraries, include those that provide functions needed for analysis
+7. Don't exclude resources just because they're not explicitly mentioned in the query
+8. When in doubt about a database tool or molecular biology tool, include it rather than exclude it
+"""
+
+        embeddings = BedrockEmbeddings(normalize=True)
+        rag_db_path = os.path.dirname(os.path.abspath(__file__))
+        rag_db_path = os.path.join(rag_db_path, "../rag_db/system_prompt/")
+        databases = {
+            "tools": FAISS.load_local(
+                os.path.join(rag_db_path, "tool_index"),
+                embeddings,
+                allow_dangerous_deserialization=True,
+            ),
+            "data_lake": FAISS.load_local(
+                os.path.join(rag_db_path, "data_lake_index"),
+                embeddings,
+                allow_dangerous_deserialization=True,
+            ),
+            "libraries": FAISS.load_local(
+                os.path.join(rag_db_path, "library_index"),
+                embeddings,
+                allow_dangerous_deserialization=True,
+            ),
+        }
+
+        thresholds = {"tools": 0.2, "data_lake": 0.05, "libraries": 0.0}
+        selected_resources = {}
+        for db_name, db in databases.items():
+            threshold = thresholds[db_name]
+            total_docs = db.index.ntotal
+            results = db.similarity_search_with_relevance_scores(
+                rag_query,
+                score_threshold=threshold,
+                k=30,
+            )
+            selected_resources[db_name] = [res[0].metadata for res in results]
+            print(f"{db_name}: {db.index.ntotal} -> {len(results)}")
+
+        return selected_resources
