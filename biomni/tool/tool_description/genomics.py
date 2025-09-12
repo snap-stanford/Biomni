@@ -458,4 +458,33 @@ description = [
             }
         ],
     },
+    {
+        "description": "Convert ENSEMBL gene IDs between different species using BioMart homology mapping. "
+        "This function converts a list of ENSEMBL gene IDs from one species to their "
+        "homologous counterparts in another species using the Ensembl BioMart database. "
+        "The conversion is based on one-to-one ortholog mappings between species.",
+        "name": "interspecies_gene_conversion",
+        "optional_parameters": [],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "List of ENSEMBL gene IDs to convert (e.g., ['ENSG00000007372', 'ENSG00000181449'])",
+                "name": "gene_list",
+                "type": "list[str]",
+            },
+            {
+                "default": None,
+                "description": "Source species name. Supported species: human, mouse, rat, zebrafish, fly, "
+                "drosophila, worm, yeast, chicken, pig, cow, dog, macaque",
+                "name": "source_species",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Target species name. Same supported species as source_species",
+                "name": "target_species",
+                "type": "str",
+            },
+        ],
+    },
 ]
