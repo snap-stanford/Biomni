@@ -21,6 +21,8 @@ biomni API Reference
    api/tool/biochemistry
    api/tool/bioengineering
    api/tool/biophysics
+   api/tool/glycoengineering
+
    api/tool/cancer_biology
    api/tool/cell_biology
    api/tool/database
