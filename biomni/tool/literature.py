@@ -219,16 +219,14 @@ def search_google(query: str, num_results: int = 3, language: str = "en") -> lis
         results_string = ""
         search_query = f"{query}"
 
-<<<<<<< HEAD
+        print(
+            f"Searching for {search_query} with {num_results} results and {language} language"
+        )
+
         for res in search(
             search_query, num_results=num_results, lang=language, advanced=True
         ):
-=======
-        print(f"Searching for {search_query} with {num_results} results and {language} language")
-
-        for res in search(search_query, num_results=num_results, lang=language, advanced=True):
             print(f"Found result: {res.title}")
->>>>>>> upstream/main
             title = res.title
             url = res.url
             description = res.description
@@ -314,8 +312,16 @@ def advanced_web_search_claude(
 
                     if blk.citations:
                         for cite in blk.citations:
-                            citations.append({"url": cite.url, "title": cite.title, "cited_text": cite.cited_text})
-                            formatted_response += f"(Citation: {cite.title} - {cite.url})"
+                            citations.append(
+                                {
+                                    "url": cite.url,
+                                    "title": cite.title,
+                                    "cited_text": cite.cited_text,
+                                }
+                            )
+                            formatted_response += (
+                                f"(Citation: {cite.title} - {cite.url})"
+                            )
             return formatted_response
 
         except Exception as e:
