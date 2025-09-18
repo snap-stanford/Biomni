@@ -14,7 +14,6 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from biomni.config import default_config
-from biomni.env_desc import data_lake_dict, library_content_dict
 from biomni.llm import SourceType, get_llm
 from biomni.model.retriever import ToolRetriever
 from biomni.tool.support_tools import run_python_repl
@@ -50,6 +49,7 @@ class A1:
         timeout_seconds: int | None = None,
         base_url: str | None = None,
         api_key: str | None = None,
+        commercial_mode: bool | None = None,
         expected_data_lake_files: list | None = None,
     ):
         """Initialize the biomni agent.
@@ -62,6 +62,7 @@ class A1:
             timeout_seconds: Timeout for code execution in seconds
             base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
             api_key: API key for the custom LLM
+            commercial_mode: If True, excludes datasets that require commercial licenses or are non-commercial only
 
         """
         # Use default_config values for unspecified parameters
@@ -79,6 +80,23 @@ class A1:
             base_url = default_config.base_url
         if api_key is None:
             api_key = default_config.api_key if default_config.api_key else "EMPTY"
+        if commercial_mode is None:
+            commercial_mode = default_config.commercial_mode
+
+        # Import appropriate env_desc based on commercial_mode
+        if commercial_mode:
+            from biomni.env_desc_cm import data_lake_dict, library_content_dict
+
+            print("🏢 Commercial mode: Using commercial-licensed datasets only")
+        else:
+            from biomni.env_desc import data_lake_dict, library_content_dict
+
+            print("🎓 Academic mode: Using all datasets (including non-commercial)")
+
+        # Store as instance attributes for later use
+        self.data_lake_dict = data_lake_dict
+        self.library_content_dict = library_content_dict
+        self.commercial_mode = commercial_mode
 
         # Display configuration in a nice, readable format
         print("\n" + "=" * 50)
@@ -94,7 +112,12 @@ class A1:
         config_dict = default_config.to_dict()
         for key, value in config_dict.items():
             if value is not None:
-                print(f"  {key.replace('_', ' ').title()}: {value}")
+                # Special formatting for commercial_mode
+                if key == "commercial_mode":
+                    mode_text = "Commercial (licensed datasets only)" if value else "Academic (all datasets)"
+                    print(f"  {key.replace('_', ' ').title()}: {mode_text}")
+                else:
+                    print(f"  {key.replace('_', ' ').title()}: {value}")
 
         # Show agent-specific LLM if different from default
         if agent_llm != default_config.llm or agent_source != default_config.source:
@@ -126,7 +149,7 @@ class A1:
         os.makedirs(data_lake_dir, exist_ok=True)
 
         if expected_data_lake_files is None:
-            expected_data_lake_files = list(data_lake_dict.keys())
+            expected_data_lake_files = list(self.data_lake_dict.keys())
 
         # Check and download missing data lake files
         print("Checking and downloading missing data lake files...")
@@ -507,11 +530,19 @@ class A1:
                     tool_name = tool_meta.get("biomni_name")
                     description = tool_meta.get("description", f"MCP tool: {tool_name}")
                     parameters = tool_meta.get("parameters", {})
+                    # For manual tools, check if each parameter has a "required" field
+                    required_param_names = []
+                    for param_name, param_spec in parameters.items():
+                        if param_spec.get("required", False):
+                            required_param_names.append(param_name)
                 else:
                     # Auto-discovered tool
                     tool_name = tool_meta.get("name")
                     description = tool_meta.get("description", f"MCP tool: {tool_name}")
-                    parameters = tool_meta.get("inputSchema", {}).get("properties", {})
+                    input_schema = tool_meta.get("inputSchema", {})
+                    parameters = input_schema.get("properties", {})
+                    # For auto-discovered tools, get required list from inputSchema top level
+                    required_param_names = input_schema.get("required", [])
 
                 if not tool_name:
                     print(f"Warning: Skipping tool with no name in {server_name}")
@@ -535,7 +566,8 @@ class A1:
                         "default": param_spec.get("default", None),
                     }
 
-                    if param_spec.get("required", False):
+                    # Check if parameter is required based on the required_param_names list
+                    if param_name in required_param_names:
                         required_params.append(param_info)
                     else:
                         optional_params.append(param_info)
@@ -1305,10 +1337,7 @@ Each library is listed with its description to help you understand its functiona
         data_lake_content = glob.glob(data_lake_path + "/*")
         data_lake_items = [x.split("/")[-1] for x in data_lake_content]
 
-        # Store data_lake_dict as instance variable for use in retrieval
-        self.data_lake_dict = data_lake_dict
-        # Store library_content_dict directly without library_content
-        self.library_content_dict = library_content_dict
+        # data_lake_dict and library_content_dict are already set in __init__
 
         # Prepare tool descriptions
         tool_desc = {

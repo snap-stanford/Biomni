@@ -39,6 +39,9 @@ class BiomniConfig:
     # Tool settings
     use_tool_retriever: bool = True
 
+    # Data licensing settings
+    commercial_mode: bool = False  # If True, excludes non-commercial datasets
+
     # Custom model settings (for custom LLM serving)
     base_url: str | None = None
     api_key: str | None = None  # Only for custom models, not provider API keys
@@ -58,6 +61,8 @@ class BiomniConfig:
             self.llm = os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL")
         if os.getenv("BIOMNI_USE_TOOL_RETRIEVER"):
             self.use_tool_retriever = os.getenv("BIOMNI_USE_TOOL_RETRIEVER").lower() == "true"
+        if os.getenv("BIOMNI_COMMERCIAL_MODE"):
+            self.commercial_mode = os.getenv("BIOMNI_COMMERCIAL_MODE").lower() == "true"
         if os.getenv("BIOMNI_TEMPERATURE"):
             self.temperature = float(os.getenv("BIOMNI_TEMPERATURE"))
         if os.getenv("BIOMNI_CUSTOM_BASE_URL"):
@@ -75,6 +80,7 @@ class BiomniConfig:
             "llm": self.llm,
             "temperature": self.temperature,
             "use_tool_retriever": self.use_tool_retriever,
+            "commercial_mode": self.commercial_mode,
             "base_url": self.base_url,
             "api_key": self.api_key,
             "source": self.source,

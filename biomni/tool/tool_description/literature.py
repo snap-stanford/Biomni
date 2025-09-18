@@ -132,4 +132,30 @@ description = [
             }
         ],
     },
+    {
+        "description": "Initiate an advanced web search by launching a specialized agent to collect relevant information and citations through multiple rounds of web searches for a given query.",
+        "name": "advanced_web_search_claude",
+        "optional_parameters": [
+            {
+                "default": 1,
+                "description": "Maximum number of searches",
+                "name": "max_searches",
+                "type": "int",
+            },
+            {
+                "default": 3,
+                "description": "Maximum number of retry attempts with modified queries.",
+                "name": "max_retries",
+                "type": "int",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "The search query string.",
+                "name": "query",
+                "type": "str",
+            }
+        ],
+    },
 ]

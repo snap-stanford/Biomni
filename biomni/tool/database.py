@@ -4380,7 +4380,8 @@ def query_synapse(
             '{"query_term": ["term1", "term2"], "query_type": "dataset", "max_results": 20}.\n'
             "query_type should be 'dataset' for datasets, 'file' for data files, or 'folder' for collections.\n"
             "max_results should be 20 for typical searches, or up to 50 if extensive/comprehensive results are desired.\n"
-            "Start with 1-2 most relevant search terms (these are combined with AND; more terms = more restrictive). Do not include explanations."
+            "Use 1-2 most relevant search terms (these are combined with AND; more terms = more restrictive). Only include main term (disease, gene, etc.) of the search query and do not include any other terms/adjectives/modifiers. Do not include explanations.\n"
+            "Try to remove hyphens and other special characters from the search terms. For example, use RNAseq instead of RNA-seq."
         )
 
         llm_result = _query_llm_for_api(
