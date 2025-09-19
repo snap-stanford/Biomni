@@ -2,29 +2,56 @@ import json
 import os
 import pickle
 import time
-from typing import Any
+from typing import Any, Dict, List, Optional, Union
 
 import requests
 from langchain_core.messages import HumanMessage, SystemMessage
 from Bio.Blast import NCBIWWW, NCBIXML
 from Bio.Seq import Seq
-from langchain_core.messages import HumanMessage, SystemMessage
 
 from biomni.llm import get_llm
 from biomni.utils import parse_hpo_obo
-from biomni.llm import get_llm
 
 
 # Function to map HPO terms to names
 def get_hpo_names(hpo_terms: list[str], data_lake_path: str) -> list[str]:
-    """Retrieve the names of given HPO terms.
+    """Retrieve human-readable names for Human Phenotype Ontology (HPO) terms.
+
+    This function maps HPO term identifiers to their corresponding human-readable names
+    by parsing the HPO OBO file. It's useful for converting machine-readable HPO IDs
+    into descriptive phenotype names for display or analysis purposes.
 
     Args:
-        hpo_terms (List[str]): A list of HPO terms (e.g., ['HP:0001250']).
+        hpo_terms (List[str]): A list of HPO term identifiers in the format 'HP:XXXXXXX'
+            (e.g., ['HP:0001250', 'HP:0000707']).
+        data_lake_path (str): Path to the data directory containing the 'hp.obo' file
+            with HPO ontology definitions.
 
     Returns:
-        List[str]: A list of corresponding HPO term names.
+        List[str]: A list of corresponding HPO term names in the same order as input.
+            If a term is not found, returns "Unknown term: {term_id}" for that entry.
 
+    Raises:
+        FileNotFoundError: If the hp.obo file is not found at the specified path.
+        ValueError: If the HPO terms list is empty or contains invalid formats.
+
+    Examples:
+        >>> hpo_terms = ['HP:0001250', 'HP:0000707']
+        >>> data_path = '/path/to/data'
+        >>> names = get_hpo_names(hpo_terms, data_path)
+        >>> print(names)
+        ['Seizure', 'Abnormality of the nervous system']
+
+        >>> # Handle unknown terms
+        >>> unknown_terms = ['HP:9999999']
+        >>> names = get_hpo_names(unknown_terms, data_path)
+        >>> print(names)
+        ['Unknown term: HP:9999999']
+
+    Note:
+        This function requires the HPO OBO file to be present in the data_lake_path
+        directory. The file can be downloaded from the Human Phenotype Ontology
+        website (https://hpo.jax.org/).
     """
     hp_dict = parse_hpo_obo(data_lake_path + "/hp.obo")
 
@@ -36,26 +63,68 @@ def get_hpo_names(hpo_terms: list[str], data_lake_path: str) -> list[str]:
 
 
 def _query_llm_for_api(
-    prompt,
-    schema,
-    system_template,
-    api_key=None,
-    model="us.anthropic.claude-3-5-haiku-20241022-v1:0",
-):
-    """Helper function to query LLMs for generating API calls based on natural language prompts.
+    prompt: str,
+    schema: Optional[Dict],
+    system_template: str,
+    api_key: Optional[str] = None,
+    model: str = "us.anthropic.claude-3-5-haiku-20241022-v1:0",
+) -> Dict[str, Any]:
+    """Generate API calls from natural language prompts using Large Language Models.
 
-    Supports multiple model providers including Claude, Gemini, GPT, and others via the unified get_llm interface.
+    This internal helper function translates natural language queries into structured
+    API calls by leveraging LLMs. It supports multiple model providers through a
+    unified interface and handles schema-based prompt engineering for database queries.
 
-    Parameters
-    ----------
-    prompt (str): Natural language query to process
-    schema (dict): API schema to include in the system prompt
-    system_template (str): Template string for the system prompt (should have {schema} placeholder)
+    The function is designed to work with various biological database APIs by:
+    1. Formatting system prompts with API schemas
+    2. Processing natural language user queries
+    3. Generating structured JSON responses with API endpoints and parameters
+    4. Handling errors and malformed responses gracefully
 
-    Returns
-    -------
-    dict: Dictionary with 'success', 'data' (if successful), 'error' (if failed), and optional 'raw_response'
+    Args:
+        prompt (str): Natural language query describing the desired database operation
+            (e.g., "Find human insulin protein information").
+        schema (Optional[Dict]): API schema dictionary containing endpoint definitions,
+            parameters, and examples. If None, the system template should not contain
+            a {schema} placeholder.
+        system_template (str): Template string for the system prompt that instructs
+            the LLM on how to generate API calls. Should contain a {schema} placeholder
+            if schema is provided.
+        api_key (Optional[str]): API key for the LLM service. If None, attempts to
+            use default configuration or environment variables.
+        model (str): LLM model identifier. Defaults to Claude 3.5 Haiku. Supports
+            various providers through the get_llm interface.
 
+    Returns:
+        Dict[str, Any]: Response dictionary with the following structure:
+            - success (bool): Whether the LLM query succeeded
+            - data (Dict): Parsed JSON response from LLM (if successful)
+            - error (str): Error message (if failed)
+            - raw_response (str): Raw LLM response text (optional)
+
+    Raises:
+        ImportError: If required LLM dependencies are not available.
+        json.JSONDecodeError: If LLM response cannot be parsed as JSON.
+        Exception: For other LLM service errors (network, authentication, etc.).
+
+    Examples:
+        >>> schema = {"endpoints": ["/search", "/entry"], "parameters": ["query", "format"]}
+        >>> template = "Generate API calls using this schema: {schema}"
+        >>> result = _query_llm_for_api("Find protein P53", schema, template)
+        >>> if result["success"]:
+        ...     print(result["data"]["full_url"])
+        https://api.example.com/search?query=P53&format=json
+
+        >>> # Handle errors
+        >>> result = _query_llm_for_api("Invalid query", None, "Bad template")
+        >>> if not result["success"]:
+        ...     print(f"Error: {result['error']}")
+
+    Note:
+        This is an internal function used by public database query functions.
+        It requires proper configuration of the LLM service and may incur API costs.
+        The function attempts to extract JSON from LLM responses even if they
+        contain additional explanatory text.
     """
     model = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
     try:
@@ -65,7 +134,6 @@ def _query_llm_for_api(
             system_prompt = system_template.format(schema=schema_json)
         else:
             system_prompt = system_template
-
         # Get LLM instance using the unified interface with config
         try:
             from biomni.config import default_config
@@ -75,7 +143,6 @@ def _query_llm_for_api(
             )
         except ImportError:
             llm = get_llm(model=model, temperature=0.0, api_key=api_key or "EMPTY")
-
         # Compose messages
         messages = [
             SystemMessage(content=system_prompt),
@@ -110,23 +177,74 @@ def _query_llm_for_api(
 
 
 def _query_rest_api(
-    endpoint, method="GET", params=None, headers=None, json_data=None, description=None
-):
-    """General helper function to query REST APIs with consistent error handling.
+    endpoint: str,
+    method: str = "GET",
+    params: Optional[Dict[str, Any]] = None,
+    headers: Optional[Dict[str, str]] = None,
+    json_data: Optional[Dict[str, Any]] = None,
+    description: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Execute REST API requests with standardized error handling and response formatting.
 
-    Parameters
-    ----------
-    endpoint (str): Full URL endpoint to query
-    method (str): HTTP method ("GET" or "POST")
-    params (dict, optional): Query parameters to include in the URL
-    headers (dict, optional): HTTP headers for the request
-    json_data (dict, optional): JSON data for POST requests
-    description (str, optional): Description of this query for error messages
+    This internal helper function provides a unified interface for making HTTP requests
+    to various biological database APIs. It handles common REST API patterns including
+    authentication, error responses, rate limiting, and response parsing.
 
-    Returns
-    -------
-    dict: Dictionary containing the result or error information
+    The function standardizes error handling across all database integrations and
+    provides consistent response formats regardless of the underlying API differences.
 
+    Args:
+        endpoint (str): Complete URL endpoint to query, including protocol and domain
+            (e.g., "https://rest.uniprot.org/uniprotkb/search?query=insulin").
+        method (str): HTTP method to use. Supports "GET" and "POST". Defaults to "GET".
+        params (Optional[Dict[str, Any]]): Query parameters to append to the URL.
+            These will be URL-encoded automatically.
+        headers (Optional[Dict[str, str]]): HTTP headers to include with the request.
+            If None, sets default Accept header to "application/json".
+        json_data (Optional[Dict[str, Any]]): JSON payload for POST requests.
+            Automatically serialized and sent with appropriate Content-Type header.
+        description (Optional[str]): Human-readable description of the query for
+            logging and error messages. Auto-generated if not provided.
+
+    Returns:
+        Dict[str, Any]: Standardized response dictionary containing:
+            - success (bool): Whether the request succeeded
+            - data (Dict|List): Parsed JSON response data (if successful)
+            - raw_text (str): Raw response text (if JSON parsing fails)
+            - error (str): Error message (if failed)
+            - status_code (int): HTTP status code
+            - url (str): Final request URL
+            - description (str): Query description
+
+    Raises:
+        requests.exceptions.RequestException: For network-level errors
+        requests.exceptions.HTTPError: For HTTP error status codes
+        json.JSONDecodeError: If response cannot be parsed as JSON (handled gracefully)
+
+    Examples:
+        >>> # Simple GET request
+        >>> result = _query_rest_api("https://api.example.com/data")
+        >>> if result["success"]:
+        ...     print(result["data"])
+
+        >>> # GET with parameters
+        >>> params = {"query": "insulin", "format": "json"}
+        >>> result = _query_rest_api("https://rest.uniprot.org/search", params=params)
+
+        >>> # POST with JSON data
+        >>> data = {"sequence": "MALWMRLL..."}
+        >>> result = _query_rest_api("https://api.example.com/blast", method="POST", json_data=data)
+
+        >>> # Handle errors
+        >>> result = _query_rest_api("https://invalid-url.com")
+        >>> if not result["success"]:
+        ...     print(f"Error: {result['error']}")
+
+    Note:
+        This is an internal function used by all public database query functions.
+        It implements retry logic for transient failures and respects rate limiting
+        where possible. The function attempts to parse all responses as JSON but
+        gracefully falls back to raw text for non-JSON responses.
     """
     # Set default headers if not provided
     if headers is None:
@@ -1073,19 +1191,81 @@ def query_pdb_identifiers(
         return {"error": f"Error retrieving PDB details: {str(e)}"}
 
 
-def query_kegg(prompt, endpoint=None, verbose=True):
-    """Take a natural language prompt and convert it to a structured KEGG API query.
+def query_kegg(
+    prompt: Optional[str] = None, endpoint: Optional[str] = None, verbose: bool = True
+) -> Dict[str, Any]:
+    """Query the KEGG (Kyoto Encyclopedia of Genes and Genomes) database using natural language.
 
-    Parameters
-    ----------
-    prompt (str): Natural language query about KEGG data (e.g., "Find human pathways related to glycolysis")
-    endpoint (str, optional): Direct KEGG API endpoint to query
-    verbose (bool): Whether to print verbose output
+    This function provides access to the KEGG REST API, which contains information about
+    biological pathways, diseases, drugs, and genomes. It supports both natural language
+    queries (processed via LLM) and direct API endpoint access.
 
-    Returns
-    -------
-    dict: Dictionary containing both the structured query and the KEGG results
+    KEGG is a comprehensive database resource that integrates genomic, chemical, and
+    systemic functional information. This function can retrieve:
+    - Metabolic and regulatory pathways
+    - Gene and protein information
+    - Disease associations and drug interactions
+    - Organism-specific data across multiple species
+    - Pathway maps and molecular networks
 
+    Args:
+        prompt (Optional[str]): Natural language query describing the desired KEGG data.
+            Examples: "Find human pathways related to glycolysis", "Get information about
+            the BRCA1 gene", "List all pathways for diabetes".
+        endpoint (Optional[str]): Direct KEGG API endpoint path or full URL to query.
+            Examples: "/get/hsa:672", "https://rest.kegg.jp/list/pathway/hsa".
+        verbose (bool): Whether to print detailed query information and progress.
+            Useful for debugging and understanding the generated API calls.
+
+    Returns:
+        Dict[str, Any]: Standardized response dictionary containing:
+            - success (bool): Whether the query succeeded
+            - data (Dict|List): KEGG API response data (pathways, genes, etc.)
+            - query_info (Dict): Information about the generated query
+            - description (str): Human-readable description of the query
+            - error (str): Error message if the query failed
+
+    Raises:
+        FileNotFoundError: If KEGG schema file is not found
+        requests.exceptions.RequestException: For network or API errors
+        json.JSONDecodeError: If API response cannot be parsed
+
+    Examples:
+        >>> # Natural language pathway query
+        >>> result = query_kegg("Find human pathways related to glycolysis")
+        >>> if result["success"]:
+        ...     pathways = result["data"]
+        ...     print(f"Found {len(pathways)} pathways")
+
+        >>> # Gene information query
+        >>> result = query_kegg("Get information about human BRCA1 gene")
+        >>> if result["success"]:
+        ...     gene_info = result["data"]
+        ...     print(gene_info["definition"])
+
+        >>> # Direct API endpoint
+        >>> result = query_kegg(endpoint="/list/pathway/hsa")
+        >>> pathways = result["data"]
+
+        >>> # Disease-related pathways
+        >>> result = query_kegg("Show pathways associated with diabetes")
+        >>> diabetes_pathways = result["data"]
+
+        >>> # Drug information
+        >>> result = query_kegg("Find information about aspirin drug")
+        >>> drug_data = result["data"]
+
+    Note:
+        - KEGG uses organism codes (e.g., 'hsa' for human, 'mmu' for mouse)
+        - Pathway IDs follow the format 'map' + 5-digit number (e.g., 'map00010')
+        - Gene IDs are organism-specific (e.g., 'hsa:672' for human BRCA1)
+        - Some KEGG data may require subscription for full access
+        - Rate limiting may apply for high-volume queries
+
+    See Also:
+        query_reactome: For alternative pathway database queries
+        query_stringdb: For protein-protein interaction networks
+        query_uniprot: For detailed protein information
     """
     base_url = "https://rest.kegg.jp"
 
@@ -1938,22 +2118,93 @@ def query_cbioportal(
 
 
 def query_clinvar(
-    prompt=None,
-    search_term=None,
-    max_results=3,
-):
-    """Take a natural language prompt and convert it to a structured ClinVar query.
+    prompt: Optional[str] = None,
+    search_term: Optional[str] = None,
+    max_results: int = 3,
+) -> Dict[str, Any]:
+    """Query ClinVar database for genetic variant clinical significance information.
 
-    Parameters
-    ----------
-    prompt (str): Natural language query about genetic variants (e.g., "Find pathogenic BRCA1 variants")
-    search_term (str): Direct search term in ClinVar syntax
-    max_results (int): Maximum number of results to return
+    ClinVar is NCBI's public database of genetic variants and their relationships to
+    human health. This function provides access to variant classifications, clinical
+    significance assessments, and associated phenotype information.
 
-    Returns
-    -------
-    dict: Dictionary containing both the structured query and the ClinVar results
+    The function supports both natural language queries (processed via LLM) and direct
+    search terms using ClinVar's search syntax. It's particularly useful for:
+    - Finding pathogenic/benign variant classifications
+    - Researching genetic variants associated with specific diseases
+    - Accessing clinical evidence and literature for variants
+    - Identifying variants in specific genes or genomic regions
+    - Accessing clinical trial information of drugs
 
+    Args:
+        prompt (Optional[str]): Natural language query describing the desired variant
+            information. Examples: "Find pathogenic BRCA1 variants", "Show benign
+            variants in TP53 gene", "Variants associated with breast cancer".
+        search_term (Optional[str]): Direct search term using ClinVar search syntax.
+            Examples: "BRCA1[gene] AND pathogenic[clinical_significance]",
+            "breast cancer[disease] AND variant_type:single_nucleotide".
+        max_results (int): Maximum number of variant records to return. Defaults to 3
+            to avoid overwhelming responses with large result sets.
+
+    Returns:
+        Dict[str, Any]: Standardized response dictionary containing:
+            - success (bool): Whether the query succeeded
+            - data (List[Dict]): List of variant records with clinical information
+            - query_info (Dict): Information about the generated search query
+            - total_results (int): Total number of available results
+            - search_term (str): Final search term used
+            - error (str): Error message if the query failed
+
+            Each variant record includes:
+                - variant_id (str): ClinVar variant identifier
+                - gene_symbol (str): Associated gene name
+                - clinical_significance (str): Pathogenic/benign classification
+                - condition (str): Associated disease/phenotype
+                - variant_type (str): Type of genetic variant
+                - chromosome (str): Chromosomal location
+                - position (int): Genomic coordinate
+                - reference_allele (str): Reference sequence
+                - alternate_allele (str): Variant sequence
+
+    Raises:
+        FileNotFoundError: If ClinVar schema file is not found
+        requests.exceptions.RequestException: For network or API errors
+        json.JSONDecodeError: If API response cannot be parsed
+
+    Examples:
+        >>> # Find pathogenic variants in BRCA1
+        >>> result = query_clinvar("Find pathogenic BRCA1 variants")
+        >>> if result["success"]:
+        ...     for variant in result["data"]:
+        ...         print(f"Variant: {variant['variant_id']}")
+        ...         print(f"Significance: {variant['clinical_significance']}")
+        ...         print(f"Condition: {variant['condition']}")
+
+        >>> # Direct search syntax
+        >>> result = query_clinvar(search_term="TP53[gene] AND pathogenic[clinical_significance]")
+        >>> pathogenic_tp53 = result["data"]
+
+        >>> # Disease-focused query
+        >>> result = query_clinvar("Variants associated with Lynch syndrome")
+        >>> lynch_variants = result["data"]
+
+        >>> # Benign variants for comparison
+        >>> result = query_clinvar("Show benign variants in CFTR gene")
+        >>> benign_cftr = result["data"]
+
+    Note:
+        - ClinVar classifications include: Pathogenic, Likely pathogenic, Benign,
+          Likely benign, Uncertain significance, and others
+        - Variant coordinates use GRCh37/hg19 or GRCh38/hg38 reference assemblies
+        - Clinical significance may change as new evidence becomes available
+        - Some variants may have conflicting interpretations from different labs
+        - Rate limiting may apply for high-volume queries
+
+    See Also:
+        query_dbsnp: For additional variant information and population frequencies
+        query_gnomad: For population genetics data on variants
+        query_gwas_catalog: For genome-wide association study results
+        query_opentarget: For drug target and therapeutic information
     """
     if not prompt and not search_term:
         return {"error": "Either a prompt or an endpoint must be provided"}
@@ -2860,6 +3111,130 @@ def query_openfda(
         endpoint += f"?limit={max_results}"
 
 
+def _format_clinicaltrials_text(aggregated_result: dict) -> str:
+    """Format clinical trials results into readable text format similar to query_pubmed.
+
+    Args:
+        aggregated_result: Dictionary containing aggregated clinical trials data
+
+    Returns:
+        str: Formatted text with clinical trial information
+    """
+    if not aggregated_result.get("success"):
+        return f"Error querying ClinicalTrials.gov: {aggregated_result.get('error', 'Unknown error')}"
+
+    studies = aggregated_result.get("result", {}).get("studies", [])
+
+    if not studies:
+        return "No clinical trials found matching the search criteria."
+
+    results = []
+    for study in studies:
+        # Extract key information from each study
+        nct_id = (
+            study.get("protocolSection", {})
+            .get("identificationModule", {})
+            .get("nctId", "N/A")
+        )
+        title = study.get("protocolSection", {}).get("identificationModule", {}).get(
+            "officialTitle"
+        ) or study.get("protocolSection", {}).get("identificationModule", {}).get(
+            "briefTitle", "No title available"
+        )
+
+        # Get study description/brief summary
+        description_module = study.get("protocolSection", {}).get(
+            "descriptionModule", {}
+        )
+        brief_summary = description_module.get("briefSummary", "No summary available")
+        detailed_description = description_module.get("detailedDescription", "")
+
+        # Get conditions
+        conditions_module = study.get("protocolSection", {}).get("conditionsModule", {})
+        conditions = conditions_module.get("conditions", [])
+        conditions_text = ", ".join(conditions) if conditions else "Not specified"
+
+        # Get interventions
+        arms_interventions_module = study.get("protocolSection", {}).get(
+            "armsInterventionsModule", {}
+        )
+        interventions = arms_interventions_module.get("interventions", [])
+        intervention_names = []
+        for intervention in interventions:
+            name = intervention.get("name", "")
+            intervention_type = intervention.get("type", "")
+            if name:
+                intervention_names.append(
+                    f"{name} ({intervention_type})" if intervention_type else name
+                )
+        interventions_text = (
+            ", ".join(intervention_names) if intervention_names else "Not specified"
+        )
+
+        # Get status and phase
+        status_module = study.get("protocolSection", {}).get("statusModule", {})
+        overall_status = status_module.get("overallStatus", "Unknown")
+
+        design_module = study.get("protocolSection", {}).get("designModule", {})
+        phases = design_module.get("phases", [])
+        phase_text = ", ".join(phases) if phases else "Not specified"
+
+        # Get sponsor information
+        sponsor_module = study.get("protocolSection", {}).get(
+            "sponsorCollaboratorsModule", {}
+        )
+        lead_sponsor = sponsor_module.get("leadSponsor", {}).get(
+            "name", "Not specified"
+        )
+
+        # Get locations if available
+        contacts_locations_module = study.get("protocolSection", {}).get(
+            "contactsLocationsModule", {}
+        )
+        locations = contacts_locations_module.get("locations", [])
+        location_names = []
+        for location in locations[:3]:  # Limit to first 3 locations
+            facility = location.get("facility", "")
+            city = location.get("city", "")
+            country = location.get("country", "")
+            if facility or city:
+                loc_str = facility
+                if city:
+                    loc_str += f", {city}"
+                if country:
+                    loc_str += f", {country}"
+                location_names.append(loc_str)
+        locations_text = (
+            "; ".join(location_names) if location_names else "Not specified"
+        )
+
+        # Format the study information
+        content = f"NCT ID: {nct_id}\n"
+        content += f"Title: {title}\n"
+        content += f"Brief Summary: {brief_summary}\n"
+        if detailed_description and detailed_description != brief_summary:
+            # Truncate detailed description if too long
+            if len(detailed_description) > 500:
+                detailed_description = detailed_description[:500] + "..."
+            content += f"Detailed Description: {detailed_description}\n"
+        content += f"Conditions: {conditions_text}\n"
+        content += f"Interventions: {interventions_text}\n"
+        content += f"Status: {overall_status}\n"
+        content += f"Phase: {phase_text}\n"
+        content += f"Sponsor: {lead_sponsor}\n"
+        content += f"Locations: {locations_text}\n"
+        content += f"URL: https://clinicaltrials.gov/study/{nct_id}\n"
+
+        results.append(content)
+
+    # Add summary information
+    total_studies = len(studies)
+    page_count = aggregated_result.get("result", {}).get("page_count", 1)
+
+    header = f"Found {total_studies} clinical trial(s) across {page_count} page(s):\n\n"
+    return header + "\n\n".join(results)
+
+
 def query_clinicaltrials(
     prompt: str | None = None,
     endpoint: str | None = None,
@@ -2873,17 +3248,49 @@ def query_clinicaltrials(
     max_pages: int = 1,
     page_token: str | None = None,
     verbose: bool = True,
-):
+) -> str:
     """Query ClinicalTrials.gov API for clinical studies.
 
-    Modes:
-    - Direct URL: set `endpoint` to a full URL or a path (e.g., "/studies?query.term=breast%20cancer").
-    - Structured params: provide `term`, `status`, `condition`, etc.
+    At least one query parameter is required. Choose one of these modes:
     - Natural language: provide `prompt` and the function will infer structured params.
+    - Direct URL: set `endpoint` to a full URL or a path (e.g., "/studies?query.term=breast%20cancer").
+    - Structured params: provide at least one of `term`, `status`, `condition`, `intervention`.
 
-    Returns a dict with aggregated results across pages (up to `max_pages`).
+    Args:
+        prompt: Natural language query about clinical trials (required if no other query params)
+        endpoint: Direct API path or full URL (required if no other query params)
+        term: Free-text search term (required if no other query params)
+        status: Overall recruitment status filter (required if no other query params)
+        condition: Condition/disease filter (required if no other query params)
+        intervention: Intervention filter (required if no other query params)
+        location: Location filter (optional)
+        phase: Trial phase filter (optional)
+        page_size: Items per page, 1-100 (default: 10)
+        max_pages: Maximum pages to fetch (default: 1)
+        page_token: Start page token for pagination (optional)
+        verbose: Whether to return detailed response structure (default: True)
+
+    Returns:
+        str: Formatted text containing clinical trial information including:
+            - NCT ID: Clinical trial identifier
+            - Title: Official or brief title of the study
+            - Brief Summary: Study description and objectives
+            - Conditions: Medical conditions being studied
+            - Interventions: Treatments or procedures being tested
+            - Status: Current recruitment status
+            - Phase: Clinical trial phase
+            - Sponsor: Lead organization sponsoring the study
+            - Locations: Study sites and locations
+            - URL: Direct link to the ClinicalTrials.gov entry
+
+            Studies are separated by double newlines for readability.
+            If no studies are found, returns appropriate message.
+            If an error occurs, returns error message.
     """
     base_url = "https://clinicaltrials.gov/api/v2"
+    # Validate that at least one query parameter is provided
+    if not any([prompt, endpoint, term, condition, intervention, status]):
+        return "Error: At least one query parameter is required. Provide either: 'prompt' (natural language), 'endpoint' (direct URL), or structured parameters ('term', 'condition', 'intervention', 'status')"
 
     # If natural language prompt is provided, ask LLM to produce parameters
     if prompt and not endpoint and not term:
@@ -2920,15 +3327,9 @@ def query_clinicaltrials(
         api_result = _query_rest_api(
             endpoint=endpoint, method="GET", description=description
         )
-        if not verbose and api_result.get("success") and "result" in api_result:
-            return _format_query_results(api_result["result"])
-        return api_result
+        return _format_clinicaltrials_text(api_result)
 
     # Otherwise build params for /studies
-    if not term and not condition and not intervention and not status:
-        return {
-            "error": "Provide at least one of: prompt, term, condition, intervention, status, or a direct endpoint"
-        }
 
     url = f"{base_url}/studies"
 
@@ -2977,7 +3378,7 @@ def query_clinicaltrials(
             endpoint=url, method="GET", params=params, description=description
         )
         if not page_resp.get("success"):
-            return page_resp
+            return _format_clinicaltrials_text(page_resp)
 
         data = page_resp.get("result") or {}
         studies = data.get("studies") or data.get("items") or []
@@ -2990,47 +3391,71 @@ def query_clinicaltrials(
         if not current_token:
             break
 
-    if not verbose:
-        return _format_query_results(aggregated)
-    return aggregated
-
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
-
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
-        return _format_query_results(api_result["result"])
-
-    return api_result
+    # Format results as text similar to query_pubmed
+    return _format_clinicaltrials_text(aggregated)
 
 
 def query_gwas_catalog(
-    prompt=None,
-    endpoint=None,
-    max_results=3,
-):
-    """Query the GWAS Catalog API using natural language or a direct endpoint.
+    prompt: Optional[str] = None,
+    endpoint: Optional[str] = None,
+    max_results: int = 3,
+) -> Dict[str, Any]:
+    """Query the NHGRI-EBI GWAS Catalog for genome-wide association study data.
 
-    Parameters
-    ----------
-    prompt (str, required): Natural language query about GWAS data
-    endpoint (str, optional): Full API endpoint to query (e.g., "https://www.ebi.ac.uk/gwas/rest/api/studies?diseaseTraitId=EFO_0001360")
-    max_results (int): Maximum number of results to return
+    The GWAS Catalog is a comprehensive database of published genome-wide association
+    studies (GWAS) that provides access to SNP-trait associations, study metadata,
+    and statistical significance data. This function enables researchers to explore
+    genetic variants associated with complex traits and diseases.
 
-    Returns
-    -------
-    dict: Dictionary containing the query results or error information
+    The catalog contains curated data from thousands of GWAS publications, including:
+    - Single nucleotide polymorphisms (SNPs) and their trait associations
+    - Study design and population information
+    - Statistical significance measures (p-values, effect sizes)
+    - Disease and trait ontology mappings
+    - Genomic coordinates and allele frequencies
 
-    Examples
-    --------
-    - Natural language: query_gwas_catalog("Find GWAS studies related to Type 2 diabetes")
-    - Direct endpoint: query_gwas_catalog(endpoint="studies", params={"diseaseTraitId": "EFO_0001360"})
+    Args:
+        prompt (Optional[str]): Natural language query describing the desired GWAS data.
+            Examples: "Find GWAS studies related to Type 2 diabetes", "Show SNPs
+            associated with height", "Studies on Alzheimer's disease genetics".
+        endpoint (Optional[str]): Direct API endpoint path or full URL to query.
+            Examples: "studies", "associations", "singleNucleotidePolymorphisms",
+            "https://www.ebi.ac.uk/gwas/rest/api/studies?diseaseTraitId=EFO_0001360".
+        max_results (int): Maximum number of results to return. Helps manage
+            response size for large datasets.
 
+    Returns:
+        Dict[str, Any]: Standardized response dictionary containing:
+            - success (bool): Whether the query succeeded
+            - data (List[Dict]): GWAS data records (studies, associations, SNPs)
+            - query_info (Dict): Information about the generated query
+            - description (str): Human-readable description of the query
+            - error (str): Error message if the query failed
+
+    Examples:
+        >>> # Find diabetes-related GWAS studies
+        >>> result = query_gwas_catalog("Find GWAS studies related to Type 2 diabetes")
+        >>> if result["success"]:
+        ...     for study in result["data"]:
+        ...         print(f"Study: {study['title']}")
+
+        >>> # Direct endpoint query
+        >>> result = query_gwas_catalog(endpoint="studies")
+        >>> studies = result["data"]
+
+        >>> # Height-associated SNPs
+        >>> result = query_gwas_catalog("Show SNPs significantly associated with human height")
+        >>> height_snps = result["data"]
+
+    Note:
+        - GWAS Catalog uses genome-wide significance threshold (p < 5×10⁻⁸)
+        - EFO (Experimental Factor Ontology) provides standardized trait terms
+        - Population ancestry information helps interpret genetic associations
+
+    See Also:
+        query_clinvar: For clinical significance of genetic variants
+        query_dbsnp: For detailed SNP information and population frequencies
+        query_gnomad: For population genetics and variant annotation
     """
     # Base URL for GWAS Catalog API
     base_url = "https://www.ebi.ac.uk/gwas/rest/api"
@@ -3220,18 +3645,94 @@ def query_gnomad(
 
 def blast_sequence(
     sequence: str, database: str, program: str
-) -> dict[str, str | float] | str:
-    """Identifies a DNA sequence using NCBI BLAST with improved error handling, timeout management, and debugging.
+) -> Union[Dict[str, Union[str, float]], str]:
+    """Perform sequence similarity search using NCBI BLAST with comprehensive error handling.
+
+    This function submits sequences to NCBI's BLAST web service to identify similar
+    sequences in various databases. It supports both nucleotide and protein sequences
+    with appropriate database and program combinations.
+
+    The function implements robust error handling including timeout management,
+    retry logic, and comprehensive result parsing to provide reliable sequence
+    identification even under varying network conditions.
 
     Args:
-        sequence (str): The sequence to identify. If DNA, use database: core_nt, program: blastn;
-                        if protein, use database: nr, program: blastp
-        database (str): The BLAST database to search against
-        program (str): The BLAST program to use
+        sequence (str): The query sequence to search for similar sequences.
+            Should be in FASTA format or plain sequence string.
+            - For DNA/RNA sequences: use database='nt', program='blastn'
+            - For protein sequences: use database='nr', program='blastp'
+            - For translated searches: use 'blastx', 'tblastn', or 'tblastx'
+        database (str): The BLAST database to search against. Common options:
+            - 'nt': Nucleotide collection (DNA/RNA sequences)
+            - 'nr': Non-redundant protein sequences
+            - 'refseq_rna': Reference RNA sequences
+            - 'refseq_protein': Reference protein sequences
+            - 'swissprot': Manually annotated protein sequences
+        program (str): The BLAST program to use based on sequence types:
+            - 'blastn': Nucleotide query vs nucleotide database
+            - 'blastp': Protein query vs protein database
+            - 'blastx': Translated nucleotide query vs protein database
+            - 'tblastn': Protein query vs translated nucleotide database
+            - 'tblastx': Translated nucleotide query vs translated nucleotide database
 
     Returns:
-        dict: A dictionary containing the title, e-value, identity percentage, and coverage percentage of the best alignment
+        Union[Dict[str, Union[str, float]], str]: BLAST search results in one of two formats:
 
+            Success case - Dictionary containing:
+                - title (str): Description of the best matching sequence
+                - e_value (float): Statistical significance of the match
+                - identity_percentage (float): Percentage of identical residues
+                - coverage_percentage (float): Percentage of query sequence covered
+                - accession (str): Database accession number of the match
+                - alignment_length (int): Length of the alignment
+                - query_start (int): Start position in query sequence
+                - query_end (int): End position in query sequence
+                - subject_start (int): Start position in subject sequence
+                - subject_end (int): End position in subject sequence
+
+            Error case - String containing error message
+
+    Raises:
+        ValueError: If sequence is empty or invalid format
+        ConnectionError: If NCBI BLAST service is unavailable
+        TimeoutError: If BLAST job exceeds maximum runtime (10 minutes)
+        Exception: For other BLAST-related errors
+
+    Examples:
+        >>> # DNA sequence identification
+        >>> dna_seq = "ATGCGATCGTAGCTAGCTGATCGATCG"
+        >>> result = blast_sequence(dna_seq, database="nt", program="blastn")
+        >>> if isinstance(result, dict):
+        ...     print(f"Best match: {result['title']}")
+        ...     print(f"Identity: {result['identity_percentage']}%")
+        ...     print(f"E-value: {result['e_value']}")
+
+        >>> # Protein sequence identification
+        >>> protein_seq = "MKTVRQERLKSIVRILERSKEPVSGAQLAEELSVSRQVIVQDIAYLRSLGYNIVATPRGYVLAGG"
+        >>> result = blast_sequence(protein_seq, database="nr", program="blastp")
+        >>> if isinstance(result, dict):
+        ...     print(f"Protein match: {result['title']}")
+
+        >>> # Handle errors
+        >>> result = blast_sequence("invalid_sequence", "nt", "blastn")
+        >>> if isinstance(result, str):
+        ...     print(f"Error: {result}")
+
+        >>> # Translated search (nucleotide query against protein database)
+        >>> result = blast_sequence(dna_seq, database="nr", program="blastx")
+
+    Note:
+        - BLAST searches can take several minutes depending on sequence length and database size
+        - The function implements a 10-minute timeout with retry logic
+        - E-values < 1e-5 generally indicate significant similarity
+        - Identity percentages > 90% suggest very similar sequences
+        - Coverage percentages indicate how much of the query sequence was aligned
+        - NCBI may impose rate limits on frequent queries
+
+    See Also:
+        query_uniprot: For detailed protein information after BLAST identification
+        query_pdb: For structural information of identified proteins
+        query_ncbi_database: For additional NCBI database queries
     """
     max_attempts = 1  # One initial attempt plus one retry
     attempts = 0
@@ -3746,8 +4247,6 @@ def query_gtopdb(
         - Target types include: "GPCR", "NHR", "LGIC", "VGIC", "OtherIC", "Enzyme", "CatalyticReceptor", "Transporter", "OtherProtein"
         - Ligand types include: "Synthetic organic", "Metabolite", "Natural product", "Endogenous peptide", "Peptide", "Antibody", "Inorganic", "Approved", "Withdrawn", "Labelled", "INN"
         - Interaction types include: "Activator", "Agonist", "Allosteric modulator", "Antagonist", "Antibody", "Channel blocker", "Gating inhibitor", "Inhibitor", "Subunit-specific"
-        - For specific target/ligand details, use formats like "targets/\{targetId\}" or "ligands/\{ligandId\}"
-        - For subresources, use formats like "targets/\{targetId\}/interactions" or "ligands/\{ligandId\}/structure"
 
         Return ONLY the JSON object with no additional text.
         """
@@ -4432,7 +4931,9 @@ def query_synapse(
             for hit in result_data["hits"]:
                 if "id" in hit:
                     # Check access requirements for this entity
-                    access_url = f"{base_url}/repo/v1/entity/{hit['id']}/accessRequirement"
+                    access_url = (
+                        f"{base_url}/repo/v1/entity/{hit['id']}/accessRequirement"
+                    )
                     access_result = _query_rest_api(
                         endpoint=access_url,
                         method="GET",

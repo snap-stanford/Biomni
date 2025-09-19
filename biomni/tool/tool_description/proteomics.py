@@ -29,6 +29,7 @@ def get_description(filepath):
             docstring = ast.get_docstring(node)
             doc = parse(docstring)
             function_info = {
+                "long_description": doc.long_description,
                 "description": doc.short_description,
                 "return": doc.returns.description if doc.returns else None,
                 "name": node.name,

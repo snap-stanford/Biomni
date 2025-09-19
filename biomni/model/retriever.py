@@ -222,7 +222,7 @@ IMPORTANT GUIDELINES:
             ),
         }
 
-        thresholds = {"tools": 0.2, "data_lake": 0.05, "libraries": 0.0}
+        thresholds = {"tools": 0.25, "data_lake": 0.1, "libraries": 0.05}
         selected_resources = {}
         for db_name, db in databases.items():
             threshold = thresholds[db_name]

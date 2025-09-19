@@ -15,7 +15,6 @@ module2api = read_module2api()
 
 tool_registry = ToolRegistry(module2api)
 all_tools = tool_registry.tools
-
 data_lake_path = data_path + "/data_lake"
 data_lake_content = glob.glob(data_lake_path + "/*")
 data_lake_items = [x.split("/")[-1] for x in data_lake_content]
@@ -37,6 +36,8 @@ def save_db(name_and_description_list, db_name):
     for tool in name_and_description_list:
         name = tool["name"]
         description = tool["description"]
+        if "long_description" in tool and tool["long_description"] is not None:
+            description += "\nDetailed description: " + tool["long_description"]
         texts.append(
             Document(
                 page_content=f"{name}: {description}",

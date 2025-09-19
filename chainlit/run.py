@@ -13,12 +13,15 @@ import pytz
 import shutil
 import random
 import string
+from biomni.config import default_config
 
 # Configuration
 LLM_MODEL = "gemini-2.5-pro"
 BIOMNI_DATA_PATH = "/workdir_efs/jaechang/work2/biomni_hits_test/biomni_data"
 CURRENT_ABS_DIR = "/workdir_efs/jaechang/work2/biomni_hits_test"
 
+default_config.llm = LLM_MODEL
+default_config.commercial_mode = True
 # Initialize agent
 agent = A1_HITS(
     path=BIOMNI_DATA_PATH,

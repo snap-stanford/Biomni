@@ -20,6 +20,7 @@ from biomni.utils import (
     run_bash_script,
     run_r_code,
     run_with_timeout,
+    textify_api_dict,
 )
 from biomni.agent.a1 import A1
 from .a1 import AgentState
@@ -210,12 +211,11 @@ Output:
 
         if additional_system_prompt:
             self.system_prompt += "\n----\n" + additional_system_prompt
-
+        print(self.system_prompt)
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
         self.log = [self.system_prompt]
         yield self.system_prompt
-        print(self.system_prompt)
         for s in self.app.stream(
             inputs, stream_mode="messages", config=config, subgraphs=True
         ):
@@ -404,6 +404,7 @@ Output:
                         )
                     )
                 else:
+                    # Try to correct it
                     # Try to correct it
                     state["messages"].append(
                         HumanMessage(
@@ -619,227 +620,235 @@ Output:
         self.checkpointer = MemorySaver()
         self.app.checkpointer = self.checkpointer
 
-
-def _generate_system_prompt(
-    self,
-    tool_desc,
-    data_lake_content,
-    library_content_list,
-    self_critic=False,
-    is_retrieval=False,
-    custom_tools=None,
-    custom_data=None,
-    custom_software=None,
-):
-    """Generate the system prompt based on the provided resources.
-
-    Args:
-        tool_desc: Dictionary of tool descriptions
-        data_lake_content: List of data lake items
-        library_content_list: List of libraries
-        self_critic: Whether to include self-critic instructions
-        is_retrieval: Whether this is for retrieval (True) or initial configuration (False)
-        custom_tools: List of custom tools to highlight
-        custom_data: List of custom data items to highlight
-        custom_software: List of custom software items to highlight
-
-    Returns:
-        The generated system prompt
-
-    """
-
-    def format_item_with_description(name, description):
-        """Format an item with its description in a readable way."""
-        # Handle None or empty descriptions
-        if not description:
-            description = f"Data lake item: {name}"
-
-        # Check if the item is already formatted (contains a colon)
-        if isinstance(name, str) and ": " in name:
-            return name
-
-        # Wrap long descriptions to make them more readable
-        max_line_length = 80
-        if len(description) > max_line_length:
-            # Simple wrapping for long descriptions
-            wrapped_desc = []
-            words = description.split()
-            current_line = ""
-
-            for word in words:
-                if len(current_line) + len(word) + 1 <= max_line_length:
-                    if current_line:
-                        current_line += " " + word
-                    else:
-                        current_line = word
-                else:
-                    wrapped_desc.append(current_line)
-                    current_line = word
-
-            if current_line:
-                wrapped_desc.append(current_line)
-
-            # Join with newlines and proper indentation
-            formatted_desc = f"{name}:\n  " + "\n  ".join(wrapped_desc)
-            return formatted_desc
-        else:
-            return f"{name}: {description}"
-
-    # Separate custom and default resources
-    default_data_lake_content = []
-    default_library_content_list = []
-
-    # Filter out custom items from default lists
-    custom_data_names = set()
-    custom_software_names = set()
-
-    if custom_data:
-        custom_data_names = {
-            item.get("name") if isinstance(item, dict) else item for item in custom_data
-        }
-    if custom_software:
-        custom_software_names = {
-            item.get("name") if isinstance(item, dict) else item
-            for item in custom_software
-        }
-
-    # Separate default data lake items
-    for item in data_lake_content:
-        if isinstance(item, dict):
-            name = item.get("name", "")
-            if name not in custom_data_names:
-                default_data_lake_content.append(item)
-        elif item not in custom_data_names:
-            default_data_lake_content.append(item)
-
-    # Separate default library items
-    for lib in library_content_list:
-        if isinstance(lib, dict):
-            name = lib.get("name", "")
-            if name not in custom_software_names:
-                default_library_content_list.append(lib)
-        elif lib not in custom_software_names:
-            default_library_content_list.append(lib)
-
-    # Format the default data lake content
-    if isinstance(default_data_lake_content, list) and all(
-        isinstance(item, str) for item in default_data_lake_content
+    def _generate_system_prompt(
+        self,
+        tool_desc,
+        data_lake_content,
+        library_content_list,
+        self_critic=False,
+        is_retrieval=False,
+        custom_tools=None,
+        custom_data=None,
+        custom_software=None,
     ):
-        # Simple list of strings - check if they already have descriptions
-        data_lake_formatted = []
-        for item in default_data_lake_content:
-            # Check if the item already has a description (contains a colon)
-            if ": " in item:
-                data_lake_formatted.append(item)
+        """Generate the system prompt based on the provided resources.
+
+        Args:
+            tool_desc: Dictionary of tool descriptions
+            data_lake_content: List of data lake items
+            library_content_list: List of libraries
+            self_critic: Whether to include self-critic instructions
+            is_retrieval: Whether this is for retrieval (True) or initial configuration (False)
+            custom_tools: List of custom tools to highlight
+            custom_data: List of custom data items to highlight
+            custom_software: List of custom software items to highlight
+
+        Returns:
+            The generated system prompt
+
+        """
+
+        def format_item_with_description(name, description):
+            """Format an item with its description in a readable way."""
+            # Handle None or empty descriptions
+            if not description:
+                description = f"Data lake item: {name}"
+
+            # Check if the item is already formatted (contains a colon)
+            if isinstance(name, str) and ": " in name:
+                return name
+
+            # Wrap long descriptions to make them more readable
+            max_line_length = 80
+            if len(description) > max_line_length:
+                # Simple wrapping for long descriptions
+                wrapped_desc = []
+                words = description.split()
+                current_line = ""
+
+                for word in words:
+                    if len(current_line) + len(word) + 1 <= max_line_length:
+                        if current_line:
+                            current_line += " " + word
+                        else:
+                            current_line = word
+                    else:
+                        wrapped_desc.append(current_line)
+                        current_line = word
+
+                if current_line:
+                    wrapped_desc.append(current_line)
+
+                # Join with newlines and proper indentation
+                formatted_desc = f"{name}:\n  " + "\n  ".join(wrapped_desc)
+                return formatted_desc
             else:
-                description = self.data_lake_dict.get(item, f"Data lake item: {item}")
-                data_lake_formatted.append(
-                    format_item_with_description(item, description)
-                )
-    else:
-        # List with descriptions
-        data_lake_formatted = []
-        for item in default_data_lake_content:
+                return f"{name}: {description}"
+
+        # Separate custom and default resources
+        default_data_lake_content = []
+        default_library_content_list = []
+
+        # Filter out custom items from default lists
+        custom_data_names = set()
+        custom_software_names = set()
+
+        if custom_data:
+            custom_data_names = {
+                item.get("name") if isinstance(item, dict) else item
+                for item in custom_data
+            }
+        if custom_software:
+            custom_software_names = {
+                item.get("name") if isinstance(item, dict) else item
+                for item in custom_software
+            }
+
+        # Separate default data lake items
+        for item in data_lake_content:
             if isinstance(item, dict):
                 name = item.get("name", "")
-                description = self.data_lake_dict.get(name, f"Data lake item: {name}")
-                data_lake_formatted.append(
-                    format_item_with_description(name, description)
-                )
-            # Check if the item already has a description (contains a colon)
-            elif isinstance(item, str) and ": " in item:
-                data_lake_formatted.append(item)
-            else:
-                description = self.data_lake_dict.get(item, f"Data lake item: {item}")
-                data_lake_formatted.append(
-                    format_item_with_description(item, description)
-                )
+                if name not in custom_data_names:
+                    default_data_lake_content.append(item)
+            elif item not in custom_data_names:
+                default_data_lake_content.append(item)
 
-    # Format the default library content
-    if isinstance(default_library_content_list, list) and all(
-        isinstance(item, str) for item in default_library_content_list
-    ):
-        if (
-            len(default_library_content_list) > 0
-            and isinstance(default_library_content_list[0], str)
-            and "," not in default_library_content_list[0]
-        ):
-            # Simple list of strings
-            libraries_formatted = []
-            for lib in default_library_content_list:
-                description = self.library_content_dict.get(
-                    lib, f"Software library: {lib}"
-                )
-                libraries_formatted.append(
-                    format_item_with_description(lib, description)
-                )
-        else:
-            # Already formatted string
-            libraries_formatted = default_library_content_list
-    else:
-        # List with descriptions
-        libraries_formatted = []
-        for lib in default_library_content_list:
+        # Separate default library items
+        for lib in library_content_list:
             if isinstance(lib, dict):
                 name = lib.get("name", "")
-                description = self.library_content_dict.get(
-                    name, f"Software library: {name}"
-                )
-                libraries_formatted.append(
-                    format_item_with_description(name, description)
-                )
-            else:
-                description = self.library_content_dict.get(
-                    lib, f"Software library: {lib}"
-                )
-                libraries_formatted.append(
-                    format_item_with_description(lib, description)
-                )
+                if name not in custom_software_names:
+                    default_library_content_list.append(lib)
+            elif lib not in custom_software_names:
+                default_library_content_list.append(lib)
 
-    # Format custom resources with highlighting
-    custom_tools_formatted = []
-    if custom_tools:
-        for tool in custom_tools:
-            if isinstance(tool, dict):
-                name = tool.get("name", "Unknown")
-                desc = tool.get("description", "")
-                module = tool.get("module", "custom_tools")
-                custom_tools_formatted.append(f"🔧 {name} (from {module}): {desc}")
-            else:
-                custom_tools_formatted.append(f"🔧 {str(tool)}")
+        # Format the default data lake content
+        if isinstance(default_data_lake_content, list) and all(
+            isinstance(item, str) for item in default_data_lake_content
+        ):
+            # Simple list of strings - check if they already have descriptions
+            data_lake_formatted = []
+            for item in default_data_lake_content:
+                # Check if the item already has a description (contains a colon)
+                if ": " in item:
+                    data_lake_formatted.append(item)
+                else:
+                    description = self.data_lake_dict.get(
+                        item, f"Data lake item: {item}"
+                    )
+                    data_lake_formatted.append(
+                        format_item_with_description(item, description)
+                    )
+        else:
+            # List with descriptions
+            data_lake_formatted = []
+            for item in default_data_lake_content:
+                if isinstance(item, dict):
+                    name = item.get("name", "")
+                    description = self.data_lake_dict.get(
+                        name, f"Data lake item: {name}"
+                    )
+                    data_lake_formatted.append(
+                        format_item_with_description(name, description)
+                    )
+                # Check if the item already has a description (contains a colon)
+                elif isinstance(item, str) and ": " in item:
+                    data_lake_formatted.append(item)
+                else:
+                    description = self.data_lake_dict.get(
+                        item, f"Data lake item: {item}"
+                    )
+                    data_lake_formatted.append(
+                        format_item_with_description(item, description)
+                    )
 
-    custom_data_formatted = []
-    if custom_data:
-        for item in custom_data:
-            if isinstance(item, dict):
-                name = item.get("name", "Unknown")
-                desc = item.get("description", "")
-                custom_data_formatted.append(
-                    f"📊 {format_item_with_description(name, desc)}"
-                )
+        # Format the default library content
+        if isinstance(default_library_content_list, list) and all(
+            isinstance(item, str) for item in default_library_content_list
+        ):
+            if (
+                len(default_library_content_list) > 0
+                and isinstance(default_library_content_list[0], str)
+                and "," not in default_library_content_list[0]
+            ):
+                # Simple list of strings
+                libraries_formatted = []
+                for lib in default_library_content_list:
+                    description = self.library_content_dict.get(
+                        lib, f"Software library: {lib}"
+                    )
+                    libraries_formatted.append(
+                        format_item_with_description(lib, description)
+                    )
             else:
-                desc = self.data_lake_dict.get(item, f"Custom data: {item}")
-                custom_data_formatted.append(
-                    f"📊 {format_item_with_description(item, desc)}"
-                )
+                # Already formatted string
+                libraries_formatted = default_library_content_list
+        else:
+            # List with descriptions
+            libraries_formatted = []
+            for lib in default_library_content_list:
+                if isinstance(lib, dict):
+                    name = lib.get("name", "")
+                    description = self.library_content_dict.get(
+                        name, f"Software library: {name}"
+                    )
+                    libraries_formatted.append(
+                        format_item_with_description(name, description)
+                    )
+                else:
+                    description = self.library_content_dict.get(
+                        lib, f"Software library: {lib}"
+                    )
+                    libraries_formatted.append(
+                        format_item_with_description(lib, description)
+                    )
 
-    custom_software_formatted = []
-    if custom_software:
-        for item in custom_software:
-            if isinstance(item, dict):
-                name = item.get("name", "Unknown")
-                desc = item.get("description", "")
-                custom_software_formatted.append(
-                    f"⚙️ {format_item_with_description(name, desc)}"
-                )
-            else:
-                desc = self.library_content_dict.get(item, f"Custom software: {item}")
-                custom_software_formatted.append(
-                    f"⚙️ {format_item_with_description(item, desc)}"
-                )
+        # Format custom resources with highlighting
+        custom_tools_formatted = []
+        if custom_tools:
+            for tool in custom_tools:
+                if isinstance(tool, dict):
+                    name = tool.get("name", "Unknown")
+                    desc = tool.get("description", "")
+                    module = tool.get("module", "custom_tools")
+                    custom_tools_formatted.append(f"🔧 {name} (from {module}): {desc}")
+                else:
+                    custom_tools_formatted.append(f"🔧 {str(tool)}")
 
-    # Base prompt
-    prompt_modifier = """
+        custom_data_formatted = []
+        if custom_data:
+            for item in custom_data:
+                if isinstance(item, dict):
+                    name = item.get("name", "Unknown")
+                    desc = item.get("description", "")
+                    custom_data_formatted.append(
+                        f"📊 {format_item_with_description(name, desc)}"
+                    )
+                else:
+                    desc = self.data_lake_dict.get(item, f"Custom data: {item}")
+                    custom_data_formatted.append(
+                        f"📊 {format_item_with_description(item, desc)}"
+                    )
+
+        custom_software_formatted = []
+        if custom_software:
+            for item in custom_software:
+                if isinstance(item, dict):
+                    name = item.get("name", "Unknown")
+                    desc = item.get("description", "")
+                    custom_software_formatted.append(
+                        f"⚙️ {format_item_with_description(name, desc)}"
+                    )
+                else:
+                    desc = self.library_content_dict.get(
+                        item, f"Custom software: {item}"
+                    )
+                    custom_software_formatted.append(
+                        f"⚙️ {format_item_with_description(item, desc)}"
+                    )
+
+        # Base prompt
+        prompt_modifier = """
 You are a helpful biomedical assistant assigned with the task of problem-solving.
 
 Given a task, make a plan first. The plan should be a numbered list of steps that you will take to solve the task. Be specific and detailed.
@@ -860,33 +869,35 @@ If a step fails or needs modification, mark it with an X and explain why:
 4. [ ] Third step
 
 While planning and executing the code, think in english, no matter what language the user speaks.
-Use the language of the user in your final answer.
 
-When you save some generated files, save them in current directory.
+# GENERAL GUIDELINES
+- Always show the updated plan after each step so the user can track progress.
+- At each turn, you should first provide your thinking and reasoning given the conversation history.
 
-Do not install any python packages. If the package is not installed, do not use it and find another way to do it.
+# GUIDELINES FOR FINAL ANSWER
+- If you have source data or documents that you used to formulate your final response, and if those have a URL, please provide the URL of each document with the final answer. This is so the user can access the URLs and review your response if necessary.
+- If the image files are generated, you must include the image in your final answer and next turn to show the image to the user. For example: ![image_name](image_path)
+- Answer in the language of the user in your final answer.
 
-If possible, try to use python over R.
+# GUIDELINES FOR CODING
+- When you save some generated files, save them in current directory.
+- Do not install any python packages. If the package is not installed, do not use it and find another way to do it.
+- If possible, try to use python over R.
 
-Always show the updated plan after each step so the user can track progress.
-
-At each turn, you should first provide your thinking and reasoning given the conversation history.
-
-If you use any reference for the final task, you must include the reference in your final answer.
-
-If the image files are generated, you must include the image in your final answer and next turn to show the image to the user. For example: ![image_name](image_path)
+# GUIDELINES FOR SECURITY
+- Never write any code that can be used to harm the system or the user.
 
 If you decide to solve the task by coding, you will be using an interactive coding environment equipped with a variety of tool functions, data, and softwares to assist you throughout the process.
 For python, the variable in the previous code block will be stored in the environment. So you can use the variable in the next code block.
 For coding, you have two options:
 
 1) Interact with a programming environment and receive the corresponding output within <observe></observe>. Your code should be enclosed using "<execute>" tag, for example: <execute> print("Hello World!") </execute>. IMPORTANT: You must end the code block with </execute> tag.
-   - For Python code (default): <execute> print("Hello World!") </execute>
-   - For Python code: Do not use "%store" in your code.
-   - For R code: <execute> #!R\nlibrary(ggplot2)\nprint("Hello from R") </execute>
-   - For Bash scripts and commands: <execute> #!BASH\necho "Hello from Bash"\nls -la </execute>
-   - For CLI softwares, use Bash scripts.
-   - For drawing graphs using python code, do not use plt.show(). Instead, use plt.savefig('filename.png') to save the figure and print out the path.
+- For Python code (default): <execute> print("Hello World!") </execute>
+- For Python code: Do not use "%store" in your code.
+- For R code: <execute> #!R\nlibrary(ggplot2)\nprint("Hello from R") </execute>
+- For Bash scripts and commands: <execute> #!BASH\necho "Hello from Bash"\nls -la </execute>
+- For CLI softwares, use Bash scripts.
+- For drawing graphs using python code, do not use plt.show(). Instead, use plt.savefig('filename.png') to save the figure and print out the path.
 
 2) When you think it is ready, directly provide a solution that adheres to the required format for the given task to the user. Your solution should be enclosed using "<solution>" tag, for example: The answer is <solution> A </solution>. IMPORTANT: You must end the solution block with </solution> tag. Based on the results you achieved, provide a comprehensive and detailed final answer as much as possible.
 
@@ -903,19 +914,19 @@ For Bash scripts and commands, use the #!BASH marker at the beginning of your co
 In each response, you must include EITHER <execute> or <solution> tag. Not both at the same time. Do not respond with messages without any tags. No empty messages.
 """
 
-    # Add self-critic instructions if needed
-    if self_critic:
-        prompt_modifier += """
+        # Add self-critic instructions if needed
+        if self_critic:
+            prompt_modifier += """
 You may or may not receive feedbacks from human. If so, address the feedbacks by following the same procedure of multiple rounds of thinking, execution, and then coming up with a new solution.
-"""
+    """
 
-    # Add custom resources section first (highlighted)
-    has_custom_resources = any(
-        [custom_tools_formatted, custom_data_formatted, custom_software_formatted]
-    )
+        # Add custom resources section first (highlighted)
+        has_custom_resources = any(
+            [custom_tools_formatted, custom_data_formatted, custom_software_formatted]
+        )
 
-    if has_custom_resources:
-        prompt_modifier += """
+        if has_custom_resources:
+            prompt_modifier += """
 
 PRIORITY CUSTOM RESOURCES
 ===============================
@@ -923,34 +934,34 @@ IMPORTANT: The following custom resources have been specifically added for your 
     PRIORITIZE using these resources as they are directly relevant to your task.
     Always consider these FIRST and in the meantime using default resources.
 
-"""
+    """
 
         if custom_tools_formatted:
             prompt_modifier += """
 CUSTOM TOOLS (USE THESE FIRST):
 {custom_tools}
 
-"""
+    """
 
         if custom_data_formatted:
             prompt_modifier += """
 CUSTOM DATA (PRIORITIZE THESE DATASETS):
 {custom_data}
 
-"""
+    """
 
         if custom_software_formatted:
             prompt_modifier += """
 ⚙️ CUSTOM SOFTWARE (USE THESE LIBRARIES):
 {custom_software}
 
-"""
+    """
 
         prompt_modifier += """===============================
-"""
+    """
 
-    # Add environment resources
-    prompt_modifier += """
+        # Add environment resources
+        prompt_modifier += """
 
 Environment Resources:
 
@@ -978,50 +989,50 @@ Each library is listed with its description to help you understand its functiona
 ----
 
 - Note on using R packages and Bash scripts:
-  - R packages: Use subprocess.run(['Rscript', '-e', 'your R code here']) in Python, or use the #!R marker in your execute block.
-  - Bash scripts and commands: Use the #!BASH marker in your execute block for both simple commands and complex shell scripts with variables, loops, conditionals, etc.
+- R packages: Use subprocess.run(['Rscript', '-e', 'your R code here']) in Python, or use the #!R marker in your execute block.
+- Bash scripts and commands: Use the #!BASH marker in your execute block for both simple commands and complex shell scripts with variables, loops, conditionals, etc.
         """
 
-    # Set appropriate text based on whether this is initial configuration or after retrieval
-    if is_retrieval:
-        function_intro = "Based on your query, I've identified the following most relevant functions that you can use in your code:"
-        data_lake_intro = (
-            "Based on your query, I've identified the following most relevant datasets:"
-        )
-        library_intro = "Based on your query, I've identified the following most relevant libraries that you can use:"
-        import_instruction = "IMPORTANT: When using any function, you MUST first import it from its module. For example:\nfrom [module_name] import [function_name]"
-    else:
-        function_intro = "In your code, you will need to import the function location using the following dictionary of functions:"
-        data_lake_intro = "You can write code to understand the data, process and utilize it for the task. Here is the list of datasets. I recommend you to find the schema of the dataset first before using it:"
-        library_intro = "The environment supports a list of libraries that can be directly used. Do not forget the import statement:"
-        import_instruction = ""
+        # Set appropriate text based on whether this is initial configuration or after retrieval
+        if is_retrieval:
+            function_intro = "Based on your query, I've identified the following most relevant functions that you can use in your code:"
+            data_lake_intro = "Based on your query, I've identified the following most relevant datasets:"
+            library_intro = "Based on your query, I've identified the following most relevant libraries that you can use:"
+            import_instruction = "IMPORTANT: When using any function, you MUST first import it from its module. For example:\nfrom [module_name] import [function_name]"
+        else:
+            function_intro = "In your code, you will need to import the function location using the following dictionary of functions:"
+            data_lake_intro = "You can write code to understand the data, process and utilize it for the task. Here is the list of datasets. I recommend you to find the schema of the dataset first before using it:"
+            library_intro = "The environment supports a list of libraries that can be directly used. Do not forget the import statement:"
+            import_instruction = ""
 
-    # Format the content consistently for both initial and retrieval cases
-    library_content_formatted = "\n".join(libraries_formatted)
-    data_lake_content_formatted = "\n".join(data_lake_formatted)
+        # Format the content consistently for both initial and retrieval cases
+        library_content_formatted = "\n".join(libraries_formatted)
+        data_lake_content_formatted = "\n".join(data_lake_formatted)
 
-    # Format the prompt with the appropriate values
-    format_dict = {
-        "function_intro": function_intro,
-        "tool_desc": (
-            textify_api_dict(tool_desc) if isinstance(tool_desc, dict) else tool_desc
-        ),
-        "import_instruction": import_instruction,
-        "data_lake_path": self.path + "/data_lake",
-        "data_lake_intro": data_lake_intro,
-        "data_lake_content": data_lake_content_formatted,
-        "library_intro": library_intro,
-        "library_content_formatted": library_content_formatted,
-    }
+        # Format the prompt with the appropriate values
+        format_dict = {
+            "function_intro": function_intro,
+            "tool_desc": (
+                textify_api_dict(tool_desc)
+                if isinstance(tool_desc, dict)
+                else tool_desc
+            ),
+            "import_instruction": import_instruction,
+            "data_lake_path": self.path + "/data_lake",
+            "data_lake_intro": data_lake_intro,
+            "data_lake_content": data_lake_content_formatted,
+            "library_intro": library_intro,
+            "library_content_formatted": library_content_formatted,
+        }
 
-    # Add custom resources to format dict if they exist
-    if custom_tools_formatted:
-        format_dict["custom_tools"] = "\n".join(custom_tools_formatted)
-    if custom_data_formatted:
-        format_dict["custom_data"] = "\n".join(custom_data_formatted)
-    if custom_software_formatted:
-        format_dict["custom_software"] = "\n".join(custom_software_formatted)
+        # Add custom resources to format dict if they exist
+        if custom_tools_formatted:
+            format_dict["custom_tools"] = "\n".join(custom_tools_formatted)
+        if custom_data_formatted:
+            format_dict["custom_data"] = "\n".join(custom_data_formatted)
+        if custom_software_formatted:
+            format_dict["custom_software"] = "\n".join(custom_software_formatted)
 
-    formatted_prompt = prompt_modifier.format(**format_dict)
+        formatted_prompt = prompt_modifier.format(**format_dict)
 
-    return formatted_prompt
+        return formatted_prompt
