@@ -458,4 +458,120 @@ description = [
             }
         ],
     },
+    {
+        "description": "Transfer cell type labels from an annotated reference scRNA-seq dataset to an unannotated query dataset using popV. Loads both AnnData .h5ad files, prepares count layers for scVI, processes the query against the reference, and runs selected annotation methods (default: SCANVI_POPV). Saves predictions to 'output_folder/popv_output/predictions.csv'. This function allows you to use different annotaiton methods i.e. CELLTYPIST, KNN_BBKNN, KNN_HARMONY, KNN_SCANORAMA, KNN_SCVI, ONCLASS, Random_Forest, SCANVI_POPV, Support_Vector, XGboost. Based on you transfer task you can select the multiple best annotation methods. Beware each annotation method adds computational requirements for running the tool. By default it uses SCANVI_POPV method.",
+        "name": "unsupervised_celltype_transfer_between_scRNA_datasets",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Column in query adata.obs with batch information, most likely you will get this from user",
+                "name": "query_batch_key",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Column in reference adata.obs with batch information, most likely you will get this from user",
+                "name": "ref_batch_key",
+                "type": "str",
+            },
+            {
+                "default": False,
+                "description": "Enable CELLTYPiST (reference-based classifier). How it works: regularized logistic regression trained on curated references predicts per-cell probabilities; optional neighbor correction refines labels. Strengths: fast, scalable, strong on common human/mouse types. Weaknesses: depends on reference coverage; limited for novel or out-of-distribution cell types.",
+                "name": "CELLTYPIST",
+                "type": "bool",
+            },
+            {
+                "default": False,
+                "description": "Enable KNN with BBKNN integration. How it works: builds a batch-balanced kNN graph by enforcing a fixed number of neighbors per batch, then uses this graph for downstream analyses. Strengths: simple, fast, preserves local neighborhood structure across batches. Weaknesses: limited global alignment; residual batch effects when shared cell types are sparse; sensitive to k/neighbor parameters.",
+                "name": "KNN_BBKNN",
+                "type": "bool",
+            },
+            {
+                "default": False,
+                "description": "Enable KNN with Harmony integration. How it works: iteratively adjusts PCA embeddings via soft clustering and linear correction to minimize batch effects while preserving structure. Strengths: scalable, effective batch correction in low-D space, often preserves biology. Weaknesses: can overcorrect and merge true biological differences; depends on PCA/parameters.",
+                "name": "KNN_HARMONY",
+                "type": "bool",
+            },
+            {
+                "default": False,
+                "description": "Enable KNN with Scanorama integration. How it works: identifies mutual nearest neighbors across datasets and performs manifold alignment/low-rank correction to merge 'panoramas'. Strengths: strong cross-dataset alignment for shared populations. Weaknesses: slower and more memory-intensive on large data; may distort rare or unique populations.",
+                "name": "KNN_SCANORAMA",
+                "type": "bool",
+            },
+            {
+                "default": False,
+                "description": "Enable KNN with scVI integration (KNN in scVI latent space). How it works: trains a variational autoencoder (negative binomial likelihood) to learn a batch-corrected latent space; runs KNN in this space to transfer labels. Strengths: robust probabilistic embedding that models counts and batch; good transfer performance. Weaknesses: requires training (GPU preferred); sensitive to embedding quality and k.",
+                "name": "KNN_SCVI",
+                "type": "bool",
+            },
+            {
+                "default": False,
+                "description": "Enable OnClass (ontology-aware classifier). How it works: embeds the Cell Ontology graph and trains a classifier over ontology nodes; uses semantic similarity to generalize to unseen labels (zero-shot). Strengths: leverages Cell Ontology; can map to unseen/fine-grained types; interpretable. Weaknesses: dependent on ontology completeness and mapping quality; may assign overly generic labels.",
+                "name": "ONCLASS",
+                "type": "bool",
+            },
+            {
+                "default": False,
+                "description": "Enable Random Forest classifier. How it works: ensemble of decision trees trained on bootstrap samples with feature subsampling; predictions aggregated by majority vote/probabilities. Strengths: robust to noise and nonlinear signals; quick to train; feature importance available. Weaknesses: probability calibration can be poor; needs feature selection with sparse data; sensitive to class imbalance.",
+                "name": "Random_Forest",
+                "type": "bool",
+            },
+            {
+                "default": True,
+                "description": "Enable scANVI via popV (default). How it works: extends scVI with a classification head to learn from labeled reference and unlabeled query (semi-supervised), yielding latent embeddings and probabilistic labels with uncertainty. Strengths: semi-supervised; models batch, label noise; leverages unlabeled data; provides uncertainty. Weaknesses: higher training time; GPU recommended; can degrade with severe label shift or noisy references.",
+                "name": "SCANVI_POPV",
+                "type": "bool",
+            },
+            {
+                "default": False,
+                "description": "Enable Support Vector classifier. How it works: finds a maximum-margin hyperplane; with kernels (e.g., RBF) to model nonlinear boundaries. Strengths: effective in high-dimensional, small-sample settings; kernel flexibility. Weaknesses: hyperparameter tuning needed; not probabilistic by default; scales poorly to very large datasets.",
+                "name": "Support_Vector",
+                "type": "bool",
+            },
+            {
+                "default": False,
+                "description": "Enable XGBoost classifier. How it works: gradient-boosted decision trees trained sequentially with second-order optimization and regularization to minimize loss. Strengths: high accuracy; captures nonlinear interactions; built-in regularization. Weaknesses: many hyperparameters; risk of overfitting noisy, sparse counts; less interpretable.",
+                "name": "XGboost",
+                "type": "bool",
+            },
+            {
+                "default": 1,
+                "description": "Number of parallel jobs for popV",
+                "name": "n_jobs",
+                "type": "int",
+            },
+            {
+                "default": "./tmp/",
+                "description": "Directory to save trained models and predictions",
+                "name": "output_folder",
+                "type": "str",
+            },
+            {
+                "default": 10,
+                "description": "Number of samples per label (currently unused)",
+                "name": "n_samples_per_label",
+                "type": "int",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Path to annotated reference AnnData (.h5ad)",
+                "name": "path_to_annotated_h5ad",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Path to unannotated query AnnData (.h5ad)",
+                "name": "path_to_not_annotated_h5ad",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Column in reference adata.obs with cell type labels",
+                "name": "ref_labels_key",
+                "type": "str",
+            },
+        ],
+    },
 ]

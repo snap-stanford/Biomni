@@ -2,6 +2,7 @@ import glob
 import inspect
 import os
 import re
+from collections.abc import Generator
 from pathlib import Path
 from typing import Any, Literal, TypedDict
 
@@ -12,14 +13,13 @@ from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from biomni.env_desc import data_lake_dict, library_content_dict
+from biomni.config import default_config
 from biomni.llm import SourceType, get_llm
 from biomni.model.retriever import ToolRetriever
 from biomni.tool.support_tools import run_python_repl
 from biomni.tool.tool_registry import ToolRegistry
 from biomni.utils import (
     check_and_download_s3_files,
-    download_and_unzip,
     function_to_api_schema,
     pretty_print,
     read_module2api,
@@ -42,14 +42,15 @@ class AgentState(TypedDict):
 class A1:
     def __init__(
         self,
-        path="./data",
-        llm="claude-sonnet-4-20250514",
+        path: str | None = None,
+        llm: str | None = None,
         source: SourceType | None = None,
-        use_tool_retriever=True,
-        timeout_seconds=600,
+        use_tool_retriever: bool | None = None,
+        timeout_seconds: int | None = None,
         base_url: str | None = None,
-        api_key: str = "EMPTY",
-        load_datalake: bool = True,
+        api_key: str | None = None,
+        commercial_mode: bool | None = None,
+        expected_data_lake_files: list | None = None,
     ):
         """Initialize the biomni agent.
 
@@ -61,9 +62,76 @@ class A1:
             timeout_seconds: Timeout for code execution in seconds
             base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
             api_key: API key for the custom LLM
-            load_datalake: If True, automatically download datalake files on initialization (default: True)
+            commercial_mode: If True, excludes datasets that require commercial licenses or are non-commercial only
 
         """
+        # Use default_config values for unspecified parameters
+        if path is None:
+            path = default_config.path
+        if llm is None:
+            llm = default_config.llm
+        if source is None:
+            source = default_config.source
+        if use_tool_retriever is None:
+            use_tool_retriever = default_config.use_tool_retriever
+        if timeout_seconds is None:
+            timeout_seconds = default_config.timeout_seconds
+        if base_url is None:
+            base_url = default_config.base_url
+        if api_key is None:
+            api_key = default_config.api_key if default_config.api_key else "EMPTY"
+        if commercial_mode is None:
+            commercial_mode = default_config.commercial_mode
+
+        # Import appropriate env_desc based on commercial_mode
+        if commercial_mode:
+            from biomni.env_desc_cm import data_lake_dict, library_content_dict
+
+            print("🏢 Commercial mode: Using commercial-licensed datasets only")
+        else:
+            from biomni.env_desc import data_lake_dict, library_content_dict
+
+            print("🎓 Academic mode: Using all datasets (including non-commercial)")
+
+        # Store as instance attributes for later use
+        self.data_lake_dict = data_lake_dict
+        self.library_content_dict = library_content_dict
+        self.commercial_mode = commercial_mode
+
+        # Display configuration in a nice, readable format
+        print("\n" + "=" * 50)
+        print("🔧 BIOMNI CONFIGURATION")
+        print("=" * 50)
+
+        # Get the actual LLM values that will be used by the agent
+        agent_llm = llm if llm is not None else default_config.llm
+        agent_source = source if source is not None else default_config.source
+
+        # Show default config (database LLM)
+        print("📋 DEFAULT CONFIG (Including Database LLM):")
+        config_dict = default_config.to_dict()
+        for key, value in config_dict.items():
+            if value is not None:
+                # Special formatting for commercial_mode
+                if key == "commercial_mode":
+                    mode_text = "Commercial (licensed datasets only)" if value else "Academic (all datasets)"
+                    print(f"  {key.replace('_', ' ').title()}: {mode_text}")
+                else:
+                    print(f"  {key.replace('_', ' ').title()}: {value}")
+
+        # Show agent-specific LLM if different from default
+        if agent_llm != default_config.llm or agent_source != default_config.source:
+            print("\n🤖 AGENT LLM (Constructor Override):")
+            print(f"  LLM Model: {agent_llm}")
+            if agent_source is not None:
+                print(f"  Source: {agent_source}")
+            if base_url is not None:
+                print(f"  Base URL: {base_url}")
+            if api_key is not None and api_key != "EMPTY":
+                print(f"  API Key: {'*' * 8 + api_key[-4:] if len(api_key) > 8 else '***'}")
+
+        print("=" * 50 + "\n")
+
         self.path = path
 
         if not os.path.exists(path):
@@ -78,8 +146,8 @@ class A1:
         os.makedirs(benchmark_dir, exist_ok=True)
         os.makedirs(data_lake_dir, exist_ok=True)
 
-        if load_datalake:
-            expected_data_lake_files = list(data_lake_dict.keys())
+        if expected_data_lake_files is None:
+            expected_data_lake_files = list(self.data_lake_dict.keys())
 
             # Check and download missing data lake files
             print("Checking and downloading missing data lake files...")
@@ -113,7 +181,12 @@ class A1:
         module2api = read_module2api()
 
         self.llm = get_llm(
-            llm, stop_sequences=["</execute>", "</solution>"], source=source, base_url=base_url, api_key=api_key
+            llm,
+            stop_sequences=["</execute>", "</solution>"],
+            source=source,
+            base_url=base_url,
+            api_key=api_key,
+            config=default_config,
         )
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
@@ -420,11 +493,19 @@ class A1:
                     tool_name = tool_meta.get("biomni_name")
                     description = tool_meta.get("description", f"MCP tool: {tool_name}")
                     parameters = tool_meta.get("parameters", {})
+                    # For manual tools, check if each parameter has a "required" field
+                    required_param_names = []
+                    for param_name, param_spec in parameters.items():
+                        if param_spec.get("required", False):
+                            required_param_names.append(param_name)
                 else:
                     # Auto-discovered tool
                     tool_name = tool_meta.get("name")
                     description = tool_meta.get("description", f"MCP tool: {tool_name}")
-                    parameters = tool_meta.get("inputSchema", {}).get("properties", {})
+                    input_schema = tool_meta.get("inputSchema", {})
+                    parameters = input_schema.get("properties", {})
+                    # For auto-discovered tools, get required list from inputSchema top level
+                    required_param_names = input_schema.get("required", [])
 
                 if not tool_name:
                     print(f"Warning: Skipping tool with no name in {server_name}")
@@ -446,7 +527,8 @@ class A1:
                         "default": param_spec.get("default", None),
                     }
 
-                    if param_spec.get("required", False):
+                    # Check if parameter is required based on the required_param_names list
+                    if param_name in required_param_names:
                         required_params.append(param_info)
                     else:
                         optional_params.append(param_info)
@@ -613,57 +695,6 @@ class A1:
             import traceback
 
             traceback.print_exc()
-            return False
-
-    def load_datalake(self):
-        """Manually load datalake files if they weren't loaded during initialization.
-
-        This method can be called to download datalake files after creating an agent
-        with load_datalake=False.
-
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        try:
-            benchmark_dir = os.path.join(self.path, "benchmark")
-            data_lake_dir = os.path.join(self.path, "data_lake")
-
-            # Create directories if they don't exist
-            os.makedirs(benchmark_dir, exist_ok=True)
-            os.makedirs(data_lake_dir, exist_ok=True)
-
-            expected_data_lake_files = list(data_lake_dict.keys())
-
-            # Check and download missing data lake files
-            print("Manually loading datalake files...")
-            check_and_download_s3_files(
-                s3_bucket_url="https://biomni-release.s3.amazonaws.com",
-                local_data_lake_path=data_lake_dir,
-                expected_files=expected_data_lake_files,
-                folder="data_lake",
-            )
-
-            # Check if benchmark directory structure is complete
-            benchmark_ok = False
-            if os.path.isdir(benchmark_dir):
-                patient_gene_detection_dir = os.path.join(benchmark_dir, "hle")
-                if os.path.isdir(patient_gene_detection_dir):
-                    benchmark_ok = True
-
-            if not benchmark_ok:
-                print("Loading benchmark files...")
-                check_and_download_s3_files(
-                    s3_bucket_url="https://biomni-release.s3.amazonaws.com",
-                    local_data_lake_path=benchmark_dir,
-                    expected_files=[],  # Empty list - will download entire folder
-                    folder="benchmark",
-                )
-
-            print("✅ Datalake loaded successfully!")
-            return True
-
-        except Exception as e:
-            print(f"❌ Error loading datalake: {e}")
             return False
 
     def get_custom_data(self, name):
@@ -1189,10 +1220,7 @@ Each library is listed with its description to help you understand its functiona
         data_lake_content = glob.glob(data_lake_path + "/*")
         data_lake_items = [x.split("/")[-1] for x in data_lake_content]
 
-        # Store data_lake_dict as instance variable for use in retrieval
-        self.data_lake_dict = data_lake_dict
-        # Store library_content_dict directly without library_content
-        self.library_content_dict = library_content_dict
+        # data_lake_dict and library_content_dict are already set in __init__
 
         # Prepare tool descriptions
         tool_desc = {i: [x for x in j if x["name"] != "run_python_repl"] for i, j in self.module2api.items()}
@@ -1253,7 +1281,9 @@ Each library is listed with its description to help you understand its functiona
         def generate(state: AgentState) -> AgentState:
             # Add OpenAI-specific formatting reminders if using OpenAI models
             system_prompt = self.system_prompt
-            if hasattr(self.llm, 'model_name') and ('gpt' in str(self.llm.model_name).lower() or 'openai' in str(type(self.llm)).lower()):
+            if hasattr(self.llm, "model_name") and (
+                "gpt" in str(self.llm.model_name).lower() or "openai" in str(type(self.llm)).lower()
+            ):
                 system_prompt += "\n\nIMPORTANT FOR GPT MODELS: You MUST use XML tags <execute> or <solution> in EVERY response. Do not use markdown code blocks (```) - use <execute> tags instead."
 
             messages = [SystemMessage(content=system_prompt)] + state["messages"]
@@ -1466,6 +1496,81 @@ Each library is listed with its description to help you understand its functiona
         self.app.checkpointer = self.checkpointer
         # display(Image(self.app.get_graph().draw_mermaid_png()))
 
+    def _prepare_resources_for_retrieval(self, prompt):
+        """Prepare resources for retrieval and return selected resource names.
+
+        Args:
+            prompt: The user's query
+
+        Returns:
+            dict: Dictionary containing selected resource names for tools, data_lake, and libraries
+        """
+        if not self.use_tool_retriever:
+            return None
+
+        # Gather all available resources
+        # 1. Tools from the registry
+        all_tools = self.tool_registry.tools if hasattr(self, "tool_registry") else []
+
+        # 2. Data lake items with descriptions
+        data_lake_path = self.path + "/data_lake"
+        data_lake_content = glob.glob(data_lake_path + "/*")
+        data_lake_items = [x.split("/")[-1] for x in data_lake_content]
+
+        # Create data lake descriptions for retrieval
+        data_lake_descriptions = []
+        for item in data_lake_items:
+            description = self.data_lake_dict.get(item, f"Data lake item: {item}")
+            data_lake_descriptions.append({"name": item, "description": description})
+
+        # Add custom data items to retrieval if they exist
+        if hasattr(self, "_custom_data") and self._custom_data:
+            for name, info in self._custom_data.items():
+                data_lake_descriptions.append({"name": name, "description": info["description"]})
+
+        # 3. Libraries with descriptions - use library_content_dict directly
+        library_descriptions = []
+        for lib_name, lib_desc in self.library_content_dict.items():
+            library_descriptions.append({"name": lib_name, "description": lib_desc})
+
+        # Add custom software items to retrieval if they exist
+        if hasattr(self, "_custom_software") and self._custom_software:
+            for name, info in self._custom_software.items():
+                # Check if it's not already in the library descriptions to avoid duplicates
+                if not any(lib["name"] == name for lib in library_descriptions):
+                    library_descriptions.append({"name": name, "description": info["description"]})
+
+        # Use retrieval to get relevant resources
+        resources = {
+            "tools": all_tools,
+            "data_lake": data_lake_descriptions,
+            "libraries": library_descriptions,
+        }
+
+        # Use prompt-based retrieval with the agent's LLM
+        selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
+        print("Using prompt-based retrieval with the agent's LLM")
+
+        # Extract the names from the selected resources for the system prompt
+        selected_resources_names = {
+            "tools": selected_resources["tools"],
+            "data_lake": [],
+            "libraries": [lib["name"] if isinstance(lib, dict) else lib for lib in selected_resources["libraries"]],
+        }
+
+        # Process data lake items to extract just the names
+        for item in selected_resources["data_lake"]:
+            if isinstance(item, dict):
+                selected_resources_names["data_lake"].append(item["name"])
+            elif isinstance(item, str) and ": " in item:
+                # If the item already has a description, extract just the name
+                name = item.split(": ")[0]
+                selected_resources_names["data_lake"].append(name)
+            else:
+                selected_resources_names["data_lake"].append(item)
+
+        return selected_resources_names
+
     def go(self, prompt):
         """Execute the agent with the given prompt.
 
@@ -1477,68 +1582,7 @@ Each library is listed with its description to help you understand its functiona
         self.user_task = prompt
 
         if self.use_tool_retriever:
-            # Gather all available resources
-            # 1. Tools from the registry
-            all_tools = self.tool_registry.tools if hasattr(self, "tool_registry") else []
-
-            # 2. Data lake items with descriptions
-            data_lake_path = self.path + "/data_lake"
-            data_lake_content = glob.glob(data_lake_path + "/*")
-            data_lake_items = [x.split("/")[-1] for x in data_lake_content]
-
-            # Create data lake descriptions for retrieval
-            data_lake_descriptions = []
-            for item in data_lake_items:
-                description = self.data_lake_dict.get(item, f"Data lake item: {item}")
-                data_lake_descriptions.append({"name": item, "description": description})
-
-            # Add custom data items to retrieval if they exist
-            if hasattr(self, "_custom_data") and self._custom_data:
-                for name, info in self._custom_data.items():
-                    data_lake_descriptions.append({"name": name, "description": info["description"]})
-
-            # 3. Libraries with descriptions - use library_content_dict directly
-            library_descriptions = []
-            for lib_name, lib_desc in self.library_content_dict.items():
-                library_descriptions.append({"name": lib_name, "description": lib_desc})
-
-            # Add custom software items to retrieval if they exist
-            if hasattr(self, "_custom_software") and self._custom_software:
-                for name, info in self._custom_software.items():
-                    # Check if it's not already in the library descriptions to avoid duplicates
-                    if not any(lib["name"] == name for lib in library_descriptions):
-                        library_descriptions.append({"name": name, "description": info["description"]})
-
-            # Use retrieval to get relevant resources
-            resources = {
-                "tools": all_tools,
-                "data_lake": data_lake_descriptions,
-                "libraries": library_descriptions,
-            }
-
-            # Use prompt-based retrieval with the agent's LLM
-            selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
-            print("Using prompt-based retrieval with the agent's LLM")
-
-            # Extract the names from the selected resources for the system prompt
-            selected_resources_names = {
-                "tools": selected_resources["tools"],
-                "data_lake": [],
-                "libraries": [lib["name"] if isinstance(lib, dict) else lib for lib in selected_resources["libraries"]],
-            }
-
-            # Process data lake items to extract just the names
-            for item in selected_resources["data_lake"]:
-                if isinstance(item, dict):
-                    selected_resources_names["data_lake"].append(item["name"])
-                elif isinstance(item, str) and ": " in item:
-                    # If the item already has a description, extract just the name
-                    name = item.split(": ")[0]
-                    selected_resources_names["data_lake"].append(name)
-                else:
-                    selected_resources_names["data_lake"].append(item)
-
-            # Update the system prompt with the selected resources
+            selected_resources_names = self._prepare_resources_for_retrieval(prompt)
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
@@ -1551,6 +1595,37 @@ Each library is listed with its description to help you understand its functiona
             self.log.append(out)
 
         return self.log, message.content
+
+    def go_stream(self, prompt) -> Generator[dict, None, None]:
+        """Execute the agent with the given prompt and return a generator that yields each step.
+
+        This function returns a generator that yields each step of the agent's execution,
+        allowing for real-time monitoring of the agent's progress.
+
+        Args:
+            prompt: The user's query
+
+        Yields:
+            dict: Each step of the agent's execution containing the current message and state
+        """
+        self.critic_count = 0
+        self.user_task = prompt
+
+        if self.use_tool_retriever:
+            selected_resources_names = self._prepare_resources_for_retrieval(prompt)
+            self.update_system_prompt_with_selected_resources(selected_resources_names)
+
+        inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
+        config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
+        self.log = []
+
+        for s in self.app.stream(inputs, stream_mode="values", config=config):
+            message = s["messages"][-1]
+            out = pretty_print(message)
+            self.log.append(out)
+
+            # Yield the current step
+            yield {"output": out}
 
     def update_system_prompt_with_selected_resources(self, selected_resources):
         """Update the system prompt with the selected resources."""
@@ -1712,8 +1787,6 @@ Each library is listed with its description to help you understand its functiona
             FastMCP server object that you can run manually
         """
         import importlib
-        import inspect
-        from typing import Optional
 
         from mcp.server.fastmcp import FastMCP
 

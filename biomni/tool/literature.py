@@ -195,7 +195,10 @@ def search_google(query: str, num_results: int = 3, language: str = "en") -> lis
         results_string = ""
         search_query = f"{query}"
 
+        print(f"Searching for {search_query} with {num_results} results and {language} language")
+
         for res in search(search_query, num_results=num_results, lang=language, advanced=True):
+            print(f"Found result: {res.title}")
             title = res.title
             url = res.url
             description = res.description
@@ -205,6 +208,91 @@ def search_google(query: str, num_results: int = 3, language: str = "en") -> lis
     except Exception as e:
         print(f"Error performing search: {str(e)}")
     return results_string
+
+
+def advanced_web_search_claude(
+    query: str,
+    max_searches: int = 1,
+    max_retries: int = 3,
+) -> tuple[str, list[dict[str, str]], list]:
+    """
+    Initiate an advanced web search by launching a specialized agent to collect relevant information and citations through multiple rounds of web searches for a given query.
+    Craft the query carefully for the search agent to find the most relevant information.
+
+    Parameters
+    ----------
+    query : str
+        The search phrase you want Claude to look up.
+    max_searches : int, optional
+        Upper-bound on searches Claude may issue inside this request.
+    max_retries : int, optional
+        Maximum number of retry attempts with exponential backoff.
+
+    Returns
+    -------
+    full_text : str
+        A formatted string containing the full text response from Claude and the citations.
+    """
+    import random
+
+    import anthropic
+
+    try:
+        from biomni.config import default_config
+
+        model = default_config.llm
+        api_key = default_config.api_key
+        if not api_key:
+            api_key = os.getenv("ANTHROPIC_API_KEY")
+    except ImportError:
+        model = "claude-4-sonnet-latest"
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+
+    if "claude" not in model:
+        raise ValueError("Model must be a Claude model.")
+
+    if not api_key:
+        raise ValueError("Set your api_key explicitly.")
+
+    client = anthropic.Anthropic(api_key=api_key)
+    tool_def = {
+        "type": "web_search_20250305",
+        "name": "web_search",
+        "max_uses": max_searches,
+    }
+
+    delay = random.randint(1, 10)
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = client.messages.create(
+                model=model,
+                max_tokens=4096,
+                messages=[{"role": "user", "content": query}],
+                tools=[tool_def],
+            )
+
+            paragraphs, citations = [], []
+            response.content = response.content
+            formatted_response = ""
+            for blk in response.content:
+                if blk.type == "text":
+                    paragraphs.append(blk.text)
+                    formatted_response += blk.text
+
+                    if blk.citations:
+                        for cite in blk.citations:
+                            citations.append({"url": cite.url, "title": cite.title, "cited_text": cite.cited_text})
+                            formatted_response += f"(Citation: {cite.title} - {cite.url})"
+            return formatted_response
+
+        except Exception as e:
+            if attempt < max_retries:
+                time.sleep(delay)
+                delay *= 2
+                continue
+            print(f"Error performing web search after {max_retries} attempts: {str(e)}")
+            return f"Error performing web search after {max_retries} attempts: {str(e)}"
 
 
 def extract_url_content(url: str) -> str:

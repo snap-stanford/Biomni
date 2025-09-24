@@ -446,34 +446,39 @@ def isolate_purify_immune_cells(
 
 
 def estimate_cell_cycle_phase_durations(flow_cytometry_data, initial_estimates):
-    """Estimate cell cycle phase durations using dual-nucleoside pulse labeling data and mathematical modeling.
+    """
+    Estimate cell cycle phase durations using dual-nucleoside pulse labeling data and mathematical modeling.
 
     Parameters
     ----------
     flow_cytometry_data : dict
         Dictionary containing experimental data from flow cytometry with EdU and BrdU labeling.
-        Expected format: {
-            'time_points': list of time points (hours),
-            'edu_positive': list of percentages of EdU+ cells at each time point,
-            'brdu_positive': list of percentages of BrdU+ cells at each time point,
-            'double_positive': list of percentages of EdU+BrdU+ cells at each time point
-        }
+        Expected format::
+
+            {
+                'time_points': list of time points (hours),
+                'edu_positive': list of percentages of EdU+ cells at each time point,
+                'brdu_positive': list of percentages of BrdU+ cells at each time point,
+                'double_positive': list of percentages of EdU+BrdU+ cells at each time point
+            }
 
     initial_estimates : dict
         Initial estimates for cell cycle phase durations and death rates.
-        Expected format: {
-            'g1_duration': float (hours),
-            's_duration': float (hours),
-            'g2m_duration': float (hours),
-            'death_rate': float (fraction per hour)
-        }
+        Expected format::
+
+            {
+                'g1_duration': float (hours),
+                's_duration': float (hours),
+                'g2m_duration': float (hours),
+                'death_rate': float (fraction per hour)
+            }
 
     Returns
     -------
     str
-        Research log summarizing the cell cycle phase duration estimation process and results
-
+        Research log summarizing the cell cycle phase duration estimation process and results.
     """
+
     import time
 
     import numpy as np
@@ -1330,8 +1335,7 @@ def analyze_ebv_antibody_titers(raw_od_data, standard_curve_data, sample_metadat
     ----------
     raw_od_data : dict
         Dictionary containing optical density (OD) readings for each sample.
-        Format: {sample_id: {'VCA_IgG': float, 'VCA_IgM': float, 'EA_IgG': float,
-                            'EA_IgM': float, 'EBNA1_IgG': float, 'EBNA1_IgM': float}}
+        Format: {sample_id: {'VCA_IgG': float, 'VCA_IgM': float, 'EA_IgG': float, 'EA_IgM': float, 'EBNA1_IgG': float, 'EBNA1_IgM': float}}
     standard_curve_data : dict
         Dictionary containing standard curve data for each antibody type.
         Format: {antibody_type: [(concentration, OD), ...]}

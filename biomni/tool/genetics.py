@@ -675,16 +675,18 @@ def simulate_demographic_history(
         - "contraction": Population contraction
         - "sawtooth": Sawtooth pattern of population size changes
     demographic_params : dict
-        Parameters specific to the chosen demographic model:
-        - For "constant": {"N": population size}
-        - For "bottleneck": {"N_initial": initial pop size, "N_bottleneck": bottleneck pop size,
-                            "T_bottleneck": time of bottleneck (generations ago),
-                            "T_recovery": time of recovery (generations ago)}
-        - For "expansion": {"N_initial": initial pop size, "N_final": final pop size,
-                           "T_expansion": time of expansion (generations ago)}
-        - For "contraction": {"N_initial": initial pop size, "N_final": final pop size,
-                             "T_contraction": time of contraction (generations ago)}
-        - For "sawtooth": {"N_values": list of population sizes, "times": list of times for changes}
+        Parameters specific to the chosen demographic model. Supported formats::
+
+            - For "constant": {"N": population size}
+            - For "bottleneck": {
+                "N_initial": initial pop size,
+                "N_bottleneck": bottleneck pop size,
+                "T_bottleneck": time of bottleneck (generations ago),
+                "T_recovery": time of recovery (generations ago)
+            }
+            - For "expansion": {"N_initial": initial pop size, "N_final": final pop size, "T_expansion": time of expansion (generations ago)}
+            - For "contraction": {"N_initial": initial pop size, "N_final": final pop size, "T_contraction": time of contraction (generations ago)}
+            - For "sawtooth": {"N_values": list of population sizes, "times": list of times for changes}
     coalescent_model : str
         Type of coalescent model to use. Options:
         - "kingman": Standard Kingman coalescent

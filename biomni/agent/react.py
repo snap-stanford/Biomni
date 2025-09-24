@@ -14,6 +14,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 
+from biomni.config import default_config
 from biomni.env_desc import data_lake_dict, library_content_dict
 from biomni.llm import get_llm
 from biomni.model.retriever import ToolRetriever
@@ -37,11 +38,21 @@ class AgentState(TypedDict):
 class react:
     def __init__(
         self,
-        path="./data",
-        llm="claude-3-7-sonnet-latest",
-        use_tool_retriever=False,
-        timeout_seconds=600,
+        path: str | None = None,
+        llm: str | None = None,
+        use_tool_retriever: bool | None = None,
+        timeout_seconds: int | None = None,
     ):
+        # Use default_config values for unspecified parameters
+        if path is None:
+            path = default_config.path
+        if llm is None:
+            llm = default_config.llm
+        if use_tool_retriever is None:
+            use_tool_retriever = default_config.use_tool_retriever
+        if timeout_seconds is None:
+            timeout_seconds = default_config.timeout_seconds
+
         self.path = path
         if not os.path.exists(path):
             os.makedirs(path)
@@ -52,7 +63,7 @@ class react:
 
         module2api = read_module2api()
 
-        self.llm = get_llm(llm)
+        self.llm = get_llm(llm, config=default_config)
         tools = []
         for module, api_list in module2api.items():
             print("Registering tools from module:", module)

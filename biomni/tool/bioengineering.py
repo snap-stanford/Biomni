@@ -1260,8 +1260,8 @@ def simulate_whole_cell_ode_model(
         Model parameters required by the ODE function. Keys are parameter names and
         values are parameter values.
     ode_function : callable, optional
-        Function defining the system of ODEs. Should take arguments (t, y, *args) where
-        t is time, y is the state vector, and args contains additional parameters.
+        Function defining the system of ODEs. Should take arguments ``(t, y, *args)`` where
+        ``t`` is time, ``y`` is the state vector, and ``args`` contains additional parameters.
         If None, a simple example whole-cell model will be used.
     time_span : tuple, default=(0, 100)
         Tuple of (start_time, end_time) for the simulation.

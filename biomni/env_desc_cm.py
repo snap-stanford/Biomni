@@ -1,8 +1,8 @@
-# Data lake dictionary with detailed descriptions
+# Data lake dictionary with detailed descriptions (Commercial Mode - Non-commercial datasets commented out)
 data_lake_dict = {
     "affinity_capture-ms.parquet": "Protein-protein interactions detected via affinity capture and mass spectrometry.",
     "affinity_capture-rna.parquet": "Protein-RNA interactions detected by affinity capture.",
-    "BindingDB_All_202409.tsv": "Measured binding affinities between proteins and small molecules for drug discovery.",
+    # "BindingDB_All_202409.tsv": "Measured binding affinities between proteins and small molecules for drug discovery.",  # Requires commercial license
     "broad_repurposing_hub_molecule_with_smiles.parquet": "Molecules from Broad Institute's Drug Repurposing Hub with SMILES annotations.",
     "broad_repurposing_hub_phase_moa_target_info.parquet": "Drug phases, mechanisms of action, and target information from Broad Institute.",
     "co-fractionation.parquet": "Protein-protein interactions from co-fractionation experiments.",
@@ -11,25 +11,25 @@ data_lake_dict = {
     "DepMap_CRISPRGeneEffect.csv": "Genome-wide CRISPR gene effect estimates for cancer cell lines, including all DepMap models.",
     "DepMap_Model.csv": "Metadata describing all cancer models/cell lines which are referenced by a dataset contained within the DepMap portal.",
     "DepMap_OmicsExpressionProteinCodingGenesTPMLogp1.csv": "Gene expression in TPMs for cancer cell lines, including all DepMap models.",
-    "ddinter_alimentary_tract_metabolism.csv": "Drug-drug interactions for alimentary tract and metabolism drugs from DDInter 2.0 database.",
-    "ddinter_antineoplastic.csv": "Drug-drug interactions for antineoplastic and immunomodulating agents from DDInter 2.0 database.",
-    "ddinter_antiparasitic.csv": "Drug-drug interactions for antiparasitic products from DDInter 2.0 database.",
-    "ddinter_blood_organs.csv": "Drug-drug interactions for blood and blood forming organs drugs from DDInter 2.0 database.",
-    "ddinter_dermatological.csv": "Drug-drug interactions for dermatological drugs from DDInter 2.0 database.",
-    "ddinter_hormonal.csv": "Drug-drug interactions for systemic hormonal preparations from DDInter 2.0 database.",
-    "ddinter_respiratory.csv": "Drug-drug interactions for respiratory system drugs from DDInter 2.0 database.",
-    "ddinter_various.csv": "Drug-drug interactions for various drugs from DDInter 2.0 database.",
-    "DisGeNET.parquet": "Gene-disease associations from multiple sources.",
+    # "ddinter_alimentary_tract_metabolism.csv": "Drug-drug interactions for alimentary tract and metabolism drugs from DDInter 2.0 database.",  # CC BY-NC-SA 4.0 - Non-commercial only
+    # "ddinter_antineoplastic.csv": "Drug-drug interactions for antineoplastic and immunomodulating agents from DDInter 2.0 database.",  # CC BY-NC-SA 4.0 - Non-commercial only
+    # "ddinter_antiparasitic.csv": "Drug-drug interactions for antiparasitic products from DDInter 2.0 database.",  # CC BY-NC-SA 4.0 - Non-commercial only
+    # "ddinter_blood_organs.csv": "Drug-drug interactions for blood and blood forming organs drugs from DDInter 2.0 database.",  # CC BY-NC-SA 4.0 - Non-commercial only
+    # "ddinter_dermatological.csv": "Drug-drug interactions for dermatological drugs from DDInter 2.0 database.",  # CC BY-NC-SA 4.0 - Non-commercial only
+    # "ddinter_hormonal.csv": "Drug-drug interactions for systemic hormonal preparations from DDInter 2.0 database.",  # CC BY-NC-SA 4.0 - Non-commercial only
+    # "ddinter_respiratory.csv": "Drug-drug interactions for respiratory system drugs from DDInter 2.0 database.",  # CC BY-NC-SA 4.0 - Non-commercial only
+    # "ddinter_various.csv": "Drug-drug interactions for various drugs from DDInter 2.0 database.",  # CC BY-NC-SA 4.0 - Non-commercial only
+    # "DisGeNET.parquet": "Gene-disease associations from multiple sources.",  # CC BY-NC-SA 4.0 - Non-commercial only
     "dosage_growth_defect.parquet": "Gene dosage changes affecting growth.",
-    "enamine_cloud_library_smiles.pkl": "Compounds from Enamine REAL library with SMILES annotations.",
-    "evebio_assay_table.csv": "Assay metadata with one row per assay from EveBio pharmome mapping.",
-    "evebio_bundle_table.csv": "Target subfamily bundles used for screening-to-profiling progression.",
-    "evebio_compound_table.csv": "Compound metadata with common identifiers from EveBio screening.",
-    "evebio_control_table.csv": "Control datapoints for all screening and profiling plates.",
-    "evebio_detailed_result_table.csv": "Expanded results on evebio_summary_result_table with curve fit parameters and phase categories.",
-    "evebio_observed_points_table.csv": "Raw observed datapoints from all screening and profiling experiments.",
-    "evebio_summary_result_table.csv": "Succinct summary of results for each assay-compound combination.",
-    "evebio_target_table.csv": "Target metadata with common identifiers from EveBio screening.",
+    # "enamine_cloud_library_smiles.pkl": "Compounds from Enamine REAL library with SMILES annotations.",  # Proprietary - Requires license
+    # "evebio_assay_table.csv": "Assay metadata with one row per assay from EveBio pharmome mapping.",  # Proprietary - Requires permission
+    # "evebio_bundle_table.csv": "Target subfamily bundles used for screening-to-profiling progression.",  # Proprietary - Requires permission
+    # "evebio_compound_table.csv": "Compound metadata with common identifiers from EveBio screening.",  # Proprietary - Requires permission
+    # "evebio_control_table.csv": "Control datapoints for all screening and profiling plates.",  # Proprietary - Requires permission
+    # "evebio_detailed_result_table.csv": "Expanded results on evebio_summary_result_table with curve fit parameters and phase categories.",  # Proprietary - Requires permission
+    # "evebio_observed_points_table.csv": "Raw observed datapoints from all screening and profiling experiments.",  # Proprietary - Requires permission
+    # "evebio_summary_result_table.csv": "Succinct summary of results for each assay-compound combination.",  # Proprietary - Requires permission
+    # "evebio_target_table.csv": "Target metadata with common identifiers from EveBio screening.",  # Proprietary - Requires permission
     "genebass_missense_LC_filtered.pkl": "Filtered missense variants from GeneBass.",
     "genebass_pLoF_filtered.pkl": "Predicted loss-of-function variants from GeneBass.",
     "genebass_synonymous_filtered.pkl": "Filtered synonymous variants from GeneBass.",
@@ -41,28 +41,28 @@ data_lake_dict = {
     "hp.obo": "Official HPO release in obographs format",
     "kg.csv": "Precision medicine knowledge graph with 17,080 diseases and 4+ million relationships across biological scales.",
     "marker_celltype.parquet": "Cell type marker genes for identification.",
-    "McPAS-TCR.parquet": "T-cell receptor sequences and specificity data from McPAS database.",
-    "miRDB_v6.0_results.parquet": "Predicted microRNA targets from miRDB.",
-    "miRTarBase_microRNA_target_interaction.parquet": "Experimentally validated microRNA-target interactions from miRTarBase.",
-    "miRTarBase_microRNA_target_interaction_pubmed_abtract.txt": "PubMed abstracts for microRNA-target interactions in miRTarBase.",
-    "miRTarBase_MicroRNA_Target_Sites.parquet": "Binding sites of microRNAs on target genes from miRTarBase.",
+    # "McPAS-TCR.parquet": "T-cell receptor sequences and specificity data from McPAS database.",  # CC BY-NC-SA 4.0 - Non-commercial only
+    # "miRDB_v6.0_results.parquet": "Predicted microRNA targets from miRDB.",  # Non-commercial use only
+    # "miRTarBase_microRNA_target_interaction.parquet": "Experimentally validated microRNA-target interactions from miRTarBase.",  # CC BY-NC 4.0 - Non-commercial only
+    # "miRTarBase_microRNA_target_interaction_pubmed_abtract.txt": "PubMed abstracts for microRNA-target interactions in miRTarBase.",  # CC BY-NC 4.0 - Non-commercial only
+    # "miRTarBase_MicroRNA_Target_Sites.parquet": "Binding sites of microRNAs on target genes from miRTarBase.",  # CC BY-NC 4.0 - Non-commercial only
     "mousemine_m1_positional_geneset.parquet": "Positional gene sets from MouseMine.",
     "mousemine_m2_curated_geneset.parquet": "Curated gene sets from MouseMine.",
     "mousemine_m3_regulatory_target_geneset.parquet": "Regulatory target gene sets from MouseMine.",
     "mousemine_m5_ontology_geneset.parquet": "Ontology-based gene sets from MouseMine.",
     "mousemine_m8_celltype_signature_geneset.parquet": "Cell type signature gene sets from MouseMine.",
     "mousemine_mh_hallmark_geneset.parquet": "Hallmark gene sets from MouseMine.",
-    "msigdb_human_c1_positional_geneset.parquet": "Human positional gene sets from MSigDB.",
-    "msigdb_human_c2_curated_geneset.parquet": "Curated human gene sets from MSigDB.",
-    "msigdb_human_c3_regulatory_target_geneset.parquet": "Regulatory target gene sets from MSigDB.",
-    "msigdb_human_c3_subset_transcription_factor_targets_from_GTRD.parquet": "Transcription factor targets from GTRD/MSigDB.",
-    "msigdb_human_c4_computational_geneset.parquet": "Computationally derived gene sets from MSigDB.",
-    "msigdb_human_c5_ontology_geneset.parquet": "Ontology-based gene sets from MSigDB.",
-    "msigdb_human_c6_oncogenic_signature_geneset.parquet": "Oncogenic signatures from MSigDB.",
-    "msigdb_human_c7_immunologic_signature_geneset.parquet": "Immunologic signatures from MSigDB.",
-    "msigdb_human_c8_celltype_signature_geneset.parquet": "Cell type signatures from MSigDB.",
-    "msigdb_human_h_hallmark_geneset.parquet": "Hallmark gene sets from MSigDB.",
-    "omim.parquet": "Genetic disorders and associated genes from OMIM.",
+    # "msigdb_human_c1_positional_geneset.parquet": "Human positional gene sets from MSigDB.",  # Requires commercial license
+    # "msigdb_human_c2_curated_geneset.parquet": "Curated human gene sets from MSigDB.",  # Requires commercial license
+    # "msigdb_human_c3_regulatory_target_geneset.parquet": "Regulatory target gene sets from MSigDB.",  # Requires commercial license
+    # "msigdb_human_c3_subset_transcription_factor_targets_from_GTRD.parquet": "Transcription factor targets from GTRD/MSigDB.",  # Requires commercial license
+    # "msigdb_human_c4_computational_geneset.parquet": "Computationally derived gene sets from MSigDB.",  # Requires commercial license
+    # "msigdb_human_c5_ontology_geneset.parquet": "Ontology-based gene sets from MSigDB.",  # Requires commercial license
+    # "msigdb_human_c6_oncogenic_signature_geneset.parquet": "Oncogenic signatures from MSigDB.",  # Requires commercial license
+    # "msigdb_human_c7_immunologic_signature_geneset.parquet": "Immunologic signatures from MSigDB.",  # Requires commercial license
+    # "msigdb_human_c8_celltype_signature_geneset.parquet": "Cell type signatures from MSigDB.",  # Requires commercial license
+    # "msigdb_human_h_hallmark_geneset.parquet": "Hallmark gene sets from MSigDB.",  # Requires commercial license
+    # "omim.parquet": "Genetic disorders and associated genes from OMIM.",  # Requires commercial license
     "proteinatlas.tsv": "Protein expression data from Human Protein Atlas.",
     "proximity_label-ms.parquet": "Protein interactions via proximity labeling and mass spectrometry.",
     "reconstituted_complex.parquet": "Protein complexes reconstituted in vitro.",

@@ -102,6 +102,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+test.ipynb
 
 # Translations
 *.mo
@@ -227,3 +228,7 @@ data/ddinter_raw/
 
 # VSCode
 /.vscode
+
+# Sphinx build
+/docs/build/
+/docs/source/api/

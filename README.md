@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-<a href="https://join.slack.com/t/biomnigroup/shared_invite/zt-38dat07mc-mmDIYzyCrNtV4atULTHRiw">
+<a href="https://join.slack.com/t/biomnigroup/shared_invite/zt-3avks4913-dotMBt8D_apQnJ3mG~ak6Q">
 <img src="https://img.shields.io/badge/Join-Slack-4A154B?style=for-the-badge&logo=slack" alt="Join Slack" />
 </a>
 <a href="https://biomni.stanford.edu">
@@ -154,10 +154,7 @@ By default, Biomni automatically downloads the datalake files (~11GB) when you c
 
 ```python
 # Skip automatic datalake download (faster initialization)
-agent = A1(path='./data', llm='claude-sonnet-4-20250514', load_datalake=False)
-
-# Manually load datalake later when needed
-agent.load_datalake()
+agent = A1(path='./data', llm='claude-sonnet-4-20250514', expected_data_lake_files = [])
 ```
 
 This is useful for:
@@ -165,6 +162,26 @@ This is useful for:
 - Environments with limited storage or bandwidth
 - Cases where you only need specific tools that don't require datalake files
 If you plan on using Azure for your model, always prefix the model name with azure- (e.g. llm='azure-gpt-4o').
+
+### Configuration Management
+
+Biomni includes a centralized configuration system that provides flexible ways to manage settings. You can configure Biomni through environment variables, runtime modifications, or direct parameters.
+
+```python
+from biomni.config import default_config
+from biomni.agent import A1
+
+# RECOMMENDED: Modify global defaults for consistency
+default_config.llm = "gpt-4"
+default_config.timeout_seconds = 1200
+
+# All agents AND database queries use these defaults
+agent = A1()  # Everything uses gpt-4, 1200s timeout
+```
+
+**Note**: Direct parameters to `A1()` only affect that agent's reasoning, not database queries. For consistent configuration across all operations, use `default_config` or environment variables.
+
+For detailed configuration options, see the **[Configuration Guide](docs/configuration.md)**.
 
 ## MCP (Model Context Protocol) Support
 
@@ -177,7 +194,6 @@ agent = A1()
 agent.add_mcp(config_path="./mcp_config.yaml")
 agent.go("Find FDA active ingredient information for ibuprofen")
 ```
-
 
 **Built-in MCP Servers:**
 For usage and implementation details, see the [MCP Integration Documentation](docs/mcp_integration.md) and examples in [`tutorials/examples/add_mcp_server/`](tutorials/examples/add_mcp_server/) and [`tutorials/examples/expose_biomni_server/`](tutorials/examples/expose_biomni_server/).

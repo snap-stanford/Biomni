@@ -9,6 +9,18 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Check for wget or fallback to curl
+if command -v wget &> /dev/null; then
+  DOWNLOADER="wget -v -O"
+elif command -v curl &> /dev/null; then
+  DOWNLOADER="curl -L -o"
+  echo -e "${YELLOW}Warning: wget not found, using curl instead.${NC}"
+else
+  echo -e "${RED}Error: Neither wget nor curl is installed.${NC}"
+  echo -e "${YELLOW}Please install one of them (e.g., brew install wget on macOS).${NC}"
+  exit 1
+fi
+
 # Check if jq is installed
 if ! command -v jq &> /dev/null; then
     echo -e "${YELLOW}jq is not installed. Installing jq for JSON parsing...${NC}"
@@ -132,7 +144,7 @@ install_tool() {
         echo -e "${YELLOW}Installing HOMER via Perl script...${NC}"
 
         # Download the configuration script directly to the bin directory
-        wget -v "$download_url" -O "$TOOLS_DIR/bin/configureHomer.pl"
+        $DOWNLOADER "$TOOLS_DIR/bin/configureHomer.pl" "$download_url"
 
         if [ $? -ne 0 ]; then
             echo -e "${RED}Failed to download HOMER configuration script from $download_url${NC}"
@@ -189,7 +201,7 @@ install_tool() {
         echo -e "${YELLOW}Installing FastTree from source...${NC}"
 
         # Download the source
-        wget -v "$download_url" -O "$TOOLS_DIR/$tool_dir_name/FastTree.c"
+        $DOWNLOADER "$TOOLS_DIR/$tool_dir_name/FastTree.c" "$download_url"
 
         if [ $? -ne 0 ]; then
             echo -e "${RED}Failed to download FastTree source from $download_url${NC}"
@@ -285,8 +297,8 @@ install_tool() {
 
     # Determine file extension
     if [[ "$download_url" == *".zip" ]]; then
-        # Use -v for verbose output to help diagnose issues
-        wget -v "$download_url" -O "$TOOLS_DIR/$tool_dir_name.zip"
+        # Use verbose output to help diagnose issues
+        $DOWNLOADER "$TOOLS_DIR/$tool_dir_name.zip" "$download_url"
 
         if [ $? -ne 0 ]; then
             echo -e "${RED}Failed to download $tool_name from $download_url${NC}"
@@ -306,8 +318,8 @@ install_tool() {
         # Clean up
         rm "$TOOLS_DIR/$tool_dir_name.zip"
     elif [[ "$download_url" == *".tar.gz" ]]; then
-        # Use -v for verbose output to help diagnose issues
-        wget -v "$download_url" -O "$TOOLS_DIR/$tool_dir_name.tar.gz"
+        # Use verbose output to help diagnose issues
+        $DOWNLOADER "$TOOLS_DIR/$tool_dir_name.tar.gz" "$download_url"
 
         if [ $? -ne 0 ]; then
             echo -e "${RED}Failed to download $tool_name from $download_url${NC}"
@@ -330,7 +342,7 @@ install_tool() {
     # Handle executable files directly (for MUSCLE)
     elif [[ "$tool_name" = "MUSCLE" ]]; then
         echo -e "${YELLOW}Downloading $tool_name binary...${NC}"
-        wget -v "$download_url" -O "$TOOLS_DIR/$tool_dir_name/$binary_name"
+        $DOWNLOADER "$TOOLS_DIR/$tool_dir_name/$binary_name" "$download_url"
 
         if [ $? -ne 0 ]; then
             echo -e "${RED}Failed to download $tool_name from $download_url${NC}"

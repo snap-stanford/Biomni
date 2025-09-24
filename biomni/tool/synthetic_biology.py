@@ -6,7 +6,8 @@ def engineer_bacterial_genome_for_therapeutic_delivery(bacterial_genome_file, ge
     bacterial_genome_file : str
         Path to the file containing the bacterial genome sequence in FASTA format
     genetic_parts : dict
-        Dictionary containing genetic parts to be integrated:
+        Dictionary containing genetic parts to be integrated::
+
         {
             'promoters': list of dict with 'name', 'sequence', and 'position',
             'genes': list of dict with 'name', 'sequence', and 'position',
