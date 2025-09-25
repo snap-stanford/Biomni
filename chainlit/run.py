@@ -14,11 +14,15 @@ import shutil
 import random
 import string
 from biomni.config import default_config
+from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
+
+# from chainlit.data.base import BaseStorageClient
 
 # Configuration
 LLM_MODEL = "gemini-2.5-pro"
 BIOMNI_DATA_PATH = "/workdir_efs/jaechang/work2/biomni_hits_test/biomni_data"
-CURRENT_ABS_DIR = "/workdir_efs/jaechang/work2/biomni_hits_test"
+CURRENT_ABS_DIR = "/workdir_efs/jaechang/work2/biomni_hits_test/Biomni_HITS/chainlit"
+PUBLIC_DIR = f"{CURRENT_ABS_DIR}/public"
 
 default_config.llm = LLM_MODEL
 default_config.commercial_mode = True
@@ -28,6 +32,114 @@ agent = A1_HITS(
     llm=LLM_MODEL,
     use_tool_retriever=True,
 )
+
+
+from sqlalchemy import create_engine, event
+from sqlalchemy.pool import StaticPool
+
+
+class CustomSQLAlchemyDataLayer(SQLAlchemyDataLayer):
+    def __init__(self, conninfo: str, **kwargs):
+        super().__init__(conninfo, **kwargs)
+
+    async def __aenter__(self):
+
+        # SQLite 최적화 설정
+        @event.listens_for(self.engine.sync_engine, "connect")
+        def set_sqlite_pragma(dbapi_connection, connection_record):
+            cursor = dbapi_connection.cursor()
+            # WAL 모드 활성화 (동시성 개선)
+            cursor.execute("PRAGMA journal_mode=WAL")
+            # 바쁜 타임아웃 설정 (30초)
+            cursor.execute("PRAGMA busy_timeout=30000")
+            # 동기화 모드 최적화
+            cursor.execute("PRAGMA synchronous=NORMAL")
+            # 캐시 크기 증가
+            cursor.execute("PRAGMA cache_size=10000")
+            cursor.close()
+
+        self.engine: AsyncEngine = create_async_engine(
+            conninfo,
+            connect_args=ssl_args,
+            pool_size=10,  # Allow 10 persistent connections
+            max_overflow=20,  # Allow 20 overflow connections
+            pool_timeout=60,  # Wait max 30s before failing
+            pool_recycle=1800,  # Recycle idle connections every 30 mins
+        )
+
+        self.async_session = sessionmaker(
+            bind=self.engine,
+            expire_on_commit=True,
+            class_=AsyncSession,  # Use the class, not a string
+        )
+
+        # return self
+
+
+@cl.data_layer
+def get_data_layer():
+    return CustomSQLAlchemyDataLayer(
+        conninfo="sqlite+aiosqlite:///chainlit.db", show_logger=False
+    )
+
+
+# @cl.data_layer
+# def get_data_layer():
+#     # SQLite 최적화된 연결 문자열
+#     conninfo = (
+#         "sqlite+aiosqlite:///chainlit.db"
+#         "?pool_size=20"
+#         "&max_overflow=50"
+#         "&pool_timeout=60"
+#         "&pool_recycle=3600"
+#         "&pool_pre_ping=true"
+#     )
+
+#     # SQLAlchemyDataLayer 생성
+#     data_layer = SQLAlchemyDataLayer(
+#         conninfo=conninfo,
+#         # storage_provider=BaseStorageClient
+#     )
+#     # 데이터 레이어 연결 정보 출력
+#     print("====================")
+#     print(f"Data layer connection info: {conninfo}")
+#     print(f"Data layer engine: {data_layer.engine}")
+#     print(f"Engine URL: {data_layer.engine.url}")
+#     print(f"Engine pool size: {data_layer.engine.pool.size()}")
+#     print(f"Engine pool timeout: {data_layer.engine.pool.timeout()}")
+#     print(f"Engine pool overflow: {data_layer.engine.pool.overflow()}")
+#     print(f"Engine pool recycle: {data_layer.engine.pool.recycle()}")
+#     print(f"Engine pool pre_ping: {data_layer.engine.pool.pre_ping}")
+#     print("====================")
+#     exit(-1)
+
+#     # SQLite 최적화 설정을 위한 이벤트 리스너 추가
+#     @event.listens_for(data_layer.engine.sync_engine, "connect")
+#     def set_sqlite_pragma(dbapi_connection, connection_record):
+#         cursor = dbapi_connection.cursor()
+#         # WAL 모드 활성화 (동시성 개선)
+#         cursor.execute("PRAGMA journal_mode=WAL")
+#         # 바쁜 타임아웃 설정 (30초)
+#         cursor.execute("PRAGMA busy_timeout=30000")
+#         # 동기화 모드 최적화
+#         cursor.execute("PRAGMA synchronous=NORMAL")
+#         # 캐시 크기 증가
+#         cursor.execute("PRAGMA cache_size=10000")
+#         cursor.close()
+
+#     return data_layer
+
+
+@cl.password_auth_callback
+def auth_callback(username: str, password: str):
+    # Fetch the user matching username from your database
+    # and compare the hashed password with the value stored in the database
+    if (username, password) == ("admin", "admin"):
+        return cl.User(
+            identifier="admin", metadata={"role": "admin", "provider": "credentials"}
+        )
+    else:
+        return None
 
 
 @cl.on_chat_start
@@ -336,7 +448,7 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
     Returns:
         Modified markdown text with updated image paths
     """
-    public_dir = f"{CURRENT_ABS_DIR}/public"
+    public_dir = PUBLIC_DIR
     os.makedirs(public_dir, exist_ok=True)
 
     # Pattern to find markdown images, excluding those already with download functionality
@@ -370,6 +482,7 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
 
         try:
             shutil.copy2(image_path, new_file_path)
+            print("copied image to", new_file_path)
             return f"[![{alt_text}](./public/{new_file_name})](./public/{new_file_name})[Download](./public/{new_file_name})"
         except Exception as e:
             print(f"Error moving image {image_path}: {e}")

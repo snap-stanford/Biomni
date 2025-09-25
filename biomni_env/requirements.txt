@@ -43,3 +43,6 @@ biopython
 biopandas
 pypdf2
 googlesearch-python
+asyncpg
+boto3
+botocore
