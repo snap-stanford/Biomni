@@ -116,69 +116,6 @@ class CustomSQLAlchemyDataLayer(SQLAlchemyDataLayer):
 
         return await super().__aenter__()
 
-    async def execute_with_retry(self, func, *args, **kwargs):
-        """데이터베이스 락 에러 발생 시 재시도하는 헬퍼 함수"""
-        for attempt in range(self.max_retries):
-            try:
-                return await func(*args, **kwargs)
-            except Exception as e:
-                error_msg = str(e).lower()
-                if (
-                    "database is locked" in error_msg
-                    or "sqlite3.operationalerror" in error_msg
-                    or "database disk image is malformed" in error_msg
-                    or "busy" in error_msg
-                ) and attempt < self.max_retries - 1:
-                    retry_delay = self.retry_delay * (2**attempt)  # 지수 백오프
-                    logging.warning(
-                        f"Database error detected: {str(e)[:100]}... "
-                        f"Retrying in {retry_delay}s (attempt {attempt + 1}/{self.max_retries})"
-                    )
-                    await asyncio.sleep(retry_delay)
-                    continue
-                else:
-                    logging.error(
-                        f"Database operation failed after {attempt + 1} attempts: {str(e)}"
-                    )
-                    raise e
-
-    async def check_db_lock_status(self):
-        """데이터베이스 락 상태를 확인하는 헬퍼 함수"""
-        try:
-            async with self.async_session() as session:
-                # 간단한 쿼리로 DB 접근 가능성 확인
-                await session.execute(text("SELECT 1"))
-                await session.commit()
-                return True
-        except Exception as e:
-            error_msg = str(e).lower()
-            if (
-                "database is locked" in error_msg
-                or "busy" in error_msg
-                or "sqlite3.operationalerror" in error_msg
-            ):
-                logging.warning(f"Database is currently locked: {str(e)[:100]}...")
-                return False
-            else:
-                logging.error(f"Unexpected database error: {str(e)}")
-                raise e
-
-
-# 전역 데이터 레이어 인스턴스
-_data_layer_instance = None
-
-
-def get_data_layer_instance():
-    """데이터 레이어 인스턴스를 반환하는 헬퍼 함수"""
-    global _data_layer_instance
-    if _data_layer_instance is None:
-        db_path = os.path.abspath(CHAINLIT_DB_PATH)
-        conninfo = f"sqlite+aiosqlite:///{db_path}"
-        _data_layer_instance = CustomSQLAlchemyDataLayer(
-            conninfo=conninfo, show_logger=False
-        )
-    return _data_layer_instance
-
 
 @cl.data_layer
 def get_data_layer():
@@ -187,42 +124,6 @@ def get_data_layer():
     conninfo = f"sqlite+aiosqlite:///{db_path}"
     print(f"Chainlit database path: {db_path}")
     return CustomSQLAlchemyDataLayer(conninfo=conninfo, show_logger=False)
-
-
-async def safe_chainlit_step_update(chainlit_step, max_retries=3):
-    """
-    DB lock을 체크하고 안전하게 chainlit step을 업데이트하는 함수
-
-    Args:
-        chainlit_step: 업데이트할 chainlit step 객체
-        max_retries: 최대 재시도 횟수 (기본값: 3)
-
-    Returns:
-        bool: 업데이트 성공 여부
-    """
-    data_layer = get_data_layer_instance()
-
-    # DB lock 상태 먼저 확인
-    try:
-        is_db_available = await data_layer.check_db_lock_status()
-        if not is_db_available:
-            logging.warning("Database is locked, skipping chainlit step update")
-            return False
-    except Exception as e:
-        logging.error(f"Failed to check database lock status: {str(e)}")
-        return False
-
-    # 안전한 업데이트 시도
-    async def update_operation():
-        return await chainlit_step.update()
-
-    try:
-        result = await data_layer.execute_with_retry(update_operation)
-        logging.debug("Chainlit step updated successfully")
-        return True
-    except Exception as e:
-        logging.error(f"Failed to update chainlit step after retries: {str(e)}")
-        return False
 
 
 @cl.password_auth_callback
@@ -241,23 +142,23 @@ def auth_callback(username: str, password: str):
 async def start_chat():
     """Initialize chat session and set up working directory."""
     os.chdir(CURRENT_ABS_DIR)
-
-    # Create directory with current Korean time
-    korea_tz = pytz.timezone("Asia/Seoul")
-    current_time = datetime.now(korea_tz)
-    conversation_id = current_time.strftime("%Y%m%d_%H%M%S")
-    dir_name = conversation_id
+    dir_name = cl.context.session.thread_id
     log_dir = f"chainlit_logs/{dir_name}"
     os.makedirs(log_dir, exist_ok=True)
     os.chdir(log_dir)
     print("current dir", os.getcwd())
     cl.user_session.set("message_history", [])
-    cl.user_session.set("conversation_id", conversation_id)
 
 
 @cl.on_chat_resume
 async def resume_chat():
-    pass
+    os.chdir(CURRENT_ABS_DIR)
+    thread_id = cl.context.session.thread_id
+    dir_name = thread_id
+    log_dir = f"chainlit_logs/{dir_name}"
+    os.makedirs(log_dir, exist_ok=True)
+    os.chdir(log_dir)
+    print("current dir", os.getcwd())
 
 
 @cl.on_message
@@ -318,7 +219,6 @@ async def _process_agent_response(agent_input: list, message_history: list):
         full_message, step_message, raw_full_message = await _handle_message_stream(
             message_stream, chainlit_step
         )
-        await chainlit_step.update()
 
     final_message = _extract_final_message(step_message)
     await cl.Message(content=final_message).send()
@@ -340,17 +240,17 @@ async def _handle_message_stream(message_stream, chainlit_step):
     update_counter = 0
     last_update = time.time()
     update_pending = False
+    stream_index = 0
     for chunk in message_stream:
         this_step = chunk[1][1]["langgraph_step"]
-
         if this_step != current_step:
             step_message = ""
             current_step = this_step
             if full_message.count("```") % 2 == 1:
                 full_message += "```\n"
                 raw_full_message += "```\n"
-            # await chainlit_step.update()
-
+            await chainlit_step.stream_token(full_message[stream_index:])
+            stream_index = len(full_message) - 1
         chunk_content = _extract_chunk_content(chunk)
         if chunk_content is None:
             continue
@@ -363,33 +263,12 @@ async def _handle_message_stream(message_stream, chainlit_step):
         full_message = _modify_chunk(full_message)
         full_message = _detect_image_name_and_move_to_public(full_message)
         chainlit_step.output = full_message
-        n_try = 0
-        if time.time() - last_update > 2.0:
-            if not update_pending:
-                update_pending = True
-                try:
-                    # DB lock 체크 후 안전한 업데이트
-                    success = await safe_chainlit_step_update(chainlit_step)
-                    if not success:
-                        logging.warning(
-                            "Chainlit step update failed due to database lock or error"
-                        )
-                except Exception as e:
-                    logging.error(
-                        f"Unexpected error during chainlit step update: {str(e)}"
-                    )
-                finally:
-                    update_pending = False
-                    last_update = time.time()
-            else:
-                print("Time to update, but update is pending")
+        stream_chunk = full_message[stream_index:]
+        if len(stream_chunk) > 100:
+            await chainlit_step.stream_token(stream_chunk)
+            stream_index = len(full_message) - 1
 
-    # 최종 업데이트도 안전하게 처리
-    final_success = await safe_chainlit_step_update(chainlit_step)
-    if not final_success:
-        logging.warning(
-            "Final chainlit step update failed due to database lock or error"
-        )
+    await chainlit_step.stream_token(full_message[stream_index:])
 
     step_message = _detect_image_name_and_move_to_public(step_message)
     step_message = _modify_chunk(step_message)
