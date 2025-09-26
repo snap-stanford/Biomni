@@ -1801,3 +1801,100 @@ def analyze_genomic_region_overlap(region_sets, output_prefix="overlap_analysis"
     log += f"- Summary statistics saved to: {summary_file}\n"
 
     return log
+
+
+def generate_embeddings_with_state(adata_filename, data_dir, model_folder, output_filename=None):
+    """
+    Generate State embeddings for single-cell RNA-seq data using the SE-600M model.
+    
+    This function downloads the SE-600M model from Hugging Face, installs required dependencies,
+    and generates embeddings for the input AnnData object.
+    
+    Parameters:
+    -----------
+    adata_filename : str
+        Name of the input AnnData file (.h5ad format)
+    data_dir : str
+        Directory containing the input data file
+    model_folder : str
+        Directory where the SE-600M model will be downloaded and stored
+    output_filename : str, optional
+        Name of the output file. If None, will use input filename with '_state_embeddings' suffix
+        
+    Returns:
+    --------
+    str
+        Path to the generated embeddings file
+        
+    Notes:
+    ------
+    - Requires 10GB+ GPU memory for model loading
+    - Downloads ~3GB model files from Hugging Face
+    - Installs git-lfs, uv, and arc-state if not already available
+    """
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+    
+    # Set up paths
+    input_path = os.path.join(data_dir, adata_filename)
+    if output_filename is None:
+        base_name = os.path.splitext(adata_filename)[0]
+        output_filename = f"{base_name}_state_embeddings.h5ad"
+    
+    output_path = os.path.join(data_dir, "output", output_filename)
+    
+    # Create output directory if it doesn't exist
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    print("Installing git-lfs...")
+    try:
+        subprocess.run(["sudo", "apt", "update"], check=True, capture_output=True)
+        subprocess.run(["sudo", "apt", "install", "-y", "git-lfs"], check=True, capture_output=True)
+        subprocess.run(["git", "lfs", "install"], check=True, capture_output=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Warning: Failed to install git-lfs: {e}")
+        print("Continuing anyway...")
+    
+    print("Downloading SE-600M model...")
+    if not os.path.exists(model_folder):
+        os.makedirs(model_folder, exist_ok=True)
+        try:
+            subprocess.run(["git", "clone", "https://huggingface.co/arcinstitute/SE-600M", model_folder], 
+                         check=True, capture_output=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error downloading model: {e}")
+            raise
+    
+    print("Installing uv and arc-state...")
+    try:
+        subprocess.run([sys.executable, "-m", "pip", "install", "uv"], check=True, capture_output=True)
+        subprocess.run(["uv", "tool", "install", "arc-state"], check=True, capture_output=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error installing dependencies: {e}")
+        raise
+    
+    print("Generating embeddings...")
+    print("Warning: Loading the SE600 model takes 10GB GPU memory")
+    
+    try:
+        # Run the state embedding command
+        cmd = [
+            "uv", "run", "state", "emb", "transform",
+            "--model-folder", model_folder,
+            "--input", input_path,
+            "--output", output_path
+        ]
+        
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        print("Embeddings generated successfully!")
+        print(f"Output saved to: {output_path}")
+        
+        return output_path
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Error generating embeddings: {e}")
+        print(f"Command output: {e.stdout}")
+        print(f"Command error: {e.stderr}")
+        raise 

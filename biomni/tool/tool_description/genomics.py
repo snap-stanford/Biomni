@@ -574,4 +574,40 @@ description = [
             },
         ],
     },
+    {
+        "description": "Generate State embeddings for single-cell RNA-seq data using the SE-600M model. "
+        "This function downloads the SE-600M model from Hugging Face, installs required dependencies "
+        "(git-lfs, uv, arc-state), and generates embeddings for the input AnnData object. "
+        "The SE-600M model is a state-of-the-art embedding model for single-cell data that can capture "
+        "complex biological patterns and cell states.",
+        "name": "generate_embeddings_with_state",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Name of the output embeddings file. If None, will use input filename with '_state_embeddings' suffix",
+                "name": "output_filename",
+                "type": "str",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Name of the input AnnData file (.h5ad format)",
+                "name": "adata_filename",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Directory containing the input data file",
+                "name": "data_dir",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Directory where the SE-600M model will be downloaded and stored",
+                "name": "model_folder",
+                "type": "str",
+            },
+        ],
+    },
 ]
