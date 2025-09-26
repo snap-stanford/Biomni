@@ -739,3 +739,4 @@ dependencies:
       - zarr==2.18.7
       - zict==3.0.0
       - zstandard==0.23.0
+      - mi-googlesearch-python==1.3.0.post1

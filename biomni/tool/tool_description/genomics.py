@@ -581,4 +581,84 @@ description = [
             },
         ],
     },
+    {
+        "description": "Convert ENSEMBL gene IDs between different species using BioMart homology mapping. "
+        "This function converts a list of ENSEMBL gene IDs from one species to their "
+        "homologous counterparts in another species using the Ensembl BioMart database. "
+        "The conversion is based on one-to-one ortholog mappings between species.",
+        "name": "interspecies_gene_conversion",
+        "optional_parameters": [],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "List of ENSEMBL gene IDs to convert (e.g., ['ENSG00000007372', 'ENSG00000181449'])",
+                "name": "gene_list",
+                "type": "list[str]",
+            },
+            {
+                "default": None,
+                "description": "Source species name. Supported species: human, mouse, rat, zebrafish, fly, "
+                "drosophila, worm, yeast, chicken, pig, cow, dog, macaque",
+                "name": "source_species",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Target species name. Same supported species as source_species",
+                "name": "target_species",
+                "type": "str",
+            },
+        ],
+    },
+    {
+        "description": "Generate average protein embeddings for a list of Ensembl gene IDs using ESM (Evolutionary Scale Modeling) "
+        "protein language models. This function fetches all protein isoform sequences for each gene, "
+        "computes embeddings for each isoform using the specified ESM model and layer, then averages "
+        "the embeddings across all isoforms to create a single representative embedding per gene. "
+        "The embeddings are saved as PyTorch tensors for future use. "
+        "Memory-friendly implementation with rolling averages, small batch processing, and automatic memory "
+        "management. Automatically handles GPU/CPU device selection and includes error recovery for out-of-memory "
+        "situations by falling back to single-sequence processing.",
+        "name": "generate_gene_embeddings_with_ESM_models",
+        "optional_parameters": [
+            {
+                "default": "esm2_t6_8M_UR50D",
+                "description": "ESM model name to use for generating embeddings",
+                "name": "model_name",
+                "type": "str",
+            },
+            {
+                "default": 6,
+                "description": "Which layer of the ESM model to extract embeddings from, generally use last layer",
+                "name": "layer",
+                "type": "int",
+            },
+            {
+                "default": None,
+                "description": "Optional path to save embeddings as PyTorch dictionary",
+                "name": "save_path",
+                "type": "str",
+            },
+            {
+                "default": 1,
+                "description": "Number of sequences to process at once to manage memory usage",
+                "name": "batch_size",
+                "type": "int",
+            },
+            {
+                "default": 1024,
+                "description": "Maximum sequence length to process, longer sequences are filtered out",
+                "name": "max_sequence_length",
+                "type": "int",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "List of Ensembl gene IDs (e.g., ['ENSG00000012048', 'ENSG00000012049'])",
+                "name": "ensembl_gene_ids",
+                "type": "List[str]",
+            }
+        ],
+    },
 ]

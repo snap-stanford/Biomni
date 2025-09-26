@@ -903,6 +903,7 @@ def read_module2api(allowed_fields=None):
             "biochemistry",
             "bioengineering",
             "biophysics",
+            "glycoengineering",
             "cancer_biology",
             "cell_biology",
             "molecular_biology",
