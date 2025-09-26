@@ -2162,3 +2162,224 @@ def analyze_genomic_region_overlap(region_sets, output_prefix="overlap_analysis"
     log += f"- Summary statistics saved to: {summary_file}\n"
 
     return log
+
+
+def generate_transcriptformer_embeddings(
+    adata_filename: str,
+    data_dir: str,
+    output_filename: str = None,
+    checkpoint_path: str = "./checkpoints/tf_sapiens",
+    batch_size: int = 8,
+    precision: str = "16-mixed",
+    clip_counts: int = 30,
+    embedding_layer_index: int = -1,
+    num_gpus: int = 1,
+    n_data_workers: int = 0,
+    create_venv: bool = True
+) -> str:
+    """
+    Generate Transcriptformer embeddings for single-cell RNA-seq data.
+    
+    This function sets up a virtual environment, installs transcriptformer,
+    downloads the model checkpoints, prepares the AnnData object with required
+    fields, and runs inference to generate cell embeddings.
+    
+    Parameters:
+    -----------
+    adata_filename : str
+        Name of the input AnnData file (.h5ad format)
+    data_dir : str
+        Directory containing the input data file
+    output_filename : str, optional
+        Name of the output embeddings file. If None, will use input filename with '_transcriptformer_embeddings' suffix
+    checkpoint_path : str, optional
+        Path to the transcriptformer checkpoint directory (default: "./checkpoints/tf_sapiens")
+    batch_size : int, optional
+        Batch size for inference (default: 8)
+    precision : str, optional
+        Precision for inference (default: "16-mixed")
+    clip_counts : int, optional
+        Maximum count value to clip to (default: 30)
+    embedding_layer_index : int, optional
+        Which layer to extract embeddings from (default: -1, last layer)
+    num_gpus : int, optional
+        Number of GPUs to use (default: 1)
+    n_data_workers : int, optional
+        Number of data loading workers (default: 0)
+    create_venv : bool, optional
+        Whether to create a new virtual environment (default: True)
+        
+    Returns:
+    --------
+    str
+        Path to the generated embeddings file
+        
+    Notes:
+    ------
+    - Requires transcriptformer to be installed
+    - Downloads model checkpoints (~several GB)
+    - Requires GPU for optimal performance
+    - Creates ensembl_id column if not present
+    - Expects raw count data in adata.X or adata.raw
+    """
+    import os
+    import subprocess
+    import sys
+    import pandas as pd
+    import scanpy as sc
+    from pathlib import Path
+    
+    steps = []
+    
+    # Set up paths
+    input_path = os.path.join(data_dir, adata_filename)
+    if output_filename is None:
+        base_name = os.path.splitext(adata_filename)[0]
+        output_filename = f"{base_name}_transcriptformer_embeddings.h5ad"
+    
+    output_path = os.path.join(data_dir, "output", output_filename)
+    temp_data_path = os.path.join(data_dir, "temp_transcriptformer_input.h5ad")
+    
+    # Create output directory if it doesn't exist
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    try:
+        # Step 1: Set up virtual environment and install transcriptformer
+        if create_venv:
+            steps.append("Setting up virtual environment...")
+            try:
+                subprocess.run(["uv", "venv", "--python=3.11"], check=True, capture_output=True)
+                steps.append("Virtual environment created successfully")
+            except subprocess.CalledProcessError as e:
+                steps.append(f"Warning: Failed to create virtual environment: {e}")
+                steps.append("Continuing with current environment...")
+        
+        steps.append("Installing transcriptformer...")
+        try:
+            if create_venv:
+                # Activate venv and install
+                if sys.platform.startswith('win'):
+                    activate_cmd = ".venv\\Scripts\\activate"
+                else:
+                    activate_cmd = "source .venv/bin/activate"
+                
+                subprocess.run(f"{activate_cmd} && uv pip install transcriptformer", 
+                             shell=True, check=True, capture_output=True)
+            else:
+                subprocess.run([sys.executable, "-m", "pip", "install", "transcriptformer"], 
+                             check=True, capture_output=True)
+            steps.append("Transcriptformer installed successfully")
+        except subprocess.CalledProcessError as e:
+            steps.append(f"Error installing transcriptformer: {e}")
+            raise
+        
+        # Step 2: Download model checkpoints
+        steps.append("Downloading transcriptformer model checkpoints...")
+        try:
+            if create_venv:
+                if sys.platform.startswith('win'):
+                    activate_cmd = ".venv\\Scripts\\activate"
+                else:
+                    activate_cmd = "source .venv/bin/activate"
+                subprocess.run(f"{activate_cmd} && transcriptformer download all", 
+                             shell=True, check=True, capture_output=True)
+            else:
+                subprocess.run(["transcriptformer", "download", "all"], 
+                             check=True, capture_output=True)
+            steps.append("Model checkpoints downloaded successfully")
+        except subprocess.CalledProcessError as e:
+            steps.append(f"Error downloading model checkpoints: {e}")
+            raise
+        
+        # Step 3: Load and prepare AnnData object
+        steps.append("Loading and preparing AnnData object...")
+        try:
+            adata = sc.read_h5ad(input_path)
+            steps.append(f"Loaded AnnData with {adata.n_obs} cells and {adata.n_vars} genes")
+            
+            # Check if 'ensembl_id' column exists in adata.var, if not, create it
+            if 'ensembl_id' not in adata.var.columns:
+                if adata.var.index.str.startswith('ENSG').any():
+                    adata.var['ensembl_id'] = adata.var.index
+                    steps.append("Using gene index as ensembl_id (detected ENSG prefix)")
+                else:
+                    # Create dummy Ensembl IDs (not valid for real inference, but for demo)
+                    adata.var['ensembl_id'] = ['ENSG' + str(i).zfill(11) for i in range(adata.var.shape[0])]
+                    steps.append("Created dummy Ensembl IDs (not valid for real inference)")
+            
+            # Ensure adata.raw exists and contains unnormalized counts
+            if adata.raw is None:
+                if not pd.api.types.is_integer_dtype(adata.X.dtype):
+                    steps.append("Warning: adata.X does not appear to be unnormalized counts. Transcriptformer expects raw counts.")
+                adata.raw = adata
+                steps.append("Set adata.raw to current adata")
+            
+            # Save the prepared AnnData object
+            adata.write(temp_data_path)
+            steps.append(f"Saved prepared AnnData to {temp_data_path}")
+            
+        except Exception as e:
+            steps.append(f"Error preparing AnnData object: {e}")
+            raise
+        
+        # Step 4: Run transcriptformer inference
+        steps.append("Running transcriptformer inference...")
+        try:
+            cmd = [
+                "transcriptformer", "inference",
+                "--checkpoint-path", checkpoint_path,
+                "--data-file", temp_data_path,
+                "--output-path", os.path.dirname(output_path),
+                "--output-filename", os.path.basename(output_path),
+                "--batch-size", str(batch_size),
+                "--gene-col-name", "ensembl_id",
+                "--precision", precision,
+                "--clip-counts", str(clip_couånts),
+                "--filter-to-vocabs",
+                "--use-raw", "None",
+                "--embedding-layer-index", str(embedding_layer_index),
+                "--model-type", "transcriptformer",
+                "--emb-type", "cell",
+                "--num-gpus", str(num_gpus),
+                "--n-data-workers", str(n_data_workers)
+            ]
+            
+            if create_venv:
+                if sys.platform.startswith('win'):
+                    activate_cmd = ".venv\\Scripts\\activate"
+                else:
+                    activate_cmd = "source .venv/bin/activate"
+                full_cmd = f"{activate_cmd} && {' '.join(cmd)}"
+                result = subprocess.run(full_cmd, shell=True, check=True, capture_output=True, text=True)
+            else:
+                result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            
+            steps.append("Transcriptformer inference completed successfully")
+            steps.append(f"Output saved to: {output_path}")
+            
+        except subprocess.CalledProcessError as e:
+            steps.append(f"Error running transcriptformer inference: {e}")
+            steps.append(f"Command output: {e.stdout}")
+            steps.append(f"Command error: {e.stderr}")
+            raise
+        
+        # Step 5: Clean up temporary files
+        try:
+            if os.path.exists(temp_data_path):
+                os.remove(temp_data_path)
+                steps.append("Cleaned up temporary files")
+        except Exception as e:
+            steps.append(f"Warning: Could not clean up temporary files: {e}")
+        
+        # Final information
+        steps.append("Transcriptformer embeddings generated successfully!")
+        steps.append("The output AnnData file contains:")
+        steps.append("- Cell embeddings in obsm['embeddings']")
+        steps.append("- Original cell metadata in obs")
+        steps.append("- Log-likelihood scores (if available) in uns['llh']")
+        
+        return "\n".join(steps)
+        
+    except Exception as e:
+        steps.append(f"Fatal error in transcriptformer embedding generation: {e}")
+        return "\n".join(steps)

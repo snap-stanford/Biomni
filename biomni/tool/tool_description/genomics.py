@@ -654,4 +654,82 @@ description = [
             }
         ],
     },
+    {
+        "description": "Generate Transcriptformer embeddings for single-cell RNA-seq data. "
+        "This function sets up a virtual environment, installs transcriptformer, downloads "
+        "model checkpoints, prepares the AnnData object with required fields (ensembl_id, raw counts), "
+        "and runs inference to generate cell embeddings. Transcriptformer is a transformer-based "
+        "model that can learn rich representations of single-cell gene expression data.",
+        "name": "generate_transcriptformer_embeddings",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Name of the output embeddings file. If None, will use input filename with '_transcriptformer_embeddings' suffix",
+                "name": "output_filename",
+                "type": "str",
+            },
+            {
+                "default": "./checkpoints/tf_sapiens",
+                "description": "Path to the transcriptformer checkpoint directory",
+                "name": "checkpoint_path",
+                "type": "str",
+            },
+            {
+                "default": 8,
+                "description": "Batch size for inference",
+                "name": "batch_size",
+                "type": "int",
+            },
+            {
+                "default": "16-mixed",
+                "description": "Precision for inference (16-mixed, 32, etc.)",
+                "name": "precision",
+                "type": "str",
+            },
+            {
+                "default": 30,
+                "description": "Maximum count value to clip to",
+                "name": "clip_counts",
+                "type": "int",
+            },
+            {
+                "default": -1,
+                "description": "Which layer to extract embeddings from (-1 for last layer)",
+                "name": "embedding_layer_index",
+                "type": "int",
+            },
+            {
+                "default": 1,
+                "description": "Number of GPUs to use",
+                "name": "num_gpus",
+                "type": "int",
+            },
+            {
+                "default": 0,
+                "description": "Number of data loading workers",
+                "name": "n_data_workers",
+                "type": "int",
+            },
+            {
+                "default": True,
+                "description": "Whether to create a new virtual environment",
+                "name": "create_venv",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Name of the input AnnData file (.h5ad format)",
+                "name": "adata_filename",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Directory containing the input data file",
+                "name": "data_dir",
+                "type": "str",
+            },
+        ],
+    },
 ]
