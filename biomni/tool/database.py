@@ -164,7 +164,7 @@ def _query_rest_api(endpoint, method="GET", params=None, headers=None, json_data
             "result": result,
         }
 
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         error_msg = str(e)
         response_text = ""
 
@@ -193,16 +193,6 @@ def _query_rest_api(endpoint, method="GET", params=None, headers=None, json_data
             },
             "response_url_error": url_error,
             "response_text": response_text,
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": f"Error: {str(e)}",
-            "query_info": {
-                "endpoint": endpoint,
-                "method": method,
-                "description": description,
-            },
         }
 
 
@@ -2514,10 +2504,11 @@ def query_monarch(
             }
     else:
         # Use provided endpoint directly
-        if endpoint.startswith("/"):
-            endpoint = f"{base_url}{endpoint}"
-        elif not endpoint.startswith("http"):
-            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
         description = "Direct query to Monarch API"
 
     # Add max_results as a query parameter if not already present
@@ -2541,8 +2532,12 @@ def query_openfda(
     endpoint=None,
     max_results=100,
     verbose=True,
+    search_params=None,
+    sort_params=None,
+    count_params=None,
+    skip_results=0,
 ):
-    """Query the OpenFDA API using natural language or a direct endpoint.
+    """Query the OpenFDA API using natural language or direct parameters.
 
     Parameters
     ----------
@@ -2550,6 +2545,10 @@ def query_openfda(
     endpoint (str, optional): Direct OpenFDA API endpoint or full URL
     max_results (int): Maximum number of results to return (if supported by endpoint)
     verbose (bool): Whether to return detailed results
+    search_params (dict, optional): Search parameters in format {"field": "term"} or {"field": ["term1", "term2"]}
+    sort_params (dict, optional): Sort parameters in format {"field": "asc|desc"}
+    count_params (str, optional): Field to count unique values for
+    skip_results (int): Number of results to skip for pagination (max 25000)
 
     Returns
     -------
@@ -2559,13 +2558,15 @@ def query_openfda(
     --------
     - Natural language: query_openfda("Find adverse events for Lipitor")
     - Direct endpoint: query_openfda(endpoint="https://api.fda.gov/drug/event.json?search=patient.drug.medicinalproduct:lipitor")
+    - Search params: query_openfda(search_params={"patient.drug.medicinalproduct": "lipitor"}, endpoint="/drug/event.json")
+    - Count reactions: query_openfda(count_params="patient.reaction.reactionmeddrapt.exact", endpoint="/drug/event.json")
     """
     base_url = "https://api.fda.gov"
 
-    if prompt is None and endpoint is None:
-        return {"error": "Either a prompt or an endpoint must be provided"}
+    if prompt is None and endpoint is None and search_params is None and count_params is None:
+        return {"error": "Either a prompt, endpoint, search_params, or count_params must be provided"}
 
-    # If using prompt, use Claude or Gemini to generate the endpoint
+    # If using prompt, use LLM to generate the endpoint
     if prompt:
         schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "openfda.pkl")
         if os.path.exists(schema_path):
@@ -2575,8 +2576,33 @@ def query_openfda(
             openfda_schema = None
 
         system_template = """
-        You are a biomedical informatics expert specialized in using the OpenFDA API.\n\nBased on the user's natural language request, determine the appropriate OpenFDA API endpoint and parameters.\n\nOPENFDA API SCHEMA:\n{schema}\n\nYour response should be a JSON object with the following fields:\n1. \"full_url\": The complete URL to query (including the base URL \"https://api.fda.gov\" and any parameters)\n2. \"description\": A brief description of what the query is doing\n\nSPECIAL NOTES:\n- For drug event queries, use /drug/event.json?search=...\n- For drug label queries, use /drug/label.json?search=...\n- For recall queries, use /drug/enforcement.json?search=...\n- Use max_results to limit the number of returned items if supported (limit=)\n- Always URL-encode search terms\n- Return ONLY the JSON object with no additional text.\n        """
-        # Select LLM for prompt translation
+        You are a biomedical informatics expert specialized in using the OpenFDA API.
+
+        Based on the user's natural language request, determine the appropriate OpenFDA API endpoint and parameters.
+
+        OPENFDA API SCHEMA:
+        {schema}
+
+        Your response should be a JSON object with the following fields:
+        1. "full_url": The complete URL to query (including the base URL "https://api.fda.gov" and any parameters)
+        2. "description": A brief description of what the query is doing
+
+        QUERY PARAMETERS:
+        - search: Use field:term syntax (e.g., "patient.drug.medicinalproduct:lipitor")
+        - sort: Use field:asc or field:desc (e.g., "receivedate:desc")
+        - count: Use field.exact for exact phrase counting (e.g., "patient.reaction.reactionmeddrapt.exact")
+        - limit: Maximum results (max 1000)
+        - skip: Skip results for pagination (max 25000)
+
+        SEARCH SYNTAX:
+        - Basic: search=field:term
+        - AND: search=field1:term1+AND+field2:term2
+        - OR: search=field1:term1+field2:term2
+        - Exact: search=field:"exact phrase"
+
+        Return ONLY the JSON object with no additional text.
+        """
+
         llm_result = _query_llm_for_api(
             prompt=prompt,
             schema=openfda_schema,
@@ -2592,7 +2618,11 @@ def query_openfda(
                 "llm_response": llm_result.get("raw_response", "No response"),
             }
     else:
-        # Use provided endpoint directly
+        # Build endpoint from parameters
+        if endpoint is None:
+            return {"error": "Endpoint must be provided when not using prompt"}
+
+        # Ensure endpoint has proper format
         if endpoint.startswith("/"):
             endpoint = f"{base_url}{endpoint}"
         elif not endpoint.startswith("http"):
@@ -2613,142 +2643,6 @@ def query_openfda(
     api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
     # Format results based on verbose setting
-    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
-        return _format_query_results(api_result["result"])
-
-    return api_result
-
-
-def query_clinicaltrials(
-    prompt: str | None = None,
-    endpoint: str | None = None,
-    term: str | None = None,
-    status: str | None = None,
-    condition: str | None = None,
-    intervention: str | None = None,
-    location: str | None = None,
-    phase: str | None = None,
-    page_size: int = 10,
-    max_pages: int = 1,
-    page_token: str | None = None,
-    verbose: bool = True,
-):
-    """Query ClinicalTrials.gov API for clinical studies.
-
-    Modes:
-    - Direct URL: set `endpoint` to a full URL or a path (e.g., "/studies?query.term=breast%20cancer").
-    - Structured params: provide `term`, `status`, `condition`, etc.
-    - Natural language: provide `prompt` and the function will infer structured params.
-
-    Returns a dict with aggregated results across pages (up to `max_pages`).
-    """
-    base_url = "https://clinicaltrials.gov/api/v2"
-
-    # If natural language prompt is provided, ask LLM to produce parameters
-    if prompt and not endpoint and not term:
-        system_template = (
-            "You translate natural language into ClinicalTrials.gov API parameters.\n"
-            "Return ONLY a JSON object with keys among: \n"
-            '{"term": str, "status": str, "condition": str, "intervention": str, "location": str, "phase": str, "page_size": int}.\n'
-            "Do not include explanations. Keep values concise (e.g., status like 'RECRUITING', phase like 'PHASE3')."
-        )
-
-        llm_result = _query_llm_for_api(
-            prompt=prompt,
-            schema=None,
-            system_template=system_template,
-        )
-        if llm_result.get("success"):
-            mapping = llm_result["data"] or {}
-            term = mapping.get("term", term)
-            status = mapping.get("status", status)
-            condition = mapping.get("condition", condition)
-            intervention = mapping.get("intervention", intervention)
-            location = mapping.get("location", location)
-            phase = mapping.get("phase", phase)
-            page_size = int(mapping.get("page_size", page_size) or page_size)
-
-    # If endpoint provided, normalize to full URL
-    description = "ClinicalTrials.gov studies query"
-    if endpoint:
-        if endpoint.startswith("/"):
-            endpoint = f"{base_url}{endpoint}"
-        elif not endpoint.startswith("http"):
-            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
-
-        api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
-        if not verbose and api_result.get("success") and "result" in api_result:
-            return _format_query_results(api_result["result"])
-        return api_result
-
-    # Otherwise build params for /studies
-    if not term and not condition and not intervention and not status:
-        return {"error": "Provide at least one of: prompt, term, condition, intervention, status, or a direct endpoint"}
-
-    url = f"{base_url}/studies"
-
-    def build_params(token: str | None) -> dict[str, Any]:
-        params: dict[str, Any] = {"pageSize": max(1, min(int(page_size), 100))}
-        if term:
-            params["query.term"] = term
-        if status:
-            params["filter.overallStatus"] = status
-        if condition:
-            params["filter.condition"] = condition
-        if intervention:
-            params["filter.intervention"] = intervention
-        if location:
-            params["filter.location"] = location
-        if phase:
-            params["filter.phase"] = phase
-        if token:
-            params["pageToken"] = token
-        return params
-
-    aggregated = {
-        "success": True,
-        "query_info": {
-            "endpoint": url,
-            "description": description,
-            "parameters": {
-                "term": term,
-                "status": status,
-                "condition": condition,
-                "intervention": intervention,
-                "location": location,
-                "phase": phase,
-                "page_size": page_size,
-                "max_pages": max_pages,
-            },
-        },
-        "result": {"studies": [], "page_count": 0},
-    }
-
-    current_token = page_token
-    pages_fetched = 0
-    while pages_fetched < max_pages:
-        params = build_params(current_token)
-        page_resp = _query_rest_api(endpoint=url, method="GET", params=params, description=description)
-        if not page_resp.get("success"):
-            return page_resp
-
-        data = page_resp.get("result") or {}
-        studies = data.get("studies") or data.get("items") or []
-        aggregated["result"]["studies"].extend(studies)
-        pages_fetched += 1
-        aggregated["result"]["page_count"] = pages_fetched
-
-        # Continue if next token present
-        current_token = data.get("nextPageToken") or data.get("nextPage") or None
-        if not current_token:
-            break
-
-    if not verbose:
-        return _format_query_results(aggregated)
-    return aggregated
-
-    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
-
     if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
@@ -4123,6 +4017,951 @@ def query_synapse(
 
     # Format results if not verbose and successful
     if not verbose and api_result.get("success") and "result" in api_result:
+        api_result["result"] = _format_query_results(api_result["result"])
+
+    return api_result
+
+
+def query_pubchem(
+    prompt=None,
+    endpoint=None,
+    max_results=5,
+    verbose=True,
+):
+    """Query the PubChem PUG-REST API using natural language or a direct endpoint.
+    Parameters
+    ----------
+    prompt (str, required): Natural language query about chemical compounds
+    endpoint (str, optional): Direct PubChem API endpoint to query
+    max_results (int): Maximum number of results to return
+    verbose (bool): Whether to return detailed results
+    Returns
+    -------
+    dict: Dictionary containing the query results or error information
+    Examples
+    --------
+    - Natural language: query_pubchem("Find molecular weight of aspirin")
+    - Direct endpoint: query_pubchem(endpoint="compound/cid/2244/property/MolecularWeight/txt")
+    """
+    # Base URL for PubChem API
+    base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
+
+    # Ensure we have either a prompt or an endpoint
+    if prompt is None and endpoint is None:
+        return {"error": "Either a prompt or an endpoint must be provided"}
+
+    # If using prompt, parse with Claude
+    if prompt:
+        # Load PubChem schema
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "pubchem.pkl")
+        with open(schema_path, "rb") as f:
+            pubchem_schema = pickle.load(f)
+
+        # Create system prompt template
+        system_template = """
+        You are a chemistry expert specialized in using the PubChem PUG-REST API.
+        Based on the user's natural language request, determine the appropriate PubChem API endpoint and parameters.
+        PUBCHEM API SCHEMA:
+        {schema}
+        Your response should be a JSON object with the following fields:
+        1. "full_url": The complete URL to query (including base URL and parameters)
+        2. "description": A brief description of what the query is doing
+        SPECIAL NOTES:
+        - Base URL is "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
+        - Common operations: property, synonyms, record, xrefs
+        - For properties, use CSV format for multiple properties, TXT for single property
+        - For images, use PNG format with optional image_size parameter
+        - Rate limit: maximum 5 requests per second
+        - Use compound/name/ for chemical names, compound/cid/ for PubChem IDs
+        Return ONLY the JSON object with no additional text.
+        """
+
+        # Query Claude to generate the API call
+        llm_result = _query_llm_for_api(
+            prompt=prompt,
+            schema=pubchem_schema,
+            system_template=system_template,
+        )
+
+        if not llm_result["success"]:
+            return llm_result
+
+        # Get the full URL from Claude's response
+        query_info = llm_result["data"]
+        endpoint = query_info.get("full_url", "")
+        description = query_info.get("description", "")
+
+        if not endpoint:
+            return {
+                "error": "Failed to generate a valid endpoint from the prompt",
+                "llm_response": llm_result.get("raw_response", "No response"),
+            }
+    else:
+        # Use provided endpoint directly
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        description = "Direct query to provided endpoint"
+
+    # Rate limiting: allow user to configure or disable; only sleep if last request was too recent
+    if not hasattr(query_pubchem, "_last_request_time"):
+        query_pubchem._last_request_time = 0
+    min_interval = 1.0 / 5  # 5 requests per second by default
+    now = time.time()
+    elapsed = now - query_pubchem._last_request_time
+    if elapsed < min_interval:
+        time.sleep(min_interval - elapsed)
+    query_pubchem._last_request_time = time.time()
+
+    # Use the common REST API helper function
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
+        api_result["result"] = _format_query_results(api_result["result"])
+
+    return api_result
+
+
+def query_chembl(
+    prompt=None,
+    endpoint=None,
+    chembl_id=None,
+    smiles=None,
+    molecule_name=None,
+    max_results=20,
+    verbose=True,
+):
+    """Query the ChEMBL REST API using natural language, direct endpoint, or specific identifiers.
+    Parameters
+    ----------
+    prompt (str, optional): Natural language query about bioactivity data
+    endpoint (str, optional): Direct ChEMBL API endpoint to query
+    chembl_id (str, optional): Specific ChEMBL ID to query (e.g., 'CHEMBL25')
+    smiles (str, optional): SMILES string for similarity/substructure search
+    molecule_name (str, optional): Molecule name for lookup
+    max_results (int): Maximum number of results to return
+    verbose (bool): Whether to return detailed results
+    Returns
+    -------
+    dict: Dictionary containing the query results or error information
+    Examples
+    --------
+    - Natural language: query_chembl("Find approved drugs with kinase activity")
+    - Direct endpoint: query_chembl(endpoint="molecule?max_phase=4")
+    - ChEMBL ID: query_chembl(chembl_id="CHEMBL25")
+    - SMILES similarity: query_chembl(smiles="CC(=O)OC1=CC=CC=C1C(=O)O", similarity_cutoff=80)
+    - Molecule name: query_chembl(molecule_name="aspirin")
+    """
+    # Base URL for ChEMBL API
+    base_url = "https://www.ebi.ac.uk/chembl/api/data"
+
+    # Handle specific identifier parameters first (most reliable)
+    if chembl_id:
+        endpoint = f"{base_url}/molecule/{chembl_id}.json"
+        description = f"Direct lookup for ChEMBL ID: {chembl_id} (most reliable method)"
+    elif smiles:
+        endpoint = f"{base_url}/similarity/{smiles}/80.json"  # Default similarity cutoff
+        description = f"Similarity search for SMILES: {smiles} with 80% cutoff"
+    elif molecule_name:
+        endpoint = f"{base_url}/molecule/search.json?q={molecule_name}&limit={max_results}"
+        description = f"Search for molecule with name containing: {molecule_name}"
+    elif prompt:
+        # Try LLM-based parsing with fallback
+        try:
+            # Load ChEMBL schema
+            schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "chembl.pkl")
+            with open(schema_path, "rb") as f:
+                chembl_schema = pickle.load(f)
+
+            # Create system prompt template
+            system_template = """
+            You are a bioactivity data expert specialized in using the ChEMBL REST API.
+            Based on the user's natural language request, determine the appropriate ChEMBL API endpoint and parameters.
+            CHEMBL API SCHEMA:
+            {schema}
+            Your response should be a JSON object with the following fields:
+            1. "full_url": The complete URL to query (including base URL and parameters)
+            2. "description": A brief description of what the query is doing
+            SPECIAL NOTES:
+            - Base URL is "https://www.ebi.ac.uk/chembl/api/data"
+
+            # IMPORTANT ENDPOINTS:
+            - Molecule search: /molecule/search.json?q={search_term} (full-text search)
+            - Molecule by ID: /molecule/{chembl_id}.json (direct lookup)
+            - Image: /image/{chembl_id}.svg or /molecule/{chembl_id}.svg
+            - Substructure: /substructure/{smiles}.json (valid SMILES required)
+            - Similarity: /similarity/{smiles}/{cutoff}.json (cutoff 70-90 typical)
+
+            # BIOACTIVITY DATA:
+            - Activities: /activity.json?molecule_chembl_id={chembl_id}&limit=20
+            - Assays: /assay.json?molecule_chembl_id={chembl_id}&limit=20
+            - Use only= parameter to reduce fields: &only=target_chembl_id,standard_type,standard_value
+
+            # DRUG METADATA:
+            - Drug info: /drug.json?molecule_chembl_id={chembl_id} (use parent ID)
+            - Indications: /drug_indication.json?molecule_chembl_id={chembl_id}
+            - Mechanisms: /mechanism.json?molecule_chembl_id={chembl_id}
+            - ATC: /atc_class.json?molecule_chembl_id={chembl_id}
+
+            # COMMON FILTERS:
+            - max_phase=4 (approved drugs)
+            - assay_type=B (binding), F (functional), A (ADMET)
+            - standard_type=IC50, Ki, EC50
+            - pchembl_value__gte=5 (activity threshold)
+
+            # FORMAT NOTES:
+            - Add .json for JSON output (default is XML)
+            - Use /search.json for full-text search (not ?search=)
+            - Use parent ChEMBL IDs for drug endpoints
+            - Use raw SMILES (don't double-encode)
+            Return ONLY the JSON object with no additional text.
+            """
+
+            # Query LLM to generate the API call
+            llm_result = _query_llm_for_api(
+                prompt=prompt,
+                schema=chembl_schema,
+                system_template=system_template,
+            )
+
+            if llm_result["success"]:
+                # Get the full URL from LLM's response
+                query_info = llm_result["data"]
+                endpoint = query_info.get("full_url", "")
+                description = query_info.get("description", "")
+
+                if endpoint:
+                    # Successfully got endpoint from LLM
+                    pass
+                else:
+                    raise Exception("No endpoint generated from LLM")
+            else:
+                raise Exception(f"LLM failed: {llm_result.get('error', 'Unknown error')}")
+
+        except Exception:
+            # Fall back to generic endpoint mapping for common query types
+            prompt_lower = prompt.lower()
+
+            # Extract potential molecule names or keywords from the prompt
+            words = prompt.split()
+            potential_molecule = None
+
+            # Look for common molecule indicators - skip common words and look for longer, more specific terms
+            common_words = {
+                "find",
+                "search",
+                "get",
+                "show",
+                "list",
+                "target",
+                "targets",
+                "binding",
+                "for",
+                "the",
+                "a",
+                "an",
+                "and",
+                "or",
+                "with",
+                "using",
+                "via",
+                "through",
+                "from",
+                "in",
+                "on",
+                "at",
+                "to",
+                "of",
+                "by",
+            }
+
+            for word in words:
+                word_lower = word.lower()
+                # Skip common words and look for longer, more specific terms that could be molecule names
+                if (
+                    len(word) > 4
+                    and word.isalpha()
+                    and word_lower not in common_words
+                    and not word_lower.startswith("che")  # Skip words starting with common prefixes
+                    and not word_lower.endswith("ing")
+                ):  # Skip gerunds
+                    potential_molecule = word
+                    break
+
+            if "binding" in prompt_lower and "target" in prompt_lower:
+                # Try to find binding targets - use molecule if found, otherwise generic
+                if potential_molecule:
+                    endpoint = f"{base_url}/molecule/search.json?q={potential_molecule}&limit={max_results}"
+                    description = f"Search for {potential_molecule} binding targets in ChEMBL database"
+                else:
+                    endpoint = f"{base_url}/activity.json?standard_type=IC50&limit={max_results}"
+                    description = "Search for binding activities with IC50 values"
+            elif "molecule" in prompt_lower or "compound" in prompt_lower or "drug" in prompt_lower:
+                # Molecule search
+                if potential_molecule:
+                    endpoint = f"{base_url}/molecule/search.json?q={potential_molecule}&limit={max_results}"
+                    description = f"Search for molecule {potential_molecule} in ChEMBL database"
+                else:
+                    endpoint = f"{base_url}/molecule/search.json?q=molecule&limit={max_results}"
+                    description = "Search for molecules in ChEMBL database"
+            elif "activity" in prompt_lower or "bioactivity" in prompt_lower:
+                # Bioactivity search
+                endpoint = f"{base_url}/activity.json?limit={max_results}"
+                description = "Search for bioactivity data in ChEMBL database"
+            elif "assay" in prompt_lower:
+                # Assay search
+                endpoint = f"{base_url}/assay.json?limit={max_results}"
+                description = "Search for assay data in ChEMBL database"
+            elif "target" in prompt_lower:
+                # Target search
+                endpoint = f"{base_url}/target.json?limit={max_results}"
+                description = "Search for target data in ChEMBL database"
+            elif "image" in prompt_lower:
+                # Image search
+                if potential_molecule:
+                    endpoint = f"{base_url}/molecule/search.json?q={potential_molecule}&limit={max_results}"
+                    description = f"Search for {potential_molecule} images in ChEMBL database"
+                else:
+                    endpoint = f"{base_url}/molecule/search.json?q=molecule&limit={max_results}"
+                    description = "Search for molecule images in ChEMBL database"
+            else:
+                # Generic search - use first meaningful word or fallback
+                if potential_molecule:
+                    endpoint = f"{base_url}/molecule/search.json?q={potential_molecule}&limit={max_results}"
+                    description = f"Generic search for {potential_molecule} in ChEMBL database"
+                else:
+                    endpoint = f"{base_url}/molecule/search.json?q=molecule&limit={max_results}"
+                    description = f"Generic search in ChEMBL database for: {prompt[:50]}..."
+    elif endpoint:
+        # Use provided endpoint directly
+        if endpoint.startswith("/"):
+            endpoint = f"{base_url}{endpoint}"
+        elif not endpoint.startswith("http"):
+            endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        description = "Direct query to provided endpoint"
+    else:
+        # No valid parameters provided
+        return {
+            "success": False,
+            "error": "No query parameters provided. Use prompt, endpoint, chembl_id, smiles, or molecule_name.",
+        }
+
+    # Add pagination if not already specified
+    if "?" in endpoint:
+        if "limit=" not in endpoint:
+            endpoint += f"&limit={max_results}"
+    else:
+        endpoint += f"?limit={max_results}"
+
+    # Use the common REST API helper function
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
+        api_result["result"] = _format_query_results(api_result["result"])
+
+    return api_result
+
+
+def query_unichem(
+    prompt=None,
+    endpoint=None,
+    verbose=True,
+):
+    """Query the UniChem 2.0 REST API using natural language or a direct endpoint.
+    Parameters
+    ----------
+    prompt (str, optional): Natural language query about chemical cross-references
+    endpoint (str, optional): Direct UniChem API endpoint to query
+    verbose (bool): Whether to return detailed results
+    Returns
+    -------
+    dict: Dictionary containing the query results or error information
+    Examples
+    --------
+    - Natural language: query_unichem("Find cross-references for aspirin")
+    - Direct endpoint: query_unichem(endpoint="/compounds")
+    - Compound search: query_unichem(endpoint="/compounds", data={"type": "inchikey", "compound": "LMXNVOREDXZICN-WDSOQIARSA-N"})
+    - Connectivity search: query_unichem(endpoint="/connectivity", data={"type": "inchi", "compound": "InChI=1S/C7H8N4O2/c1-10-5-4(8-3-9-5)6(12)11(2)7(10)13/h3H,1-2H3,(H,8,9)", "searchComponents": True})
+    - Get sources: query_unichem(endpoint="/sources")
+    """
+    # Base URL for UniChem API (corrected from beta to production)
+    base_url = "https://www.ebi.ac.uk/unichem/api/v1"
+
+    # Ensure we have either a prompt or an endpoint
+    if prompt is None and endpoint is None:
+        return {"error": "Either a prompt or an endpoint must be provided"}
+
+    # If using prompt, parse with Claude
+    if prompt:
+        # Load UniChem schema
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "unichem.pkl")
+        with open(schema_path, "rb") as f:
+            unichem_schema = pickle.load(f)
+
+        # Create system prompt template
+        system_template = """
+        You are a chemical cross-reference expert specialized in using the UniChem 2.0 REST API.
+        Based on the user's natural language request, determine the appropriate UniChem API endpoint and parameters.
+        UNICHEM API SCHEMA:
+        {schema}
+        Your response should be a JSON object with the following fields:
+        1. "endpoint": The API endpoint to use (e.g., "/compounds", "/sources", "/connectivity")
+        2. "method": HTTP method ("GET" or "POST")
+        3. "data": POST data if method is POST (null for GET requests)
+        4. "description": A brief description of what the query is doing
+        SPECIAL NOTES:
+        - Base URL is "https://www.ebi.ac.uk/unichem/api/v1"
+        - Compound searches use POST method to /compounds endpoint
+        - Connectivity searches use POST method to /connectivity endpoint
+        - Source information uses GET method to /sources endpoint
+        - Valid identifier types: uci, inchi, inchikey, sourceID
+        - For compound/connectivity searches, include type and compound (or sourceID if type is sourceID)
+        - For connectivity searches, can include searchComponents boolean parameter
+        - Common source IDs: 1=ChEMBL, 2=DrugBank, 5=PubChem, 7=ChEBI
+        Return ONLY the JSON object with no additional text.
+        """
+
+        # Query Claude to generate the API call
+        llm_result = _query_llm_for_api(
+            prompt=prompt,
+            schema=unichem_schema,
+            system_template=system_template,
+        )
+
+        if not llm_result["success"]:
+            return llm_result
+
+        # Get the API call details from Claude's response
+        query_info = llm_result["data"]
+        endpoint = query_info.get("endpoint", "")
+        method = query_info.get("method", "GET")
+        data = query_info.get("data", None)
+        description = query_info.get("description", "")
+
+        if not endpoint:
+            return {
+                "error": "Failed to generate a valid endpoint from the prompt",
+                "llm_response": llm_result.get("raw_response", "No response"),
+            }
+
+        # Construct full URL
+        if endpoint.startswith("/"):
+            full_url = f"{base_url}{endpoint}"
+        else:
+            full_url = f"{base_url}/{endpoint.lstrip('/')}"
+
+    else:
+        # Use provided endpoint directly
+        if endpoint is None:
+            return {"error": "Endpoint cannot be None when prompt is not provided"}
+
+        if endpoint.startswith("/"):
+            full_url = f"{base_url}{endpoint}"
+        elif not endpoint.startswith("http"):
+            full_url = f"{base_url}/{endpoint.lstrip('/')}"
+        else:
+            full_url = endpoint
+        method = "GET"  # Default method for direct endpoints
+        data = None
+        description = "Direct query to provided endpoint"
+
+    # Use the common REST API helper function
+    api_result = _query_rest_api(endpoint=full_url, method=method, json_data=data, description=description)
+
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
+        api_result["result"] = _format_query_results(api_result["result"])
+
+    return api_result
+
+
+def query_clinicaltrials(
+    prompt=None,
+    endpoint=None,
+    max_results=10,
+    verbose=True,
+):
+    """Query the ClinicalTrials.gov API v2 using natural language or a direct endpoint.
+    Parameters
+    ----------
+    prompt (str, required): Natural language query about clinical trials
+    endpoint (str, optional): Direct ClinicalTrials.gov API endpoint to query
+    max_results (int): Maximum number of results to return
+    verbose (bool): Whether to return detailed results
+    Returns
+    -------
+    dict: Dictionary containing the query results or error information
+    Examples
+    --------
+    - Natural language: query_clinicaltrials("Find recruiting cancer trials")
+    - Direct endpoint: query_clinicaltrials(endpoint="/studies?query.cond=cancer&filter.overallStatus=RECRUITING")
+    """
+    # Base URL for ClinicalTrials.gov API
+    base_url = "https://clinicaltrials.gov/api/v2"
+
+    # Ensure we have either a prompt or an endpoint
+    if prompt is None and endpoint is None:
+        return {"error": "Either a prompt or an endpoint must be provided"}
+
+    # If using prompt, parse with Claude
+    if prompt:
+        # Load ClinicalTrials.gov schema
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "clinicaltrials.pkl")
+        with open(schema_path, "rb") as f:
+            clinicaltrials_schema = pickle.load(f)
+
+        # Create system prompt template
+        system_template = """
+        You are a clinical research expert specialized in using the ClinicalTrials.gov API v2.
+        Based on the user's natural language request, determine the appropriate ClinicalTrials.gov API endpoint and parameters.
+        CLINICALTRIALS.GOV API SCHEMA:
+        {schema}
+        Your response should be a JSON object with the following fields:
+        1. "full_url": The complete URL to query (including base URL and parameters)
+        2. "description": A brief description of what the query is doing
+        SPECIAL NOTES:
+        - Base URL is "https://clinicaltrials.gov/api/v2"
+        - Main endpoint is /studies for searching clinical trials
+        - Use query.cond for conditions/diseases, query.intr for interventions
+        - Use filter.overallStatus for study status (RECRUITING, COMPLETED, etc.)
+        - Use filter.phase for study phases (PHASE1, PHASE2, PHASE3, PHASE4)
+        - Use filter.studyType for study types (INTERVENTIONAL, OBSERVATIONAL)
+        - Use pageSize parameter to limit results (max 1000)
+        - For specific studies, use /studies/{{nctId}}
+
+        CORRECT PHASE FILTERING:
+        - Use filter.phase=PHASE1, PHASE2, PHASE3, PHASE4 (comma-separated for multiple phases)
+        - Do NOT use filter.phase=PHASE3 (single value with equals)
+        - Example: filter.phase=PHASE1,PHASE2 for early phase trials
+        Return ONLY the JSON object with no additional text.
+        """
+
+        # Query Claude to generate the API call
+        llm_result = _query_llm_for_api(
+            prompt=prompt,
+            schema=clinicaltrials_schema,
+            system_template=system_template,
+        )
+
+        if not llm_result["success"]:
+            return llm_result
+
+        # Get the full URL from Claude's response
+        query_info = llm_result["data"]
+        endpoint = query_info.get("full_url", "")
+        description = query_info.get("description", "")
+
+        if not endpoint:
+            return {
+                "error": "Failed to generate a valid endpoint from the prompt",
+                "llm_response": llm_result.get("raw_response", "No response"),
+            }
+    else:
+        # Use provided endpoint directly
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        description = "Direct query to provided endpoint"
+
+    # Add pageSize if not already specified and not a specific study lookup
+    if "/studies/" not in endpoint and "pageSize=" not in endpoint:
+        separator = "&" if "?" in endpoint else "?"
+        endpoint += f"{separator}pageSize={max_results}"
+
+    # Use the common REST API helper function
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+
+    # Handle API parameter errors with fallback for ClinicalTrials.gov
+    if not api_result.get("success", False) and "400" in str(api_result.get("error", "")):
+        # Try simplified query without problematic filters
+        if "filter.phase" in endpoint:
+            simplified_endpoint = endpoint.replace("&filter.phase=PHASE3", "").replace("filter.phase=PHASE3&", "")
+            if simplified_endpoint != endpoint:
+                api_result = _query_rest_api(
+                    endpoint=simplified_endpoint, method="GET", description=f"{description} (simplified)"
+                )
+                if api_result.get("success", False):
+                    api_result["note"] = "Query simplified due to API parameter restrictions"
+
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
+        api_result["result"] = _format_query_results(api_result["result"])
+
+    return api_result
+
+
+def query_dailymed(
+    prompt=None,
+    endpoint=None,
+    format="json",
+    verbose=True,
+):
+    """Query the DailyMed RESTful API using natural language or a direct endpoint.
+    Parameters
+    ----------
+    prompt (str, optional): Natural language query about drug labeling information
+    endpoint (str, optional): Direct DailyMed API endpoint to query
+    format (str): Response format ('json' or 'xml')
+    verbose (bool): Whether to return detailed results
+    Returns
+    -------
+    dict: Dictionary containing the query results or error information
+    Examples
+    --------
+    - Natural language: query_dailymed("Find all drug names")
+    - Direct endpoint: query_dailymed(endpoint="/drugnames.json")
+    - Get specific SPL: query_dailymed(endpoint="/spls/12345678-1234-1234-1234-123456789012.json")
+    - Get SPL history: query_dailymed(endpoint="/spls/12345678-1234-1234-1234-123456789012/history.json")
+    """
+    # Base URL for DailyMed API
+    base_url = "https://dailymed.nlm.nih.gov/dailymed/services/v2"
+
+    # Ensure we have either a prompt or an endpoint
+    if prompt is None and endpoint is None:
+        return {"error": "Either a prompt or an endpoint must be provided"}
+
+    # Validate format
+    if format not in ["json", "xml"]:
+        format = "json"
+
+    # If using prompt, parse with Claude
+    if prompt:
+        # Load DailyMed schema
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "dailymed.pkl")
+        with open(schema_path, "rb") as f:
+            dailymed_schema = pickle.load(f)
+
+        # Create system prompt template
+        system_template = """
+        You are a pharmaceutical labeling expert specialized in using the DailyMed RESTful API.
+        Based on the user's natural language request, determine the appropriate DailyMed API endpoint and parameters.
+        DAILYMED API SCHEMA:
+        {schema}
+        Your response should be a JSON object with the following fields:
+        1. "full_url": The complete URL to query (including base URL and format extension)
+        2. "description": A brief description of what the query is doing
+        SPECIAL NOTES:
+        - Base URL is "https://dailymed.nlm.nih.gov/dailymed/services/v2"
+        - Available resources: applicationnumbers, drugclasses, drugnames, ndcs, rxcuis, spls, uniis
+        - For specific SPL documents, use /spls/{{SETID}} format
+        - For SPL-related data, use /spls/{{SETID}}/history, /spls/{{SETID}}/media, /spls/{{SETID}}/ndcs, /spls/{{SETID}}/packaging
+        - Always append format extension (.json or .xml)
+        - API only supports GET method
+        - HTTPS is required (HTTP disabled since 2016)
+        - Each resource may have optional query parameters to filter or control output
+        Return ONLY the JSON object with no additional text.
+        """
+
+        # Query Claude to generate the API call
+        llm_result = _query_llm_for_api(
+            prompt=prompt,
+            schema=dailymed_schema,
+            system_template=system_template,
+        )
+
+        if not llm_result["success"]:
+            return llm_result
+
+        # Get the full URL from Claude's response
+        query_info = llm_result["data"]
+        endpoint = query_info.get("full_url", "")
+        description = query_info.get("description", "")
+
+        if not endpoint:
+            return {
+                "error": "Failed to generate a valid endpoint from the prompt",
+                "llm_response": llm_result.get("raw_response", "No response"),
+            }
+    else:
+        # Use provided endpoint directly
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        description = "Direct query to provided endpoint"
+
+        # Add format extension if not present
+        if not endpoint.endswith(f".{format}") and not endpoint.endswith(".json") and not endpoint.endswith(".xml"):
+            endpoint += f".{format}"
+
+    # Use the common REST API helper function
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
+        api_result["result"] = _format_query_results(api_result["result"])
+
+    return api_result
+
+
+def query_quickgo(
+    prompt=None,
+    endpoint=None,
+    max_results=25,
+    verbose=True,
+):
+    """Query the QuickGO API using natural language or a direct endpoint.
+    Parameters
+    ----------
+    prompt (str, optional): Natural language query about Gene Ontology terms, annotations, or gene products
+    endpoint (str, optional): Direct QuickGO API endpoint to query
+    max_results (int): Maximum number of results to return (max 100)
+    verbose (bool): Whether to return detailed results
+    Returns
+    -------
+    dict: Dictionary containing the query results or error information
+    Examples
+    --------
+    - Natural language: query_quickgo("Find GO terms related to apoptosis")
+    - Direct endpoint: query_quickgo(endpoint="/ontology/go/search?query=apoptosis&limit=10")
+    - Get specific term: query_quickgo(endpoint="/ontology/go/terms/GO:0006915")
+    """
+    # Base URL for QuickGO API (corrected from documentation)
+    base_url = "https://www.ebi.ac.uk/QuickGO/services"
+
+    # Ensure we have either a prompt or an endpoint
+    if prompt is None and endpoint is None:
+        return {"error": "Either a prompt or an endpoint must be provided"}
+
+    # Validate max_results
+    if max_results > 100:
+        import warnings
+
+        warnings.warn(
+            f"max_results ({max_results}) exceeds QuickGO API limit (100). Setting max_results to 100.", stacklevel=2
+        )
+        max_results = 100
+
+    # If using prompt, parse with Claude
+    if prompt:
+        # Load QuickGO schema
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "quickgo.pkl")
+        with open(schema_path, "rb") as f:
+            quickgo_schema = pickle.load(f)
+
+        # Create system prompt template
+        system_template = """
+        You are a Gene Ontology expert specialized in using the QuickGO REST API.
+        Based on the user's natural language request, determine the appropriate QuickGO API endpoint and parameters.
+        QUICKGO API SCHEMA:
+        {schema}
+        Your response should be a JSON object with the following fields:
+        1. "full_url": The complete URL to query (including base URL and parameters)
+        2. "description": A brief description of what the query is doing
+        SPECIAL NOTES:
+        - Base URL is "https://www.ebi.ac.uk/QuickGO/services"
+        - Main services: /ontology (GO/ECO terms), /annotation (GO annotations), /geneproduct (gene products)
+        - For GO term search, use /ontology/go/search with query parameter
+        - For specific GO terms, use /ontology/go/terms/{{go_id}}
+        - For GO term relationships, use /ontology/go/terms/{{go_id}}/children, /descendants, /ancestors
+        - For annotations, use /annotation/search with various filters
+        - For gene products, use /geneproduct/search
+        - Use limit parameter to control results (max 100)
+        - Common organisms: 9606 (human), 10090 (mouse), 7227 (fly)
+        - GO aspects: biological_process, molecular_function, cellular_component
+        - Evidence codes: IEA, IDA, IPI, IMP, IGI, etc.
+        - Qualifiers: enables, involved_in, is_active_in, part_of, etc.
+        Return ONLY the JSON object with no additional text.
+        """
+
+        # Query Claude to generate the API call
+        llm_result = _query_llm_for_api(
+            prompt=prompt,
+            schema=quickgo_schema,
+            system_template=system_template,
+        )
+
+        if not llm_result["success"]:
+            return llm_result
+
+        # Get the full URL from Claude's response
+        query_info = llm_result["data"]
+        endpoint = query_info.get("full_url", "")
+        description = query_info.get("description", "")
+
+        if not endpoint:
+            return {
+                "error": "Failed to generate a valid endpoint from the prompt",
+                "llm_response": llm_result.get("raw_response", "No response"),
+            }
+    else:
+        # Use provided endpoint directly
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        description = "Direct query to provided endpoint"
+
+    # Add limit parameter if not already specified
+    if "limit=" not in endpoint and "/terms/" not in endpoint:
+        separator = "&" if "?" in endpoint else "?"
+        endpoint += f"{separator}limit={max_results}"
+
+    # Use the common REST API helper function
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
+        api_result["result"] = _format_query_results(api_result["result"])
+
+    return api_result
+
+
+def query_encode(
+    prompt=None,
+    endpoint=None,
+    max_results=25,
+    verbose=True,
+):
+    """Query the ENCODE Portal API to help users locate functional genomics data.
+    This function is designed to help users find and explore ENCODE data including:
+    - Experiments (ChIP-seq, RNA-seq, ATAC-seq, DNase-seq, WGBS, etc.)
+    - Files (BAM, BED, bigWig, fastq, etc.)
+    - Biosamples (cell lines, tissues, primary cells)
+    - Datasets and replicates
+    Parameters
+    ----------
+    prompt (str, required): Natural language query about functional genomics data you want to find
+    endpoint (str, optional): Direct ENCODE Portal API endpoint to query
+    max_results (int): Maximum number of results to return (use "all" for all results)
+    verbose (bool): Whether to return detailed results
+    Returns
+    -------
+    dict: Dictionary containing the query results with data location information
+    Examples
+    --------
+    - Find experiments: query_encode("Find ChIP-seq experiments for CTCF in human K562 cells")
+    - Find files: query_encode("Find BAM files from ATAC-seq experiments in mouse brain")
+    - Find biosamples: query_encode("Find human primary T cells from blood")
+    - Find datasets: query_encode("Find RNA-seq datasets from human liver tissue")
+    - Direct endpoint: query_encode(endpoint="/search/?type=Experiment&assay_title=ChIP-seq&format=json")
+    """
+    # Base URL for ENCODE Portal API
+    base_url = "https://www.encodeproject.org"
+
+    # Ensure we have either a prompt or an endpoint
+    if prompt is None and endpoint is None:
+        return {"error": "Either a prompt or an endpoint must be provided"}
+
+    # If using prompt, parse with Claude
+    if prompt:
+        # Load ENCODE schema
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "encode.pkl")
+        with open(schema_path, "rb") as f:
+            encode_schema = pickle.load(f)
+
+        # Create system prompt template
+        system_template = """
+        You are a functional genomics expert specialized in helping users locate data in the ENCODE Portal.
+        Your goal is to help users find the specific functional genomics data they need. Based on the user's request,
+        determine the most appropriate ENCODE Portal API endpoint and parameters to locate their data.
+        ENCODE PORTAL API SCHEMA:
+        {schema}
+        Your response should be a JSON object with the following fields:
+        1. "full_url": The complete URL to query (including base URL and parameters)
+        2. "description": A clear description of what data the query will help locate
+        3. "data_type": The type of data being searched (Experiment, File, Biosample, etc.)
+        4. "search_strategy": Brief explanation of the search approach used
+        CRITICAL RULES FOR SIMPLE, EFFECTIVE QUERIES:
+        1. KEEP QUERIES SIMPLE - use only 1-3 parameters maximum for better results
+        2. Start with basic searches and let users refine based on results
+        3. Use searchTerm for text-based searches (most reliable for complex terms)
+        4. Avoid complex nested property paths when possible
+        5. For organism filtering, use simple organism names: "Homo sapiens", "Mus musculus"
+        SIMPLE QUERY PATTERNS (PREFERRED):
+        - Basic experiment search: /search/?type=Experiment&assay_title=ChIP-seq&format=json
+        - Text-based search: /search/?searchTerm=CTCF&format=json
+        - File type search: /search/?type=File&file_format=bam&format=json
+        - Biosample search: /search/?type=Biosample&format=json
+        - Dataset search: /search/?type=Dataset&format=json
+        COMMON ASSAY TYPES (choose ONE per query):
+        - ChIP-seq, RNA-seq, ATAC-seq, DNase-seq, WGBS, Hi-C, CAGE, ChIA-PET
+        COMMON FILE FORMATS:
+        - bam, fastq, bigWig, bigBed, bed, narrowPeak, broadPeak
+        SIMPLE EXAMPLES:
+        - Find ChIP-seq experiments: /search/?type=Experiment&assay_title=ChIP-seq&format=json
+        - Find CTCF data: /search/?searchTerm=CTCF&format=json
+        - Find BAM files: /search/?type=File&file_format=bam&format=json
+        - Find human experiments: /search/?type=Experiment&searchTerm=human&format=json
+        - Find mouse brain data: /search/?type=Experiment&searchTerm=mouse%20brain&format=json
+        IMPORTANT: Return ONLY a valid JSON object with no additional text, code comments, or explanations.
+        The response must be parseable JSON starting with {{ and ending with }}.
+        """
+
+        # Query Claude to generate the API call
+        llm_result = _query_llm_for_api(
+            prompt=prompt,
+            schema=encode_schema,
+            system_template=system_template,
+        )
+
+        if not llm_result["success"]:
+            return llm_result
+
+        # Get the full URL from Claude's response
+        query_info = llm_result["data"]
+        endpoint = query_info.get("full_url", "")
+        description = query_info.get("description", "")
+
+        if not endpoint:
+            return {
+                "error": "Failed to generate a valid endpoint from the prompt",
+                "llm_response": llm_result.get("raw_response", "No response"),
+            }
+    else:
+        # Use provided endpoint directly
+        if endpoint is not None:
+            if endpoint.startswith("/"):
+                endpoint = f"{base_url}{endpoint}"
+            elif not endpoint.startswith("http"):
+                endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        description = "Direct query to provided endpoint"
+
+    # Ensure format=json is included for API access
+    if "format=json" not in endpoint and "/search/" in endpoint:
+        separator = "&" if "?" in endpoint else "?"
+        endpoint += f"{separator}format=json"
+
+    # Add limit parameter if not already specified and it's a search endpoint
+    if "/search/" in endpoint and "limit=" not in endpoint:
+        separator = "&" if "?" in endpoint else "?"
+        limit_value = "all" if max_results == "all" or max_results > 100 else max_results
+        endpoint += f"{separator}limit={limit_value}"
+
+    # Use the common REST API helper function
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+
+    # Add data location information to the result
+    if api_result.get("success", False):
+        # Extract data_type and search_strategy from the query_info if available
+        data_type = query_info.get("data_type", "Unknown") if "query_info" in locals() else "Unknown"
+        search_strategy = (
+            query_info.get("search_strategy", "Direct query") if "query_info" in locals() else "Direct query"
+        )
+
+        api_result["data_type"] = data_type
+        api_result["search_strategy"] = search_strategy
+        api_result["data_location_info"] = {
+            "description": description,
+            "data_type": data_type,
+            "search_strategy": search_strategy,
+            "endpoint_used": endpoint,
+        }
+
+    # Handle API parameter errors with fallback for ENCODE
+    if not api_result.get("success", False) and "404" in str(api_result.get("error", "")):
+        # Try simplified query with basic search
+        if prompt and "transcription factor" in prompt.lower():
+            simplified_endpoint = f"{base_url}/search/?type=Experiment&assay_title=ChIP-seq&searchTerm=transcription%20factor&format=json&limit={max_results}"
+            api_result = _query_rest_api(
+                endpoint=simplified_endpoint, method="GET", description=f"{description} (simplified)"
+            )
+            if api_result.get("success", False):
+                api_result["note"] = "Query simplified due to API endpoint restrictions"
+
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result

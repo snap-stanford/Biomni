@@ -2431,6 +2431,8 @@ def query_drug_interactions(drug_names, interaction_types=None, severity_levels=
 
             log += f"- Severity distribution: {dict(severity_counts)}\n"
 
+    except FileNotFoundError as e:
+        log += f"Error during interaction query: {str(e)}\n"
     except Exception as e:
         log += f"Error during interaction query: {str(e)}\n"
 
