@@ -89,6 +89,8 @@ def get_llm(
                 source = "Gemini"
             elif "groq" in model.lower():
                 source = "Groq"
+            elif "grok" in model.lower():
+                source = "XAI"
             elif base_url is not None:
                 source = "Custom"
             elif "/" in model or any(
@@ -107,11 +109,21 @@ def get_llm(
             ):
                 source = "Ollama"
             elif model.startswith(
-                ("anthropic.claude-", "amazon.titan-", "meta.llama-", "mistral.", "cohere.", "ai21.", "us.")
+                (
+                    "anthropic.claude-",
+                    "amazon.titan-",
+                    "meta.llama-",
+                    "mistral.",
+                    "cohere.",
+                    "ai21.",
+                    "us.",
+                )
             ):
                 source = "Bedrock"
             else:
-                raise ValueError("Unable to determine model source. Please specify 'source' parameter.")
+                raise ValueError(
+                    "Unable to determine model source. Please specify 'source' parameter."
+                )
 
     # Create appropriate model based on source
     if source == "OpenAI":
