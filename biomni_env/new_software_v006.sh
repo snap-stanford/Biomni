@@ -3,3 +3,6 @@
 pip install transformers sentencepiece langchain-google-genai langchain_ollama mcp
 pip install lazyslide
 pip install "git+https://github.com/YosefLab/popV.git@refs/pull/100/head"
+pip install uv
+sudo apt-get install git-lfs
+git lfs install
