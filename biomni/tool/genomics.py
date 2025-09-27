@@ -2164,15 +2164,22 @@ def analyze_genomic_region_overlap(region_sets, output_prefix="overlap_analysis"
     return log
 
 
-def generate_embeddings_with_state(adata_filename, data_dir, model_folder, output_filename=None, 
-                                 checkpoint=None, embed_key="X_state", 
-                                 protein_embeddings=None, batch_size=500):
+def generate_embeddings_with_state(
+    adata_filename,
+    data_dir,
+    model_folder,
+    output_filename=None,
+    checkpoint=None,
+    embed_key="X_state",
+    protein_embeddings=None,
+    batch_size=500,
+):
     """
     Generate State embeddings for single-cell RNA-seq data using the SE-600M model.
-    
+
     This function downloads the SE-600M model from Hugging Face, installs required dependencies,
     and generates embeddings for the input AnnData object.
-    
+
     Parameters:
     -----------
     adata_filename : str
@@ -2191,12 +2198,12 @@ def generate_embeddings_with_state(adata_filename, data_dir, model_folder, outpu
         Path to protein embeddings override (.pt). If omitted, auto-detects in model folder
     batch_size : int, default=500
         Batch size for embedding forward pass. Increase to use more VRAM and speed up embedding
-        
+
     Returns:
     --------
     str
         Path to the generated embeddings file
-        
+
     Notes:
     ------
     - Requires 10GB+ GPU memory for model loading
@@ -2209,39 +2216,46 @@ def generate_embeddings_with_state(adata_filename, data_dir, model_folder, outpu
     import os
     import subprocess
     import sys
-    from pathlib import Path
-    
+
     # Set up paths
     input_path = os.path.join(data_dir, adata_filename)
     if output_filename is None:
         base_name = os.path.splitext(adata_filename)[0]
         output_filename = f"{base_name}_state_embeddings.h5ad"
-    
+
     output_path = os.path.join(data_dir, "output", output_filename)
-    
+
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    
+
     # Validate h5ad file format
     print("Validating h5ad file format...")
     try:
         import scanpy as sc
+
         adata = sc.read_h5ad(input_path)
-        
+
         import warnings
-        if not hasattr(adata.X, 'indices'):
-            warnings.warn("Input data is not in CSR (Compressed Sparse Row) matrix format. Proceeding, but this may cause issues.")
-        
-        if 'gene_name' not in adata.var.columns:
-            warnings.warn("'gene_name' column is not present in the var dataframe. Proceeding, but this may cause issues.")
-        
+
+        if not hasattr(adata.X, "indices"):
+            warnings.warn(
+                "Input data is not in CSR (Compressed Sparse Row) matrix format. Proceeding, but this may cause issues.",
+                stacklevel=2,
+            )
+
+        if "gene_name" not in adata.var.columns:
+            warnings.warn(
+                "'gene_name' column is not present in the var dataframe. Proceeding, but this may cause issues.",
+                stacklevel=2,
+            )
+
         print(f"  - Matrix format: {type(adata.X).__name__}")
         print(f"  - Number of cells: {adata.n_obs}")
         print(f"  - Number of genes: {adata.n_vars}")
         print(f"  - Gene names available: {'gene_name' in adata.var.columns}")
-        
+
     except Exception as e:
         raise ValueError(f"h5ad file validation failed: {e}")
-    
+
     # Check if git-lfs is installed
     try:
         subprocess.run(["git", "lfs", "version"], check=True, capture_output=True)
@@ -2253,7 +2267,7 @@ def generate_embeddings_with_state(adata_filename, data_dir, model_folder, outpu
             "sudo apt-get install git-lfs\n"
             "git lfs install"
         )
-    
+
     print("Downloading SE-600M model...")
     if not os.path.exists(model_folder):
         os.makedirs(model_folder, exist_ok=True)
@@ -2266,23 +2280,27 @@ def generate_embeddings_with_state(adata_filename, data_dir, model_folder, outpu
                 stderr=subprocess.STDOUT,
                 text=True,
                 bufsize=1,
-                universal_newlines=True
+                universal_newlines=True,
             )
-            
-            for line in iter(process.stdout.readline, ''):
+
+            for line in iter(process.stdout.readline, ""):
                 print(line.rstrip())
-            
+
             process.wait()
-            
+
             if process.returncode != 0:
-                raise subprocess.CalledProcessError(process.returncode, ["git", "clone", "https://huggingface.co/arcinstitute/SE-600M", model_folder])
+                raise subprocess.CalledProcessError(
+                    process.returncode, ["git", "clone", "https://huggingface.co/arcinstitute/SE-600M", model_folder]
+                )
         except subprocess.CalledProcessError as e:
             print(f"Error downloading model: {e}")
             raise
-    
+
     print("Installing uv and arc-state...")
     try:
-        result1 = subprocess.run([sys.executable, "-m", "pip", "install", "uv"], check=True, capture_output=True, text=True)
+        result1 = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "uv"], check=True, capture_output=True, text=True
+        )
         print(result1.stdout)
         print(result1.stderr)
     except subprocess.CalledProcessError as e:
@@ -2296,9 +2314,9 @@ def generate_embeddings_with_state(adata_filename, data_dir, model_folder, outpu
     except subprocess.CalledProcessError as e:
         print(f"Error installing arc-state: {e}")
         raise
-    
+
     print("Generating embeddings...")
-    
+
     if torch.cuda.is_available():
         device_name = torch.cuda.get_device_name(0)
         gpu_memory = torch.cuda.get_device_properties(0).total_memory / (1024**3)
@@ -2311,31 +2329,38 @@ def generate_embeddings_with_state(adata_filename, data_dir, model_folder, outpu
     else:
         print("⚠️  WARNING: No GPU detected! This will run on CPU and be very slow.")
         print("⚠️  SE600 model requires 10GB+ GPU memory for optimal performance.")
-    
+
     import os
-    cuda_visible = os.environ.get('CUDA_VISIBLE_DEVICES', 'Not set')
+
+    cuda_visible = os.environ.get("CUDA_VISIBLE_DEVICES", "Not set")
     print(f"CUDA_VISIBLE_DEVICES: {cuda_visible}")
-    
+
     print(f"PyTorch CUDA available: {torch.cuda.is_available()}")
     if torch.cuda.is_available():
         print(f"PyTorch CUDA device count: {torch.cuda.device_count()}")
         print(f"PyTorch current device: {torch.cuda.current_device()}")
-    
+
     print("embedding data can take a while...")
     max_retries = 3
     retries = 0
-    orig_batch_size = batch_size
     last_exception = None
 
     while retries <= max_retries:
         try:
             cmd = [
-                "uv", "run", "state", "emb", "transform",
-                "--model-folder", model_folder,
-                "--input", input_path,
-                "--output", output_path
+                "uv",
+                "run",
+                "state",
+                "emb",
+                "transform",
+                "--model-folder",
+                model_folder,
+                "--input",
+                input_path,
+                "--output",
+                output_path,
             ]
-            
+
             if checkpoint:
                 cmd.extend(["--checkpoint", checkpoint])
             if embed_key != "X_state":
@@ -2344,28 +2369,30 @@ def generate_embeddings_with_state(adata_filename, data_dir, model_folder, outpu
                 cmd.extend(["--protein-embeddings", protein_embeddings])
             if batch_size:
                 cmd.extend(["--batch-size", str(batch_size)])
-            
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, universal_newlines=True)
-            
-            for line in iter(process.stdout.readline, ''):
+
+            process = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, universal_newlines=True
+            )
+
+            for line in iter(process.stdout.readline, ""):
                 print(line.rstrip())
-            
+
             process.wait()
-            
+
             if process.returncode != 0:
                 raise subprocess.CalledProcessError(process.returncode, cmd)
-            
+
             print("Embeddings generated successfully!")
             print("Output Format and Location:")
             print("  Output format: .h5ad (AnnData format)")
             print("  Embeddings stored in: X_state layer (by default)")
-            print(f"  Location: Specified by --output parameter")
+            print("  Location: Specified by --output parameter")
             print(f"  In your code: Saved to {output_path}")
             print()
             return output_path
 
         except subprocess.CalledProcessError as e:
-            print(f"Error generating embeddings (attempt {retries+1}): {e}")
+            print(f"Error generating embeddings (attempt {retries + 1}): {e}")
             last_exception = e
             if batch_size and retries < max_retries:
                 batch_size = max(1, batch_size // 2)
@@ -2377,5 +2404,3 @@ def generate_embeddings_with_state(adata_filename, data_dir, model_folder, outpu
     print("Failed to generate embeddings after multiple attempts.")
     if last_exception:
         raise last_exception
-    
-  
