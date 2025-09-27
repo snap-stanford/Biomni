@@ -5,4 +5,5 @@ pip install lazyslide
 pip install "git+https://github.com/YosefLab/popV.git@refs/pull/100/head"
 pip install uv
 sudo apt-get install git-lfs
-git lfs install
+git lfs installpip install pybiomart
+pip install fair-esm
