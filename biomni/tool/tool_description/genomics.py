@@ -579,7 +579,8 @@ description = [
         "This function downloads the SE-600M model from Hugging Face, installs required dependencies "
         "(git-lfs, uv, arc-state), and generates embeddings for the input AnnData object. "
         "The SE-600M model is a state-of-the-art embedding model for single-cell data that can capture "
-        "complex biological patterns and cell states.",
+        "complex biological patterns and cell states. Features include real-time streaming output, "
+        "automatic retry with reduced batch size on failure, GPU detection and warnings, and input validation.",
         "name": "generate_embeddings_with_state",
         "optional_parameters": [
             {
@@ -587,6 +588,30 @@ description = [
                 "description": "Name of the output embeddings file. If None, will use input filename with '_state_embeddings' suffix",
                 "name": "output_filename",
                 "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Path to the specific model checkpoint. If None, uses the latest checkpoint in model_folder",
+                "name": "checkpoint",
+                "type": "str",
+            },
+            {
+                "default": "X_state",
+                "description": "Name of key to store embeddings in the output AnnData object",
+                "name": "embed_key",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Path to protein embeddings override (.pt). If omitted, auto-detects in model folder",
+                "name": "protein_embeddings",
+                "type": "str",
+            },
+            {
+                "default": 500,
+                "description": "Batch size for embedding forward pass. Increase to use more VRAM and speed up embedding",
+                "name": "batch_size",
+                "type": "int",
             },
         ],
         "required_parameters": [
