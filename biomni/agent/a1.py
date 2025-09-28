@@ -3,6 +3,7 @@ import inspect
 import os
 import re
 from collections.abc import Generator
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal, TypedDict
 
@@ -20,12 +21,24 @@ from biomni.tool.support_tools import run_python_repl
 from biomni.tool.tool_registry import ToolRegistry
 from biomni.utils import (
     check_and_download_s3_files,
+    clean_message_content,
+    convert_markdown_to_pdf,
+    create_parsing_error_html,
+    find_matching_execution,
+    format_execute_tags_in_content,
+    format_lists_in_text,
+    format_observation_as_terminal,
     function_to_api_schema,
+    has_execution_results,
+    inject_custom_functions_to_repl,
+    parse_tool_calls_from_code,
+    parse_tool_calls_with_modules,
     pretty_print,
     read_module2api,
     run_bash_script,
     run_r_code,
     run_with_timeout,
+    should_skip_message,
     textify_api_dict,
 )
 
@@ -1104,14 +1117,14 @@ IMPORTANT: The following custom resources have been specifically added for your 
 
             if custom_tools_formatted:
                 prompt_modifier += """
-CUSTOM TOOLS (USE THESE FIRST):
+🔧 CUSTOM TOOLS (USE THESE FIRST):
 {custom_tools}
 
 """
 
             if custom_data_formatted:
                 prompt_modifier += """
-CUSTOM DATA (PRIORITIZE THESE DATASETS):
+📊 CUSTOM DATA (PRIORITIZE THESE DATASETS):
 {custom_data}
 
 """
@@ -1305,7 +1318,7 @@ Each library is listed with its description to help you understand its functiona
                 state["next_step"] = "generate"
             else:
                 print("parsing error...")
-                # Check if we already added an error message to avoid infinite loops
+
                 error_count = sum(
                     1 for m in state["messages"] if isinstance(m, AIMessage) and "There are no tags" in m.content
                 )
@@ -1350,7 +1363,7 @@ Each library is listed with its description to help you understand its functiona
                     or code.strip().startswith("# R script")
                 ):
                     # Remove the R marker and run as R code
-                    r_code = re.sub(r"^#!R|^# R code|^# R script", "", code, 1).strip()  # noqa: B034
+                    r_code = re.sub(r"^#!R|^# R code|^# R script", "", code, count=1).strip()
                     result = run_with_timeout(run_r_code, [r_code], timeout=timeout)
                 # Check if the code is a Bash script or CLI command
                 elif (
@@ -1361,25 +1374,54 @@ Each library is listed with its description to help you understand its functiona
                     # Handle both Bash scripts and CLI commands with the same function
                     if code.strip().startswith("#!CLI"):
                         # For CLI commands, extract the command and run it as a simple bash script
-                        cli_command = re.sub(r"^#!CLI", "", code, 1).strip()  # noqa: B034
+                        cli_command = re.sub(r"^#!CLI", "", code, count=1).strip()
                         # Remove any newlines to ensure it's a single command
                         cli_command = cli_command.replace("\n", " ")
                         result = run_with_timeout(run_bash_script, [cli_command], timeout=timeout)
                     else:
                         # For Bash scripts, remove the marker and run as a bash script
-                        bash_script = re.sub(r"^#!BASH|^# Bash script", "", code, 1).strip()  # noqa: B034
+                        bash_script = re.sub(r"^#!BASH|^# Bash script", "", code, count=1).strip()
                         result = run_with_timeout(run_bash_script, [bash_script], timeout=timeout)
                 # Otherwise, run as Python code
                 else:
+                    # Clear any previous plots before execution
+                    self._clear_execution_plots()
+
                     # Inject custom functions into the Python execution environment
                     self._inject_custom_functions_to_repl()
                     result = run_with_timeout(run_python_repl, [code], timeout=timeout)
+
+                    # Plots are now captured directly in the execution entry above
 
                 if len(result) > 10000:
                     result = (
                         "The output is too long to be added to context. Here are the first 10K characters...\n"
                         + result[:10000]
                     )
+
+                # Store the execution result with the triggering message
+                if not hasattr(self, "_execution_results"):
+                    self._execution_results = []
+
+                # Get any plots that were generated during this execution
+                execution_plots = []
+                try:
+                    from biomni.tool.support_tools import get_captured_plots
+
+                    current_plots = get_captured_plots()
+                    execution_plots = current_plots.copy()
+                except Exception as e:
+                    print(f"Warning: Could not capture plots from execution: {e}")
+                    execution_plots = []
+
+                # Store the execution result with metadata
+                execution_entry = {
+                    "triggering_message": last_message,  # The AI message that contained <execute>
+                    "images": execution_plots,  # Base64 encoded images from this execution
+                    "timestamp": datetime.now().isoformat(),
+                }
+                self._execution_results.append(execution_entry)
+
                 observation = f"\n<observation>{result}</observation>"
                 state["messages"].append(AIMessage(content=observation.strip()))
 
@@ -1569,10 +1611,17 @@ Each library is listed with its description to help you understand its functiona
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
         self.log = []
 
+        # Store the final conversation state for markdown generation
+        final_state = None
+
         for s in self.app.stream(inputs, stream_mode="values", config=config):
             message = s["messages"][-1]
             out = pretty_print(message)
             self.log.append(out)
+            final_state = s  # Store the latest state
+
+        # Store the conversation state for markdown generation
+        self._conversation_state = final_state
 
         return self.log, message.content
 
@@ -1599,13 +1648,20 @@ Each library is listed with its description to help you understand its functiona
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
         self.log = []
 
+        # Store the final conversation state for markdown generation
+        final_state = None
+
         for s in self.app.stream(inputs, stream_mode="values", config=config):
             message = s["messages"][-1]
             out = pretty_print(message)
             self.log.append(out)
+            final_state = s  # Store the latest state
 
             # Yield the current step
             yield {"output": out}
+
+        # Store the conversation state for markdown generation
+        self._conversation_state = final_state
 
     def update_system_prompt_with_selected_resources(self, selected_resources):
         """Update the system prompt with the selected resources."""
@@ -1736,24 +1792,38 @@ Each library is listed with its description to help you understand its functiona
         result = checker_llm.invoke({"messages": [("user", str(self.log))]}).dict()
         return result
 
+    def _parse_tool_calls_from_code(self, code: str) -> list[str]:
+        """Parse code to detect imported tools by looking for import statements.
+
+        Args:
+            code: The Python code to parse
+
+        Returns:
+            List of detected tool names
+        """
+        module2api = getattr(self, "module2api", {})
+        custom_functions = getattr(self, "_custom_functions", {})
+        return parse_tool_calls_from_code(code, module2api, custom_functions)
+
+    def _parse_tool_calls_with_modules(self, code: str) -> list[tuple[str, str]]:
+        """Parse code to detect imported tools and their modules.
+
+        Args:
+            code: The Python code to parse
+
+        Returns:
+            List of tuples (tool_name, module_name)
+        """
+        module2api = getattr(self, "module2api", {})
+        custom_functions = getattr(self, "_custom_functions", {})
+        return parse_tool_calls_with_modules(code, module2api, custom_functions)
+
     def _inject_custom_functions_to_repl(self):
         """Inject custom functions into the Python REPL execution environment.
         This makes custom tools available during code execution.
         """
-        if hasattr(self, "_custom_functions") and self._custom_functions:
-            # Access the persistent namespace used by run_python_repl
-            from biomni.tool.support_tools import _persistent_namespace
-
-            # Inject all custom functions into the execution namespace
-            for name, func in self._custom_functions.items():
-                _persistent_namespace[name] = func
-
-            # Also make them available in builtins for broader access
-            import builtins
-
-            if not hasattr(builtins, "_biomni_custom_functions"):
-                builtins._biomni_custom_functions = {}
-            builtins._biomni_custom_functions.update(self._custom_functions)
+        custom_functions = getattr(self, "_custom_functions", {})
+        inject_custom_functions_to_repl(custom_functions)
 
     def create_mcp_server(self, tool_modules=None):
         """
@@ -1820,6 +1890,486 @@ Each library is listed with its description to help you understand its functiona
 
         print(f"Created MCP server with {registered_tools} tools")
         return mcp
+
+    def save_conversation_history(self, filepath: str, include_images: bool = True, save_pdf: bool = True) -> None:
+        """Save the complete conversation history as PDF only.
+
+        This function generates and saves the complete conversation history from the agent's
+        log and conversation state. It creates a temporary markdown file with formatted content
+        including steps, code execution, observations, and optionally images, then converts it
+        to PDF format. The markdown file is automatically cleaned up after PDF conversion.
+
+        Args:
+            filepath: Path where to save the PDF file (without extension). If the path doesn't
+                    end with .pdf, it will be automatically appended.
+            include_images: Whether to include captured plots and images in the output.
+                          Defaults to True.
+            save_pdf: Whether to save as PDF. Defaults to True. If False, no file is saved.
+
+        Note:
+            The function includes a 60-second timeout for PDF generation to prevent
+            hanging. A temporary markdown file is created and automatically deleted.
+        """
+        import os
+        import tempfile
+
+        if not save_pdf:
+            print("PDF saving is disabled. No file will be saved.")
+            return
+
+        # Ensure directory exists
+        directory = os.path.dirname(filepath)
+        if directory:  # Only create directory if it's not empty
+            os.makedirs(directory, exist_ok=True)
+
+        # Create PDF file path - use the user's filename and add .pdf extension
+        if filepath.endswith(".pdf"):
+            pdf_path = filepath
+        else:
+            # Remove any existing .md extension if present, then add .pdf
+            base_name = filepath
+            if base_name.endswith(".md"):
+                base_name = base_name[:-3]  # Remove .md extension
+            pdf_path = f"{base_name}.pdf"
+
+        # Create markdown content
+        markdown_content = self._generate_markdown_content(include_images)
+
+        # Create a temporary markdown file
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as temp_file:
+            temp_file.write(markdown_content)
+            temp_markdown_path = temp_file.name
+
+        try:
+            # Add timeout for PDF generation to prevent hanging
+            import signal
+
+            def timeout_handler(signum, frame):
+                raise TimeoutError("PDF generation timed out")
+
+            # Set timeout to 60 seconds
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(60)
+
+            try:
+                self._convert_markdown_to_pdf(temp_markdown_path, pdf_path)
+                print(f"Conversation history saved as PDF: {pdf_path}")
+                print(f"Total steps recorded: {len(self.log)}")
+            finally:
+                signal.alarm(0)  # Cancel the alarm
+
+        except TimeoutError:
+            print("Warning: PDF generation timed out after 60 seconds")
+        except Exception as e:
+            print(f"Warning: Could not convert to PDF: {e}")
+        finally:
+            # Clean up the temporary markdown file
+            try:
+                os.unlink(temp_markdown_path)
+            except OSError:
+                pass  # File might already be deleted
+
+    def _generate_markdown_content(self, include_images: bool = True) -> str:
+        """Generate markdown content from conversation history using both log and conversation state.
+
+        This function processes the agent's conversation history from either the conversation
+        state (if available) or the internal log to create a formatted markdown document.
+        It handles step numbering, message processing, and content formatting.
+
+        Args:
+            include_images: Whether to include captured plots and images in the output.
+                          Defaults to True.
+
+        Returns:
+            Formatted markdown string containing the complete conversation history
+            with proper step numbering and content structure.
+        """
+
+        # Initialize content and tracking variables
+        content = """# Biomni Agent Conversation History
+
+"""
+        added_plots = set()
+        step_number = 0
+        first_human_shown = False
+
+        # Get data source (conversation state or log)
+        messages = self._get_messages_for_processing()
+
+        # Process all messages using unified logic
+        for message_data in messages:
+            content, step_number, first_human_shown = self._process_message(
+                message_data, content, step_number, first_human_shown, added_plots, include_images
+            )
+
+        return content
+
+    def _get_messages_for_processing(self):
+        """Get messages from conversation state or fallback to log.
+
+        This function determines the best source for conversation messages, prioritizing
+        the conversation state if available, otherwise falling back to the internal log.
+        It normalizes the messages into a unified format for processing.
+
+        Returns:
+            List of normalized message dictionaries with 'content', 'type', and 'original' keys
+        """
+        conversation_state = getattr(self, "_conversation_state", None)
+
+        if conversation_state and hasattr(conversation_state, "get") and "messages" in conversation_state:
+            print(f"DEBUG: Using conversation state with {len(conversation_state['messages'])} messages")
+            return self._normalize_conversation_state_messages(conversation_state["messages"])
+        else:
+            print(f"DEBUG: Using self.log with {len(self.log)} entries")
+            return self._normalize_log_messages(self.log)
+
+    def _normalize_conversation_state_messages(self, messages):
+        """Convert conversation state messages to unified format.
+
+        This function takes LangChain message objects from the conversation state and
+        converts them into a standardized dictionary format that the markdown generation
+        system can work with. It extracts content and determines message types.
+
+        Args:
+            messages: List of LangChain message objects (HumanMessage, AIMessage, etc.)
+
+        Returns:
+            List of normalized message dictionaries with 'content', 'type', and 'original' keys
+        """
+        normalized = []
+        for message in messages:
+            if hasattr(message, "content"):
+                content = str(message.content)
+            else:
+                content = str(message)
+
+            # Determine message type
+            if isinstance(message, HumanMessage):
+                msg_type = "human"
+            elif isinstance(message, AIMessage):
+                msg_type = "ai"
+            else:
+                msg_type = "other"
+
+            normalized.append({"content": content, "type": msg_type, "original": message})
+
+        return normalized
+
+    def _normalize_log_messages(self, log_entries):
+        """Convert log entries to unified format.
+
+        This function takes internal log entries and converts them into the same
+        standardized format as conversation state messages. It parses the log format
+        to determine message types and extract content.
+
+        Args:
+            log_entries: List of log entry strings from the agent's internal log
+
+        Returns:
+            List of normalized message dictionaries with 'content', 'type', and 'original' keys
+        """
+        normalized = []
+        for log_entry in log_entries:
+            content = str(log_entry)
+
+            # Determine message type from log format
+            if "Human Message" in content:
+                msg_type = "human"
+            elif "Ai Message" in content:
+                msg_type = "ai"
+            else:
+                msg_type = "other"
+
+            normalized.append({"content": content, "type": msg_type, "original": log_entry})
+
+        return normalized
+
+    def _process_message(self, message_data, content, step_number, first_human_shown, added_plots, include_images):
+        """Process a single message and return updated state.
+
+        This function is the main dispatcher for processing individual messages in the
+        conversation history. It determines the message type and delegates to the
+        appropriate processing function.
+
+        Args:
+            message_data: Dictionary containing 'content', 'type', and 'original' keys
+            content: Current markdown content string
+            step_number: Current step number counter
+            first_human_shown: Boolean flag indicating if first human message was shown
+            added_plots: Set of already added plot data to avoid duplicates
+            include_images: Whether to include images in the output
+
+        Returns:
+            Tuple of (updated_content, updated_step_number, updated_first_human_shown)
+        """
+        clean_output = clean_message_content(message_data["content"])
+        msg_type = message_data["type"]
+
+        if msg_type == "human":
+            return self._process_human_message(clean_output, content, step_number, first_human_shown)
+        elif msg_type == "ai":
+            return self._process_ai_message(clean_output, content, step_number, added_plots, include_images)
+        else:
+            return self._process_other_message(
+                clean_output, content, step_number, first_human_shown, added_plots, include_images
+            )
+
+    def _process_human_message(self, clean_output, content, step_number, first_human_shown):
+        """Process human messages.
+
+        This function handles human messages in the conversation history. It identifies
+        parsing error messages and displays them appropriately, or formats the first
+        human prompt as a special section.
+
+        Args:
+            clean_output: Cleaned message content with ANSI codes removed
+            content: Current markdown content string
+            step_number: Current step number counter (unchanged for human messages)
+            first_human_shown: Boolean flag indicating if first human message was shown
+
+        Returns:
+            Tuple of (updated_content, step_number, updated_first_human_shown)
+
+        Note:
+            Human messages don't increment the step counter as they are not considered
+            steps in the agent's process.
+        """
+        if "each response must include thinking process" in clean_output.lower():
+            parsing_error_content = create_parsing_error_html()
+            content += f"{parsing_error_content}\n\n"
+        elif not first_human_shown:
+            content += "#### Human Prompt\n\n"
+            content += f"*{clean_output}*\n\n"
+            first_human_shown = True
+
+        return content, step_number, first_human_shown  # step_number unchanged
+
+    def _process_ai_message(self, clean_output, content, step_number, added_plots, include_images):
+        """Process AI messages.
+
+        This function handles AI messages in the conversation history. It can process
+        both regular AI responses and messages containing observation tags. It handles
+        step numbering, execution results, and content formatting.
+
+        Args:
+            clean_output: Cleaned message content with ANSI codes removed
+            content: Current markdown content string
+            step_number: Current step number counter
+            added_plots: Set of already added plot data to avoid duplicates
+            include_images: Whether to include images in the output
+
+        Returns:
+            Tuple of (updated_content, updated_step_number, True)
+
+        Note:
+            This function can split messages containing observation tags and process
+            each part separately, with observations formatted as terminal blocks.
+        """
+        # Check if this message contains observation tags and process accordingly
+        import re
+
+        observation_pattern = r"<observation>(.*?)</observation>"
+        observation_matches = re.findall(observation_pattern, clean_output, re.DOTALL | re.IGNORECASE)
+
+        if observation_matches:
+            # Extract content before, between, and after observation tags
+            parts = re.split(observation_pattern, clean_output, flags=re.DOTALL | re.IGNORECASE)
+
+            # Process each part
+            for i, part in enumerate(parts):
+                if i % 2 == 0:  # Even indices are non-observation content
+                    if part.strip():
+                        # This is regular content - process it normally
+                        if not should_skip_message(part):
+                            if part.strip():
+                                step_number += 1
+                                content += f"#### Step {step_number}\n\n"
+
+                                # Handle execution results if present
+                                execution_results = getattr(self, "_execution_results", None)
+                                if has_execution_results(part, execution_results):
+                                    content, added_plots = self._process_execution_with_results(
+                                        part, content, added_plots, include_images, execution_results
+                                    )
+                                else:
+                                    content = self._process_regular_ai_message(part, content)
+                else:  # Odd indices are observation content
+                    if part.strip():
+                        # This is observation content - format as terminal
+                        formatted_observation = format_observation_as_terminal(f"<observation>{part}</observation>")
+                        if formatted_observation is not None:
+                            content += f"{formatted_observation}\n\n"
+
+            return content, step_number, True
+
+        # Skip empty or error messages
+        if should_skip_message(clean_output):
+            return content, step_number, True
+
+        if clean_output.strip():
+            step_number += 1
+            content += f"#### Step {step_number}\n\n"
+
+            # Handle execution results if present
+            execution_results = getattr(self, "_execution_results", None)
+            if has_execution_results(clean_output, execution_results):
+                content, added_plots = self._process_execution_with_results(
+                    clean_output, content, added_plots, include_images, execution_results
+                )
+            else:
+                content = self._process_regular_ai_message(clean_output, content)
+
+        return content, step_number, True
+
+    def _process_other_message(
+        self, clean_output, content, step_number, first_human_shown, added_plots, include_images
+    ):
+        """Process other message types.
+
+        This function handles message types that are neither human nor AI messages.
+        It checks for observation tags and processes them accordingly, or adds the
+        content as regular text.
+
+        Args:
+            clean_output: Cleaned message content with ANSI codes removed
+            content: Current markdown content string
+            step_number: Current step number counter
+            first_human_shown: Boolean flag indicating if first human message was shown
+            added_plots: Set of already added plot data to avoid duplicates
+            include_images: Whether to include images in the output
+
+        Returns:
+            Tuple of (updated_content, step_number, first_human_shown)
+        """
+        # Check if this is actually an observation (has <observation> tags)
+        import re
+
+        if not re.search(r"<observation>", clean_output, re.IGNORECASE):
+            content += f"{clean_output}\n\n"
+        return content, step_number, first_human_shown
+
+    def _process_execution_with_results(self, clean_output, content, added_plots, include_images, execution_results):
+        """Process AI message with execution results.
+
+        This function handles AI messages that have associated execution results.
+        It finds the matching execution result and adds any captured plots or images
+        to the content.
+
+        Args:
+            clean_output: Cleaned message content with ANSI codes removed
+            content: Current markdown content string
+            added_plots: Set of already added plot data to avoid duplicates
+            include_images: Whether to include images in the output
+            execution_results: List of execution result dictionaries
+
+        Returns:
+            Tuple of (updated_content, updated_added_plots)
+        """
+        matching_execution = find_matching_execution(clean_output, execution_results)
+
+        if matching_execution:
+            content = self._format_and_add_content(clean_output, content)
+            content, added_plots = self._add_execution_plots(matching_execution, content, added_plots, include_images)
+        else:
+            content = self._format_and_add_content(clean_output, content)
+
+        return content, added_plots
+
+    def _format_and_add_content(self, clean_output, content):
+        """Format and add content to markdown.
+
+        This function applies formatting to AI message content before adding it to the
+        markdown. It processes lists, execute tags, and tool calls to create properly
+        formatted markdown content.
+
+        Args:
+            clean_output: Cleaned message content with ANSI codes removed
+            content: Current markdown content string
+
+        Returns:
+            Updated markdown content string with formatted content added
+        """
+        # Process lists first, then execute tags
+        formatted_content = format_lists_in_text(clean_output)
+
+        # Create a wrapper function for the tool parsing
+        def parse_tool_calls_wrapper(code):
+            return self._parse_tool_calls_with_modules(code)
+
+        formatted_content = format_execute_tags_in_content(formatted_content, parse_tool_calls_wrapper)
+        return content + f"{formatted_content}\n\n"
+
+    def _add_execution_plots(self, matching_execution, content, added_plots, include_images):
+        """Add plots from execution results.
+
+        This function adds captured plots and images from execution results to the
+        markdown content. It prevents duplicate plots from being added multiple times.
+
+        Args:
+            matching_execution: Execution result dictionary containing image data
+            content: Current markdown content string
+            added_plots: Set of already added plot data to avoid duplicates
+            include_images: Whether to include images in the output
+
+        Returns:
+            Tuple of (updated_content, updated_added_plots)
+        """
+        if include_images and matching_execution.get("images"):
+            for plot_data in matching_execution["images"]:
+                if plot_data not in added_plots:
+                    content += f"![Plot]({plot_data})\n\n"
+                    added_plots.add(plot_data)
+        return content, added_plots
+
+    def _process_regular_ai_message(self, clean_output, content):
+        """Process regular AI message without execution results.
+
+        This function handles AI messages that don't have associated execution results.
+        It applies standard formatting and adds the content to the markdown.
+
+        Args:
+            clean_output: Cleaned message content with ANSI codes removed
+            content: Current markdown content string
+
+        Returns:
+            Updated markdown content string with formatted content added
+        """
+        return self._format_and_add_content(clean_output, content)
+
+    def _convert_markdown_to_pdf(self, markdown_path: str, pdf_path: str) -> None:
+        """Convert markdown file to PDF using weasyprint or markdown2pdf.
+
+        This function is a wrapper around the utility function for converting markdown
+        to PDF. It provides a clean interface for the agent to convert conversation
+        history to PDF format.
+
+        Args:
+            markdown_path: Path to the input markdown file
+            pdf_path: Path where the output PDF file should be saved
+
+        Note:
+            This function delegates to the convert_markdown_to_pdf utility function
+            which handles multiple PDF conversion libraries and fallbacks.
+        """
+        convert_markdown_to_pdf(markdown_path, pdf_path)
+
+    def _clear_execution_plots(self):
+        """Clear execution plots before new execution.
+
+        This function clears any previously captured plots from the execution environment
+        before starting a new execution. This prevents old plots from appearing in
+        new execution results.
+
+        Note:
+            This function calls the clear_captured_plots utility function and handles
+            any exceptions gracefully to prevent execution failures.
+        """
+        try:
+            from biomni.tool.support_tools import clear_captured_plots
+
+            clear_captured_plots()
+        except Exception as e:
+            print(f"Warning: Could not clear execution plots: {e}")
 
     def _generate_mcp_wrapper_from_biomni_schema(self, original_func, func_name, required_params, optional_params):
         """Generate wrapper function based on Biomni schema format."""

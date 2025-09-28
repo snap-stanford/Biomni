@@ -245,6 +245,9 @@ def analyze_bacterial_growth_rate(time_points, od_measurements, strain_name="Unk
     import os
     from datetime import datetime
 
+    import matplotlib
+
+    matplotlib.use("Agg")  # Use non-interactive backend
     import matplotlib.pyplot as plt
     import numpy as np
     from scipy.optimize import curve_fit
@@ -533,6 +536,9 @@ def analyze_bifurcation_diagram(time_series_data, parameter_values, system_name=
     """
     import os
 
+    import matplotlib
+
+    matplotlib.use("Agg")  # Use non-interactive backend
     import matplotlib.pyplot as plt
     import numpy as np
     from scipy.signal import find_peaks
