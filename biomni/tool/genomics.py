@@ -2233,13 +2233,12 @@ def geneformer_embed(
     if proc.returncode != 0:
         raise RuntimeError("git lfs install failed")
 
-    geneformer_repo_dir = os.path.join(base_dir, "data", "Geneformer")
-    if not os.path.exists(geneformer_repo_dir):
+    if not os.path.exists(base_dir):
         proc = subprocess.Popen(
             [
                 "git", "clone",
                 "https://huggingface.co/ctheodoris/Geneformer",
-                geneformer_repo_dir
+                str(base_dir)
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -2253,7 +2252,29 @@ def geneformer_embed(
 
     proc = subprocess.Popen(
         ["pip", "install", "."],
-        cwd=geneformer_repo_dir,
+        cwd=str(Path(base_dir) / "Geneformer"),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True
+    )
+    # Also install required dependencies after installing Geneformer
+    proc.wait()
+    if proc.returncode != 0:
+        raise RuntimeError("pip install of Geneformer failed")
+    #required to make geneformer work
+    extra_packages = [
+        "peft==0.11.1",
+        "pyarrow>=12.0",
+        "pytz>=2023.0",
+        "ray>=2.6",
+        "scanpy>=1.9",
+        "scipy>=1.13.1",
+        "torch>=2.0.1",
+        "tqdm>=4.66.3",
+        "transformers==4.40"
+    ]
+    proc = subprocess.Popen(
+        ["pip", "install"] + extra_packages,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True
@@ -2330,6 +2351,14 @@ def geneformer_embed(
         token_keys = set(token_dict.keys())
         var_names = set(adata.var_names)
         matching_tokens = token_keys & var_names
+        if len(matching_tokens) == 0:
+            raise ValueError(
+                "No matching genes found between the dataset and the Geneformer tokenizer.\n"
+                f"Number of genes in dataset: {len(var_names)}\n"
+                f"Number of tokens in tokenizer: {len(token_keys)}\n"
+                "Please ensure your gene names (var_names) are Ensembl IDs matching the Geneformer model."
+            )
+        
         steps.append(f"✓ Loaded token dictionary with {len(token_dict)} tokens")
         steps.append(f"✓ Found {len(matching_tokens)} matching genes between dataset and tokenizer")
         steps.append(f"Sample matching tokens: {list(matching_tokens)[:10]}")
