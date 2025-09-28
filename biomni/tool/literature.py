@@ -123,8 +123,7 @@ def query_scholar(query: str) -> str:
     - str: The first search result formatted or an error message.
 
     """
-    from scholarly import scholarly
-    from scholarly import ProxyGenerator
+    from scholarly import ProxyGenerator, scholarly
 
     # Set up a ProxyGenerator object to use free proxies
     # This needs to be done only once per session
