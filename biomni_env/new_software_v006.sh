@@ -5,3 +5,6 @@ pip install lazyslide
 pip install "git+https://github.com/YosefLab/popV.git@refs/pull/100/head"
 pip install pybiomart
 pip install fair-esm
+pip install uv
+uv pip install transcriptformer
+pip install "zarr>=2.0,<3.0" #this resolved transcripformer download isses

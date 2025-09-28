@@ -656,10 +656,12 @@ description = [
     },
     {
         "description": "Generate Transcriptformer embeddings for single-cell RNA-seq data. "
-        "This function sets up a virtual environment, installs transcriptformer, downloads "
-        "model checkpoints, prepares the AnnData object with required fields (ensembl_id, raw counts), "
-        "and runs inference to generate cell embeddings. Transcriptformer is a transformer-based "
-        "model that can learn rich representations of single-cell gene expression data.",
+        "This function downloads model checkpoints, prepares the AnnData object with required fields "
+        "(ensembl_id, raw counts, assay metadata), and runs inference to generate cell or gene embeddings. "
+        "Transcriptformer is a transformer-based model that can learn rich representations of "
+        "single-cell gene expression data. The function automatically handles Ensembl ID pattern "
+        "detection, model downloading, data preprocessing, and creates missing assay metadata columns "
+        "with 'unknown' values if needed.",
         "name": "generate_transcriptformer_embeddings",
         "optional_parameters": [
             {
@@ -669,8 +671,14 @@ description = [
                 "type": "str",
             },
             {
-                "default": "./checkpoints/tf_sapiens",
-                "description": "Path to the transcriptformer checkpoint directory",
+                "default": "tf-sapiens",
+                "description": "Type of transcriptformer model to download and use. Options: 'tf-sapiens', 'tf-exemplar', 'tf-metazoa'",
+                "name": "model_type",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Path to the transcriptformer checkpoint directory. If None, will use './checkpoints/{model_type}'",
                 "name": "checkpoint_path",
                 "type": "str",
             },
@@ -682,7 +690,7 @@ description = [
             },
             {
                 "default": "16-mixed",
-                "description": "Precision for inference (16-mixed, 32, etc.)",
+                "description": "Precision for inference. Options: '16-mixed', '32'",
                 "name": "precision",
                 "type": "str",
             },
@@ -711,9 +719,45 @@ description = [
                 "type": "int",
             },
             {
+                "default": "ensembl_id",
+                "description": "Column name in AnnData.var containing gene identifiers",
+                "name": "gene_col_name",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Path to pretrained embeddings for out-of-distribution species",
+                "name": "pretrained_embedding",
+                "type": "str",
+            },
+            {
                 "default": True,
-                "description": "Whether to create a new virtual environment",
-                "name": "create_venv",
+                "description": "Whether to filter genes to only those in the vocabulary",
+                "name": "filter_to_vocabs",
+                "type": "bool",
+            },
+            {
+                "default": "None",
+                "description": "Whether to use raw counts from AnnData.raw.X (True), adata.X (False), or auto-detect (None/auto)",
+                "name": "use_raw",
+                "type": "str",
+            },
+            {
+                "default": "cell",
+                "description": "Type of embeddings to extract: 'cell' for mean-pooled cell embeddings or 'cge' for contextual gene embeddings",
+                "name": "emb_type",
+                "type": "str",
+            },
+            {
+                "default": False,
+                "description": "Remove duplicate genes if found instead of raising an error",
+                "name": "remove_duplicate_genes",
+                "type": "bool",
+            },
+            {
+                "default": False,
+                "description": "Use map-style out-of-memory DataLoader (DistributedSampler-friendly)",
+                "name": "oom_dataloader",
                 "type": "bool",
             },
         ],
