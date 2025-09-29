@@ -714,5 +714,5 @@ description = [
                 "type": "str",
             },
         ],
-    },
+    }
 ]
