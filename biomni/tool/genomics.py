@@ -2168,6 +2168,7 @@ def geneformer_embed(
     base_dir,
     adata_filename,
     embeddings_prefix="embeddings_geneformer_zero_shot",
+    model_name="Geneformer-V2-104M",
     model_input_size=4096,
     chunk_size=10000,
     nproc=8,
@@ -2186,6 +2187,8 @@ def geneformer_embed(
         Filename for AnnData file (used if adata_or_path is AnnData).
     embeddings_prefix : str
         Prefix for output embeddings csv.
+    model_name : str
+        Name of the Geneformer model to use (e.g., "Geneformer-V2-104M").
     model_input_size : int
         Model input size for tokenizer.
     chunk_size : int
@@ -2206,14 +2209,14 @@ def geneformer_embed(
     import numpy as np
     import pickle
     from pathlib import Path
-    from geneformer import EmbExtractor
-    from geneformer.tokenizer import TranscriptomeTokenizer
+
     import os
     import subprocess
 
     steps = []
     steps.append("Starting Geneformer embedding extraction pipeline")
     steps.append(f"Base directory: {base_dir}")
+    steps.append(f"Model name: {model_name}")
     steps.append(f"Model input size: {model_input_size}")
     steps.append(f"Chunk size: {chunk_size}")
     steps.append(f"Number of processes: {nproc}")
@@ -2233,12 +2236,13 @@ def geneformer_embed(
     if proc.returncode != 0:
         raise RuntimeError("git lfs install failed")
 
-    if not os.path.exists(base_dir):
+    geneformer_dir = Path(base_dir) / "Geneformer"
+    if not geneformer_dir.exists():
         proc = subprocess.Popen(
             [
                 "git", "clone",
                 "https://huggingface.co/ctheodoris/Geneformer",
-                str(base_dir)
+                str(geneformer_dir)
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -2249,10 +2253,12 @@ def geneformer_embed(
         proc.wait()
         if proc.returncode != 0:
             raise RuntimeError("git clone of Geneformer failed")
+    else:
+        print(f"Geneformer directory already exists: {geneformer_dir}")
 
     proc = subprocess.Popen(
         ["pip", "install", "."],
-        cwd=str(Path(base_dir) / "Geneformer"),
+        cwd=str(geneformer_dir),
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True
@@ -2264,13 +2270,6 @@ def geneformer_embed(
     #required to make geneformer work
     extra_packages = [
         "peft==0.11.1",
-        "pyarrow>=12.0",
-        "pytz>=2023.0",
-        "ray>=2.6",
-        "scanpy>=1.9",
-        "scipy>=1.13.1",
-        "torch>=2.0.1",
-        "tqdm>=4.66.3",
         "transformers==4.40"
     ]
     proc = subprocess.Popen(
@@ -2286,11 +2285,14 @@ def geneformer_embed(
         raise RuntimeError("pip install of Geneformer failed")
 
     try:
+        from geneformer import EmbExtractor
+        from geneformer.tokenizer import TranscriptomeTokenizer
+        steps.append(f"Loading Geneformer model: {model_name}")
         BASE_DIR = Path(base_dir)
-        MODELS_DIR = BASE_DIR / "Geneformer"
+        MODELS_DIR = geneformer_dir
         DATA_DIR = MODELS_DIR / "data"
         HUMANIZED_DATA_DIR = DATA_DIR / "humanized"
-        MODEL_DIR = MODELS_DIR / "Geneformer-V2-104M"
+        MODEL_DIR = MODELS_DIR / model_name
         EMBEDDINGS_DIR = BASE_DIR / "zero-shot-performance" / "embeddings"
 
         steps.append("Setting up directory structure")
