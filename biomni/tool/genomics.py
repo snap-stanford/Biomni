@@ -2163,6 +2163,7 @@ def analyze_genomic_region_overlap(region_sets, output_prefix="overlap_analysis"
 
     return log
 
+
 def geneformer_embed(
     adata_or_path,
     base_dir,
@@ -2203,15 +2204,12 @@ def geneformer_embed(
     str
         Steps performed during the embedding extraction process.
     """
-    
-    import anndata as ad
-    import pandas as pd
-    import numpy as np
+
     import pickle
+    import subprocess
     from pathlib import Path
 
-    import os
-    import subprocess
+    import anndata as ad
 
     steps = []
     steps.append("Starting Geneformer embedding extraction pipeline")
@@ -2221,17 +2219,12 @@ def geneformer_embed(
     steps.append(f"Chunk size: {chunk_size}")
     steps.append(f"Number of processes: {nproc}")
     steps.append(f"Forward batch size: {forward_batch_size}")
-    
+
     import sys
 
-    proc = subprocess.Popen(
-        ["git", "lfs", "install"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True
-    )
+    proc = subprocess.Popen(["git", "lfs", "install"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     for line in proc.stdout:
-        print(line, end='', file=sys.stdout)
+        print(line, end="", file=sys.stdout)
     proc.wait()
     if proc.returncode != 0:
         raise RuntimeError("git lfs install failed")
@@ -2239,17 +2232,13 @@ def geneformer_embed(
     geneformer_dir = Path(base_dir) / "Geneformer"
     if not geneformer_dir.exists():
         proc = subprocess.Popen(
-            [
-                "git", "clone",
-                "https://huggingface.co/ctheodoris/Geneformer",
-                str(geneformer_dir)
-            ],
+            ["git", "clone", "https://huggingface.co/ctheodoris/Geneformer", str(geneformer_dir)],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            text=True
+            text=True,
         )
         for line in proc.stdout:
-            print(line, end='', file=sys.stdout)
+            print(line, end="", file=sys.stdout)
         proc.wait()
         if proc.returncode != 0:
             raise RuntimeError("git clone of Geneformer failed")
@@ -2257,29 +2246,19 @@ def geneformer_embed(
         print(f"Geneformer directory already exists: {geneformer_dir}")
 
     proc = subprocess.Popen(
-        ["pip", "install", "."],
-        cwd=str(geneformer_dir),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True
+        ["pip", "install", "."], cwd=str(geneformer_dir), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
     )
     # Also install required dependencies after installing Geneformer
     proc.wait()
     if proc.returncode != 0:
         raise RuntimeError("pip install of Geneformer failed")
-    #required to make geneformer work
-    extra_packages = [
-        "peft==0.11.1",
-        "transformers==4.40"
-    ]
+    # required to make geneformer work
+    extra_packages = ["peft==0.11.1", "transformers==4.40"]
     proc = subprocess.Popen(
-        ["pip", "install"] + extra_packages,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True
+        ["pip", "install"] + extra_packages, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
     )
     for line in proc.stdout:
-        print(line, end='', file=sys.stdout)
+        print(line, end="", file=sys.stdout)
     proc.wait()
     if proc.returncode != 0:
         raise RuntimeError("pip install of Geneformer failed")
@@ -2287,6 +2266,7 @@ def geneformer_embed(
     try:
         from geneformer import EmbExtractor
         from geneformer.tokenizer import TranscriptomeTokenizer
+
         steps.append(f"Loading Geneformer model: {model_name}")
         BASE_DIR = Path(base_dir)
         MODELS_DIR = geneformer_dir
@@ -2330,26 +2310,28 @@ def geneformer_embed(
         steps.append("✓ Added required columns: ensembl_id, n_counts, cell_index")
 
         steps.append("Loading token dictionary and checking gene overlap")
-        
+
         # Check if model files exist
         if not TOKEN_DICT_PATH.exists():
-            raise FileNotFoundError(f"Token dictionary file not found: {TOKEN_DICT_PATH}\n"
-                                  f"Please download the Geneformer model files to: {MODEL_DIR}\n"
-                                  f"Required files:\n"
-                                  f"  - {TOKEN_DICT_PATH.name}\n"
-                                  f"  - {GENE_MEDIAN_PATH.name}\n"
-                                  f"  - {GENE_NAME_ID_PATH.name}\n"
-                                  f"You can download them from the Geneformer repository or Hugging Face.")
-        
+            raise FileNotFoundError(
+                f"Token dictionary file not found: {TOKEN_DICT_PATH}\n"
+                f"Please download the Geneformer model files to: {MODEL_DIR}\n"
+                f"Required files:\n"
+                f"  - {TOKEN_DICT_PATH.name}\n"
+                f"  - {GENE_MEDIAN_PATH.name}\n"
+                f"  - {GENE_NAME_ID_PATH.name}\n"
+                f"You can download them from the Geneformer repository or Hugging Face."
+            )
+
         if not GENE_MEDIAN_PATH.exists():
             raise FileNotFoundError(f"Gene median dictionary file not found: {GENE_MEDIAN_PATH}")
-            
+
         if not GENE_NAME_ID_PATH.exists():
             raise FileNotFoundError(f"Gene name ID dictionary file not found: {GENE_NAME_ID_PATH}")
-        
+
         with open(TOKEN_DICT_PATH, "rb") as f:
             token_dict = pickle.load(f)
-            
+
         token_keys = set(token_dict.keys())
         var_names = set(adata.var_names)
         matching_tokens = token_keys & var_names
@@ -2360,7 +2342,7 @@ def geneformer_embed(
                 f"Number of tokens in tokenizer: {len(token_keys)}\n"
                 "Please ensure your gene names (var_names) are Ensembl IDs matching the Geneformer model."
             )
-        
+
         steps.append(f"✓ Loaded token dictionary with {len(token_dict)} tokens")
         steps.append(f"✓ Found {len(matching_tokens)} matching genes between dataset and tokenizer")
         steps.append(f"Sample matching tokens: {list(matching_tokens)[:10]}")
