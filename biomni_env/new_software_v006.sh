@@ -9,3 +9,6 @@ git lfs install
 pip install pybiomart
 pip install fair-esm
 uv tool install arc-state
+pip install nnunet nibabel nilearn
+pip install mi-googlesearch-python
+conda install weasyprint

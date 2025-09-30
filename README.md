@@ -169,6 +169,52 @@ agent = A1()  # Everything uses gpt-4, 1200s timeout
 
 For detailed configuration options, see the **[Configuration Guide](docs/configuration.md)**.
 
+### PDF Generation
+
+Generate PDF reports of execution traces:
+
+```python
+from biomni.agent import A1
+
+# Initialize agent
+agent = A1(path='./data', llm='claude-sonnet-4-20250514')
+
+# Run your task
+agent.go("Your biomedical task here")
+
+# Save conversation history as PDF
+agent.save_conversation_history("my_analysis_results.pdf")
+```
+
+**PDF Generation Dependencies:**
+
+For optimal PDF generation, install one of these packages:
+
+```bash
+# Option 1: WeasyPrint (recommended for best layout control)
+# Conda environment (recommended)
+conda install weasyprint
+
+# System installation
+brew install weasyprint  # macOS
+apt install weasyprint   # Linux
+
+# See [WeasyPrint Installation Guide](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html) for detailed instructions.
+
+# Option 2: markdown2pdf (Rust-based, fast and reliable)
+# macOS:
+brew install theiskaa/tap/markdown2pdf
+
+# Windows/Linux (using Cargo):
+cargo install markdown2pdf
+
+# Or download prebuilt binaries from:
+# https://github.com/theiskaa/markdown2pdf/releases/latest
+
+# Option 3: Pandoc (pip installation)
+pip install pandoc
+```
+
 ## MCP (Model Context Protocol) Support
 
 Biomni supports MCP servers for external tool integration:
