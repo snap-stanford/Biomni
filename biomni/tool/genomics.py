@@ -2215,7 +2215,6 @@ def generate_embeddings_with_state(
     """
     import os
     import subprocess
-    import sys
 
     # Initialize steps list for logging
     steps = []
@@ -2297,7 +2296,9 @@ def generate_embeddings_with_state(
             )
 
             for line in iter(process.stdout.readline, ""):
-                steps.append(line.rstrip())
+                line = line.rstrip()
+                print(line)  # Print to console first
+                steps.append(line)  # Then add to steps list
 
             process.wait()
 
@@ -2312,33 +2313,6 @@ def generate_embeddings_with_state(
             raise
     else:
         steps.append(f"Model directory already exists: {model_folder}")
-
-    steps.append("Installing uv and arc-state...")
-    try:
-        result1 = subprocess.run(
-            [sys.executable, "-m", "pip", "install", "uv"], check=True, capture_output=True, text=True
-        )
-        steps.append("uv installed successfully")
-        if result1.stdout:
-            steps.append(f"uv install stdout: {result1.stdout}")
-        if result1.stderr:
-            steps.append(f"uv install stderr: {result1.stderr}")
-    except subprocess.CalledProcessError as e:
-        error_msg = f"Error installing uv: {e}"
-        steps.append(error_msg)
-        raise
-
-    try:
-        result2 = subprocess.run(["uv", "tool", "install", "arc-state"], check=True, capture_output=True, text=True)
-        steps.append("arc-state installed successfully")
-        if result2.stdout:
-            steps.append(f"arc-state install stdout: {result2.stdout}")
-        if result2.stderr:
-            steps.append(f"arc-state install stderr: {result2.stderr}")
-    except subprocess.CalledProcessError as e:
-        error_msg = f"Error installing arc-state: {e}"
-        steps.append(error_msg)
-        raise
 
     steps.append("Generating embeddings...")
 
@@ -2400,7 +2374,9 @@ def generate_embeddings_with_state(
             )
 
             for line in iter(process.stdout.readline, ""):
-                steps.append(line.rstrip())
+                line = line.rstrip()
+                print(line)  # Print to console first
+                steps.append(line)  # Then add to steps list
 
             process.wait()
 

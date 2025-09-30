@@ -8,4 +8,4 @@ sudo apt-get install git-lfs
 git lfs install
 pip install pybiomart
 pip install fair-esm
-uv install arc-state
+uv tool install arc-state
