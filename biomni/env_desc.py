@@ -147,6 +147,7 @@ library_content_dict = {
     "pyscenic": "[Python Package] Analysis of single-cell RNA-seq data and gene regulatory networks.",
     "cooler": "[Python Package] Storage and analysis of Hi-C data.",
     "trackpy": "[Python Package] Particle tracking in images and video.",
+    "nnunet": "[Python Package] A deep learning framework for biomedical image segmentation, providing a standardized approach to training and inference.",
     # "flowcytometrytools": "[Python Package] Analysis and visualization of flow cytometry data.",
     "cellpose": "[Python Package] Cell segmentation in microscopy images.",
     "viennarna": "[Python Package] RNA secondary structure prediction.",
