@@ -89,7 +89,7 @@ result = agent.go("Create some files...")
 ## Benefits of Sandbox Mode
 
 1. **Clean Workspace**: Each session gets its own isolated directory
-2. **No Clutter**: Generated files don't mix with your project files  
+2. **No Clutter**: Generated files don't mix with your project files
 3. **Easy Cleanup**: Simply delete the sandbox folder when done
 4. **Reproducible**: Each run starts with a clean environment
 5. **Safe Exploration**: Experimental code won't affect your main workspace
