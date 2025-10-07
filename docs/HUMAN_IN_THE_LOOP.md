@@ -35,7 +35,7 @@ log, response = agent.go("Create a scatter plot of random data")
 # Standard agent behavior - automatic execution
 agent = A1(
     path="./data",
-    llm="gpt-4o-mini", 
+    llm="gpt-4o-mini",
     source="OpenAI",
     interactive=False  # Default: no human confirmation
 )
@@ -170,7 +170,7 @@ When interactive mode is enabled, you'll see additional configuration output:
 ```
 🤝 INTERACTIVE MODE: Enabled
   • Human-in-the-loop confirmation for code execution
-  • Plan editing capabilities before execution  
+  • Plan editing capabilities before execution
   • User control over agent decisions
 ```
 
@@ -204,7 +204,7 @@ Easily switch between modes for different use cases:
 dev_agent = A1(interactive=True, ...)
 log, response = dev_agent.go("Prototype solution")
 
-# Non-interactive for production  
+# Non-interactive for production
 prod_agent = A1(interactive=False, ...)
 log, response = prod_agent.go("Production analysis")
 ```
@@ -235,7 +235,7 @@ python examples/human_in_the_loop_example.py
 ## 💡 Tips
 
 1. **Start Simple**: Begin with basic queries to understand the confirmation flow
-2. **Edit Incrementally**: Make small changes during editing to avoid errors  
+2. **Edit Incrementally**: Make small changes during editing to avoid errors
 3. **Use Rejection Wisely**: Reject plans when the approach is fundamentally wrong
 4. **Learn from Patterns**: Observe how the agent approaches different problem types
 5. **Combine Modes**: Use interactive for development, non-interactive for production

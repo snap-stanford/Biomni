@@ -216,7 +216,7 @@ class A1:
 
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
-        
+
         # Add interactive mode parameter for human-in-the-loop functionality
         self.interactive = interactive
         self.configure()
@@ -1324,10 +1324,8 @@ Each library is listed with its description to help you understand its functiona
                 try:
                     if execute_match:
                         code_to_execute = execute_match.group(1).strip()
-                        approved, modified_code = self._get_human_confirmation(
-                            code_to_execute, "code execution"
-                        )
-                        
+                        approved, modified_code = self._get_human_confirmation(code_to_execute, "code execution")
+
                         if not approved:
                             # User rejected the plan, ask agent to regenerate
                             state["messages"].append(
@@ -1337,22 +1335,17 @@ Each library is listed with its description to help you understand its functiona
                             )
                             state["next_step"] = "generate"
                             return state
-                        
+
                         # If user modified the code, update the message
                         if modified_code != code_to_execute:
                             msg = re.sub(
-                                r"<execute>(.*?)</execute>",
-                                f"<execute>{modified_code}</execute>",
-                                msg,
-                                flags=re.DOTALL
+                                r"<execute>(.*?)</execute>", f"<execute>{modified_code}</execute>", msg, flags=re.DOTALL
                             )
-                    
+
                     elif answer_match:
                         solution = answer_match.group(1).strip()
-                        approved, modified_solution = self._get_human_confirmation(
-                            solution, "final solution"
-                        )
-                        
+                        approved, modified_solution = self._get_human_confirmation(solution, "final solution")
+
                         if not approved:
                             # User rejected the solution, ask agent to regenerate
                             state["messages"].append(
@@ -1362,21 +1355,19 @@ Each library is listed with its description to help you understand its functiona
                             )
                             state["next_step"] = "generate"
                             return state
-                        
+
                         # If user modified the solution, update the message
                         if modified_solution != solution:
                             msg = re.sub(
                                 r"<solution>(.*?)</solution>",
                                 f"<solution>{modified_solution}</solution>",
                                 msg,
-                                flags=re.DOTALL
+                                flags=re.DOTALL,
                             )
-                            
+
                 except KeyboardInterrupt:
                     # User stopped execution
-                    state["messages"].append(
-                        AIMessage(content="Execution stopped by user request.")
-                    )
+                    state["messages"].append(AIMessage(content="Execution stopped by user request."))
                     state["next_step"] = "end"
                     return state
 
@@ -1674,9 +1665,9 @@ Each library is listed with its description to help you understand its functiona
 
         """
         if self.interactive:
-            print(f"\n🤝 Starting INTERACTIVE mode - You'll be asked to confirm plans before execution")
-            print(f"💡 Tip: You can approve, edit, reject, or stop execution at any confirmation point\n")
-            
+            print("\n🤝 Starting INTERACTIVE mode - You'll be asked to confirm plans before execution")
+            print("💡 Tip: You can approve, edit, reject, or stop execution at any confirmation point\n")
+
         self.critic_count = 0
         self.user_task = prompt
 
@@ -1720,9 +1711,9 @@ Each library is listed with its description to help you understand its functiona
             dict: Each step of the agent's execution containing the current message and state
         """
         if self.interactive:
-            print(f"\n🤝 Starting INTERACTIVE streaming mode - You'll be asked to confirm plans before execution")
-            print(f"💡 Tip: You can approve, edit, reject, or stop execution at any confirmation point\n")
-            
+            print("\n🤝 Starting INTERACTIVE streaming mode - You'll be asked to confirm plans before execution")
+            print("💡 Tip: You can approve, edit, reject, or stop execution at any confirmation point\n")
+
         self.critic_count = 0
         self.user_task = prompt
 
@@ -2446,42 +2437,42 @@ Each library is listed with its description to help you understand its functiona
 
     def _get_human_confirmation(self, plan: str, plan_type: str = "plan") -> tuple[bool, str]:
         """Get human confirmation for a generated plan with optional editing.
-        
+
         Args:
             plan: The generated plan to confirm/edit
             plan_type: Type of plan (e.g., "plan", "code", "analysis")
-            
+
         Returns:
             tuple: (approved, modified_plan) - True if approved, and the potentially modified plan
         """
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"🤖 BIOMNI AGENT - {plan_type.upper()} CONFIRMATION")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"\n📋 Generated {plan_type}:")
-        print(f"{'-'*40}")
+        print(f"{'-' * 40}")
         print(plan)
-        print(f"{'-'*40}")
-        
+        print(f"{'-' * 40}")
+
         while True:
-            print(f"\n🤔 What would you like to do?")
+            print("\n🤔 What would you like to do?")
             print("  1. ✅ Approve and proceed")
             print("  2. ✏️  Edit the plan")
             print("  3. ❌ Reject and ask agent to regenerate")
             print("  4. 🛑 Stop execution")
-            
+
             choice = input("\nEnter your choice (1-4): ").strip()
-            
+
             if choice == "1":
                 print("✅ Plan approved! Proceeding with execution...")
                 return True, plan
-                
+
             elif choice == "2":
                 print(f"\n✏️  Edit mode - Current {plan_type}:")
-                print(f"{'-'*40}")
+                print(f"{'-' * 40}")
                 print(plan)
-                print(f"{'-'*40}")
+                print(f"{'-' * 40}")
                 print("\nEnter your modifications (press Enter twice to finish):")
-                
+
                 lines = []
                 empty_count = 0
                 while empty_count < 2:
@@ -2491,11 +2482,11 @@ Each library is listed with its description to help you understand its functiona
                     else:
                         empty_count = 0
                     lines.append(line)
-                
+
                 # Remove trailing empty lines
                 while lines and lines[-1] == "":
                     lines.pop()
-                
+
                 modified_plan = "\n".join(lines)
                 if modified_plan.strip():
                     print("✅ Plan updated! Proceeding with modified version...")
@@ -2503,15 +2494,15 @@ Each library is listed with its description to help you understand its functiona
                 else:
                     print("❌ Empty modification. Keeping original plan.")
                     continue
-                    
+
             elif choice == "3":
                 print("❌ Plan rejected. Asking agent to regenerate...")
                 return False, plan
-                
+
             elif choice == "4":
                 print("🛑 Execution stopped by user.")
                 raise KeyboardInterrupt("Execution stopped by user request")
-                
+
             else:
                 print("❌ Invalid choice. Please enter 1, 2, 3, or 4.")
 
