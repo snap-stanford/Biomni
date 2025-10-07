@@ -64,6 +64,7 @@ class A1:
         api_key: str | None = None,
         commercial_mode: bool | None = None,
         expected_data_lake_files: list | None = None,
+        interactive: bool = False,
     ):
         """Initialize the biomni agent.
 
@@ -76,6 +77,7 @@ class A1:
             base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
             api_key: API key for the custom LLM
             commercial_mode: If True, excludes datasets that require commercial licenses or are non-commercial only
+            interactive: If True, enables human-in-the-loop mode with plan confirmation and editing capabilities
 
         """
         # Use default_config values for unspecified parameters
@@ -143,6 +145,13 @@ class A1:
             if api_key is not None and api_key != "EMPTY":
                 print(f"  API Key: {'*' * 8 + api_key[-4:] if len(api_key) > 8 else '***'}")
 
+        # Show interactive mode status
+        if interactive:
+            print("\n🤝 INTERACTIVE MODE: Enabled")
+            print("  • Human-in-the-loop confirmation for code execution")
+            print("  • Plan editing capabilities before execution")
+            print("  • User control over agent decisions")
+
         print("=" * 50 + "\n")
 
         self.path = path
@@ -207,6 +216,9 @@ class A1:
 
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
+        
+        # Add interactive mode parameter for human-in-the-loop functionality
+        self.interactive = interactive
         self.configure()
 
     def add_tool(self, api):
@@ -1307,7 +1319,68 @@ Each library is listed with its description to help you understand its functiona
             execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL)
             answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL)
 
-            # Add the message to the state before checking for errors
+            # Human-in-the-loop: Get confirmation before proceeding
+            if self.interactive and (execute_match or answer_match):
+                try:
+                    if execute_match:
+                        code_to_execute = execute_match.group(1).strip()
+                        approved, modified_code = self._get_human_confirmation(
+                            code_to_execute, "code execution"
+                        )
+                        
+                        if not approved:
+                            # User rejected the plan, ask agent to regenerate
+                            state["messages"].append(
+                                HumanMessage(
+                                    content="The proposed code execution was not approved. Please revise your approach and provide a different solution."
+                                )
+                            )
+                            state["next_step"] = "generate"
+                            return state
+                        
+                        # If user modified the code, update the message
+                        if modified_code != code_to_execute:
+                            msg = re.sub(
+                                r"<execute>(.*?)</execute>",
+                                f"<execute>{modified_code}</execute>",
+                                msg,
+                                flags=re.DOTALL
+                            )
+                    
+                    elif answer_match:
+                        solution = answer_match.group(1).strip()
+                        approved, modified_solution = self._get_human_confirmation(
+                            solution, "final solution"
+                        )
+                        
+                        if not approved:
+                            # User rejected the solution, ask agent to regenerate
+                            state["messages"].append(
+                                HumanMessage(
+                                    content="The proposed solution was not approved. Please revise your analysis and provide a different solution."
+                                )
+                            )
+                            state["next_step"] = "generate"
+                            return state
+                        
+                        # If user modified the solution, update the message
+                        if modified_solution != solution:
+                            msg = re.sub(
+                                r"<solution>(.*?)</solution>",
+                                f"<solution>{modified_solution}</solution>",
+                                msg,
+                                flags=re.DOTALL
+                            )
+                            
+                except KeyboardInterrupt:
+                    # User stopped execution
+                    state["messages"].append(
+                        AIMessage(content="Execution stopped by user request.")
+                    )
+                    state["next_step"] = "end"
+                    return state
+
+            # Add the message to the state after potential human modifications
             state["messages"].append(AIMessage(content=msg.strip()))
 
             if answer_match:
@@ -1600,6 +1673,10 @@ Each library is listed with its description to help you understand its functiona
             prompt: The user's query
 
         """
+        if self.interactive:
+            print(f"\n🤝 Starting INTERACTIVE mode - You'll be asked to confirm plans before execution")
+            print(f"💡 Tip: You can approve, edit, reject, or stop execution at any confirmation point\n")
+            
         self.critic_count = 0
         self.user_task = prompt
 
@@ -1614,11 +1691,16 @@ Each library is listed with its description to help you understand its functiona
         # Store the final conversation state for markdown generation
         final_state = None
 
-        for s in self.app.stream(inputs, stream_mode="values", config=config):
-            message = s["messages"][-1]
-            out = pretty_print(message)
-            self.log.append(out)
-            final_state = s  # Store the latest state
+        try:
+            for s in self.app.stream(inputs, stream_mode="values", config=config):
+                message = s["messages"][-1]
+                out = pretty_print(message)
+                self.log.append(out)
+                final_state = s  # Store the latest state
+        except KeyboardInterrupt:
+            if self.interactive:
+                print("\n🛑 Execution interrupted by user.")
+            raise
 
         # Store the conversation state for markdown generation
         self._conversation_state = final_state
@@ -1637,6 +1719,10 @@ Each library is listed with its description to help you understand its functiona
         Yields:
             dict: Each step of the agent's execution containing the current message and state
         """
+        if self.interactive:
+            print(f"\n🤝 Starting INTERACTIVE streaming mode - You'll be asked to confirm plans before execution")
+            print(f"💡 Tip: You can approve, edit, reject, or stop execution at any confirmation point\n")
+            
         self.critic_count = 0
         self.user_task = prompt
 
@@ -1651,14 +1737,19 @@ Each library is listed with its description to help you understand its functiona
         # Store the final conversation state for markdown generation
         final_state = None
 
-        for s in self.app.stream(inputs, stream_mode="values", config=config):
-            message = s["messages"][-1]
-            out = pretty_print(message)
-            self.log.append(out)
-            final_state = s  # Store the latest state
+        try:
+            for s in self.app.stream(inputs, stream_mode="values", config=config):
+                message = s["messages"][-1]
+                out = pretty_print(message)
+                self.log.append(out)
+                final_state = s  # Store the latest state
 
-            # Yield the current step
-            yield {"output": out}
+                # Yield the current step
+                yield {"output": out}
+        except KeyboardInterrupt:
+            if self.interactive:
+                print("\n🛑 Streaming execution interrupted by user.")
+            raise
 
         # Store the conversation state for markdown generation
         self._conversation_state = final_state
@@ -2352,6 +2443,77 @@ Each library is listed with its description to help you understand its functiona
             which handles multiple PDF conversion libraries and fallbacks.
         """
         convert_markdown_to_pdf(markdown_path, pdf_path)
+
+    def _get_human_confirmation(self, plan: str, plan_type: str = "plan") -> tuple[bool, str]:
+        """Get human confirmation for a generated plan with optional editing.
+        
+        Args:
+            plan: The generated plan to confirm/edit
+            plan_type: Type of plan (e.g., "plan", "code", "analysis")
+            
+        Returns:
+            tuple: (approved, modified_plan) - True if approved, and the potentially modified plan
+        """
+        print(f"\n{'='*60}")
+        print(f"🤖 BIOMNI AGENT - {plan_type.upper()} CONFIRMATION")
+        print(f"{'='*60}")
+        print(f"\n📋 Generated {plan_type}:")
+        print(f"{'-'*40}")
+        print(plan)
+        print(f"{'-'*40}")
+        
+        while True:
+            print(f"\n🤔 What would you like to do?")
+            print("  1. ✅ Approve and proceed")
+            print("  2. ✏️  Edit the plan")
+            print("  3. ❌ Reject and ask agent to regenerate")
+            print("  4. 🛑 Stop execution")
+            
+            choice = input("\nEnter your choice (1-4): ").strip()
+            
+            if choice == "1":
+                print("✅ Plan approved! Proceeding with execution...")
+                return True, plan
+                
+            elif choice == "2":
+                print(f"\n✏️  Edit mode - Current {plan_type}:")
+                print(f"{'-'*40}")
+                print(plan)
+                print(f"{'-'*40}")
+                print("\nEnter your modifications (press Enter twice to finish):")
+                
+                lines = []
+                empty_count = 0
+                while empty_count < 2:
+                    line = input()
+                    if line == "":
+                        empty_count += 1
+                    else:
+                        empty_count = 0
+                    lines.append(line)
+                
+                # Remove trailing empty lines
+                while lines and lines[-1] == "":
+                    lines.pop()
+                
+                modified_plan = "\n".join(lines)
+                if modified_plan.strip():
+                    print("✅ Plan updated! Proceeding with modified version...")
+                    return True, modified_plan
+                else:
+                    print("❌ Empty modification. Keeping original plan.")
+                    continue
+                    
+            elif choice == "3":
+                print("❌ Plan rejected. Asking agent to regenerate...")
+                return False, plan
+                
+            elif choice == "4":
+                print("🛑 Execution stopped by user.")
+                raise KeyboardInterrupt("Execution stopped by user request")
+                
+            else:
+                print("❌ Invalid choice. Please enter 1, 2, 3, or 4.")
 
     def _clear_execution_plots(self):
         """Clear execution plots before new execution.
