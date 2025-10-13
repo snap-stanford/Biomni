@@ -242,7 +242,7 @@ For usage and implementation details, see the [MCP Integration Documentation](do
 
 ## Biomni-Eval1
 
-**Biomni-Eval1** is a comprehensive evaluation benchmark for assessing biological reasoning capabilities across diverse tasks. It contains **4,880 instances** spanning **10 biological reasoning tasks**, from gene identification to disease diagnosis.
+**Biomni-Eval1** is a comprehensive evaluation benchmark for assessing biological reasoning capabilities across diverse tasks. It contains **433 instances** spanning **10 biological reasoning tasks**, from gene identification to disease diagnosis.
 
 **Tasks Included:**
 - GWAS causal gene identification (3 variants)
