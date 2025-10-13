@@ -5,10 +5,10 @@ This class provides a unified interface to evaluate user answers against ground 
 for all tasks in the BiomniEval1 benchmark.
 """
 
-import pandas as pd
-import numpy as np
 import json
-from typing import Dict, Any, Optional
+from typing import Any
+
+import pandas as pd
 
 
 class BiomniEval1:
@@ -33,7 +33,7 @@ class BiomniEval1:
         # Create index mapping for fast lookup using task_instance_id
         self.instance_map = {}
         for idx, row in self.df.iterrows():
-            key = (row['task_name'], row['task_instance_id'])
+            key = (row["task_name"], row["task_instance_id"])
             self.instance_map[key] = idx
 
         print(f"Loaded BiomniEval1 dataset: {len(self.df)} instances across {self.df['task_name'].nunique()} tasks")
@@ -57,7 +57,7 @@ class BiomniEval1:
 
         df_idx = self.instance_map[key]
         row = self.df.iloc[df_idx]
-        ground_truth = row['answer']
+        ground_truth = row["answer"]
 
         # Call task-specific evaluation function
         try:
@@ -70,27 +70,27 @@ class BiomniEval1:
     def _compute_reward(self, task_name: str, user_answer: str, ground_truth: str) -> float:
         """Compute reward using task-specific logic"""
 
-        if task_name == 'crispr_delivery':
+        if task_name == "crispr_delivery":
             # CRISPR expects answer as a letter (a-f), exact match
             return 1.0 if user_answer.strip().lower() == ground_truth.strip().lower() else 0.0
 
-        elif task_name.startswith('gwas_causal_gene'):
+        elif task_name.startswith("gwas_causal_gene"):
             # GWAS causal gene expects exact gene match (case-insensitive)
             return 1.0 if user_answer.strip().upper() == ground_truth.strip().upper() else 0.0
 
-        elif task_name == 'gwas_variant_prioritization':
+        elif task_name == "gwas_variant_prioritization":
             # GWAS variant expects exact variant match
             return 1.0 if user_answer.strip() == ground_truth.strip() else 0.0
 
-        elif task_name == 'hle':
+        elif task_name == "hle":
             # HLE expects letter answer (A-Z), case-insensitive
             return 1.0 if user_answer.strip().upper() == ground_truth.strip().upper() else 0.0
 
-        elif task_name.startswith('lab_bench'):
+        elif task_name.startswith("lab_bench"):
             # Lab bench expects letter answer (A-Z), case-insensitive
             return 1.0 if user_answer.strip().upper() == ground_truth.strip().upper() else 0.0
 
-        elif task_name == 'rare_disease_diagnosis':
+        elif task_name == "rare_disease_diagnosis":
             # Rare disease expects JSON with OMIM_ID match
             # Parse both user answer and ground truth
             try:
@@ -99,6 +99,7 @@ class BiomniEval1:
                         user_dict = json.loads(user_answer)
                     except json.JSONDecodeError:
                         import ast
+
                         user_dict = ast.literal_eval(user_answer)
                 else:
                     user_dict = user_answer
@@ -109,16 +110,16 @@ class BiomniEval1:
                     gt_dict = ground_truth
 
                 # Compare OMIM_ID
-                return 1.0 if user_dict.get('OMIM_ID') == gt_dict.get('OMIM_ID') else 0.0
+                return 1.0 if user_dict.get("OMIM_ID") == gt_dict.get("OMIM_ID") else 0.0
 
             except Exception:
                 return 0.0
 
-        elif task_name == 'screen_gene_retrieval':
+        elif task_name == "screen_gene_retrieval":
             # Screen gene retrieval expects gene symbol (case-insensitive)
             return 1.0 if user_answer.strip().upper() == ground_truth.strip().upper() else 0.0
 
-        elif task_name == 'patient_gene_detection':
+        elif task_name == "patient_gene_detection":
             # Patient gene detection expects JSON with causal_gene list
             # Ground truth is a comma-separated string or single gene ID
             try:
@@ -127,18 +128,19 @@ class BiomniEval1:
                         user_dict = json.loads(user_answer)
                     except json.JSONDecodeError:
                         import ast
+
                         user_dict = ast.literal_eval(user_answer)
                 else:
                     user_dict = user_answer
 
                 # Get predicted genes
-                predicted_genes = user_dict.get('causal_gene', [])
+                predicted_genes = user_dict.get("causal_gene", [])
                 if not isinstance(predicted_genes, list):
                     predicted_genes = [predicted_genes]
 
                 # Get ground truth genes (stored as comma-separated or single)
-                if ',' in ground_truth:
-                    true_genes = [g.strip() for g in ground_truth.split(',')]
+                if "," in ground_truth:
+                    true_genes = [g.strip() for g in ground_truth.split(",")]
                 else:
                     true_genes = [ground_truth]
 
@@ -154,7 +156,7 @@ class BiomniEval1:
         else:
             raise ValueError(f"Unknown task: {task_name}")
 
-    def get_instance(self, task_name: str, task_instance_id: int) -> Dict[str, Any]:
+    def get_instance(self, task_name: str, task_instance_id: int) -> dict[str, Any]:
         """
         Get information about a specific instance
 
@@ -173,19 +175,19 @@ class BiomniEval1:
         row = self.df.iloc[df_idx]
 
         return {
-            'global_instance_id': row['instance_id'],
-            'task_instance_id': row['task_instance_id'],
-            'task_name': row['task_name'],
-            'split': row['split'],
-            'prompt': row['prompt'],
-            'answer': row['answer']
+            "global_instance_id": row["instance_id"],
+            "task_instance_id": row["task_instance_id"],
+            "task_name": row["task_name"],
+            "split": row["split"],
+            "prompt": row["prompt"],
+            "answer": row["answer"],
         }
 
     def list_tasks(self) -> list:
         """Get list of all available tasks"""
-        return sorted(self.df['task_name'].unique().tolist())
+        return sorted(self.df["task_name"].unique().tolist())
 
-    def get_task_stats(self, task_name: str = None) -> Dict[str, Any]:
+    def get_task_stats(self, task_name: str = None) -> dict[str, Any]:
         """
         Get statistics for a task or all tasks
 
@@ -196,22 +198,22 @@ class BiomniEval1:
             dict: Statistics including counts by split
         """
         if task_name:
-            task_df = self.df[self.df['task_name'] == task_name]
+            task_df = self.df[self.df["task_name"] == task_name]
             if len(task_df) == 0:
                 raise ValueError(f"Task not found: {task_name}")
         else:
             task_df = self.df
 
         stats = {
-            'total_instances': len(task_df),
-            'train_instances': len(task_df[task_df['split'] == 'train']),
-            'val_instances': len(task_df[task_df['split'] == 'val']),
+            "total_instances": len(task_df),
+            "train_instances": len(task_df[task_df["split"] == "train"]),
+            "val_instances": len(task_df[task_df["split"] == "val"]),
         }
 
         if not task_name:
-            stats['tasks'] = {}
+            stats["tasks"] = {}
             for tn in self.list_tasks():
-                stats['tasks'][tn] = self.get_task_stats(tn)
+                stats["tasks"][tn] = self.get_task_stats(tn)
 
         return stats
 
@@ -247,10 +249,10 @@ class BiomniEval1:
         Returns:
             DataFrame with instances
         """
-        task_df = self.df[self.df['task_name'] == task_name]
+        task_df = self.df[self.df["task_name"] == task_name]
 
         if split:
-            task_df = task_df[task_df['split'] == split]
+            task_df = task_df[task_df["split"] == split]
 
         return task_df.copy()
 
@@ -277,18 +279,20 @@ def main():
     print("\nPer-task statistics:")
     for task_name in evaluator.list_tasks():
         task_stats = evaluator.get_task_stats(task_name)
-        print(f"  {task_name}: {task_stats['total_instances']} total ({task_stats['train_instances']} train, {task_stats['val_instances']} val)")
+        print(
+            f"  {task_name}: {task_stats['total_instances']} total ({task_stats['train_instances']} train, {task_stats['val_instances']} val)"
+        )
 
     # Example evaluation
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example evaluation:")
-    print("="*60)
+    print("=" * 60)
 
     # Get first instance from gwas_variant_prioritization
-    first_instance = evaluator.df[evaluator.df['task_name'] == 'gwas_variant_prioritization'].iloc[0]
-    task_name = first_instance['task_name']
-    task_instance_id = first_instance['task_instance_id']
-    ground_truth = first_instance['answer']
+    first_instance = evaluator.df[evaluator.df["task_name"] == "gwas_variant_prioritization"].iloc[0]
+    task_name = first_instance["task_name"]
+    task_instance_id = first_instance["task_instance_id"]
+    ground_truth = first_instance["answer"]
 
     print(f"\nTask: {task_name}")
     print(f"Task Instance ID: {task_instance_id}")
@@ -300,20 +304,20 @@ def main():
     print(f"\nScore (correct answer '{ground_truth}'): {score}")
 
     # Test with wrong answer
-    score = evaluator.evaluate(task_name, task_instance_id, 'wrong_answer')
+    score = evaluator.evaluate(task_name, task_instance_id, "wrong_answer")
     print(f"Score (wrong answer 'wrong_answer'): {score}")
 
     # Batch evaluation example
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Batch evaluation example:")
-    print("="*60)
+    print("=" * 60)
     batch_evals = [
         (task_name, task_instance_id, ground_truth),  # Correct
-        (task_name, task_instance_id, 'wrong'),        # Wrong
+        (task_name, task_instance_id, "wrong"),  # Wrong
     ]
     scores = evaluator.batch_evaluate(batch_evals)
     print(f"Batch scores: {scores}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
