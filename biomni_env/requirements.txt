@@ -46,3 +46,5 @@ googlesearch-python
 asyncpg
 boto3
 botocore
+lifelines
+geoparse

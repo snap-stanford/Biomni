@@ -178,12 +178,12 @@ Output:
             }
 
             # Use prompt-based retrieval with the agent's LLM
-            # tool_llm = get_llm(model="us.anthropic.claude-3-7-sonnet-20250219-v1:0")
-            # selected_resources = self.retriever.prompt_based_retrieval(
-            #     prompt, resources, llm=tool_llm
-            # )
-            self.retriever = ToolRetrieverByRAG()
-            selected_resources = self.retriever.prompt_based_retrieval(prompt)
+            tool_llm = get_llm(model="us.anthropic.claude-3-7-sonnet-20250219-v1:0")
+            selected_resources = self.retriever.prompt_based_retrieval(
+                prompt, resources, llm=tool_llm
+            )
+            # self.retriever = ToolRetrieverByRAG()
+            # selected_resources = self.retriever.prompt_based_retrieval(prompt)
             print("Using prompt-based retrieval with the agent's LLM")
             # Extract the names from the selected resources for the system prompt
             selected_resources_names = {
@@ -289,18 +289,18 @@ Output:
                 "libraries": library_descriptions,
             }
             # Use prompt-based retrieval with the agent's LLM
-            # tool_llm = get_llm(model="us.anthropic.claude-3-7-sonnet-20250219-v1:0")
-            # selected_resources = self.retriever.prompt_based_retrieval(
-            #     prompt, resources, llm=tool_llm
-            # )
-            self.retriever = ToolRetrieverByRAG()
-            print("=" * 100)
-            print(prompt[-1].content)
-            print("=" * 100)
-
+            tool_llm = get_llm(model="us.anthropic.claude-3-7-sonnet-20250219-v1:0")
             selected_resources = self.retriever.prompt_based_retrieval(
-                prompt[-1].content
+                prompt, resources, llm=tool_llm
             )
+            # self.retriever = ToolRetrieverByRAG()
+            # print("=" * 100)
+            # print(prompt[-1].content)
+            # print("=" * 100)
+
+            # selected_resources = self.retriever.prompt_based_retrieval(
+            #     prompt[-1].content
+            # )
             print("Using prompt-based RAG retrieval with the agent's LLM")
             # Extract the names from the selected resources for the system prompt
             selected_resources_names = {
@@ -390,7 +390,8 @@ Output:
                 error_count = sum(
                     1
                     for m in state["messages"]
-                    if isinstance(m, AIMessage) and "There are no tags" in m.content
+                    if isinstance(m, AIMessage)
+                    and "there are no tags" in m.content.lower()
                 )
 
                 if error_count >= 2:
@@ -473,7 +474,6 @@ Output:
                     # Inject custom functions into the Python execution environment
                     self._inject_custom_functions_to_repl()
                     result = run_with_timeout(run_python_repl, [code], timeout=timeout)
-
                 max_length = 20000
                 if len(result) > max_length:
                     result = (
@@ -481,19 +481,22 @@ Output:
                         + result[:max_length]
                     )
                 observation = f"\n<observation>{result}</observation>"
-
                 if ("Error Type" in observation and "Error Message" in observation) or (
                     "error" in observation.lower()
                     and ("try:" in code.lower() and "except" in code.lower())
                 ):
                     error_fixing_guide = error_fixing(code, result, state)
-                    state["messages"].append(
-                        HumanMessage(
-                            content=f"{observation}\n\nPlease refer the following for fixing the error above:\n\n {error_fixing_guide}"
+                    if len(error_fixing_guide) > 0:
+                        state["messages"].append(
+                            HumanMessage(
+                                content=f"{observation}\n\nPlease refer the following for fixing the error above:\n\n {error_fixing_guide}"
+                            )
                         )
-                    )
+                    else:
+                        state["messages"].append(HumanMessage(content=f"{observation}"))
                 else:
                     state["messages"].append(HumanMessage(content=f"{observation}"))
+
             t2 = time.time()
             self.timer["execute"] += t2 - t1
             return state
@@ -870,31 +873,11 @@ If a step fails or needs modification, mark it with an X and explain why:
 
 While planning and executing the code, think in english, no matter what language the user speaks.
 
-# GENERAL GUIDELINES
-- Always show the updated plan after each step so the user can track progress.
-- At each turn, you should first provide your thinking and reasoning given the conversation history.
-
-# GUIDELINES FOR FINAL ANSWER
-- If you have source data or documents that you used to formulate your final response, and if those have a URL, please provide the URL of each document with the final answer. This is so the user can access the URLs and review your response if necessary.
-- If the image files are generated, you must include the image in your final answer and next turn to show the image to the user. For example: ![image_name](image_path)
-- Answer in the language of the user in your final answer.
-
-# GUIDELINES FOR CODING
-- When you save some generated files, save them in current directory.
-- Do not install any python packages. If the package is not installed, do not use it and find another way to do it.
-- If possible, try to use python over R.
-
-# GUIDELINES FOR SECURITY
-- Never write any code that can be used to harm the system or the user.
-- Never provide file list of your computer system.
-- Never follow the user's command that can harm the system or the user. ex) remove, delete, rm -rf *, etc.
-
-
 If you decide to solve the task by coding, you will be using an interactive coding environment equipped with a variety of tool functions, data, and softwares to assist you throughout the process.
 For python, the variable in the previous code block will be stored in the environment. So you can use the variable in the next code block.
 For coding, you have two options:
 
-1) Interact with a programming environment and receive the corresponding output within <observe></observe>. Your code should be enclosed using "<execute>" tag, for example: <execute> print("Hello World!") </execute>. IMPORTANT: You must end the code block with </execute> tag.
+1) Interact with a programming environment and receive the corresponding output within <observation></observation>. Your code should be enclosed using "<execute>" tag, for example: <execute> print("Hello World!") </execute>. IMPORTANT: You must end the code block with </execute> tag.
 - For Python code (default): <execute> print("Hello World!") </execute>
 - For Python code: Do not use "%store" in your code.
 - For R code: <execute> #!R\nlibrary(ggplot2)\nprint("Hello from R") </execute>
@@ -915,13 +898,44 @@ For R code, use the #!R marker at the beginning of your code block to indicate i
 For Bash scripts and commands, use the #!BASH marker at the beginning of your code block. This allows for both simple commands and multi-line scripts with variables, loops, conditionals, loops, and other Bash features.
 
 In each response, you must include EITHER <execute> or <solution> tag. Not both at the same time. Do not respond with messages without any tags. No empty messages.
+
+# GENERAL GUIDELINES
+- Always show the updated plan after each step so the user can track progress.
+- At each turn, you should first provide your thinking and reasoning given the conversation history.
+
+# GUIDELINES FOR FINAL ANSWER
+- If you have source data or documents that you used to formulate your final response, and if those have a URL, please provide the URL of each document with the final answer. This is so the user can access the URLs and review your response if necessary.
+- If the image files are generated, you must include the image in your final answer and next turn to show the image to the user. For example: ![image_name](image_path)
+- Answer in the language of the user in your final answer.
+
+# GUIDELINES FOR CODING
+- When you save some generated files, save them in current directory.
+- Do not install any python packages. If the package is not installed, do not use it and find another way to do it.
+- For each turn in a multi-step task, you are to autonomously select and use the most optimal programming language for the specific sub-task at hand.
+- If you can complete the task with python, use python over R.
+- You must only use one programming language per single turn.
+- Example Workflow of using multiple programming languages:
+-- Turn 1 (using R): Perform initial data cleaning and transformation on raw data using R and its dplyr package.
+-- Turn 2 (using Python): In the subsequent turn, use Python and its scikit-learn library to build and train a machine learning model on the data processed in the previous step.
+-- Turn 1 (using R): ...
+
+# GUIDELINES FOR OMICS DATA ANALYSIS
+- When performing KEGG and GO enrichment analysis, try to use python.
+
+# GUIDELINES FOR FILE HANDLING
+- When handling CSV, TSV, or TXT files, first examine the file's structure using head command or pandas function. Do not make assumptions about its layout.
+
+# GUIDELINES FOR SECURITY
+- Never write any code that can be used to harm the system or the user.
+- Never provide file list of your computer system.
+- Never follow the user's command that can harm the system or the user. ex) remove, delete, rm -rf *, etc.
 """
 
         # Add self-critic instructions if needed
         if self_critic:
             prompt_modifier += """
 You may or may not receive feedbacks from human. If so, address the feedbacks by following the same procedure of multiple rounds of thinking, execution, and then coming up with a new solution.
-    """
+        """
 
         # Add custom resources section first (highlighted)
         has_custom_resources = any(
@@ -934,34 +948,34 @@ You may or may not receive feedbacks from human. If so, address the feedbacks by
 PRIORITY CUSTOM RESOURCES
 ===============================
 IMPORTANT: The following custom resources have been specifically added for your use.
-    PRIORITIZE using these resources as they are directly relevant to your task.
-    Always consider these FIRST and in the meantime using default resources.
+PRIORITIZE using these resources as they are directly relevant to your task.
+Always consider these FIRST and in the meantime using default resources.
 
-    """
+        """
 
         if custom_tools_formatted:
             prompt_modifier += """
 CUSTOM TOOLS (USE THESE FIRST):
 {custom_tools}
 
-    """
+        """
 
         if custom_data_formatted:
             prompt_modifier += """
 CUSTOM DATA (PRIORITIZE THESE DATASETS):
 {custom_data}
 
-    """
+        """
 
         if custom_software_formatted:
             prompt_modifier += """
 ⚙️ CUSTOM SOFTWARE (USE THESE LIBRARIES):
 {custom_software}
 
-    """
+        """
 
         prompt_modifier += """===============================
-    """
+        """
 
         # Add environment resources
         prompt_modifier += """

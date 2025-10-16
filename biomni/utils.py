@@ -42,7 +42,6 @@ def run_r_code(code: str) -> str:
         result = subprocess.run(
             ["Rscript", temp_file], capture_output=True, text=True, check=False
         )
-
         # Clean up the temporary file
         os.unlink(temp_file)
 

@@ -186,8 +186,10 @@ class ToolRetrieverByRAG:
         rag_query = f"""
 You are an expert biomedical research assistant. Your task is to select the relevant resources to help answer a user's query.
 
+IMPORTANT:
+-----------------------------------
 USER QUERY: {query}
-
+-----------------------------------
 Be generous in your selection - include resources that might be useful for the task, even if they're not explicitly mentioned in the query.
 It's better to include slightly more resources than to miss potentially useful ones.
 
@@ -199,6 +201,7 @@ IMPORTANT GUIDELINES:
 6. For libraries, include those that provide functions needed for analysis
 7. Don't exclude resources just because they're not explicitly mentioned in the query
 8. When in doubt about a database tool or molecular biology tool, include it rather than exclude it
+9. If some library is useful for completing the only some part of the task, include it.
 """
 
         embeddings = BedrockEmbeddings(normalize=True)
@@ -222,7 +225,7 @@ IMPORTANT GUIDELINES:
             ),
         }
 
-        thresholds = {"tools": 0.25, "data_lake": 0.1, "libraries": 0.05}
+        thresholds = {"tools": 0.25, "data_lake": 0.1, "libraries": 0.00}
         selected_resources = {}
         for db_name, db in databases.items():
             threshold = thresholds[db_name]
