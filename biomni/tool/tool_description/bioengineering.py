@@ -49,7 +49,8 @@ description = [
                 "nucleotides each) targeting the "
                 "genomic region of interest",
                 "name": "guide_rna_sequences",
-                "type": "List[str]",
+                "type": "array",
+                "items": {"type": "string"},
             },
             {
                 "default": None,
@@ -120,13 +121,15 @@ description = [
                 "default": None,
                 "description": "Time points at which drug concentrations were measured (in hours)",
                 "name": "time_points",
-                "type": "List[float] or numpy.ndarray",
+                "type": "array",
+                "items": {"type": "number"},
             },
             {
                 "default": None,
                 "description": "Measured drug concentration at each time point",
                 "name": "concentration_data",
-                "type": "List[float] or numpy.ndarray",
+                "type": "array",
+                "items": {"type": "number"},
             },
         ],
     },
@@ -192,13 +195,13 @@ description = [
                 "default": None,
                 "description": "Neural spiking activity data, shape (n_timepoints, n_neurons)",
                 "name": "neural_data",
-                "type": "numpy.ndarray",
+                "type": "array",
             },
             {
                 "default": None,
                 "description": "Behavioral data, shape (n_timepoints, n_behavioral_variables)",
                 "name": "behavioral_data",
-                "type": "numpy.ndarray",
+                "type": "array",
             },
         ],
     },
@@ -216,13 +219,14 @@ description = [
                 "simple example whole-cell model "
                 "will be used.",
                 "name": "ode_function",
-                "type": "callable",
+                "type": "object",
             },
             {
                 "default": "(0, 100)",
                 "description": "Tuple of (start_time, end_time) for the simulation.",
                 "name": "time_span",
-                "type": "tuple",
+                "type": "array",
+                "items": {"type": "number"},
             },
             {
                 "default": 1000,
@@ -247,7 +251,7 @@ description = [
                 "If array-like, order must match the "
                 "order expected by the ODE function.",
                 "name": "initial_conditions",
-                "type": "dict or array-like",
+                "type": "object",
             },
             {
                 "default": None,

@@ -2429,19 +2429,38 @@ Each library is listed with its description to help you understand its functiona
             # Map your types to Python types
             type_map = {"str": str, "int": int, "float": float, "bool": bool, "List[str]": list[str], "dict": dict}
 
+            def get_python_type(param_info):
+                """Convert Biomni schema type to Python type."""
+                param_type_str = param_info["type"]
+
+                # Handle array types with proper items inspection
+                if param_type_str == "array" and "items" in param_info:
+                    items_type = param_info["items"]["type"]
+                    if items_type == "string":
+                        return list[str]
+                    elif items_type == "number":
+                        return list[float]
+                    elif items_type == "integer":
+                        return list[int]
+                    elif items_type == "boolean":
+                        return list[bool]
+                    else:
+                        return list[str]  # default to string list
+
+                # Handle regular types
+                return type_map.get(param_type_str, str)
+
             # Add required parameters
             for param_info in required_params:
                 param_name = param_info["name"]
-                param_type_str = param_info["type"]
-                param_type = type_map.get(param_type_str, str)
+                param_type = get_python_type(param_info)
 
                 new_params.append(inspect.Parameter(param_name, inspect.Parameter.KEYWORD_ONLY, annotation=param_type))
 
             # Add optional parameters
             for param_info in optional_params:
                 param_name = param_info["name"]
-                param_type_str = param_info["type"]
-                param_type = type_map.get(param_type_str, str)
+                param_type = get_python_type(param_info)
 
                 # Make it optional
                 optional_type = param_type | None

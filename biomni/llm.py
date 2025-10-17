@@ -111,7 +111,7 @@ def get_llm(
             raise ImportError(  # noqa: B904
                 "langchain-openai package is required for Azure OpenAI models. Install with: pip install langchain-openai"
             )
-        API_VERSION = "2024-12-01-preview"
+        API_VERSION = "2025-04-01-preview"
         model = model.replace("azure-", "")
         return AzureChatOpenAI(
             openai_api_key=os.getenv("OPENAI_API_KEY"),

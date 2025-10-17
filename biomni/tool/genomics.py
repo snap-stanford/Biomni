@@ -798,7 +798,7 @@ except Exception as e:
 # === Integration ===
 
 
-def create_scvi_embeddings_scRNA(adata_filename, batch_key, label_key, data_dir):
+def create_scvi_embeddings_scRNA(adata_filename: str, batch_key: str, label_key: str, data_dir: str) -> str:
     # Import scvi-tools correctly - the package name is still 'scvi' when installed
     try:
         import scvi
@@ -839,7 +839,7 @@ def create_scvi_embeddings_scRNA(adata_filename, batch_key, label_key, data_dir)
     return "\n".join(steps)
 
 
-def create_harmony_embeddings_scRNA(adata_filename, batch_key, data_dir):
+def create_harmony_embeddings_scRNA(adata_filename: str, batch_key: str, data_dir: str) -> str:
     # https://pypi.org/project/harmony-pytorch/
     from harmony import harmonize
 
@@ -911,7 +911,7 @@ def get_uce_embeddings_scRNA(
     return "\n".join(steps)
 
 
-def map_to_ima_interpret_scRNA(adata_filename, data_dir, custom_args=None):
+def map_to_ima_interpret_scRNA(adata_filename: str, data_dir: str, custom_args=None) -> str:
     """Map cell embeddings from the input dataset to the Integrated Megascale Atlas reference dataset using UCE embeddings."""
     from sklearn.neighbors import NearestNeighbors
 
@@ -1088,7 +1088,9 @@ def gene_set_enrichment_analysis(
         return f"An error occurred: {e}"
 
 
-def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, output_dir="./output"):
+def analyze_chromatin_interactions(
+    hic_file_path: str, regulatory_elements_bed: str, output_dir: str = "./output"
+) -> str:
     """Analyze chromatin interactions from Hi-C data to identify enhancer-promoter interactions and TADs.
 
     Parameters
@@ -1421,7 +1423,9 @@ def analyze_chromatin_interactions(hic_file_path, regulatory_elements_bed, outpu
     return "\n".join(log)
 
 
-def analyze_comparative_genomics_and_haplotypes(sample_fasta_files, reference_genome_path, output_dir="./output"):
+def analyze_comparative_genomics_and_haplotypes(
+    sample_fasta_files: str, reference_genome_path: str, output_dir: str = "./output"
+) -> str:
     """Perform comparative genomics and haplotype analysis on multiple genome samples.
 
     This function aligns multiple genome samples to a reference, identifies variants,
@@ -1962,7 +1966,7 @@ def find_enriched_motifs_with_homer(
     return log
 
 
-def analyze_genomic_region_overlap(region_sets, output_prefix="overlap_analysis"):
+def analyze_genomic_region_overlap(region_sets: str, output_prefix: str = "overlap_analysis") -> str:
     """Analyze overlaps between two or more sets of genomic regions.
 
     Parameters

@@ -153,7 +153,8 @@ description = [
                 "reactions with id, name, reactants, "
                 "products, and reversible properties",
                 "name": "reaction_network",
-                "type": "List[dict]",
+                "type": "array",
+                "items": {"type": "object"},
             },
             {
                 "default": None,

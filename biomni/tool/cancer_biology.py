@@ -265,7 +265,7 @@ def analyze_ddr_network_in_cancer(expression_data_path, mutation_data_path, outp
     return research_log
 
 
-def analyze_cell_senescence_and_apoptosis(fcs_file_path):
+def analyze_cell_senescence_and_apoptosis(fcs_file_path: str) -> str:
     """Analyze flow cytometry data to quantify senescent and apoptotic cell populations.
 
     Parameters
