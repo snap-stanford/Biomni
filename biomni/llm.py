@@ -6,7 +6,9 @@ from langchain_core.language_models.chat_models import BaseChatModel
 if TYPE_CHECKING:
     from biomni.config import BiomniConfig
 
-SourceType = Literal["OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Groq", "HuggingFace", "Custom"]
+SourceType = Literal[
+    "OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Groq", "HuggingFace", "Custom"
+]
 ALLOWED_SOURCES: set[str] = set(SourceType.__args__)
 
 
@@ -198,17 +200,17 @@ def get_llm(
         )
     elif source == "HuggingFace":
         try:
-            from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint 
+            from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
         except ImportError:
             raise ImportError(  # noqa: B904
                 "langchain-huggingface package is required for HuggingFace models. Install with: pip install langchain-huggingface"
             )
         return ChatHuggingFace(
-            llm = HuggingFaceEndpoint(
+            llm=HuggingFaceEndpoint(
                 repo_id=model,
                 temperature=temperature,
                 stop_sequences=stop_sequences,
-                huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_KEY")
+                huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_KEY"),
             )
         )
     elif source == "Custom":
