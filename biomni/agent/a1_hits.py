@@ -68,7 +68,8 @@ class A1_HITS(A1):
         """Get the LLM model for error fixing."""
         # Using mistral-small-2506 as the primary model
         # Alternative models are commented out for future reference
-        return get_llm(model="mistral-small-2506")
+        # return get_llm(model="mistral-small-2506")
+        return get_llm(model="us.anthropic.claude-3-5-haiku-20241022-v1:0")
         # Alternative options:
         # return get_llm(model="us.anthropic.claude-3-5-sonnet-20240620-v1:0")
         # return ChatBedrock(model="us.anthropic.claude-3-5-sonnet-20240620-v1:0")
@@ -106,7 +107,13 @@ Output:
         """Get the error fixing answer from the QA chain."""
         try:
             result = qa_chain.invoke(
-                {"question": question, "chat_history": state["error_fixing_history"]}
+                {
+                    "question": question,
+                    "chat_history": [],
+                    # "chat_history": state["error_fixing_history"][
+                    #     -1:
+                    # ],  # Use only the last message for error fixing
+                }
             )
             return result["answer"]
         except Exception as e:
@@ -224,12 +231,24 @@ Output:
                 print(s[1][0].content, end="")
             elif type(s[1][0]) == AIMessage or type(s[1][0]) == HumanMessage:
                 message = s[1][0].content
-                if type(s[1][0]) == HumanMessage:
-                    print(message)
-                # message = s["messages"][-1]
-                # out = pretty_print(message, printout=False)
-                self.log.append(message)
-                yield message
+
+                # Extract text from structured content (if it contains images)
+                if isinstance(message, list):
+                    # Extract text parts only
+                    text_parts = [
+                        item["text"] for item in message if item.get("type") == "text"
+                    ]
+                    text_message = "\n".join(text_parts) if text_parts else ""
+
+                    if type(s[1][0]) == HumanMessage:
+                        print(text_message)
+                    self.log.append(message)
+                    yield text_message
+                else:
+                    if type(s[1][0]) == HumanMessage:
+                        print(message)
+                    self.log.append(message)
+                    yield message
 
         return self.log, message
 
@@ -345,10 +364,64 @@ Output:
             self_critic=self_critic, test_time_scale_round=test_time_scale_round
         )
 
+        def remove_old_images_from_messages(messages):
+            """
+            Remove images from all HumanMessages except the most recent one to reduce token usage.
+
+            Args:
+                messages: List of messages from the state
+
+            Returns:
+                List of processed messages with images removed from older HumanMessages
+            """
+            processed_messages = []
+
+            # Find the index of the last HumanMessage
+            last_human_msg_idx = -1
+            for i in range(len(messages) - 1, -1, -1):
+                if isinstance(messages[i], HumanMessage):
+                    last_human_msg_idx = i
+                    break
+
+            # Process each message
+            for i, msg in enumerate(messages):
+                if isinstance(msg, HumanMessage) and i != last_human_msg_idx:
+                    # For HumanMessages that are not the most recent, remove images
+                    if isinstance(msg.content, list):
+                        # Filter out image_url content, keep only text
+                        text_only_content = [
+                            item
+                            for item in msg.content
+                            if item.get("type") != "image_url"
+                        ]
+                        # If only one text item remains, convert to simple string
+                        if (
+                            len(text_only_content) == 1
+                            and text_only_content[0].get("type") == "text"
+                        ):
+                            processed_messages.append(
+                                HumanMessage(content=text_only_content[0]["text"])
+                            )
+                        else:
+                            processed_messages.append(
+                                HumanMessage(content=text_only_content)
+                            )
+                    else:
+                        # Already simple text, keep as is
+                        processed_messages.append(msg)
+                else:
+                    # For AIMessages and the most recent HumanMessage, keep as is
+                    processed_messages.append(msg)
+
+            return processed_messages
+
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
             t1 = time.time()
-            messages = [SystemMessage(content=self.system_prompt)] + state["messages"]
+
+            # Process messages to keep only the most recent observation's images
+            processed_messages = remove_old_images_from_messages(state["messages"])
+            messages = [SystemMessage(content=self.system_prompt)] + processed_messages
             # response = self.llm.invoke(messages)
             # msg = str(response.content)
 
@@ -417,7 +490,126 @@ Output:
             self.timer["generate"] += t2 - t1
             return state
 
+        def process_new_files(files_before, files_after, observation):
+            """Process newly created files and prepare message content with file contents."""
+            import os
+            import base64
+            from pathlib import Path
+
+            # Get newly created files
+            new_files = files_after - files_before
+
+            # Detect newly created files
+            image_extensions = {
+                ".png",
+                ".jpg",
+                ".jpeg",
+                ".gif",
+                ".bmp",
+                ".svg",
+                ".pdf",
+            }
+            new_images = []
+            new_other_files = []
+
+            for file_path in new_files:
+                if file_path.is_file():
+                    if file_path.suffix.lower() in image_extensions:
+                        new_images.append(str(file_path))
+                    else:
+                        new_other_files.append(str(file_path))
+
+            # Prepare message content
+            message_content = [{"type": "text", "text": observation}]
+
+            # Add information about newly created files
+            if new_images or new_other_files:
+                files_info = "\n\n**Newly created files:**\n"
+
+                # Process images - add them as image content
+                if new_images:
+                    files_info += "\n**Images:**\n"
+                    for img_path in new_images:
+                        files_info += f"- {os.path.basename(img_path)}: {img_path}\n"
+
+                        # Read and encode image as base64
+                        try:
+                            with open(img_path, "rb") as img_file:
+                                img_data = img_file.read()
+                                base64_image = base64.b64encode(img_data).decode(
+                                    "utf-8"
+                                )
+
+                                # Determine image MIME type
+                                ext = Path(img_path).suffix.lower()
+                                mime_types = {
+                                    ".png": "image/png",
+                                    ".jpg": "image/jpeg",
+                                    ".jpeg": "image/jpeg",
+                                    ".gif": "image/gif",
+                                    ".bmp": "image/bmp",
+                                    ".svg": "image/svg+xml",
+                                    ".pdf": "application/pdf",
+                                }
+                                mime_type = mime_types.get(ext, "image/png")
+
+                                # Add image to message content
+                                message_content.append(
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {
+                                            "url": f"data:{mime_type};base64,{base64_image}"
+                                        },
+                                    }
+                                )
+                        except Exception as e:
+                            files_info += f"  (Error reading image: {str(e)})\n"
+
+                # Process other files - read their contents if they are text files
+                if new_other_files:
+                    files_info += "\n**Other files:**\n"
+                    for file_path in new_other_files:
+                        files_info += f"- {file_path}\n"
+
+                        # Try to read file content if it's a text file
+                        try:
+                            with open(file_path, "r", encoding="utf-8") as f:
+                                # Read up to 5 lines, each line up to 200 characters
+                                lines = []
+                                line_count = 0
+                                max_lines = 5
+                                max_chars_per_line = 200
+
+                                for line in f:
+                                    if line_count >= max_lines:
+                                        lines.append("... (truncated: more lines)")
+                                        break
+
+                                    # Truncate line if it's too long
+                                    if len(line) > max_chars_per_line:
+                                        lines.append(
+                                            line[:max_chars_per_line] + "...\n"
+                                        )
+                                    else:
+                                        lines.append(line)
+
+                                    line_count += 1
+
+                                content = "".join(lines)
+                                files_info += f"```\n{content}```\n"
+                        except (UnicodeDecodeError, PermissionError):
+                            files_info += "  (Binary file or unable to read)\n"
+                        except Exception as e:
+                            files_info += f"  (Error reading file: {str(e)})\n"
+
+                # Add files info to the first text content
+                message_content[0]["text"] += files_info
+
+            return message_content
+
         def execute(state: AgentState) -> AgentState:
+            from pathlib import Path
+
             t1 = time.time()
             last_message = state["messages"][-1].content
             # Only add the closing tag if it's not already there
@@ -428,7 +620,12 @@ Output:
                 r"<execute>(.*?)</execute>", last_message, re.DOTALL
             )
             if execute_match:
+                print("START EXECUTING CODE!!!!!")
                 code = execute_match.group(1)
+
+                # Get list of files before execution
+                current_dir = Path.cwd()
+                files_before = set(current_dir.glob("*"))
 
                 # Set timeout duration (10 minutes = 600 seconds)
                 timeout = self.timeout_seconds
@@ -474,6 +671,11 @@ Output:
                     # Inject custom functions into the Python execution environment
                     self._inject_custom_functions_to_repl()
                     result = run_with_timeout(run_python_repl, [code], timeout=timeout)
+
+                # Get list of files after execution
+                files_after = set(current_dir.glob("*"))
+
+                # Prepare observation
                 max_length = 20000
                 if len(result) > max_length:
                     result = (
@@ -481,21 +683,32 @@ Output:
                         + result[:max_length]
                     )
                 observation = f"\n<observation>{result}</observation>"
+
+                # Process newly created files and prepare message content
+                message_content = process_new_files(
+                    files_before, files_after, observation
+                )
+
+                # Add error fixing guide if needed
                 if ("Error Type" in observation and "Error Message" in observation) or (
                     "error" in observation.lower()
                     and ("try:" in code.lower() and "except" in code.lower())
                 ):
                     error_fixing_guide = error_fixing(code, result, state)
                     if len(error_fixing_guide) > 0:
-                        state["messages"].append(
-                            HumanMessage(
-                                content=f"{observation}\n\nPlease refer the following for fixing the error above:\n\n {error_fixing_guide}"
-                            )
-                        )
-                    else:
-                        state["messages"].append(HumanMessage(content=f"{observation}"))
+                        message_content[0][
+                            "text"
+                        ] += f"\n\nPlease refer the following for fixing the error above:\n\n {error_fixing_guide}"
+
+                # Add message with content (text + images)
+                if len(message_content) == 1:
+                    # Only text, use simple string content
+                    state["messages"].append(
+                        HumanMessage(content=message_content[0]["text"])
+                    )
                 else:
-                    state["messages"].append(HumanMessage(content=f"{observation}"))
+                    # Text + images, use structured content
+                    state["messages"].append(HumanMessage(content=message_content))
 
             t2 = time.time()
             self.timer["execute"] += t2 - t1
@@ -915,12 +1128,15 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
 - If you can complete the task with python, use python over R.
 - You must only use one programming language per single turn.
 - Example Workflow of using multiple programming languages:
--- Turn 1 (using R): Perform initial data cleaning and transformation on raw data using R and its dplyr package.
--- Turn 2 (using Python): In the subsequent turn, use Python and its scikit-learn library to build and train a machine learning model on the data processed in the previous step.
--- Turn 1 (using R): ...
+    -- Turn 1 (using R): Perform initial data cleaning and transformation on raw data using R and its dplyr package.
+    -- Turn 2 (using Python): In the subsequent turn, use Python and its scikit-learn library to build and train a machine learning model on the data processed in the previous step.
+    -- Turn 3 (using R): In the subsequent turn, use R and its hgu133plus2.db package to convert the probe ID of GSE data to Ensembl gene ID.
 
 # GUIDELINES FOR OMICS DATA ANALYSIS
-- When performing KEGG and GO enrichment analysis, try to use python.
+- When performing KEGG and GO enrichment analysis, try to use clusterProfiler of R
+- Map microarray probe IDs to Ensembl gene IDs using AnnotationDbi and hgu133plus2.db in R."
+- For lasso regression, use R package "glmnet" and "survival".
+- Use GEOquery of R for dealing with GEO data.
 
 # GUIDELINES FOR FILE HANDLING
 - When handling CSV, TSV, or TXT files, first examine the file's structure using head command or pandas function. Do not make assumptions about its layout.

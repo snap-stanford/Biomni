@@ -101,6 +101,26 @@ if (!require("edgeR", quietly = TRUE)) {
   BiocManager::install("edgeR", dependencies = TRUE, update = FALSE, ask = FALSE)
 }
 
+cat("\nInstalling glmnet and dependencies...\n")
+if (!require("glmnet", quietly = TRUE)) {
+  install.packages("glmnet", dependencies = TRUE)
+}
+
+cat("\nInstalling survival and dependencies...\n")
+if (!require("survival", quietly = TRUE)) {
+  install.packages("survival", dependencies = TRUE)
+}
+
+cat("\nInstalling clusterProfiler and dependencies...\n")
+if (!require("clusterProfiler", quietly = TRUE)) {
+  BiocManager::install("clusterProfiler", dependencies = TRUE, update = FALSE, ask = FALSE)
+}
+
+cat ("Installing GEOquery and dependencies...\n")
+if (!require("GEOquery", quietly = TRUE)) {
+  BiocManager::install("GEOquery", dependencies = TRUE, update = FALSE, ask = FALSE)
+}
+
 cat("\nInstalling org.Hs.eg.db and dependencies...\n")
 BiocManager::install("org.Hs.eg.db")
 

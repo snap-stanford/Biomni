@@ -1,4 +1,4 @@
-env_name="biomni_hits"
+env_name="biomni_hits2"
 
 conda create -n $env_name -f bio_env.yml
 conda activate $env_name

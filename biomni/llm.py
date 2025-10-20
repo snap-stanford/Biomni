@@ -187,6 +187,9 @@ def get_llm(
             api_key=os.getenv("GEMINI_API_KEY"),
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             stop_sequences=stop_sequences,
+            # model_kwargs={
+            #     "google": {"thinking_config": {"thinking_budget": 32768}}
+            # },  # Maximum thinking budget
         )
 
     elif source == "Groq":
