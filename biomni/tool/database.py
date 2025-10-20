@@ -3110,6 +3110,19 @@ def query_openfda(
     else:
         endpoint += f"?limit={max_results}"
 
+    # Make the API request using the REST API helper
+    description = "OpenFDA API query"
+    if prompt:
+        description = f"OpenFDA API query for: {prompt}"
+
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+
+    # Format results based on verbose setting
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
+        return _format_query_results(api_result["result"])
+
+    return api_result
+
 
 def _format_clinicaltrials_text(aggregated_result: dict) -> str:
     """Format clinical trials results into readable text format similar to query_pubmed.

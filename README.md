@@ -169,30 +169,53 @@ agent = A1()  # Everything uses gpt-4, 1200s timeout
 
 For detailed configuration options, see the **[Configuration Guide](docs/configuration.md)**.
 
+### PDF Generation
 
-## Running Tests
+Generate PDF reports of execution traces:
 
-Biomni uses Python's built-in unittest framework.
+```python
+from biomni.agent import A1
 
-- Run all tests in the tests/ folder (recommended):
+# Initialize agent
+agent = A1(path='./data', llm='claude-sonnet-4-20250514')
 
-```bash
-python3 -m unittest discover -s tests -p 'test_*.py' -q
+# Run your task
+agent.go("Your biomedical task here")
+
+# Save conversation history as PDF
+agent.save_conversation_history("my_analysis_results.pdf")
 ```
 
-- Run only the glycoengineering tests:
+**PDF Generation Dependencies:**
+<details>
+<summary>Click to expand</summary>
+For optimal PDF generation, install one of these packages:
 
 ```bash
-python3 -m unittest -q tests/test_glycoengineering.py
-```
+# Option 1: WeasyPrint (recommended for best layout control)
+# Conda environment (recommended)
+conda install weasyprint
 
-Notes:
-- The top-level package import may require optional dependencies (e.g., pandas). The commands above restrict discovery to the tests/ folder to avoid importing the entire biomni package during discovery.
-- Ensure you are in your Biomni environment before running tests:
+# System installation
+brew install weasyprint  # macOS
+apt install weasyprint   # Linux
 
-```bash
-conda activate biomni_e1
+# See [WeasyPrint Installation Guide](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html) for detailed instructions.
+
+# Option 2: markdown2pdf (Rust-based, fast and reliable)
+# macOS:
+brew install theiskaa/tap/markdown2pdf
+
+# Windows/Linux (using Cargo):
+cargo install markdown2pdf
+
+# Or download prebuilt binaries from:
+# https://github.com/theiskaa/markdown2pdf/releases/latest
+
+# Option 3: Pandoc (pip installation)
+pip install pandoc
 ```
+</details>
 
 ## MCP (Model Context Protocol) Support
 
@@ -208,6 +231,66 @@ agent.go("Find FDA active ingredient information for ibuprofen")
 
 **Built-in MCP Servers:**
 For usage and implementation details, see the [MCP Integration Documentation](docs/mcp_integration.md) and examples in [`tutorials/examples/add_mcp_server/`](tutorials/examples/add_mcp_server/) and [`tutorials/examples/expose_biomni_server/`](tutorials/examples/expose_biomni_server/).
+
+
+## Biomni-R0
+
+**Biomni-R0** is our first reasoning model for biology, built on Qwen-32B with reinforcement learning from agent interaction data. It's designed to excel at tool use, multi-step reasoning, and complex biological problem-solving through iterative self-correction.
+
+- 🤗 Model: [biomni/Biomni-R0-32B-Preview](https://huggingface.co/biomni/Biomni-R0-32B-Preview)
+- 📝 Technical Report: [biomni.stanford.edu/blog/biomni-r0-technical-report](https://biomni.stanford.edu/blog/biomni-r0-technical-report)
+
+To use Biomni-R0 for agent reasoning while keeping database queries on your usual provider (recommended), run a local SGLang server and pass the model to `A1()` directly.
+
+1) Launch SGLang with Biomni-R0:
+
+```bash
+python -m sglang.launch_server --model-path RyanLi0802/Biomni-R0-Preview --port 30000 --host 0.0.0.0 --mem-fraction-static 0.8 --tp 2 --trust-remote-code --json-model-override-args '{"rope_scaling":{"rope_type":"yarn","factor":1.0,"original_max_position_embeddings":32768}, "max_position_embeddings": 131072}'
+```
+
+2) Point the agent to your SGLang endpoint for reasoning:
+
+```python
+from biomni.config import default_config
+from biomni.agent import A1
+
+# Database queries (indexes, retrieval, etc.) use default_config
+default_config.llm = "claude-3-5-sonnet-20241022"
+default_config.source = "Anthropic"
+
+# Agent reasoning uses Biomni-R0 served via SGLang (OpenAI-compatible API)
+agent = A1(
+    llm="biomni/Biomni-R0-32B-Preview",
+    source="Custom",
+    base_url="http://localhost:30000/v1",
+    api_key="EMPTY",
+)
+
+agent.go("Plan a CRISPR screen to identify genes regulating T cell exhaustion")
+```
+
+## Biomni-Eval1
+
+**Biomni-Eval1** is a comprehensive evaluation benchmark for assessing biological reasoning capabilities across diverse tasks. It contains **433 instances** spanning **10 biological reasoning tasks**, from gene identification to disease diagnosis.
+
+**Tasks Included:**
+- GWAS causal gene identification (3 variants)
+- Lab bench Q&A (2 variants)
+- Patient gene detection
+- Screen gene retrieval
+- GWAS variant prioritization
+- Rare disease diagnosis
+- CRISPR delivery method selection
+
+**Resources:**
+- 🤗 Dataset: [biomni/Eval1](https://huggingface.co/datasets/biomni/Eval1)
+- 💻 Quick Start:
+```python
+from biomni.eval import BiomniEval1
+
+evaluator = BiomniEval1()
+score = evaluator.evaluate('gwas_causal_gene_opentargets', 0, 'BRCA1')
+```
 
 
 ## 🤝 Contributing to Biomni
@@ -254,13 +337,6 @@ Experience Biomni through our no-code web interface at **[biomni.stanford.edu](h
 
 [![Watch the video](https://img.youtube.com/vi/E0BRvl23hLs/maxresdefault.jpg)](https://youtu.be/E0BRvl23hLs)
 
-## Release schedule
-
-- [ ] 8 Real-world research task benchmark/leaderboard release
-- [ ] A tutorial on how to contribute to Biomni
-- [ ] A tutorial on baseline agents
-- [x] MCP support
-- [x] Biomni A1+E1 release
 
 ## Important Note
 - Security warning: Currently, Biomni executes LLM-generated code with full system privileges. If you want to use it in production, please use in isolated/sandboxed environments. The agent can access files, network, and system commands. Be careful with sensitive data or credentials.

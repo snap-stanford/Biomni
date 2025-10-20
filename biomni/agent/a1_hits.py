@@ -69,7 +69,8 @@ class A1_HITS(A1):
         # Using mistral-small-2506 as the primary model
         # Alternative models are commented out for future reference
         # return get_llm(model="mistral-small-2506")
-        return get_llm(model="us.anthropic.claude-3-5-haiku-20241022-v1:0")
+        return get_llm(model="us.anthropic.claude-haiku-4-5-20251001-v1:0")
+        # return get_llm(model="us.anthropic.claude-3-5-haiku-20241022-v1:0")
         # Alternative options:
         # return get_llm(model="us.anthropic.claude-3-5-sonnet-20240620-v1:0")
         # return ChatBedrock(model="us.anthropic.claude-3-5-sonnet-20240620-v1:0")

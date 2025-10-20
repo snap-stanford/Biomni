@@ -101,14 +101,16 @@ if (!require("edgeR", quietly = TRUE)) {
   BiocManager::install("edgeR", dependencies = TRUE, update = FALSE, ask = FALSE)
 }
 
-cat("\nInstalling glmnet and dependencies...\n")
+cat("\nInstalling glmnet and dependencies via BiocManager...\n")
 if (!require("glmnet", quietly = TRUE)) {
-  install.packages("glmnet", dependencies = TRUE)
+  BiocManager::install("glmnet", dependencies = TRUE, update = FALSE, ask = FALSE)
 }
 
-cat("\nInstalling survival and dependencies...\n")
+cat("\nInstalling survival and dependencies via BiocManager...\n")
 if (!require("survival", quietly = TRUE)) {
-  install.packages("survival", dependencies = TRUE)
+  BiocManager::install("survival", dependencies = TRUE, update = FALSE, ask = FALSE)
+  BiocManager::install("survivalROC", dependencies = TRUE, update = FALSE, ask = FALSE)
+  BiocManager::install("survminer", dependencies = TRUE, update = FALSE, ask = FALSE)
 }
 
 cat("\nInstalling clusterProfiler and dependencies...\n")
