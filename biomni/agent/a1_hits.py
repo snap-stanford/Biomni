@@ -29,6 +29,8 @@ from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from biomni.model.retriever import ToolRetrieverByRAG
 
+tool_llm_model_id = "gemini-2.5-pro"
+
 
 class A1_HITS(A1):
     def __init__(self, *args, **kwargs):
@@ -186,7 +188,7 @@ Output:
             }
 
             # Use prompt-based retrieval with the agent's LLM
-            tool_llm = get_llm(model="us.anthropic.claude-3-7-sonnet-20250219-v1:0")
+            tool_llm = get_llm(model=tool_llm_model_id)
             selected_resources = self.retriever.prompt_based_retrieval(
                 prompt, resources, llm=tool_llm
             )
@@ -309,7 +311,7 @@ Output:
                 "libraries": library_descriptions,
             }
             # Use prompt-based retrieval with the agent's LLM
-            tool_llm = get_llm(model="us.anthropic.claude-3-7-sonnet-20250219-v1:0")
+            tool_llm = get_llm(model=tool_llm_model_id)
             selected_resources = self.retriever.prompt_based_retrieval(
                 prompt, resources, llm=tool_llm
             )
@@ -1138,6 +1140,8 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
 - Map microarray probe IDs to Ensembl gene IDs using AnnotationDbi and hgu133plus2.db in R."
 - For lasso regression, use R package "glmnet" and "survival".
 - Use GEOquery of R for dealing with GEO data.
+- You MUST use log2 transformed data for running a Cox regression analysis.
+- You can use upto 4 workers for performing the parallel computation. If it seems to take long time, consider parallel computing
 
 # GUIDELINES FOR FILE HANDLING
 - When handling CSV, TSV, or TXT files, first examine the file's structure using head command or pandas function. Do not make assumptions about its layout.

@@ -126,6 +126,9 @@ if (!require("GEOquery", quietly = TRUE)) {
 cat("\nInstalling org.Hs.eg.db and dependencies...\n")
 BiocManager::install("org.Hs.eg.db")
 
+install.packages(c("survival"))
+
+
 # if (!require("org.Hs.eg.db", character.only = TRUE, quietly = TRUE)) {
 #   BiocManager::install("org.Hs.eg.db", dependencies = TRUE, update = FALSE, ask = FALSE)
 #   if (require("org.Hs.eg.db", character.only = TRUE, quietly = TRUE)) {
