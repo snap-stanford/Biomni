@@ -1292,8 +1292,26 @@ Each library is listed with its description to help you understand its functiona
             messages = [SystemMessage(content=self.system_prompt)] + state["messages"]
             response = self.llm.invoke(messages)
 
-            # Parse the response
-            msg = str(response.content)
+            # Normalize Responses API content blocks (list of dicts) into a plain string
+            content = response.content
+            if isinstance(content, list):
+                # Concatenate textual parts; ignore tool_use or other non-text blocks
+                text_parts: list[str] = []
+                for block in content:
+                    try:
+                        if isinstance(block, dict):
+                            btype = block.get("type")
+                            if btype in ("text", "output_text", "redacted_text"):
+                                part = block.get("text") or block.get("content") or ""
+                                if isinstance(part, str):
+                                    text_parts.append(part)
+                    except Exception:
+                        # Be conservative; skip malformed blocks
+                        continue
+                msg = "".join(text_parts)
+            else:
+                # Fallback to string conversion for legacy content
+                msg = str(content)
 
             # Check for incomplete tags and fix them
             if "<execute>" in msg and "</execute>" not in msg:
