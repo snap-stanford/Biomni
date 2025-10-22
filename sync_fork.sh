@@ -31,7 +31,7 @@ echo ""
 if git show-ref --verify --quiet refs/heads/feat/gpt5-mini-support; then
     echo -e "${YELLOW}2️⃣  Mise à jour de feat/gpt5-mini-support${NC}"
     git checkout feat/gpt5-mini-support
-    
+
     # Tenter le rebase
     if git rebase main; then
         echo -e "${GREEN}✅ Rebase réussi${NC}"

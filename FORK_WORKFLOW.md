@@ -169,6 +169,6 @@ conda activate biomni_e1
 
 ---
 
-**Créé le**: 21 octobre 2025  
-**Auteur**: Mickael Leclercq  
+**Créé le**: 21 octobre 2025
+**Auteur**: Mickael Leclercq
 **Base upstream**: snap-stanford/Biomni @ 8fd7b21
