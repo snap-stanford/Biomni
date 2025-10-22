@@ -121,8 +121,25 @@ IMPORTANT GUIDELINES:
 
         return "\n".join(formatted) if formatted else "None available"
 
-    def _parse_llm_response(self, response: str) -> dict:
-        """Parse the LLM response to extract the selected indices."""
+    def _parse_llm_response(self, response) -> dict:
+        """Parse the LLM response to extract the selected indices.
+
+        Accepts either a plain string or a Responses API-style list of content blocks.
+        """
+        # Normalize response to string if it's a list of content blocks (Responses API)
+        if isinstance(response, list):
+            parts = []
+            for item in response:
+                # LangChain Responses API returns list of dicts like {"type": "text", "text": "..."}
+                if isinstance(item, dict):
+                    if item.get("type") == "text" and "text" in item:
+                        parts.append(str(item.get("text", "")))
+                    # If it's a tool_call or other block, ignore for this simple parsing
+                elif isinstance(item, str):
+                    parts.append(item)
+            response = "\n".join([p for p in parts if p])
+        elif not isinstance(response, str):
+            response = str(response)
         selected_indices = {"tools": [], "data_lake": [], "libraries": []}
 
         # Extract indices for each category
