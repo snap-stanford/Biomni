@@ -66,9 +66,7 @@ class BiomniEval1:
 
         except Exception as e:
             # Preserve original traceback context for easier debugging
-            raise RuntimeError(
-                f"Error computing reward for {task_name} instance {task_instance_id}: {e}"
-            ) from e
+            raise RuntimeError(f"Error computing reward for {task_name} instance {task_instance_id}: {e}") from e
 
     def _compute_reward(self, task_name: str, user_answer: str, ground_truth: str) -> float:
         """Compute reward using task-specific logic"""
