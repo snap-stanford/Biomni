@@ -127,6 +127,7 @@ cat("\nInstalling org.Hs.eg.db and dependencies...\n")
 BiocManager::install("org.Hs.eg.db")
 
 install.packages(c("survival"))
+install.packages(c("timeROC"))
 
 
 # if (!require("org.Hs.eg.db", character.only = TRUE, quietly = TRUE)) {

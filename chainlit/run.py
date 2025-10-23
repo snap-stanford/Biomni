@@ -123,6 +123,7 @@ def get_data_layer():
     db_path = os.path.abspath(CHAINLIT_DB_PATH)
     conninfo = f"sqlite+aiosqlite:///{db_path}"
     print(f"Chainlit database path: {db_path}")
+
     return CustomSQLAlchemyDataLayer(conninfo=conninfo, show_logger=False)
 
 
@@ -179,7 +180,7 @@ async def main(user_message: cl.Message):
 
 def _process_user_message(user_message: cl.Message) -> str:
     """Process user message and handle file uploads."""
-    user_prompt = user_message.content
+    user_prompt = user_message.content.strip()
 
     # Process uploaded files
     for file in user_message.elements:
@@ -220,7 +221,9 @@ async def _process_agent_response(agent_input: list, message_history: list):
             message_stream, chainlit_step
         )
 
-    final_message = _extract_final_message(step_message)
+    final_message = _extract_final_message(raw_full_message)
+    final_message = _detect_image_name_and_move_to_public(final_message)
+
     await cl.Message(content=final_message).send()
 
     print(os.getcwd())

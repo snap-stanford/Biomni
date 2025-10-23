@@ -30,6 +30,7 @@ from langchain.chains import ConversationalRetrievalChain
 from biomni.model.retriever import ToolRetrieverByRAG
 
 tool_llm_model_id = "gemini-2.5-pro"
+tool_llm_model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
 
 class A1_HITS(A1):
@@ -685,7 +686,8 @@ Output:
                         f"The output is too long to be added to context. Here are the first {max_length} characters...\n"
                         + result[:max_length]
                     )
-                observation = f"\n<observation>{result}</observation>"
+                # observation = f"\n<observation>{result}</observation>"
+                observation = result
 
                 # Process newly created files and prepare message content
                 message_content = process_new_files(
@@ -707,10 +709,15 @@ Output:
                 if len(message_content) == 1:
                     # Only text, use simple string content
                     state["messages"].append(
-                        HumanMessage(content=message_content[0]["text"])
+                        HumanMessage(
+                            content=f"<observation>{message_content[0]['text']}</observation>"
+                        )
                     )
                 else:
                     # Text + images, use structured content
+                    message_content[0][
+                        "text"
+                    ] = f"<observation>{message_content[0]['text']}</observation>"
                     state["messages"].append(HumanMessage(content=message_content))
 
             t2 = time.time()
@@ -1123,10 +1130,12 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
 - If you have source data or documents that you used to formulate your final response, and if those have a URL, please provide the URL of each document with the final answer. This is so the user can access the URLs and review your response if necessary.
 - If the image files are generated, you must include the image in your final answer and next turn to show the image to the user. For example: ![image_name](image_path)
 - Answer in the language of the user in your final answer.
+- In your final answer between <solution> and </solution> tag, DO NOT appoligize for any mistakes. Just provide the answer.
+- In your final answer between <solution> and </solution> tag, just provide the answer and do not explain about errors or mistakes you have encountered and solved during the process.
 
 # GUIDELINES FOR CODING
 - When you save some generated files, save them in current directory.
-- Do not install any python packages. If the package is not installed, do not use it and find another way to do it.
+- Do not install any python and R packages. If the package is not installed, do not use it and find another way to do it.
 - For each turn in a multi-step task, you are to autonomously select and use the most optimal programming language for the specific sub-task at hand.
 - If you can complete the task with python, use python over R.
 - You must only use one programming language per single turn.
