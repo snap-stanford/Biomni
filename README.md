@@ -240,6 +240,35 @@ For usage and implementation details, see the [MCP Integration Documentation](do
 - 🤗 Model: [biomni/Biomni-R0-32B-Preview](https://huggingface.co/biomni/Biomni-R0-32B-Preview)
 - 📝 Technical Report: [biomni.stanford.edu/blog/biomni-r0-technical-report](https://biomni.stanford.edu/blog/biomni-r0-technical-report)
 
+To use Biomni-R0 for agent reasoning while keeping database queries on your usual provider (recommended), run a local SGLang server and pass the model to `A1()` directly.
+
+1) Launch SGLang with Biomni-R0:
+
+```bash
+python -m sglang.launch_server --model-path RyanLi0802/Biomni-R0-Preview --port 30000 --host 0.0.0.0 --mem-fraction-static 0.8 --tp 2 --trust-remote-code --json-model-override-args '{"rope_scaling":{"rope_type":"yarn","factor":1.0,"original_max_position_embeddings":32768}, "max_position_embeddings": 131072}'
+```
+
+2) Point the agent to your SGLang endpoint for reasoning:
+
+```python
+from biomni.config import default_config
+from biomni.agent import A1
+
+# Database queries (indexes, retrieval, etc.) use default_config
+default_config.llm = "claude-3-5-sonnet-20241022"
+default_config.source = "Anthropic"
+
+# Agent reasoning uses Biomni-R0 served via SGLang (OpenAI-compatible API)
+agent = A1(
+    llm="biomni/Biomni-R0-32B-Preview",
+    source="Custom",
+    base_url="http://localhost:30000/v1",
+    api_key="EMPTY",
+)
+
+agent.go("Plan a CRISPR screen to identify genes regulating T cell exhaustion")
+```
+
 ## Biomni-Eval1
 
 **Biomni-Eval1** is a comprehensive evaluation benchmark for assessing biological reasoning capabilities across diverse tasks. It contains **433 instances** spanning **10 biological reasoning tasks**, from gene identification to disease diagnosis.
