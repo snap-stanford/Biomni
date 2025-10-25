@@ -2474,15 +2474,13 @@ Each library is listed with its description to help you understand its functiona
             import gradio as gr
             from gradio import ChatMessage
         except ImportError:
-            raise ImportError(
-                "Gradio is not installed. Please install it with: pip install gradio"
-            ) from None
+            raise ImportError("Gradio is not installed. Please install it with: pip install gradio") from None
 
-        from time import time
         import os
+        from time import time
 
         # Define supported file extensions
-        SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.pdf')
+        SUPPORTED_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".pdf")
 
         self.main_history_copy = []
 
@@ -2497,14 +2495,18 @@ Each library is listed with its description to help you understand its functiona
                 return (
                     gr.update(visible=True),
                     gr.update(visible=False),
-                    gr.update(value="Incorrect access code. Please check your access code.", visible=True)
+                    gr.update(value="Incorrect access code. Please check your access code.", visible=True),
                 )
 
-        def generate_response(prompt_input, inner_history=[], main_history=[]):
+        def generate_response(prompt_input, inner_history=None, main_history=None):
+            if main_history is None:
+                main_history = []
+            if inner_history is None:
+                inner_history = []
             text_input = prompt_input.get("text", "")
             files = prompt_input.get("files", [])
 
-            self.main_history_copy += [{'role': 'user', 'content': text_input}]
+            self.main_history_copy += [{"role": "user", "content": text_input}]
             main_history.append(ChatMessage(role="user", content=text_input if text_input else "[Uploaded file]"))
 
             # Add "Executor is working on it" message
@@ -2518,19 +2520,16 @@ Each library is listed with its description to help you understand its functiona
 
             agent_messages = []
             for msg in self.main_history_copy:
-                if msg['role'] == "user":
-                    agent_messages.append(HumanMessage(content=msg['content']))
-                elif msg['role'] == "assistant":
-                    if msg['content'] not in ["Executor is working on it 👉"]:
-                        agent_messages.append(AIMessage(content=msg['content']))
+                if msg["role"] == "user":
+                    agent_messages.append(HumanMessage(content=msg["content"]))
+                elif msg["role"] == "assistant":
+                    if msg["content"] not in ["Executor is working on it 👉"]:
+                        agent_messages.append(AIMessage(content=msg["content"]))
 
             agent_messages.append(HumanMessage(content=text_input))
 
             # Prepare inputs for the agent
-            inputs = {
-                'messages': agent_messages,
-                'next_step': None
-            }
+            inputs = {"messages": agent_messages, "next_step": None}
             config = {"recursion_limit": 500, "configurable": {"thread_id": thread_id}}
 
             # Stream the agent's responses
@@ -2539,11 +2538,13 @@ Each library is listed with its description to help you understand its functiona
 
             # Configure the agent with tool retrieval if needed
             if self.use_tool_retriever:
-                print('Using tool retriever...')
-                inner_history.append(ChatMessage(
-                    role="assistant",
-                    content="Retrieving relevant tools, data lake items, and libraries...",
-                ))
+                print("Using tool retriever...")
+                inner_history.append(
+                    ChatMessage(
+                        role="assistant",
+                        content="Retrieving relevant tools, data lake items, and libraries...",
+                    )
+                )
                 yield inner_history, main_history
 
                 try:
@@ -2553,10 +2554,12 @@ Each library is listed with its description to help you understand its functiona
                 except Exception as e:
                     print(f"Warning: Tool retrieval failed: {e}")
                     print("Continuing without tool retrieval...")
-                    inner_history.append(ChatMessage(
-                        role="assistant",
-                        content=f"Tool retrieval unavailable, proceeding with all tools...",
-                    ))
+                    inner_history.append(
+                        ChatMessage(
+                            role="assistant",
+                            content="Tool retrieval unavailable, proceeding with all tools...",
+                        )
+                    )
                     yield inner_history, main_history
 
             # Keep track of code execution messages
@@ -2576,7 +2579,7 @@ Each library is listed with its description to help you understand its functiona
                 if isinstance(message.content, str):
                     # Extract thinking/reasoning part (text before any tags)
                     tag_positions = []
-                    for tag in ['<execute>', '<solution>', '<observation>']:
+                    for tag in ["<execute>", "<solution>", "<observation>"]:
                         pos = message.content.find(tag)
                         if pos != -1:
                             tag_positions.append(pos)
@@ -2586,130 +2589,141 @@ Each library is listed with its description to help you understand its functiona
                         first_tag_pos = min(tag_positions)
                         thinking = message.content[:first_tag_pos].strip()
                         if thinking:
-                            inner_history.append(ChatMessage(
-                                role="assistant",
-                                content=f"{thinking}",
-                                metadata={
-                                    'title': "🤔 Reasoning",
-                                    'log': "Agent's thinking process"
-                                }
-                            ))
+                            inner_history.append(
+                                ChatMessage(
+                                    role="assistant",
+                                    content=f"{thinking}",
+                                    metadata={"title": "🤔 Reasoning", "log": "Agent's thinking process"},
+                                )
+                            )
                             yield inner_history, main_history
 
                     # Check for solution tag
-                    solution_match = re.search(r'<solution>(.*?)</solution>', message.content, re.DOTALL)
+                    solution_match = re.search(r"<solution>(.*?)</solution>", message.content, re.DOTALL)
                     if solution_match and not solution_found:
                         solution = solution_match.group(1).strip()
-                        main_history.append(ChatMessage(
-                            role="assistant",
-                            content=solution,
-                            metadata={
-                                'title': "✅ Answer",
-                                'log': "Final answer provided by the agent"
-                            }
-                        ))
-                        self.main_history_copy += [{'role': 'assistant', 'content': solution}]
+                        main_history.append(
+                            ChatMessage(
+                                role="assistant",
+                                content=solution,
+                                metadata={"title": "✅ Answer", "log": "Final answer provided by the agent"},
+                            )
+                        )
+                        self.main_history_copy += [{"role": "assistant", "content": solution}]
                         solution_found = True
                         yield inner_history, main_history
 
                     # Check for execute tag
-                    execute_match = re.search(r'<execute>(.*?)</execute>', message.content, re.DOTALL)
+                    execute_match = re.search(r"<execute>(.*?)</execute>", message.content, re.DOTALL)
                     if execute_match:
                         code = execute_match.group(1).strip()
                         language = "python"
                         if code.strip().startswith("#!R"):
                             language = "r"
-                            code = re.sub(r'^#!R', '', code, 1).strip()
+                            code = re.sub(r"^#!R", "", code, 1).strip()
                         elif code.strip().startswith("#!BASH") or code.strip().startswith("#!CLI"):
                             language = "bash"
-                            code = re.sub(r'^#!BASH|^#!CLI', '', code, 1).strip()
+                            code = re.sub(r"^#!BASH|^#!CLI", "", code, 1).strip()
 
                         code_msg = ChatMessage(
                             role="assistant",
                             content=f"##### Code: \n```{language}\n{code}\n```",
                             metadata={
-                                'title': "🛠️ Executing code...",
-                                'log': f"Executing {language.capitalize()} code block...",
-                                'status': 'pending',
-                                'start_time': t
-                            }
+                                "title": "🛠️ Executing code...",
+                                "log": f"Executing {language.capitalize()} code block...",
+                                "status": "pending",
+                                "start_time": t,
+                            },
                         )
                         inner_history.append(code_msg)
                         code_execution_messages.append(code_msg)
                         yield inner_history, main_history
 
                     # Check for observation
-                    observation_match = re.search(r'<observation>(.*?)</observation>', message.content, re.DOTALL)
+                    observation_match = re.search(r"<observation>(.*?)</observation>", message.content, re.DOTALL)
                     if observation_match:
                         observation = observation_match.group(1).strip()
 
                         # Update the status of the most recent code execution message
                         if code_execution_messages:
                             code_msg = code_execution_messages[-1]
-                            code_msg.metadata.update({
-                                'status': 'done',
-                                'duration': t_step,
-                                'log': f"Code execution completed in {t_step:.2f}s"
-                            })
+                            code_msg.metadata.update(
+                                {
+                                    "status": "done",
+                                    "duration": t_step,
+                                    "log": f"Code execution completed in {t_step:.2f}s",
+                                }
+                            )
 
                         # Create a new message for the observation
-                        inner_history.append(ChatMessage(
-                            role="assistant",
-                            content=f"##### Observation: \n```\n{observation}\n```",
-                            metadata={
-                                'status': 'done',
-                                'duration': t_step,
-                                'log': "Observation from code execution",
-                                'collapsed': True,
-                                'collapsible': True
-                            }
-                        ))
+                        inner_history.append(
+                            ChatMessage(
+                                role="assistant",
+                                content=f"##### Observation: \n```\n{observation}\n```",
+                                metadata={
+                                    "status": "done",
+                                    "duration": t_step,
+                                    "log": "Observation from code execution",
+                                    "collapsed": True,
+                                    "collapsible": True,
+                                },
+                            )
+                        )
                         yield inner_history, main_history
 
                         # Check for file paths in the observation
                         if isinstance(observation, str) and any(ext in observation for ext in SUPPORTED_EXTENSIONS):
-                            matches = re.findall(r'(\S+?(?:\.png|\.jpg|\.jpeg|\.gif|\.bmp|\.webp|\.pdf))', observation)
+                            matches = re.findall(r"(\S+?(?:\.png|\.jpg|\.jpeg|\.gif|\.bmp|\.webp|\.pdf))", observation)
 
                             valid_matches = []
                             for match in matches:
-                                if not (match.startswith("Warning:") or match.startswith("Error:") or match.startswith("'")):
+                                if not (
+                                    match.startswith("Warning:") or match.startswith("Error:") or match.startswith("'")
+                                ):
                                     if not match.startswith("."):
                                         valid_matches.append(match)
 
                             if valid_matches:
-                                inner_history.append(ChatMessage(
-                                    role="assistant",
-                                    content="",
-                                    metadata={
-                                        'title': "📁 Files",
-                                        'log': "Files generated by the agent"
-                                    }
-                                ))
+                                inner_history.append(
+                                    ChatMessage(
+                                        role="assistant",
+                                        content="",
+                                        metadata={"title": "📁 Files", "log": "Files generated by the agent"},
+                                    )
+                                )
 
                                 for file_path in valid_matches:
-                                    file_path = file_path.strip('"\'').strip()
+                                    file_path = file_path.strip("\"'").strip()
 
                                     abs_path = None
                                     if os.path.isabs(file_path) and os.path.exists(file_path):
                                         abs_path = file_path
                                     elif os.path.exists(os.path.join(os.getcwd(), file_path)):
                                         abs_path = os.path.join(os.getcwd(), file_path)
-                                    elif hasattr(self, 'path') and self.path and os.path.exists(os.path.join(self.path, file_path)):
+                                    elif (
+                                        hasattr(self, "path")
+                                        and self.path
+                                        and os.path.exists(os.path.join(self.path, file_path))
+                                    ):
                                         abs_path = os.path.join(self.path, file_path)
 
                                     if abs_path:
-                                        if file_path.lower().endswith('.pdf'):
-                                            inner_history.append(ChatMessage(
-                                                role="assistant",
-                                                content=f"Found PDF at: {abs_path}",
-                                                metadata={'title': "📄 PDF File"}
-                                            ))
+                                        if file_path.lower().endswith(".pdf"):
+                                            inner_history.append(
+                                                ChatMessage(
+                                                    role="assistant",
+                                                    content=f"Found PDF at: {abs_path}",
+                                                    metadata={"title": "📄 PDF File"},
+                                                )
+                                            )
                                         else:
-                                            inner_history.append(ChatMessage(
-                                                role="assistant",
-                                                content=gr.Image(abs_path),
-                                                metadata={'title': "🖼️ Image Preview"}
-                                            ))
+                                            inner_history.append(
+                                                ChatMessage(
+                                                    role="assistant",
+                                                    content=gr.Image(abs_path),
+                                                    metadata={"title": "🖼️ Image Preview"},
+                                                )
+                                            )
 
                                 yield inner_history, main_history
 
@@ -2718,41 +2732,43 @@ Each library is listed with its description to help you understand its functiona
             # If no solution was found, add the final message
             if not solution_found:
                 final_message = s["messages"][-1].content if s["messages"] else ""
-                solution_match = re.search(r'<solution>(.*?)</solution>', final_message, re.DOTALL)
+                solution_match = re.search(r"<solution>(.*?)</solution>", final_message, re.DOTALL)
                 if solution_match:
                     solution = solution_match.group(1).strip()
-                    main_history.append(ChatMessage(
-                        role="assistant",
-                        content=solution,
-                        metadata={'title': "✅ Solution"}
-                    ))
-                    self.main_history_copy += [{'role': 'assistant', 'content': solution}]
+                    main_history.append(
+                        ChatMessage(role="assistant", content=solution, metadata={"title": "✅ Solution"})
+                    )
+                    self.main_history_copy += [{"role": "assistant", "content": solution}]
                 else:
-                    cleaned_content = re.sub(r'<execute>.*?</execute>', '', final_message, flags=re.DOTALL)
-                    cleaned_content = re.sub(r'<observation>.*?</observation>', '', cleaned_content, flags=re.DOTALL)
-                    cleaned_content = re.sub(r'\n\s*\n', '\n\n', cleaned_content)
+                    cleaned_content = re.sub(r"<execute>.*?</execute>", "", final_message, flags=re.DOTALL)
+                    cleaned_content = re.sub(r"<observation>.*?</observation>", "", cleaned_content, flags=re.DOTALL)
+                    cleaned_content = re.sub(r"\n\s*\n", "\n\n", cleaned_content)
 
                     if cleaned_content.strip():
-                        main_history.append(ChatMessage(
-                            role="assistant",
-                            content=cleaned_content.strip(),
-                            metadata={'title': "📝 Summary"}
-                        ))
-                        self.main_history_copy += [{'role': 'assistant', 'content': cleaned_content.strip()}]
+                        main_history.append(
+                            ChatMessage(
+                                role="assistant", content=cleaned_content.strip(), metadata={"title": "📝 Summary"}
+                            )
+                        )
+                        self.main_history_copy += [{"role": "assistant", "content": cleaned_content.strip()}]
                     else:
-                        main_history.append(ChatMessage(
-                            role="assistant",
-                            content="Task completed. Please check the execution log for details.",
-                            metadata={'title': "📝 Summary"}
-                        ))
-                        self.main_history_copy += [{'role': 'assistant', 'content': "Task completed."}]
+                        main_history.append(
+                            ChatMessage(
+                                role="assistant",
+                                content="Task completed. Please check the execution log for details.",
+                                metadata={"title": "📝 Summary"},
+                            )
+                        )
+                        self.main_history_copy += [{"role": "assistant", "content": "Task completed."}]
 
             # Add completion message
-            inner_history.append(ChatMessage(
-                role="assistant",
-                content="👈 Returning the result to the main interface...",
-                metadata={'title': "🔄 Complete"}
-            ))
+            inner_history.append(
+                ChatMessage(
+                    role="assistant",
+                    content="👈 Returning the result to the main interface...",
+                    metadata={"title": "🔄 Complete"},
+                )
+            )
             yield inner_history, main_history
 
         def like(data: gr.LikeData):
@@ -2774,7 +2790,7 @@ Each library is listed with its description to help you understand its functiona
                 verify_btn.click(
                     fn=verify_access_code,
                     inputs=[access_code_input],
-                    outputs=[verification_container, main_interface_container, access_error_msg]
+                    outputs=[verification_container, main_interface_container, access_error_msg],
                 )
 
             # Main interface
@@ -2806,15 +2822,11 @@ Each library is listed with its description to help you understand its functiona
                     )
 
                 # Bind submission
-                chat_msg = prompt_input.submit(
+                prompt_input.submit(
                     generate_response,
                     [prompt_input, innerloop_chatbot, main_chatbot],
-                    [innerloop_chatbot, main_chatbot]
-                ).then(
-                    lambda: gr.MultimodalTextbox(value=None),
-                    None,
-                    [prompt_input]
-                )
+                    [innerloop_chatbot, main_chatbot],
+                ).then(lambda: gr.MultimodalTextbox(value=None), None, [prompt_input])
                 main_chatbot.like(like)
 
         # Launch
