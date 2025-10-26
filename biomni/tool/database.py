@@ -3070,11 +3070,18 @@ def query_reactome(
     if endpoint.startswith("/"):
         endpoint = endpoint[1:]
 
-    # Construct the URL
+    # --- ✅ FIX: Handle old 'data/query/GENE' endpoints to avoid 404 ---
     if endpoint.startswith("http"):
-        url = endpoint  # Full URL already provided
+        url = endpoint
     else:
-        url = f"{base_url}/{endpoint}"
+        if endpoint.startswith("data/query/"):
+            query_text = endpoint.replace("data/query/", "").strip()
+            url = f"{content_base_url}/search/query"
+            params = {"query": query_text, "species": "Homo sapiens"}
+            description = f"Redirected Reactome search for '{query_text}'"
+        else:
+            url = f"{base_url}/{endpoint}"
+    # --- ✅ END FIX ---
 
     # Execute the Reactome API request using the helper function
     api_result = _query_rest_api(endpoint=url, method="GET", params=params, description=description)
