@@ -654,4 +654,65 @@ description = [
             }
         ],
     },
+    {
+        "description": "Generate Geneformer embeddings for single-cell RNA-seq data using the Geneformer transformer model. "
+        "This function automatically downloads and installs the Geneformer model, tokenizes the transcriptome data, "
+        "and extracts cell-level embeddings using the pretrained Geneformer-V2-104M model. The function includes "
+        "comprehensive validation to ensure gene names match the tokenizer vocabulary and provides detailed error "
+        "messages if no genes match. The embeddings are saved as CSV files and can be used for downstream analysis "
+        "such as clustering, visualization, and cell type annotation. Requires Ensembl gene IDs as input.",
+        "name": "geneformer_embed",
+        "optional_parameters": [
+            {
+                "default": "embeddings_geneformer_zero_shot",
+                "description": "Prefix for output embeddings CSV file",
+                "name": "embeddings_prefix",
+                "type": "str",
+            },
+            {
+                "default": 4096,
+                "description": "Model input size for tokenizer (maximum number of genes per cell)",
+                "name": "model_input_size",
+                "type": "int",
+            },
+            {
+                "default": 10000,
+                "description": "Chunk size for tokenizer processing",
+                "name": "chunk_size",
+                "type": "int",
+            },
+            {
+                "default": 8,
+                "description": "Number of processes for parallelization",
+                "name": "nproc",
+                "type": "int",
+            },
+            {
+                "default": 64,
+                "description": "Batch size for embedding extraction",
+                "name": "forward_batch_size",
+                "type": "int",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Path to .h5ad file or AnnData instance in memory",
+                "name": "adata_or_path",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Base directory for all data/models/outputs",
+                "name": "base_dir",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Filename for AnnData file (used if adata_or_path is AnnData)",
+                "name": "adata_filename",
+                "type": "str",
+            },
+        ],
+    },
 ]

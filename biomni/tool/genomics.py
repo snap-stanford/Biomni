@@ -2162,3 +2162,258 @@ def analyze_genomic_region_overlap(region_sets, output_prefix="overlap_analysis"
     log += f"- Summary statistics saved to: {summary_file}\n"
 
     return log
+
+
+def geneformer_embed(
+    adata_or_path,
+    base_dir,
+    adata_filename,
+    embeddings_prefix="embeddings_geneformer_zero_shot",
+    model_name="Geneformer-V2-104M",
+    model_input_size=4096,
+    chunk_size=10000,
+    nproc=8,
+    forward_batch_size=64,
+):
+    """
+    Run Geneformer embedding extraction pipeline on an AnnData object or file.
+
+    Parameters
+    ----------
+    adata_or_path : str or AnnData
+        Path to .h5ad file or AnnData instance in memory.
+    base_dir : str
+        Base directory for all data/models/outputs.
+    adata_filename : str
+        Filename for AnnData file (used if adata_or_path is AnnData).
+    embeddings_prefix : str
+        Prefix for output embeddings csv.
+    model_name : str
+        Name of the Geneformer model to use (e.g., "Geneformer-V2-104M").
+    model_input_size : int
+        Model input size for tokenizer.
+    chunk_size : int
+        Chunk size for tokenizer.
+    nproc : int
+        Number of processes for parallelization.
+    forward_batch_size : int
+        Batch size for embedding extraction.
+
+    Returns
+    -------
+    str
+        Steps performed during the embedding extraction process.
+    """
+
+    import pickle
+    import subprocess
+    from pathlib import Path
+
+    import anndata as ad
+
+    steps = []
+    steps.append("Starting Geneformer embedding extraction pipeline")
+    steps.append(f"Base directory: {base_dir}")
+    steps.append(f"Model name: {model_name}")
+    steps.append(f"Model input size: {model_input_size}")
+    steps.append(f"Chunk size: {chunk_size}")
+    steps.append(f"Number of processes: {nproc}")
+    steps.append(f"Forward batch size: {forward_batch_size}")
+
+    import sys
+
+    proc = subprocess.Popen(["git", "lfs", "install"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    for line in proc.stdout:
+        print(line, end="", file=sys.stdout)
+    proc.wait()
+    if proc.returncode != 0:
+        raise RuntimeError("git lfs install failed")
+
+    geneformer_dir = Path(base_dir) / "Geneformer"
+    if not geneformer_dir.exists():
+        proc = subprocess.Popen(
+            ["git", "clone", "https://huggingface.co/ctheodoris/Geneformer", str(geneformer_dir)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        for line in proc.stdout:
+            print(line, end="", file=sys.stdout)
+        proc.wait()
+        if proc.returncode != 0:
+            raise RuntimeError("git clone of Geneformer failed")
+    else:
+        print(f"Geneformer directory already exists: {geneformer_dir}")
+
+    proc = subprocess.Popen(
+        ["pip", "install", "."], cwd=str(geneformer_dir), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+    )
+    # Also install required dependencies after installing Geneformer
+    proc.wait()
+    if proc.returncode != 0:
+        raise RuntimeError("pip install of Geneformer failed")
+    # required to make geneformer work
+    extra_packages = ["peft==0.11.1", "transformers==4.40"]
+    proc = subprocess.Popen(
+        ["pip", "install"] + extra_packages, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+    )
+    for line in proc.stdout:
+        print(line, end="", file=sys.stdout)
+    proc.wait()
+    if proc.returncode != 0:
+        raise RuntimeError("pip install of Geneformer failed")
+
+    try:
+        from geneformer import EmbExtractor
+        from geneformer.tokenizer import TranscriptomeTokenizer
+
+        steps.append(f"Loading Geneformer model: {model_name}")
+        BASE_DIR = Path(base_dir)
+        MODELS_DIR = geneformer_dir
+        DATA_DIR = MODELS_DIR / "data"
+        HUMANIZED_DATA_DIR = DATA_DIR / "humanized"
+        MODEL_DIR = MODELS_DIR / model_name
+        EMBEDDINGS_DIR = BASE_DIR / "zero-shot-performance" / "embeddings"
+
+        steps.append("Setting up directory structure")
+        HUMANIZED_DATA_DIR.mkdir(parents=True, exist_ok=True)
+        EMBEDDINGS_DIR.mkdir(parents=True, exist_ok=True)
+        steps.append(f"✓ Created directories: {HUMANIZED_DATA_DIR}, {EMBEDDINGS_DIR}")
+
+        TOKEN_DICT_PATH = MODELS_DIR / "geneformer" / "token_dictionary_gc104M.pkl"
+        GENE_MEDIAN_PATH = MODELS_DIR / "geneformer" / "gene_median_dictionary_gc104M.pkl"
+        GENE_NAME_ID_PATH = MODELS_DIR / "geneformer" / "gene_name_id_dict_gc104M.pkl"
+
+        adata_path = HUMANIZED_DATA_DIR / adata_filename
+
+        steps.append("Loading and preparing AnnData object")
+        if isinstance(adata_or_path, str):
+            steps.append(f"Loading AnnData from file: {adata_or_path}")
+            adata = ad.read_h5ad(adata_or_path)
+            if Path(adata_or_path).resolve() != adata_path.resolve():
+                adata.write_h5ad(adata_path)
+                steps.append(f"✓ Saved AnnData to: {adata_path}")
+        else:
+            steps.append("Using provided AnnData object")
+            adata = adata_or_path
+            adata.write_h5ad(adata_path)
+            steps.append(f"✓ Saved AnnData to: {adata_path}")
+
+        steps.append(f"AnnData shape: {adata.n_obs} cells, {adata.n_vars} genes")
+
+        steps.append("Preparing AnnData for Geneformer")
+        adata.var["ensembl_id"] = adata.var_names
+        adata.obs["n_counts"] = adata.X.sum(axis=1)
+        cell_indices = adata.obs.index.values
+        adata.obs["cell_index"] = cell_indices
+        adata.write_h5ad(adata_path)
+        steps.append("✓ Added required columns: ensembl_id, n_counts, cell_index")
+
+        steps.append("Loading token dictionary and checking gene overlap")
+
+        # Check if model files exist
+        if not TOKEN_DICT_PATH.exists():
+            raise FileNotFoundError(
+                f"Token dictionary file not found: {TOKEN_DICT_PATH}\n"
+                f"Please download the Geneformer model files to: {MODEL_DIR}\n"
+                f"Required files:\n"
+                f"  - {TOKEN_DICT_PATH.name}\n"
+                f"  - {GENE_MEDIAN_PATH.name}\n"
+                f"  - {GENE_NAME_ID_PATH.name}\n"
+                f"You can download them from the Geneformer repository or Hugging Face."
+            )
+
+        if not GENE_MEDIAN_PATH.exists():
+            raise FileNotFoundError(f"Gene median dictionary file not found: {GENE_MEDIAN_PATH}")
+
+        if not GENE_NAME_ID_PATH.exists():
+            raise FileNotFoundError(f"Gene name ID dictionary file not found: {GENE_NAME_ID_PATH}")
+
+        with open(TOKEN_DICT_PATH, "rb") as f:
+            token_dict = pickle.load(f)
+
+        token_keys = set(token_dict.keys())
+        var_names = set(adata.var_names)
+        matching_tokens = token_keys & var_names
+        if len(matching_tokens) == 0:
+            raise ValueError(
+                "No matching genes found between the dataset and the Geneformer tokenizer.\n"
+                f"Number of genes in dataset: {len(var_names)}\n"
+                f"Number of tokens in tokenizer: {len(token_keys)}\n"
+                "Please ensure your gene names (var_names) are Ensembl IDs matching the Geneformer model."
+            )
+
+        steps.append(f"✓ Loaded token dictionary with {len(token_dict)} tokens")
+        steps.append(f"✓ Found {len(matching_tokens)} matching genes between dataset and tokenizer")
+        steps.append(f"Sample matching tokens: {list(matching_tokens)[:10]}")
+
+        steps.append("Initializing TranscriptomeTokenizer")
+        tokenizer = TranscriptomeTokenizer(
+            custom_attr_name_dict={"cell_index": "index"},
+            model_input_size=model_input_size,
+            special_token=False,
+            collapse_gene_ids=True,
+            gene_median_file=Path(GENE_MEDIAN_PATH),
+            token_dictionary_file=Path(TOKEN_DICT_PATH),
+            chunk_size=chunk_size,
+            nproc=nproc,
+        )
+        steps.append("✓ TranscriptomeTokenizer initialized successfully")
+
+        steps.append("Tokenizing data for Geneformer")
+        tokenizer.tokenize_data(
+            data_directory=HUMANIZED_DATA_DIR,
+            output_directory=HUMANIZED_DATA_DIR,
+            output_prefix=f"tokenized_{model_input_size}_geneformer",
+            file_format="h5ad",
+            use_generator=False,
+        )
+        steps.append("✓ Data tokenization completed")
+
+        steps.append("Initializing Embedding Extractor")
+        embex = EmbExtractor(
+            model_type="Pretrained",
+            num_classes=0,
+            emb_mode="cell",
+            cell_emb_style="mean_pool",
+            gene_emb_style="mean_pool",
+            emb_layer=-1,
+            forward_batch_size=forward_batch_size,
+            nproc=nproc,
+            token_dictionary_file=str(TOKEN_DICT_PATH),
+            max_ncells=None,
+            emb_label=["index"],
+        )
+        steps.append("✓ Embedding Extractor initialized successfully")
+
+        steps.append("Extracting cell embeddings using Geneformer")
+        tokenized_dataset_path = HUMANIZED_DATA_DIR / f"tokenized_{model_input_size}_geneformer.dataset"
+        emb_prefix = f"embeddings_geneformer_{model_input_size}"
+        embs = embex.extract_embs(
+            model_directory=str(MODEL_DIR),
+            input_data_file=str(tokenized_dataset_path),
+            output_directory=str(EMBEDDINGS_DIR),
+            output_prefix=emb_prefix,
+            output_torch_embs=True,
+        )
+        steps.append("✓ Cell embeddings extracted successfully")
+
+        steps.append("Processing and saving embeddings")
+        df = embs[0]
+        df = df.set_index("index", drop=True)
+        df.index.name = None
+        df = df.loc[adata.obs.index]
+
+        output_csv_path = EMBEDDINGS_DIR / f"{embeddings_prefix}.csv"
+        df.to_csv(output_csv_path)
+        steps.append(f"✓ Embeddings saved to: {output_csv_path}")
+        steps.append(f"✓ Embeddings shape: {df.shape}")
+        steps.append(f"✓ File size: {output_csv_path.stat().st_size / (1024 * 1024):.2f} MB")
+
+        steps.append("Geneformer embedding extraction completed successfully")
+        return "\n".join(steps)
+
+    except Exception as e:
+        steps.append(f"✗ Error during Geneformer embedding extraction: {str(e)}")
+        steps.append("Geneformer embedding extraction failed")
+        return "\n".join(steps)
