@@ -72,7 +72,6 @@ IMPORTANT GUIDELINES:
 7. Don't exclude resources just because they're not explicitly mentioned in the query
 8. When in doubt about a database tool or molecular biology tool, include it rather than exclude it
 """
-
         # Use the provided LLM or create a new one
         if llm is None:
             llm = ChatOpenAI(model="gpt-4o")

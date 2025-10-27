@@ -549,9 +549,7 @@ def search_google(query: str, num_results: int = 3, language: str = "en") -> str
             f"Searching for {search_query} with {num_results} results and {language} language"
         )
 
-        for res in search(
-            search_query, num_results=num_results, lang=language, advanced=True
-        ):
+        for res in search(search_query, num=num_results, lang=language):
             print(f"Found result: {res.title}")
             title = res.title
             url = res.url

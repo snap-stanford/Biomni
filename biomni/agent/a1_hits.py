@@ -29,8 +29,9 @@ from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from biomni.model.retriever import ToolRetrieverByRAG
 
-tool_llm_model_id = "gemini-2.5-pro"
-tool_llm_model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+# tool_llm_model_id = "gemini-2.5-pro"
+# tool_llm_model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+tool_llm_model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
 
 class A1_HITS(A1):
@@ -313,9 +314,11 @@ Output:
             }
             # Use prompt-based retrieval with the agent's LLM
             tool_llm = get_llm(model=tool_llm_model_id)
+            print("start tool retrieval")
             selected_resources = self.retriever.prompt_based_retrieval(
                 prompt, resources, llm=tool_llm
             )
+            print("end tool retrieval")
             # self.retriever = ToolRetrieverByRAG()
             # print("=" * 100)
             # print(prompt[-1].content)

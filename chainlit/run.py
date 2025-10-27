@@ -253,7 +253,7 @@ async def _handle_message_stream(message_stream, chainlit_step):
                 full_message += "```\n"
                 raw_full_message += "```\n"
             await chainlit_step.stream_token(full_message[stream_index:])
-            stream_index = len(full_message) - 1
+            stream_index = max(len(full_message) - 1, 0)
         chunk_content = _extract_chunk_content(chunk)
         if chunk_content is None:
             continue
@@ -263,8 +263,20 @@ async def _handle_message_stream(message_stream, chainlit_step):
             full_message += chunk_content
             step_message += chunk_content
 
+        tmp_full_message = full_message
+        a = len(tmp_full_message)
         full_message = _modify_chunk(full_message)
+        b = len(full_message)
         full_message = _detect_image_name_and_move_to_public(full_message)
+        c = len(full_message)
+
+        print(f"{a}\t{b}\t{c}\t{stream_index}")
+        if tmp_full_message[:stream_index] != full_message[:stream_index]:
+            print(tmp_full_message[:stream_index])
+            print("--------------------------------")
+            print(full_message[:stream_index])
+            print("--------------------------------")
+
         chainlit_step.output = full_message
         stream_chunk = full_message[stream_index:]
         if len(stream_chunk) > 100:
@@ -387,10 +399,10 @@ def _modify_chunk(chunk: str) -> str:
         if tag1 in retval:
             retval = retval.replace(tag1, tag2)
 
-    # Handle existing CODE_TYPE placeholders in already generated code blocks
+    # # Handle existing CODE_TYPE placeholders in already generated code blocks
     retval = _replace_code_type_placeholders(retval)
 
-    # Replace biomni imports with hits imports in code blocks
+    # # Replace biomni imports with hits imports in code blocks
     retval = _replace_biomni_imports(retval)
 
     return retval

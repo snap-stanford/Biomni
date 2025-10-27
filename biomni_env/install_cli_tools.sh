@@ -845,6 +845,41 @@ install_cli_tools() {
     fi
 }
 
+# Function to install a tool by name
+install_tool_by_name() {
+    local tool_name="$1"
+    local num_tools=$(jq '.tools | length' "$CONFIG_FILE")
+    
+    echo -e "${BLUE}=== Searching for tool: $tool_name ===${NC}"
+    
+    # Search for the tool by name
+    for (( i=0; i<$num_tools; i++ )); do
+        local current_tool_name=$(jq -r ".tools[$i].name" "$CONFIG_FILE")
+        
+        # Case-insensitive comparison
+        if [[ "${current_tool_name,,}" == "${tool_name,,}" ]]; then
+            echo -e "${GREEN}Found tool: $current_tool_name${NC}"
+            install_tool_from_config "$i" 1
+            
+            if [ $? -eq 0 ]; then
+                echo -e "${GREEN}Tool '$current_tool_name' installed successfully!${NC}"
+                return 0
+            else
+                echo -e "${RED}Failed to install tool '$current_tool_name'${NC}"
+                return 1
+            fi
+        fi
+    done
+    
+    echo -e "${RED}Tool '$tool_name' not found in configuration.${NC}"
+    echo -e "${YELLOW}Available tools:${NC}"
+    for (( i=0; i<$num_tools; i++ )); do
+        local available_tool=$(jq -r ".tools[$i].name" "$CONFIG_FILE")
+        echo -e "  - $available_tool"
+    done
+    return 1
+}
+
 # Function to display help message
 show_help() {
     echo "Usage: $0 [OPTION]"
@@ -852,6 +887,10 @@ show_help() {
     echo
     echo "Options:"
     echo "  --auto                 Automatically install all tools without prompting"
+    echo "  --tool TOOL_NAME       Install a specific tool by name"
+    echo "                         Example: $0 --tool BWA"
+    echo "                         Example: $0 --tool FastTree"
+    echo "  --list                 List all available tools"
     echo "  --profile PROFILE      Add tools directory to the specified shell profile file"
     echo "                         Example: $0 --profile .zshrc"
     echo "  --help                 Display this help message and exit"
@@ -863,6 +902,30 @@ show_help() {
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     show_help
     exit 0
+elif [ "$1" = "--list" ]; then
+    # List all available tools
+    echo -e "${BLUE}=== Available Tools ===${NC}"
+    num_tools=$(jq '.tools | length' "$CONFIG_FILE")
+    for (( i=0; i<$num_tools; i++ )); do
+        tool_name=$(jq -r ".tools[$i].name" "$CONFIG_FILE")
+        tool_desc=$(jq -r ".tools[$i].description" "$CONFIG_FILE")
+        echo -e "${YELLOW}$tool_name${NC} - $tool_desc"
+    done
+    exit 0
+elif [ "$1" = "--tool" ] && [ -n "$2" ]; then
+    # Install a specific tool by name
+    add_path_to_profile
+    install_tool_by_name "$2"
+    exit_code=$?
+    
+    if [ $exit_code -eq 0 ]; then
+        echo -e "\n${GREEN}Tool installation completed!${NC}"
+        echo -e "The tool is installed in: ${YELLOW}$TOOLS_DIR${NC}"
+        echo -e "Binary is symlinked in: ${YELLOW}$TOOLS_DIR/bin${NC}"
+        echo -e "Tool has been added to your PATH for the current session."
+    fi
+    
+    exit $exit_code
 elif [ "$1" = "--auto" ]; then
     # Set BIOMNI_AUTO_INSTALL if it's not already set
     export BIOMNI_AUTO_INSTALL=1

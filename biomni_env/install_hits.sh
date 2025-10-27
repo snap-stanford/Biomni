@@ -7,4 +7,7 @@ pip install -r requirements_langchain.txt
 conda env update --file r_packages.yml
 Rscript install_r_packages_hits.R
 
+#install plink 2.0
+./install_cli_tools.sh --tool "Plink 2.0"
+
 pip install -e ../../

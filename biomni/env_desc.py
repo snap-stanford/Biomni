@@ -37,7 +37,7 @@ data_lake_dict = {
     "genetic_interaction.parquet": "Genetic interactions between genes.",
     "go-plus.json": "Gene ontology data for functional gene annotations.",
     "gtex_tissue_gene_tpm.parquet": "Gene expression (TPM) across human tissues from GTEx.",
-    "gwas_catalog.pkl": "Genome-wide association studies (GWAS) results.",
+    "gwas_catalog.pkl": "This is a GWAS Catalog dataset containing 622,784 genetic variants (SNPs) associated with diseases/traits, stored as a pandas DataFrame with 34 columns including PubMed IDs, genes, chromosomal positions, p-values, risk alleles, and other genomic information.",
     "hp.obo": "Official HPO release in obographs format",
     "kg.csv": "Precision medicine knowledge graph with 17,080 diseases and 4+ million relationships across biological scales.",
     "marker_celltype.parquet": "Cell type marker genes for identification.",

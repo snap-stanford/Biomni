@@ -3115,10 +3115,17 @@ def query_openfda(
     if prompt:
         description = f"OpenFDA API query for: {prompt}"
 
-    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+    api_result = _query_rest_api(
+        endpoint=endpoint, method="GET", description=description
+    )
 
     # Format results based on verbose setting
-    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
+    if (
+        not verbose
+        and "success" in api_result
+        and api_result["success"]
+        and "result" in api_result
+    ):
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -3659,7 +3666,7 @@ def query_gnomad(
 def blast_sequence(
     sequence: str, database: str, program: str
 ) -> Union[Dict[str, Union[str, float]], str]:
-    """Perform sequence similarity search using NCBI BLAST with comprehensive error handling.
+    """Identifies a DNA and amino acid sequence using NCBI BLAST. It Performs sequence similarity search using NCBI BLAST with comprehensive error handling.
 
     This function submits sequences to NCBI's BLAST web service to identify similar
     sequences in various databases. It supports both nucleotide and protein sequences
@@ -3679,7 +3686,7 @@ def blast_sequence(
             - 'nt': Nucleotide collection (DNA/RNA sequences)
             - 'nr': Non-redundant protein sequences
             - 'refseq_rna': Reference RNA sequences
-            - 'refseq_protein': Reference protein sequences
+            - 'refseq_protein': Reference protein sequences (Do not use this database for protein sequences due to too slow response time)
             - 'swissprot': Manually annotated protein sequences
         program (str): The BLAST program to use based on sequence types:
             - 'blastn': Nucleotide query vs nucleotide database
