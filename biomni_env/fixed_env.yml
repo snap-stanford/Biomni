@@ -276,7 +276,7 @@ dependencies:
       - beautifulsoup4==4.13.4
       - bibtexparser==1.4.3
       - biom-format==2.1.16
-      # - biomni==0.0.6
+      # - biomni==0.0.7
       - biopandas==0.5.1
       - biotite==1.4.0
       - biotraj==1.2.2

@@ -217,4 +217,5 @@ library_content_dict = {
     "plannotate": "[CLI Tool] A tool for annotating plasmid sequences with common features. ",
     "vina": "[CLI Tool] An open-source program for molecular docking and virtual screening, known for its speed and accuracy improvements over AutoDock 4.",
     "autosite": "[CLI Tool] A binding site detection tool used to identify potential ligand binding pockets on protein structures for molecular docking.",
+    "PyLabRobot": "[Python Package] A Python package for controlling liquid-handling robots and other lab automation equipment.",
 }

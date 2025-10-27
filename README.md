@@ -147,7 +147,44 @@ agent.go("Plan a CRISPR screen to identify genes that regulate T cell exhaustion
 agent.go("Perform scRNA-seq annotation at [PATH] and generate meaningful hypothesis")
 agent.go("Predict ADMET properties for this compound: CC(C)CC1=CC=C(C=C1)C(C)C(=O)O")
 ```
+
+#### Controlling Datalake Loading
+
+By default, Biomni automatically downloads the datalake files (~11GB) when you create an agent. You can control this behavior:
+
+```python
+# Skip automatic datalake download (faster initialization)
+agent = A1(path='./data', llm='claude-sonnet-4-20250514', expected_data_lake_files = [])
+```
+
+This is useful for:
+- Faster testing and development
+- Environments with limited storage or bandwidth
+- Cases where you only need specific tools that don't require datalake files
 If you plan on using Azure for your model, always prefix the model name with azure- (e.g. llm='azure-gpt-4o').
+
+### Gradio Interface
+
+Launch an interactive web UI for Biomni:
+
+```python
+from biomni.agent import A1
+
+agent = A1(path='./data', llm='claude-sonnet-4-20250514')
+agent.launch_gradio_demo()
+```
+
+**Installation:**
+```bash
+pip install gradio
+```
+
+**Options:**
+- `share=True` - Create a public shareable link
+- `server_name="127.0.0.1"` - Localhost only (default: "0.0.0.0")
+- `require_verification=True` - Require access code (default code: "Biomni2025")
+
+The interface will be available at `http://localhost:7860`
 
 ### Configuration Management
 
@@ -187,7 +224,8 @@ agent.save_conversation_history("my_analysis_results.pdf")
 ```
 
 **PDF Generation Dependencies:**
-
+<details>
+<summary>Click to expand</summary>
 For optimal PDF generation, install one of these packages:
 
 ```bash
@@ -214,6 +252,7 @@ cargo install markdown2pdf
 # Option 3: Pandoc (pip installation)
 pip install pandoc
 ```
+</details>
 
 ## MCP (Model Context Protocol) Support
 
@@ -229,6 +268,66 @@ agent.go("Find FDA active ingredient information for ibuprofen")
 
 **Built-in MCP Servers:**
 For usage and implementation details, see the [MCP Integration Documentation](docs/mcp_integration.md) and examples in [`tutorials/examples/add_mcp_server/`](tutorials/examples/add_mcp_server/) and [`tutorials/examples/expose_biomni_server/`](tutorials/examples/expose_biomni_server/).
+
+
+## Biomni-R0
+
+**Biomni-R0** is our first reasoning model for biology, built on Qwen-32B with reinforcement learning from agent interaction data. It's designed to excel at tool use, multi-step reasoning, and complex biological problem-solving through iterative self-correction.
+
+- 🤗 Model: [biomni/Biomni-R0-32B-Preview](https://huggingface.co/biomni/Biomni-R0-32B-Preview)
+- 📝 Technical Report: [biomni.stanford.edu/blog/biomni-r0-technical-report](https://biomni.stanford.edu/blog/biomni-r0-technical-report)
+
+To use Biomni-R0 for agent reasoning while keeping database queries on your usual provider (recommended), run a local SGLang server and pass the model to `A1()` directly.
+
+1) Launch SGLang with Biomni-R0:
+
+```bash
+python -m sglang.launch_server --model-path RyanLi0802/Biomni-R0-Preview --port 30000 --host 0.0.0.0 --mem-fraction-static 0.8 --tp 2 --trust-remote-code --json-model-override-args '{"rope_scaling":{"rope_type":"yarn","factor":1.0,"original_max_position_embeddings":32768}, "max_position_embeddings": 131072}'
+```
+
+2) Point the agent to your SGLang endpoint for reasoning:
+
+```python
+from biomni.config import default_config
+from biomni.agent import A1
+
+# Database queries (indexes, retrieval, etc.) use default_config
+default_config.llm = "claude-3-5-sonnet-20241022"
+default_config.source = "Anthropic"
+
+# Agent reasoning uses Biomni-R0 served via SGLang (OpenAI-compatible API)
+agent = A1(
+    llm="biomni/Biomni-R0-32B-Preview",
+    source="Custom",
+    base_url="http://localhost:30000/v1",
+    api_key="EMPTY",
+)
+
+agent.go("Plan a CRISPR screen to identify genes regulating T cell exhaustion")
+```
+
+## Biomni-Eval1
+
+**Biomni-Eval1** is a comprehensive evaluation benchmark for assessing biological reasoning capabilities across diverse tasks. It contains **433 instances** spanning **10 biological reasoning tasks**, from gene identification to disease diagnosis.
+
+**Tasks Included:**
+- GWAS causal gene identification (3 variants)
+- Lab bench Q&A (2 variants)
+- Patient gene detection
+- Screen gene retrieval
+- GWAS variant prioritization
+- Rare disease diagnosis
+- CRISPR delivery method selection
+
+**Resources:**
+- 🤗 Dataset: [biomni/Eval1](https://huggingface.co/datasets/biomni/Eval1)
+- 💻 Quick Start:
+```python
+from biomni.eval import BiomniEval1
+
+evaluator = BiomniEval1()
+score = evaluator.evaluate('gwas_causal_gene_opentargets', 0, 'BRCA1')
+```
 
 
 ## 🤝 Contributing to Biomni
@@ -275,13 +374,6 @@ Experience Biomni through our no-code web interface at **[biomni.stanford.edu](h
 
 [![Watch the video](https://img.youtube.com/vi/E0BRvl23hLs/maxresdefault.jpg)](https://youtu.be/E0BRvl23hLs)
 
-## Release schedule
-
-- [ ] 8 Real-world research task benchmark/leaderboard release
-- [ ] A tutorial on how to contribute to Biomni
-- [ ] A tutorial on baseline agents
-- [x] MCP support
-- [x] Biomni A1+E1 release
 
 ## Important Note
 - Security warning: Currently, Biomni executes LLM-generated code with full system privileges. If you want to use it in production, please use in isolated/sandboxed environments. The agent can access files, network, and system commands. Be careful with sensitive data or credentials.
