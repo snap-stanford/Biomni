@@ -2620,10 +2620,10 @@ Each library is listed with its description to help you understand its functiona
                         language = "python"
                         if code.strip().startswith("#!R"):
                             language = "r"
-                            code = re.sub(r"^#!R", "", code, 1).strip()
+                            code = re.sub(r"^#!R", "", code, count=1).strip()
                         elif code.strip().startswith("#!BASH") or code.strip().startswith("#!CLI"):
                             language = "bash"
-                            code = re.sub(r"^#!BASH|^#!CLI", "", code, 1).strip()
+                            code = re.sub(r"^#!BASH|^#!CLI", "", code, count=1).strip()
 
                         code_msg = ChatMessage(
                             role="assistant",
