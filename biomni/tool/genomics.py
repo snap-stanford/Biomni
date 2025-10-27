@@ -2280,7 +2280,15 @@ def generate_embeddings_with_state(
         raise RuntimeError(error_msg) from e
 
     steps.append("Downloading SE-600M model...")
-    if not os.path.exists(model_folder):
+
+    # Check if model weights actually exist (not just the directory)
+    model_exists = False
+    if os.path.exists(model_folder):
+        # Check for SE-600M specific checkpoint files
+        checkpoint_indicators = ["se600m_epoch16.ckpt", "se600m_epoch4.ckpt", "model.safetensors", "config.yaml"]
+        model_exists = any(os.path.exists(os.path.join(model_folder, indicator)) for indicator in checkpoint_indicators)
+
+    if not model_exists:
         os.makedirs(model_folder, exist_ok=True)
         steps.append(f"Created model directory: {model_folder}")
         try:
@@ -2297,8 +2305,8 @@ def generate_embeddings_with_state(
 
             for line in iter(process.stdout.readline, ""):
                 line = line.rstrip()
-                print(line)  # Print to console first
-                steps.append(line)  # Then add to steps list
+                print(line)
+                steps.append(line)
 
             process.wait()
 
@@ -2312,7 +2320,7 @@ def generate_embeddings_with_state(
             steps.append(error_msg)
             raise
     else:
-        steps.append(f"Model directory already exists: {model_folder}")
+        steps.append(f"Model already downloaded: {model_folder}")
 
     steps.append("Generating embeddings...")
 
