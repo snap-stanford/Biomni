@@ -149,6 +149,29 @@ agent.go("Predict ADMET properties for this compound: CC(C)CC1=CC=C(C=C1)C(C)C(=
 ```
 If you plan on using Azure for your model, always prefix the model name with azure- (e.g. llm='azure-gpt-4o').
 
+### Gradio Interface
+
+Launch an interactive web UI for Biomni:
+
+```python
+from biomni.agent import A1
+
+agent = A1(path='./data', llm='claude-sonnet-4-20250514')
+agent.launch_gradio_demo()
+```
+
+**Installation:**
+```bash
+pip install gradio
+```
+
+**Options:**
+- `share=True` - Create a public shareable link
+- `server_name="127.0.0.1"` - Localhost only (default: "0.0.0.0")
+- `require_verification=True` - Require access code (default code: "Biomni2025")
+
+The interface will be available at `http://localhost:7860`
+
 ### Configuration Management
 
 Biomni includes a centralized configuration system that provides flexible ways to manage settings. You can configure Biomni through environment variables, runtime modifications, or direct parameters.
