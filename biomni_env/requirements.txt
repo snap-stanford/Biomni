@@ -48,3 +48,5 @@ boto3
 botocore
 lifelines
 geoparse
+duckduckgo-search
+ddgs

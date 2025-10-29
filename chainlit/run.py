@@ -150,6 +150,40 @@ async def start_chat():
     print("current dir", os.getcwd())
     cl.user_session.set("message_history", [])
 
+    files = None
+
+    # Wait for the user to upload a file
+    while files == None:
+        files = await cl.AskFileMessage(
+            content="Please upload your omics data to analyze!",
+            accept=["*/*"],
+            max_size_mb=100,
+            max_files=10,
+        ).send()
+
+    # Show loading indicator while copying file
+    user_uploaded_system_file = ""
+    uploading_status_message = ""
+    async with cl.Step(name=f"Processing files...") as step:
+        for file in files:
+            step.output = (
+                uploading_status_message
+                + f"Uploading file: {file.name} ({file.size} bytes)..."
+            )
+            os.system(f"cp {file.path} '{file.name}'")
+            step.output = (
+                uploading_status_message + f"✅ {file.name} uploaded successfully!\n"
+            )
+            uploading_status_message = step.output
+            user_uploaded_system_file += f" - user uploaded data file: {file.name}\n"
+
+    cl.user_session.set("user_uploaded_system_file", user_uploaded_system_file)
+
+    # Let the user know that the system is ready
+    await cl.Message(
+        content=f"{len(files)} files uploaded, total size {sum(file.size for file in files) / (1024 * 1024):.2f} MB!. It is ready to analyze the files."
+    ).send()
+
 
 @cl.on_chat_resume
 async def resume_chat():
@@ -171,21 +205,28 @@ async def main(user_message: cl.Message):
         user_message: The user's message from Chainlit UI.
     """
     print("current dir:", os.getcwd())
-    user_prompt = _process_user_message(user_message)
+    user_prompt = await _process_user_message(user_message)
     message_history = _update_message_history(user_prompt)
     agent_input = _convert_to_agent_format(message_history)
 
     await _process_agent_response(agent_input, message_history)
 
 
-def _process_user_message(user_message: cl.Message) -> str:
+async def _process_user_message(user_message: cl.Message) -> str:
     """Process user message and handle file uploads."""
     user_prompt = user_message.content.strip()
 
     # Process uploaded files
+    step_message = ""
     for file in user_message.elements:
-        os.system(f"cp {file.path} '{file.name}'")
-        user_prompt += f"\n - user uploaded file: {file.name}\n"
+        async with cl.Step(name=f"Processing {file.name}...") as step:
+            step.output = step_message + f"Copying file..."
+            os.system(f"cp {file.path} '{file.name}'")
+            step.output = step_message + f"✅ File copied successfully!\n"
+            step_message = step.output
+        user_prompt += f"\n - user uploaded data file: {file.name}\n"
+
+    user_prompt += "\n" + cl.user_session.get("user_uploaded_system_file", "")
 
     return user_prompt
 

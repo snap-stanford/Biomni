@@ -539,6 +539,7 @@ def search_google(query: str, num_results: int = 3, language: str = "en") -> str
         advanced_web_search_claude : For more sophisticated web searches with AI assistance
         extract_url_content : For extracting content from the returned URLs
     """
+    return search_duckduckgo(query, num_results, language)
     from googlesearch import search
 
     try:
@@ -559,9 +560,143 @@ def search_google(query: str, num_results: int = 3, language: str = "en") -> str
                 f"Title: {title}\nURL: {url}\nDescription: {description}\n\n"
             )
 
+        return results_string
+
     except Exception as e:
-        print(f"Error performing search: {str(e)}")
-    return results_string
+        return f"Error performing search: {str(e)}"
+
+
+def search_duckduckgo(query: str, num_results: int = 3, language: str = "en") -> str:
+    """
+    Perform a DuckDuckGo web search and return formatted results with titles, URLs, and descriptions.
+
+    This function uses the duckduckgo-search library to query DuckDuckGo's search engine
+    and retrieve web results. It's more reliable than Google for automated queries as it
+    doesn't have rate limiting or blocking issues. Particularly useful for finding protocols,
+    research information, and general web content related to scientific queries.
+
+    Args:
+        query (str): The search query string. Can include:
+            - Natural language questions (e.g., "How to perform PCR amplification?")
+            - Protocol names (e.g., "Western blot protocol")
+            - Scientific terms and concepts (e.g., "CRISPR genome editing methods")
+            - Specific product or technique names
+            - Site-specific searches using "site:" operator (e.g., "site:nature.com gene editing")
+            - Quoted phrases for exact matches (e.g., '"protein purification protocol"')
+
+        num_results (int, optional): Number of search results to return. Default is 3.
+            Recommended range: 1-20.
+
+        language (str, optional): Language code for search results. Default is "en" (English).
+            Common codes include:
+            - "en": English
+            - "es": Spanish
+            - "fr": French
+            - "de": German
+            - "ja": Japanese
+            - "zh": Chinese
+
+    Returns:
+        str: Formatted search results as a string containing for each result:
+            - Title: The webpage title
+            - URL: The full URL of the webpage
+            - Description: Brief description or snippet from the page
+
+            Results are separated by double newlines for readability.
+
+            If no results are found, returns "No results found."
+            If an error occurs during search, returns an error message.
+
+    Raises:
+        Exception: Various exceptions may occur and are handled internally:
+            - Network connectivity issues
+            - Invalid query format
+            - Timeout errors
+            - ImportError if duckduckgo-search library is not installed
+
+    Examples:
+        >>> results = search_duckduckgo("PCR protocol molecular biology", num_results=2)
+        >>> print(results)
+        Result 1:
+        Title: PCR Protocol - Thermo Fisher Scientific
+        URL: https://www.thermofisher.com/pcr-protocol
+        Description: Step-by-step PCR protocol for molecular biology applications...
+
+        Result 2:
+        Title: Polymerase Chain Reaction (PCR) - Protocol Online
+        URL: https://www.protocol-online.org/biology-forums-lab-techniques/posts/7234.html
+        Description: Detailed PCR protocol with troubleshooting tips and optimization...
+
+        >>> results = search_duckduckgo("site:ncbi.nlm.nih.gov gene expression", num_results=1)
+        >>> print(results)
+        Result 1:
+        Title: Gene Expression - NCBI
+        URL: https://www.ncbi.nlm.nih.gov/gene/expression
+        Description: Tools and databases for gene expression analysis...
+
+        >>> results = search_duckduckgo("Western blot protocol", num_results=3, language="en")
+        >>> print(results)
+        Result 1:
+        Title: Western Blot Protocol - Bio-Rad
+        URL: https://www.bio-rad.com/western-blot-protocol
+        Description: Complete western blot protocol from sample preparation to detection...
+
+    Notes:
+        - Uses DuckDuckGo search via duckduckgo-search library for better reliability
+        - No rate limiting or IP blocking issues compared to Google automated searches
+        - Search results quality is generally good and comparable to Google
+        - Some results may be behind paywalls or require authentication
+        - The function includes debug print statements for monitoring search progress
+        - Works reliably in automated environments without requiring API keys
+        - Privacy-friendly as DuckDuckGo doesn't track searches
+
+    Installation:
+        If the library is not installed, you can install it with:
+        pip install duckduckgo-search
+
+    See Also:
+        search_google : For Google web searches (may have blocking issues)
+        advanced_web_search_claude : For more sophisticated web searches with AI assistance
+        extract_url_content : For extracting content from the returned URLs
+    """
+    try:
+        from ddgs import DDGS
+    except ImportError:
+        return "Error: duckduckgo_search library not installed. Install with: pip install ddgs"
+
+    try:
+        results_string = ""
+
+        print(
+            f"Searching for '{query}' with {num_results} results and {language} language"
+        )
+
+        with DDGS() as ddgs:
+            # Use region parameter for language (e.g., "wt-en" for worldwide English)
+            region = f"wt-{language}" if language else "wt-en"
+            search_results = list(
+                ddgs.text(query, max_results=num_results, region=region)
+            )
+
+            if not search_results:
+                return "No results found."
+
+            for idx, result in enumerate(search_results):
+                title = result.get("title", "N/A")
+                url = result.get("href", "N/A")
+                description = result.get("body", "N/A")
+
+                print(f"Found result {idx+1}: {title}")
+
+                results_string += f"Result {idx+1}:\n"
+                results_string += f"Title: {title}\n"
+                results_string += f"URL: {url}\n"
+                results_string += f"Description: {description}\n\n"
+
+        return results_string
+
+    except Exception as e:
+        return f"Error performing DuckDuckGo search: {str(e)}"
 
 
 def advanced_web_search_claude(
