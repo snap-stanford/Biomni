@@ -32,8 +32,8 @@ import logging
 # Configuration
 LLM_MODEL = "gemini-2.5-pro"
 # LLM_MODEL = "grok-4-fast"
-BIOMNI_DATA_PATH = "/workdir_efs/jaechang/work2/biomni_hits_test/biomni_data"
-CURRENT_ABS_DIR = "/workdir_efs/jaechang/work2/biomni_hits_test/Biomni_HITS/chainlit"
+BIOMNI_DATA_PATH = "/workdir_efs/jhjeon/Biomni/biomni_data"
+CURRENT_ABS_DIR = "/workdir_efs/jhjeon/Biomni/chainlit"
 PUBLIC_DIR = f"{CURRENT_ABS_DIR}/public"
 CHAINLIT_DB_PATH = "chainlit.db"
 
@@ -131,7 +131,14 @@ def get_data_layer():
 def auth_callback(username: str, password: str):
     # Fetch the user matching username from your database
     # and compare the hashed password with the value stored in the database
-    if (username, password) == ("admin", "admin"):
+    # Support both username and email format for login
+    valid_logins = [
+        ("admin", "admin"),
+        ("admin@example.com", "admin"),  # Email format
+        ("admin@biomni.com", "admin"),  # Another email format
+    ]
+    
+    if (username, password) in valid_logins:
         return cl.User(
             identifier="admin", metadata={"role": "admin", "provider": "credentials"}
         )
@@ -527,7 +534,10 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
             return match.group(0)
 
         # Add download functionality if already in public folder
-        if image_path.startswith(("./public/", "public/")):
+        if image_path.startswith(("./public/", "public/", "/public/")):
+            # Normalize to absolute path
+            if not image_path.startswith("/public/"):
+                image_path = "/public/" + image_path.replace("./public/", "").replace("public/", "")
             return (
                 f"[![{alt_text}]({image_path})]({image_path})[Download]({image_path})"
             )
@@ -547,7 +557,7 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
         try:
             shutil.copy2(image_path, new_file_path)
             print("copied image to", new_file_path)
-            return f"[![{alt_text}](../../public/{new_file_name})](../../public/{new_file_name})[Download](../../public/{new_file_name})"
+            return f"[![{alt_text}](/public/{new_file_name})](/public/{new_file_name})[Download](/public/{new_file_name})"
         except Exception as e:
             print(f"Error moving image {image_path}: {e}")
             return match.group(0)
