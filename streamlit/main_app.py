@@ -11,23 +11,36 @@ Date: 2025
 """
 
 import streamlit as st
+import pandas as pd
 import os
+import yaml
 import sys
 from datetime import datetime
 import tempfile
 import shutil
 from pathlib import Path
 
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 
 def _ensure_streamlit_shim():
     """Provide no-op fallbacks when running outside Streamlit."""
+
     def _noop(*args, **kwargs):
         return None
 
-    fallback_attrs = ['set_page_config', 'markdown', 'error', 'warning', 'info', 'success']
+    fallback_attrs = [
+        "set_page_config",
+        "markdown",
+        "error",
+        "warning",
+        "info",
+        "success",
+    ]
     for attr in fallback_attrs:
         if not hasattr(st, attr):
             setattr(st, attr, _noop)
+
 
 _ensure_streamlit_shim()
 
@@ -45,19 +58,55 @@ except ImportError:
 # Configuration
 APP_VERSION = "1.0.0"
 APP_TITLE = "Integrated LIMS & Analysis Platform"
-DATA_STORAGE_PATH = "/workdir_efs/jhjeon/Biomni/data"
-WORKSPACE_PATH = "/workdir_efs/jhjeon/Biomni/workspace"
+
+
+def _load_config_paths():
+    """Load path settings from project-level config.yaml if present."""
+    try:
+        # project root: .../Biomni_HITS/streamlit/ -> .../Biomni_HITS -> repo root
+        repo_root = os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        )
+        config_path = os.path.join(repo_root, "config.yaml")
+        if os.path.isfile(config_path):
+            with open(config_path, "r", encoding="utf-8") as f:
+                cfg = yaml.safe_load(f) or {}
+        else:
+            cfg = {}
+    except Exception:
+        cfg = {}
+    # Fallback to existing defaults if keys are missing
+    data_storage_default = "/workdir_efs/jhjeon/Biomni/data"
+    workspace_default = "/workdir_efs/jhjeon/Biomni/workspace"
+    return (
+        cfg.get("DATA_STORAGE_PATH", data_storage_default),
+        cfg.get("WORKSPACE_PATH", workspace_default),
+    )
+
+
+DATA_STORAGE_PATH, WORKSPACE_PATH = _load_config_paths()
 
 # Analysis Apps Registry
 ANALYSIS_APPS = {
-    'omics_horizon': {
-        'name': 'OmicsHorizon™',
-        'description': 'AI-Powered Transcriptomic Analysis Platform',
-        'icon': '🧬',
-        'function': run_omicshorizon_app,
-        'data_types': ['.csv', '.xlsx', '.xls', '.tsv', '.txt', '.json', '.gz', '.csv.gz', '.tsv.gz', '.txt.gz'],
-        'category': 'Genomics',
-        'enabled': True
+    "omics_horizon": {
+        "name": "OmicsHorizon™",
+        "description": "AI-Powered Transcriptomic Analysis Platform",
+        "icon": "🧬",
+        "function": run_omicshorizon_app,
+        "data_types": [
+            ".csv",
+            ".xlsx",
+            ".xls",
+            ".tsv",
+            ".txt",
+            ".json",
+            ".gz",
+            ".csv.gz",
+            ".tsv.gz",
+            ".txt.gz",
+        ],
+        "category": "Genomics",
+        "enabled": True,
     },
     # Future apps can be added here
     # 'proteomics_app': {
@@ -85,11 +134,12 @@ st.set_page_config(
     page_title=APP_TITLE,
     page_icon="🔬",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # Global CSS
-st.markdown("""
+st.markdown(
+    """
 <style>
     .main-title {
         font-size: 2.5rem;
@@ -179,8 +229,15 @@ st.markdown("""
         border-color: #3498db;
         background-color: #ecf0f1;
     }
+    /* Reset sidebar width to platform default when not in OmicsHorizon */
+    [data-testid="stSidebar"] {
+        min-width: 300px !important;
+        max-width: 300px !important;
+    }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 
 class AppRouter:
@@ -188,16 +245,16 @@ class AppRouter:
 
     def __init__(self):
         # Initialize session state for navigation
-        if 'current_view' not in st.session_state:
-            st.session_state.current_view = 'lims'  # 'lims', 'app_selection', or app_id
+        if "current_view" not in st.session_state:
+            st.session_state.current_view = "lims"  # 'lims', 'app_selection', or app_id
 
-        if 'selected_app' not in st.session_state:
+        if "selected_app" not in st.session_state:
             st.session_state.selected_app = None
 
-        if 'selected_data_files' not in st.session_state:
+        if "selected_data_files" not in st.session_state:
             st.session_state.selected_data_files = []
 
-        if 'app_workspace' not in st.session_state:
+        if "app_workspace" not in st.session_state:
             # Create unique workspace for this session
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             workspace_path = os.path.join(WORKSPACE_PATH, f"session_{timestamp}")
@@ -213,7 +270,7 @@ class AppRouter:
 
     def go_back_to_lims(self):
         """Return to LIMS main screen"""
-        st.session_state.current_view = 'lims'
+        st.session_state.current_view = "lims"
         st.session_state.selected_app = None
         st.rerun()
 
@@ -242,28 +299,28 @@ class DataManager:
                 if os.path.isfile(file_path):
                     # Extract extension with better handling for compressed files
                     suffix = Path(file).suffix.lower()
-                    if suffix == '.gz':
+                    if suffix == ".gz":
                         # For .gz files, try to get the actual file type
                         # e.g., 'data.txt.gz' -> '.txt.gz'
                         stem = Path(file).stem  # remove .gz
-                        if '.' in stem:
+                        if "." in stem:
                             # Has another extension
                             inner_suffix = Path(stem).suffix.lower()
-                            extension = inner_suffix + '.gz'
+                            extension = inner_suffix + ".gz"
                         else:
-                            extension = '.gz'
+                            extension = ".gz"
                     else:
                         extension = suffix
 
                     file_info = {
-                        'name': file,
-                        'path': file_path,
-                        'size': os.path.getsize(file_path),
-                        'modified': datetime.fromtimestamp(os.path.getmtime(file_path)),
-                        'extension': extension
+                        "name": file,
+                        "path": file_path,
+                        "size": os.path.getsize(file_path),
+                        "modified": datetime.fromtimestamp(os.path.getmtime(file_path)),
+                        "extension": extension,
                     }
                     files.append(file_info)
-        return sorted(files, key=lambda x: x['modified'], reverse=True)
+        return sorted(files, key=lambda x: x["modified"], reverse=True)
 
     def copy_files_to_workspace(self, file_paths, workspace_path):
         """Copy selected files to analysis app workspace"""
@@ -284,9 +341,9 @@ def render_sidebar(router, data_manager):
 
         # Current view indicator
         current_view = router.get_current_view()
-        if current_view == 'lims':
+        if current_view == "lims":
             st.markdown("📊 **Current: LIMS Dashboard**")
-        elif current_view == 'app_selection':
+        elif current_view == "app_selection":
             st.markdown("🎯 **Current: App Selection**")
         else:
             selected_app = router.get_selected_app()
@@ -297,22 +354,26 @@ def render_sidebar(router, data_manager):
         st.markdown("---")
 
         # Navigation buttons
-        if current_view != 'lims':
-            if st.button("🏠 Back to LIMS", key="back_to_lims", use_container_width=True):
+        if current_view != "lims":
+            if st.button(
+                "🏠 Back to LIMS", key="back_to_lims", use_container_width=True
+            ):
                 router.go_back_to_lims()
 
         st.markdown("---")
 
         # Session Info
         st.markdown("## 📊 Session Info")
-        workspace = st.session_state.get('app_workspace', 'Not initialized')
-        workspace_short = workspace.replace('/workdir_efs/jhjeon/Biomni/', '')
+        workspace = st.session_state.get("app_workspace", "Not initialized")
+        workspace_short = workspace.replace("/workdir_efs/jhjeon/Biomni/", "")
 
-        st.info(f"""
+        st.info(
+            f"""
         **Version:** {APP_VERSION}
         **Workspace:** `{workspace_short}`
         **Data Files:** {len(data_manager.list_data_files())}
-        """)
+        """
+        )
 
         st.markdown("---")
 
@@ -322,7 +383,7 @@ def render_sidebar(router, data_manager):
         if st.button("🗑️ Clear Session", key="clear_session", use_container_width=True):
             # Clear all session state
             for key in list(st.session_state.keys()):
-                if key != 'app_workspace':  # Keep workspace
+                if key != "app_workspace":  # Keep workspace
                     del st.session_state[key]
             st.success("✅ Session cleared!")
             st.rerun()
@@ -330,22 +391,28 @@ def render_sidebar(router, data_manager):
 
 def render_lims_dashboard(router, data_manager):
     """Render the main LIMS dashboard"""
-    st.markdown('<h1 class="main-title">🔬 Integrated LIMS & Analysis Platform</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">Centralized data management and specialized analysis applications</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<h1 class="main-title">🔬 Integrated LIMS & Analysis Platform</h1>',
+        unsafe_allow_html=True,
+    )
+    # st.markdown(
+    #     '<p class="subtitle">Centralized data management and specialized analysis applications</p>',
+    #     unsafe_allow_html=True,
+    # )
 
     # Overview cards
-    col1, col2, col3 = st.columns(3)
+    # col1, col2, col3 = st.columns(3)
 
-    with col1:
-        total_files = len(data_manager.list_data_files())
-        st.metric("📁 Data Files", total_files)
+    # with col1:
+    #     total_files = len(data_manager.list_data_files())
+    #     st.metric("📁 Data Files", total_files)
 
-    with col2:
-        active_apps = sum(1 for app in ANALYSIS_APPS.values() if app['enabled'])
-        st.metric("🔬 Active Apps", active_apps)
+    # with col2:
+    #     active_apps = sum(1 for app in ANALYSIS_APPS.values() if app["enabled"])
+    #     st.metric("🔬 Active Apps", active_apps)
 
-    with col3:
-        st.metric("💾 Storage", "Available")
+    # with col3:
+    #     st.metric("💾 Storage", "Available")
 
     st.markdown("---")
 
@@ -359,27 +426,44 @@ def render_lims_dashboard(router, data_manager):
     else:
         st.markdown(f"**{len(data_files)} files available**")
 
-        # File selection
-        selected_files = []
+        # File selection table (fixed height with scroll)
+        selected_names = {f["name"] for f in st.session_state.selected_data_files}
+        rows = []
         for file_info in data_files:
-            size_mb = file_info['size'] / (1024 * 1024)
-            modified_str = file_info['modified'].strftime("%Y-%m-%d %H:%M")
+            rows.append(
+                {
+                    "Select": file_info["name"] in selected_names,
+                    "Name": file_info["name"],
+                    "Size (MB)": round(file_info["size"] / (1024 * 1024), 1),
+                    "Type": file_info["extension"].upper(),
+                    "Modified": file_info["modified"].strftime("%Y-%m-%d %H:%M"),
+                }
+            )
 
-            col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
-            with col1:
-                is_selected = st.checkbox(
-                    f"**{file_info['name']}**",
-                    key=f"select_{file_info['name']}",
-                    value=file_info['name'] in [f['name'] for f in st.session_state.selected_data_files]
-                )
-                if is_selected:
-                    selected_files.append(file_info)
-            with col2:
-                st.caption(f"{size_mb:.1f} MB")
-            with col3:
-                st.caption(file_info['extension'].upper())
-            with col4:
-                st.caption(modified_str)
+        df = pd.DataFrame(rows)
+        edited_df = st.data_editor(
+            df,
+            hide_index=True,
+            height=360,
+            use_container_width=True,
+            column_config={
+                "Select": st.column_config.CheckboxColumn("Select"),
+                "Name": st.column_config.TextColumn("Name", disabled=True),
+                "Size (MB)": st.column_config.NumberColumn(
+                    "Size (MB)", disabled=True, format="%.1f"
+                ),
+                "Type": st.column_config.TextColumn("Type", disabled=True),
+                "Modified": st.column_config.TextColumn("Modified", disabled=True),
+            },
+        )
+
+        # Collect selected files
+        selected_files = []
+        for _, row in edited_df.iterrows():
+            if bool(row.get("Select")):
+                match = next((f for f in data_files if f["name"] == row["Name"]), None)
+                if match:
+                    selected_files.append(match)
 
         # Update selected files in session state
         st.session_state.selected_data_files = selected_files
@@ -398,7 +482,7 @@ def render_lims_dashboard(router, data_manager):
     st.markdown("## 🎯 Specialized Analysis Applications")
 
     # Filter enabled apps
-    enabled_apps = {k: v for k, v in ANALYSIS_APPS.items() if v['enabled']}
+    enabled_apps = {k: v for k, v in ANALYSIS_APPS.items() if v["enabled"]}
 
     if not enabled_apps:
         st.warning("No analysis applications are currently available.")
@@ -410,43 +494,52 @@ def render_lims_dashboard(router, data_manager):
         for idx, (app_id, app_info) in enumerate(enabled_apps.items()):
             with cols[idx % 3]:
                 # App card
-                selected_class = "selected" if st.session_state.selected_data_files else ""
-                st.markdown(f"""
+                selected_class = (
+                    "selected" if st.session_state.selected_data_files else ""
+                )
+                st.markdown(
+                    f"""
                 <div class="app-card {selected_class}">
                     <div class="app-icon">{app_info['icon']}</div>
                     <div class="app-name">{app_info['name']}</div>
                     <div class="app-description">{app_info['description']}</div>
                 </div>
-                """, unsafe_allow_html=True)
+                """,
+                    unsafe_allow_html=True,
+                )
 
                 # Check if app can handle selected data types
                 if st.session_state.selected_data_files:
-                    selected_extensions = [f['extension'] for f in st.session_state.selected_data_files]
-                    selected_filenames = [f['name'] for f in st.session_state.selected_data_files]
+                    selected_extensions = [
+                        f["extension"] for f in st.session_state.selected_data_files
+                    ]
+                    selected_filenames = [
+                        f["name"] for f in st.session_state.selected_data_files
+                    ]
 
                     # Check compatibility with more flexible logic
                     compatible = False
                     for ext, filename in zip(selected_extensions, selected_filenames):
                         # Direct extension match
-                        if ext in app_info['data_types']:
+                        if ext in app_info["data_types"]:
                             compatible = True
                             break
 
                         # Check for compressed files (.gz, .zip, etc.)
-                        if ext == '.gz':
+                        if ext == ".gz":
                             # Extract the actual file type from compressed files
                             # e.g., 'data.txt.gz' -> '.txt'
-                            if '.' in filename:
-                                parts = filename.split('.')
+                            if "." in filename:
+                                parts = filename.split(".")
                                 if len(parts) >= 3:  # filename.ext.gz
-                                    actual_ext = '.' + parts[-2]  # second to last part
-                                    if actual_ext in app_info['data_types']:
+                                    actual_ext = "." + parts[-2]  # second to last part
+                                    if actual_ext in app_info["data_types"]:
                                         compatible = True
                                         break
 
                         # Check for compound extensions
                         # e.g., '.tsv.gz' should match if '.tsv' or '.gz' is supported
-                        for data_type in app_info['data_types']:
+                        for data_type in app_info["data_types"]:
                             if data_type in filename or data_type in ext:
                                 compatible = True
                                 break
@@ -455,41 +548,54 @@ def render_lims_dashboard(router, data_manager):
                             break
 
                     if compatible:
-                        if st.button(f"🚀 Launch {app_info['name']}",
-                                   key=f"launch_{app_id}",
-                                   use_container_width=True,
-                                   type="primary"):
+                        if st.button(
+                            f"🚀 Launch {app_info['name']}",
+                            key=f"launch_{app_id}",
+                            use_container_width=True,
+                            type="primary",
+                        ):
                             # Copy selected files to app workspace
-                            file_paths = [f['path'] for f in st.session_state.selected_data_files]
+                            file_paths = [
+                                f["path"] for f in st.session_state.selected_data_files
+                            ]
                             copied_files = data_manager.copy_files_to_workspace(
-                                file_paths, st.session_state.app_workspace)
+                                file_paths, st.session_state.app_workspace
+                            )
 
                             # Navigate to app
                             router.navigate_to(app_id, app_id)
                     else:
-                        st.button(f"❌ Incompatible Data Types",
-                                key=f"incompatible_{app_id}",
-                                use_container_width=True,
-                                disabled=True)
-                        st.caption("Selected files are not compatible with this analysis app.")
-                else:
-                    st.button(f"📁 Select Data First",
-                            key=f"select_data_{app_id}",
+                        st.button(
+                            f"❌ Incompatible Data Types",
+                            key=f"incompatible_{app_id}",
                             use_container_width=True,
-                            disabled=True)
+                            disabled=True,
+                        )
+                        st.caption(
+                            "Selected files are not compatible with this analysis app."
+                        )
+                else:
+                    st.button(
+                        f"📁 Select Data First",
+                        key=f"select_data_{app_id}",
+                        use_container_width=True,
+                        disabled=True,
+                    )
                     st.caption("Please select data files above to enable analysis.")
 
 
 def render_analysis_app(app_id, app_info):
     """Render a specific analysis application"""
-    if app_info['function'] is None:
+    if app_info["function"] is None:
         st.error(f"❌ {app_info['name']} is not yet implemented.")
         return
 
     # Render the analysis app with LIMS integration
     try:
         # Pass from_lims=True and workspace path to indicate this is launched from LIMS
-        app_info['function'](from_lims=True, workspace_path=st.session_state.app_workspace)
+        app_info["function"](
+            from_lims=True, workspace_path=st.session_state.app_workspace
+        )
     except Exception as e:
         st.error(f"Error running {app_info['name']}: {str(e)}")
         st.exception(e)
@@ -507,7 +613,7 @@ def main():
     # Render main content based on current view
     current_view = router.get_current_view()
 
-    if current_view == 'lims':
+    if current_view == "lims":
         render_lims_dashboard(router, data_manager)
     else:
         # It's an analysis app

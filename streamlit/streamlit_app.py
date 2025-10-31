@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import yaml
 import re
 import pandas as pd
 import gzip
@@ -21,8 +22,37 @@ LLM_MODEL = "gemini-2.5-pro"
 # WORK_DIR = "/workdir_efs/jhjeon/Biomni/streamlit_workspace"
 CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 
-BIOMNI_DATA_PATH = "/workdir_efs/jaechang/work2/biomni_hits_test/biomni_data"
-WORK_DIR = "/workdir_efs/jaechang/work2/biomni_hits_test/Biomni_HITS/streamlit/streamlit_workspace"
+
+def _load_config_paths():
+    """Load path settings from project-level config.yaml if present."""
+    try:
+        # project root: .../Biomni_HITS/streamlit/ -> .../Biomni_HITS -> repo root
+        repo_root = os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        )
+        config_path = os.path.join(repo_root, "config.yaml")
+        if os.path.isfile(config_path):
+            with open(config_path, "r", encoding="utf-8") as f:
+                cfg = yaml.safe_load(f) or {}
+        else:
+            cfg = {}
+    except Exception:
+        cfg = {}
+    # Fallback to existing defaults if keys are missing
+    biomni_data_default = "/workdir_efs/jaechang/work2/biomni_hits_test/biomni_data"
+    workspace_default = "/workdir_efs/jaechang/work2/biomni_hits_test/Biomni_HITS/streamlit/streamlit_workspace"
+    return (
+        cfg.get("BIOMNI_DATA_PATH", biomni_data_default),
+        cfg.get("WORKSPACE_PATH", workspace_default),
+    )
+
+
+BIOMNI_DATA_PATH, WORKSPACE_PATH = _load_config_paths()
+
+# For this app, keep local working directory naming as before; if WORKSPACE_PATH
+# points to a directory, we use it directly as our WORK_DIR. If it's a base
+# workspace root, you can set it in config.yaml accordingly.
+WORK_DIR = WORKSPACE_PATH
 
 # Logo paths
 LOGO_COLOR_PATH = f"{CURRENT_ABS_DIR}/logo/OMICS-HORIZON_Logo_Color.svg"
@@ -2131,13 +2161,14 @@ def run_omicshorizon_app(from_lims=False, workspace_path=None):
         workspace_path: Path to workspace directory (used when from_lims=True)
     """
 
-    # Page config
-    st.set_page_config(
-        page_title="OmicsHorizon™-Transcriptome",
-        page_icon="🧬",
-        layout="wide",
-        initial_sidebar_state="expanded",
-    )
+    # Page config: Only set when running standalone to avoid duplicate config and layout clashes
+    if not from_lims:
+        st.set_page_config(
+            page_title="OmicsHorizon™-Transcriptome",
+            page_icon="🧬",
+            layout="wide",
+            initial_sidebar_state="expanded",
+        )
 
     # Cache logo loading to avoid repeated file I/O
     @st.cache_data
@@ -2155,8 +2186,18 @@ def run_omicshorizon_app(from_lims=False, workspace_path=None):
     LOGO_MONO_BASE64 = load_logo_base64(LOGO_MONO_PATH)
 
     # Custom CSS for better layout and logo theming
-    st.markdown(
+    sidebar_width_rule = (
         """
+        [data-testid=\"stSidebar\"] {
+            min-width: 420px !important;
+            max-width: 420px !important;
+        }
+        """
+        if not from_lims
+        else ""
+    )
+
+    css_block = """
     <style>
         .main-header {
             font-size: 2.5rem;
@@ -2182,11 +2223,8 @@ def run_omicshorizon_app(from_lims=False, workspace_path=None):
             border-radius: 10px;
         }
 
-        /* Wider sidebar for Q&A */
-        [data-testid="stSidebar"] {
-            min-width: 420px !important;
-            max-width: 420px !important;
-        }
+        /* Wider sidebar for Q&A (only when running standalone) */
+        %SIDEBAR_WIDTH_RULE%
 
         /* Logo container styling */
         .logo-container {
@@ -2247,9 +2285,11 @@ def run_omicshorizon_app(from_lims=False, workspace_path=None):
             z-index: 1;
         }
     </style>
-    """,
-        unsafe_allow_html=True,
+    """.replace(
+        "%SIDEBAR_WIDTH_RULE%", sidebar_width_rule
     )
+
+    st.markdown(css_block, unsafe_allow_html=True)
 
     # Add logo to sidebar
     with st.sidebar:
@@ -2436,29 +2476,60 @@ def run_omicshorizon_app(from_lims=False, workspace_path=None):
                 unsafe_allow_html=True,
             )
 
-            # Show selected data files from LIMS
+            # Scrollable content area (render as Markdown)
+            has_any_content = False
+            md_parts = []
+
+            # Selected data files from LIMS
             if (
                 "selected_data_files" in st.session_state
                 and st.session_state.selected_data_files
             ):
-                st.markdown("**Selected files from LIMS:**")
+                has_any_content = True
+                md_parts.append("**Selected files from LIMS:**")
                 for file_info in st.session_state.selected_data_files:
-                    st.markdown(f"• {file_info['name']} ({file_info['extension']})")
+                    md_parts.append(f"- {file_info['name']} ({file_info['extension']})")
+                md_parts.append("")
 
+            # Loaded data files
             if st.session_state.data_files:
-                st.success(
+                has_any_content = True
+                md_parts.append(
                     f"✅ Loaded {len(st.session_state.data_files)} file(s) from LIMS:"
                 )
                 for filename in st.session_state.data_files:
-                    st.markdown(f"• {filename}")
+                    md_parts.append(f"- {filename}")
+                md_parts.append("")
 
                 # Display briefing
                 if st.session_state.data_briefing:
-                    st.markdown("---")
-                    st.markdown(f"### {t('data_briefing')}")
-                    st.markdown(st.session_state.data_briefing)
+                    md_parts.append("---")
+                    md_parts.append(f"### {t('data_briefing')}")
+                    md_parts.append("")
+                    briefing_text = (
+                        st.session_state.data_briefing
+                        if isinstance(st.session_state.data_briefing, str)
+                        else str(st.session_state.data_briefing)
+                    )
+                    md_parts.append(briefing_text)
                 else:
-                    st.info("📝 Generating data briefing...")
+                    md_parts.append("📝 Generating data briefing...")
+
+            if has_any_content:
+                full_md = "\n".join(md_parts)
+                try:
+                    import markdown as _md
+
+                    rendered_html = _md.markdown(full_md, extensions=["extra"])  # type: ignore
+                    scroll_html = (
+                        '<div style="max-height: 320px; overflow-y: auto; padding-right: 8px;">'
+                        + rendered_html
+                        + "</div>"
+                    )
+                    st.markdown(scroll_html, unsafe_allow_html=True)
+                except Exception:
+                    # Fallback: show as Markdown (without wrapper)
+                    st.markdown(full_md)
             else:
                 st.warning("⚠️ No data files loaded from LIMS")
 
@@ -2547,24 +2618,76 @@ def run_omicshorizon_app(from_lims=False, workspace_path=None):
                 st.success(f"✅ Workflow extraction complete! ({extraction_mode[1]})")
                 st.rerun()
 
+        # Scrollable content area (render as Markdown)
+        md_parts = []
+
+        # Display uploaded paper files
+        if "paper_files" in st.session_state and st.session_state.paper_files:
+            md_parts.append(
+                f"**Uploaded Paper Files:** ({len(st.session_state.paper_files)} file(s))"
+            )
+            for filename in st.session_state.paper_files:
+                md_parts.append(f"- {filename}")
+            md_parts.append("")
+
+        # Show uploaded files in scrollable area if no method yet
+        if not st.session_state.analysis_method and md_parts:
+            full_md = "\n".join(md_parts)
+            try:
+                import markdown as _md
+
+                rendered_html = _md.markdown(full_md, extensions=["extra"])  # type: ignore
+                scroll_html = (
+                    '<div style="max-height: 400px; overflow-y: auto; padding-right: 8px;">'
+                    + rendered_html
+                    + "</div>"
+                )
+                st.markdown(scroll_html, unsafe_allow_html=True)
+            except Exception:
+                st.markdown(full_md)
+
         # Display and edit method
         if st.session_state.analysis_method:
-            st.markdown("---")
-
-            # No need for complex extraction - result is already clean
             clean_method = st.session_state.analysis_method
 
             # Show method in tabs
             method_tab1, method_tab2 = st.tabs(["📋 Analysis Workflow", "✏️ Edit"])
 
             with method_tab1:
-                st.markdown("**🔬 Extracted Analysis Steps**")
+                method_md_parts = []
 
-                # Display as simple numbered list
+                # Add uploaded files info if exists
+                if md_parts:
+                    method_md_parts.extend(md_parts)
+
+                # Add method content
+                method_md_parts.append("### 🔬 Extracted Analysis Steps")
+                method_md_parts.append("")
+
                 if clean_method:
-                    st.markdown(clean_method)
+                    method_md_parts.append(clean_method)
                 else:
-                    st.warning("No method extracted. Please edit to add steps.")
+                    method_md_parts.append(
+                        "*No method extracted. Please edit to add steps.*"
+                    )
+
+                # Render scrollable content in tab1
+                if method_md_parts:
+                    full_md = "\n".join(method_md_parts)
+                    try:
+                        import markdown as _md
+
+                        rendered_html = _md.markdown(
+                            full_md, extensions=["extra"]
+                        )  # type: ignore
+                        scroll_html = (
+                            '<div style="max-height: 400px; overflow-y: auto; padding-right: 8px;">'
+                            + rendered_html
+                            + "</div>"
+                        )
+                        st.markdown(scroll_html, unsafe_allow_html=True)
+                    except Exception:
+                        st.markdown(full_md)
 
             with method_tab2:
                 st.info("💡 Format: Numbered list with tool names and parameters")
@@ -2606,31 +2729,6 @@ def run_omicshorizon_app(from_lims=False, workspace_path=None):
 
     st.markdown("---")
 
-    # Bottom panel: Interactive Step-by-Step Analysis (Full width)
-    st.markdown(
-        f'<div class="panel-header">🎮 {t("panel3_title")} - Interactive Mode</div>',
-        unsafe_allow_html=True,
-    )
-
-    # Debug info (temporary)
-    with st.expander("🔧 Debug Info", expanded=False):
-        st.write(
-            f"**Data files loaded:** {len(st.session_state.data_files) if st.session_state.data_files else 0}"
-        )
-        st.write(
-            f"**Analysis method defined:** {'Yes' if st.session_state.analysis_method else 'No'}"
-        )
-        st.write(
-            f"**Current interaction mode:** {st.session_state.get('interaction_mode', 'Not set')}"
-        )
-        if st.session_state.data_files:
-            st.write("**Data files:**", st.session_state.data_files)
-        if st.session_state.analysis_method:
-            st.write(
-                "**Analysis method (first 200 chars):**",
-                st.session_state.analysis_method[:200] + "...",
-            )
-
     # Check if ready to start
     if st.session_state.data_files and st.session_state.analysis_method:
         # Parse analysis steps
@@ -2640,12 +2738,6 @@ def run_omicshorizon_app(from_lims=False, workspace_path=None):
             # Set default mode to sequential
             if "interaction_mode" not in st.session_state:
                 st.session_state.interaction_mode = "sequential"
-
-            # Show mode info
-            st.info(
-                "🔄 **Sequential Interactive Mode**: Step-by-step guided analysis with feedback"
-            )
-            st.markdown("---")
 
             # Always use sequential mode
             render_sequential_interactive_mode(analysis_steps)
@@ -3083,16 +3175,8 @@ Before accessing any columns:
 1. Run: print("Available columns:", df.columns.tolist())
 2. Use df.columns to get actual column names
 
-{"PREVIOUS STEPS CONTEXT:" if previous_context else ""}
-{previous_context}
 
-{result_files_info}
-
-CURRENT STEP {step_num}: {step_info['title']}
-Description: {step_info.get('description', step_info.get('full_text', ''))}
-
-{"USER FEEDBACK (apply these modifications):" if feedback else ""}
-{feedback if feedback else ""}
+Description: {step_info.get('full_text', '')}
 
 INSTRUCTIONS:
 - Execute this step thoroughly
@@ -3102,8 +3186,7 @@ INSTRUCTIONS:
 - Save any plots with descriptive filenames (e.g., "step{step_num}_*.png")
 - Provide detailed results in <solution> tag
 - Include specific numbers and statistics
-
-Execute Step {step_num} now."""
+"""
 
     # Execute with agent
     try:
@@ -3353,11 +3436,6 @@ def initialize_step_state(step_num, step_data):
 def render_sequential_interactive_mode(analysis_steps):
     """Render sequential interactive mode with chat-like interface"""
     total_steps = len(analysis_steps)
-    completed_steps = sum(
-        1
-        for s in st.session_state.steps_state.values()
-        if s.get("status") == "completed"
-    )
 
     # Initialize chat history if not exists
     if "chat_history" not in st.session_state:
@@ -3367,243 +3445,271 @@ def render_sequential_interactive_mode(analysis_steps):
     if "completed_processes" not in st.session_state:
         st.session_state.completed_processes = {}
 
-    # Progress header
-    col1, col2, col3 = st.columns([2, 1, 1])
-    with col1:
-        progress = completed_steps / total_steps if total_steps > 0 else 0
-        st.progress(progress)
-        st.caption(
-            f"Progress: {completed_steps}/{total_steps} steps completed ({int(progress * 100)}%)"
-        )
-    with col2:
-        st.metric("Current Step", st.session_state.current_step or 1)
-    with col3:
-        st.metric("Total Steps", total_steps)
+    # Initialize pending user input queue if not exists
+    if "pending_user_inputs" not in st.session_state:
+        st.session_state.pending_user_inputs = []
+
+    # Initialize streaming state if not exists
+    if "is_streaming" not in st.session_state:
+        st.session_state.is_streaming = False
 
     # Chat-like interface container
-    st.markdown("---")
     st.markdown("### 💬 Analysis Conversation")
 
-    # Chat history display
-    chat_container = st.container(height=500)
+    # 분석하기 버튼 추가
+    if st.button(
+        "Start Analysis",
+        key="start_analysis_btn",
+        type="primary",
+        use_container_width=True,
+    ):
+        st.session_state.analysis_started = True
 
-    with chat_container:
-        # Show initial system message if not started
-        if not st.session_state.chat_history and st.session_state.current_step == 0:
+    # 버튼이 클릭되었을 때만 아래 코드 실행
+    if st.session_state.get("analysis_started", False):
+        # Display initial greeting
+        if not st.session_state.chat_history:
             with st.chat_message("assistant"):
                 st.markdown("👋 **안녕하세요! OmicsHorizon 분석 도우미입니다.**")
-                st.markdown(
-                    f"총 **{total_steps}개**의 분석 단계를 함께 진행하겠습니다."
-                )
-                st.markdown(
-                    "각 단계마다 결과를 확인하고, 필요시 피드백을 주시면 개선하여 진행하겠습니다."
-                )
-                if st.button("🚀 분석 시작하기", type="primary"):
-                    st.session_state.current_step = 1
-                    add_chat_message(
-                        "assistant",
-                        "🚀 분석을 시작합니다! 첫 번째 단계부터 차근차근 진행하겠습니다.",
-                    )
-                    st.rerun()
 
-        # Display chat history
+        # Display chat history - ensure it's always shown
+        # This will display all previous messages every time the page reruns
         for message in st.session_state.chat_history:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
                 if message.get("files"):
                     display_chat_files(message["files"])
-                if message.get("timestamp"):
-                    st.caption(f"🕒 {message['timestamp']}")
 
-    # Current interaction area
-    if st.session_state.current_step > 0:
-        current_step_num = st.session_state.current_step
-        step_data = next(
-            (s for s in analysis_steps if s["step_num"] == current_step_num), None
+        # User input field (always available, even during streaming)
+        user_input = st.chat_input("메시지를 입력하세요...", key="user_chat_input")
+
+        # Handle user input
+        if user_input:
+            # Add user message to chat history
+            add_chat_message("user", user_input)
+            # Add to pending inputs queue for processing during/after streaming
+            st.session_state.pending_user_inputs.append(user_input)
+            st.rerun()
+
+        os.chdir(st.session_state.work_dir)
+        data_info = ", ".join([f"`{f}`" for f in st.session_state.data_files])
+
+        prompt = f"""Perform bioinformatics analysis.
+#Analysis Instructions:
+{st.session_state.analysis_method}
+
+DATA FILES: {data_info}
+
+DATA BRIEFING:
+{st.session_state.data_briefing if st.session_state.data_briefing else "Files are available in the working directory"}
+
+"""
+        print(prompt)
+
+        # Prepare agent input - build from history if exists, otherwise start fresh
+        # Check if this is a continuation (has assistant messages in history)
+        has_assistant_history = any(
+            msg.get("role") == "assistant" for msg in st.session_state.chat_history
         )
 
-        if step_data:
-            # Initialize step state if not exists (CRITICAL: prevents KeyError)
-            initialize_step_state(current_step_num, step_data)
-            step_info = st.session_state.steps_state.get(current_step_num, {})
+        if has_assistant_history:
+            # Continue existing conversation - build from full history
+            # Don't include initial prompt again, just use conversation history
+            agent_input = build_agent_input_from_history(
+                initial_prompt=prompt, include_initial=False
+            )
 
-            # If step not started yet, show step introduction and execute button
-            if step_info.get("status") not in ["completed", "in_progress"]:
-                with chat_container:
-                    with st.chat_message("assistant"):
-                        st.markdown(
-                            f"📋 **Step {current_step_num}: {step_data['title']}**"
-                        )
-                        if step_data.get("description"):
-                            st.info(step_data["description"])
-                        col1, col2 = st.columns([3, 1])
-                        with col1:
-                            st.markdown("**준비가 되면 실행 버튼을 클릭하세요:**")
-                        with col2:
-                            if st.button(
-                                f"▶️ 실행",
-                                key=f"start_step_{current_step_num}",
-                                type="primary",
-                                use_container_width=True,
-                            ):
-                                # Mark step as in progress and execute immediately
-                                st.session_state.steps_state[current_step_num][
-                                    "status"
-                                ] = "in_progress"
-                                add_chat_message(
-                                    "user",
-                                    f"Step {current_step_num} 실행을 요청했습니다.",
-                                )
-                                add_chat_message(
-                                    "assistant",
-                                    f"⚙️ Step {current_step_num}을 실행하고 있습니다...",
-                                )
-                                st.rerun()
-            # If step in progress, show execution progress in chat
-            elif step_info.get("status") == "in_progress":
-                with chat_container:
-                    with st.chat_message("assistant"):
-                        st.markdown(f"⚙️ **Step {current_step_num} 실행 중...**")
-                        st.info("AI가 분석을 수행하고 있습니다. 잠시만 기다려주세요.")
-                # Execute step automatically
-                render_step_execution_interface(step_data)
-            # If step completed, show completion in chat
-            elif step_info.get("status") == "completed":
-                with chat_container:
-                    with st.chat_message("assistant"):
-                        st.markdown(f"✅ **Step {current_step_num} 완료!**")
+            # Add any pending user inputs that came after the last assistant message
+            if st.session_state.pending_user_inputs:
+                for pending_input in st.session_state.pending_user_inputs:
+                    agent_input.append(HumanMessage(content=pending_input))
+                # Clear pending inputs after adding them
+                st.session_state.pending_user_inputs = []
+        else:
+            # First run - start with initial prompt
+            agent_input = build_agent_input_from_history(
+                initial_prompt=prompt, include_initial=True
+            )
 
-                        # Clean and display full solution content
-                        if step_info.get("solution"):
-                            # Additional cleaning to remove any remaining artifacts
-                            clean_solution = step_info["solution"].strip()
-                            clean_solution = re.sub(
-                                r"^tag\s*", "", clean_solution, flags=re.MULTILINE
-                            )  # Remove "tag" artifacts
-                            clean_solution = re.sub(
-                                r"^\s*Include specific numbers and statistics\s*$",
-                                "",
-                                clean_solution,
-                                flags=re.MULTILINE,
+            # Process any pending user inputs before starting streaming
+            if st.session_state.pending_user_inputs:
+                # Add all pending user inputs to agent input
+                for pending_input in st.session_state.pending_user_inputs:
+                    agent_input.append(HumanMessage(content=pending_input))
+                # Clear pending inputs after adding them
+                st.session_state.pending_user_inputs = []
+
+        # Stream agent inference in chat message
+        # Note: Chat history above is already displayed and will persist
+        st.session_state.is_streaming = True
+        with st.chat_message("assistant"):
+            result = ""
+            message_placeholder = st.empty()
+            user_input_detected = False
+            new_user_input = None
+
+            # Spinner during streaming (indeterminate loading)
+            with st.spinner("AI is performing the analysis...…"):
+                message_stream = st.session_state.agent.go_stream(agent_input)
+
+                for chunk in message_stream:
+                    # Check for new user input during streaming
+                    if st.session_state.pending_user_inputs:
+                        new_user_input = st.session_state.pending_user_inputs.pop(0)
+                        user_input_detected = True
+                        # Save current result to history before processing new input
+                        if result:
+                            add_chat_message("assistant", result)
+                        # Break out of current streaming to process new input
+                        break
+
+                    node = chunk[1][1]["langgraph_node"]
+                    chunk_data = chunk[1][0]
+
+                    if node == "generate" and hasattr(chunk_data, "content"):
+                        result += chunk_data.content
+                        # Format and display streaming output
+                        formatted_result = format_agent_output_for_display(result)
+                        message_placeholder.markdown(formatted_result)
+                    elif node == "execute" and hasattr(chunk_data, "content"):
+                        # Handle case where content might be a list
+                        content = chunk_data.content
+                        if isinstance(content, list):
+                            content = "".join(str(item) for item in content)
+                        result += content
+                        # Format and display streaming output
+                        formatted_result = format_agent_output_for_display(result)
+                        message_placeholder.markdown(formatted_result)
+
+        # If user input was detected during streaming, continue with new input
+        # This will be processed in the next iteration, building from updated history
+        if user_input_detected and new_user_input:
+            # User message is already in chat_history (added when input was received)
+            # Assistant message (current result) was just added above
+            # Now continue with streaming using updated conversation history
+            with st.chat_message("assistant"):
+                new_result = ""
+                message_placeholder = st.empty()
+                with st.spinner("사용자 메시지를 처리하고 있습니다...…"):
+                    # Build agent input from updated conversation history (includes the assistant response we just added)
+                    # Don't include initial prompt again when continuing from history
+                    new_agent_input = build_agent_input_from_history(
+                        initial_prompt=prompt, include_initial=False
+                    )
+
+                    # Continue streaming with new input using full conversation history
+                    message_stream = st.session_state.agent.go_stream(new_agent_input)
+
+                    for chunk in message_stream:
+                        # Check for more pending inputs
+                        if st.session_state.pending_user_inputs:
+                            # Store current result before processing next input
+                            if new_result:
+                                add_chat_message("assistant", new_result)
+                            # Process next input (recursive-like behavior via rerun)
+                            st.rerun()
+
+                        node = chunk[1][1]["langgraph_node"]
+                        chunk_data = chunk[1][0]
+
+                        if node == "generate" and hasattr(chunk_data, "content"):
+                            new_result += chunk_data.content
+                            formatted_result = format_agent_output_for_display(
+                                new_result
                             )
-                            clean_solution = re.sub(
-                                r"^\s*Execute Step \d+ now\.?\s*$",
-                                "",
-                                clean_solution,
-                                flags=re.MULTILINE,
+                            message_placeholder.markdown(formatted_result)
+                        elif node == "execute" and hasattr(chunk_data, "content"):
+                            content = chunk_data.content
+                            if isinstance(content, list):
+                                content = "".join(str(item) for item in content)
+                            new_result += content
+                            formatted_result = format_agent_output_for_display(
+                                new_result
                             )
-                            clean_solution = re.sub(
-                                r"^\s*Here is my plan.*?\n",
-                                "",
-                                clean_solution,
-                                flags=re.MULTILINE,
-                            )
-                            clean_solution = re.sub(
-                                r"^\s*I will now.*?\n",
-                                "",
-                                clean_solution,
-                                flags=re.MULTILINE,
-                            )
-                            clean_solution = clean_solution.strip()
+                            message_placeholder.markdown(formatted_result)
 
-                            if clean_solution:
-                                st.info(clean_solution)
-                            else:
-                                st.info(
-                                    "✅ 분석이 완료되었습니다. 상세 결과는 아래 분석 과정에서 확인하세요."
-                                )
+            # Update result and add to chat history
+            result = new_result
+            if result:
+                add_chat_message("assistant", result)
 
-                        if step_info.get("files"):
-                            st.markdown(
-                                f"📎 **생성된 파일:** {len(step_info['files'])}개"
-                            )
-                            display_chat_files(step_info["files"])
+        st.session_state.is_streaming = False
 
-                        # Store analysis process in session state for persistence
-                        if step_info.get("formatted_process"):
-                            if "completed_processes" not in st.session_state:
-                                st.session_state.completed_processes = {}
-                            st.session_state.completed_processes[current_step_num] = (
-                                step_info["formatted_process"]
-                            )
+        # Add final result to chat history if streaming completed normally (no user input detected)
+        if result and not user_input_detected:
+            add_chat_message("assistant", result)
 
-                        st.markdown("---")
-                        col1, col2 = st.columns([1, 1])
-                        with col1:
-                            if st.button(
-                                "🔄 피드백 주기",
-                                key=f"feedback_step_{current_step_num}",
-                            ):
-                                st.session_state.show_feedback = True
-                        with col2:
-                            if current_step_num < len(analysis_steps):
-                                if st.button(
-                                    "➡️ 다음 단계",
-                                    key=f"next_step_{current_step_num}",
-                                    type="primary",
-                                ):
-                                    next_step_num = current_step_num + 1
-                                    st.session_state.current_step = next_step_num
-                                    # Initialize next step state
-                                    next_step_data = next(
-                                        (
-                                            s
-                                            for s in analysis_steps
-                                            if s["step_num"] == next_step_num
-                                        ),
-                                        None,
-                                    )
-                                    if next_step_data:
-                                        initialize_step_state(
-                                            next_step_num, next_step_data
-                                        )
-                                    add_chat_message(
-                                        "user",
-                                        f"다음 단계(Step {next_step_num})로 진행합니다.",
-                                    )
-                                    st.rerun()
-                            else:
-                                if st.button(
-                                    "🎉 분석 완료",
-                                    key=f"complete_analysis_{current_step_num}",
-                                    type="primary",
-                                ):
-                                    st.session_state.current_step = (
-                                        len(analysis_steps) + 1
-                                    )
-                                    add_chat_message(
-                                        "assistant",
-                                        "🎉 모든 분석 단계가 완료되었습니다!",
-                                    )
-                                    st.rerun()
+        # Get generated files (images created during this step)
+        image_extensions = ["*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp"]
+        all_images = []
+        for ext in image_extensions:
+            all_images.extend(glob.glob(os.path.join(st.session_state.work_dir, ext)))
 
-                # Show detailed completion interface if feedback is requested
-                if st.session_state.get("show_feedback", False):
-                    render_step_completion_interface(step_data)
+        # Filter to new files (created after this step started)
+        new_files = [f for f in all_images if f not in get_all_previous_files(step_num)]
 
-    # Show completed analysis processes (persistent)
-    if st.session_state.get("completed_processes"):
-        st.markdown("---")
-        st.markdown("### 📋 완료된 분석 과정")
-        for step_num, process in st.session_state.completed_processes.items():
-            with st.expander(f"🔍 Step {step_num} 분석 과정", expanded=False):
-                st.markdown(process)
+        # Extract solution content (clean results without execution details)
+        solution_match = re.search(r"<solution>(.*?)</solution>", result, re.DOTALL)
+        if solution_match:
+            solution_content = solution_match.group(1).strip()
 
-    # Chat input area
-    if st.session_state.current_step > 0:
-        st.markdown("---")
-        st.markdown("### 💭 피드백 및 질문")
+            # AGGRESSIVE CLEANING: Remove all execution artifacts from solution
+            # (same cleaning logic as execute_single_step)
+            solution_content = re.sub(
+                r"<execute>.*?</execute>", "", solution_content, flags=re.DOTALL
+            )
+            solution_content = re.sub(
+                r"<observation>.*?</observation>",
+                "",
+                solution_content,
+                flags=re.DOTALL,
+            )
+            solution_content = re.sub(
+                r"<think>.*?</think>", "", solution_content, flags=re.DOTALL
+            )
+            solution_content = re.sub(
+                r"```[a-z]*\n.*?```", "", solution_content, flags=re.DOTALL
+            )
+            solution_content = re.sub(
+                r"^\s*\d+\.\s*\[[\s✓✗✅❌⬜]\].*?$",
+                "",
+                solution_content,
+                flags=re.MULTILINE,
+            )
+            solution_content = re.sub(r"===.*?===", "", solution_content)
+            solution_content = re.sub(r"Plan Update:.*?\n", "", solution_content)
+            solution_content = re.sub(
+                r"🐍\s*\*\*코드 실행.*?\*\*", "", solution_content
+            )
+            solution_content = re.sub(
+                r"📊\s*\*\*코드 실행.*?\*\*", "", solution_content
+            )
+            solution_content = re.sub(
+                r"🔧\s*\*\*코드 실행.*?\*\*", "", solution_content
+            )
+            solution_content = re.sub(
+                r"✅\s*\*\*실행 성공.*?\*\*", "", solution_content
+            )
+            solution_content = re.sub(
+                r"❌\s*\*\*실행 오류.*?\*\*", "", solution_content
+            )
+            solution_content = re.sub(
+                r"^---+$", "", solution_content, flags=re.MULTILINE
+            )
+            solution_content = re.sub(r"\n{3,}", "\n\n", solution_content)
+            solution_content = solution_content.strip()
 
-        # User input
-        user_input = st.chat_input("분석 결과에 대한 피드백이나 질문을 입력하세요...")
-
-        if user_input:
-            add_chat_message("user", user_input)
-
-            # Handle user input
-            handle_chat_input(user_input, analysis_steps)
-
-            st.rerun()
+            if not solution_content or len(solution_content) < 20:
+                solution_content = "✅ Analysis completed successfully.\n\nPlease see 'View Analysis Process' below for detailed execution steps and 'Figures' section for generated visualizations."
+        else:
+            observations = re.findall(
+                r"<observation>(.*?)</observation>", result, re.DOTALL
+            )
+            solution_content = (
+                observations[-1].strip()
+                if observations
+                else "Analysis completed. See process details below."
+            )
 
 
 def render_workflow_start_screen(analysis_steps):
@@ -3937,6 +4043,35 @@ def add_chat_message(role, content, files=None, timestamp=None):
         message["files"] = files
 
     st.session_state.chat_history.append(message)
+
+    # Also update message_history for agent conversation continuity
+    if "message_history" not in st.session_state:
+        st.session_state.message_history = []
+    st.session_state.message_history.append({"role": role, "content": content})
+
+
+def build_agent_input_from_history(initial_prompt=None, include_initial=True):
+    """Build agent input from conversation history
+
+    Args:
+        initial_prompt: The initial system prompt (only used on first run)
+        include_initial: If True and initial_prompt provided, prepend it to history
+    """
+    agent_input = []
+
+    # Start with initial prompt if this is the first run
+    if include_initial and initial_prompt:
+        agent_input.append(HumanMessage(content=initial_prompt))
+
+    # Add conversation history from chat_history
+    # This includes all user and assistant messages in chronological order
+    for message in st.session_state.chat_history:
+        if message["role"] == "user":
+            agent_input.append(HumanMessage(content=message["content"]))
+        elif message["role"] == "assistant":
+            agent_input.append(AIMessage(content=message["content"]))
+
+    return agent_input
 
 
 def display_chat_files(files):
@@ -5501,14 +5636,6 @@ with col2:
 5. Enrichment analysis: tool name, database
 ..."""
         st.rerun()
-
-st.markdown("---")
-
-# Bottom panel: Interactive Step-by-Step Analysis (Full width)
-st.markdown(
-    f'<div class="panel-header">🎮 {t("panel3_title")} - Interactive Mode</div>',
-    unsafe_allow_html=True,
-)
 
 # Check if ready to start
 if st.session_state.data_files and st.session_state.analysis_method:
