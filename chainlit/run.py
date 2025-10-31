@@ -1,5 +1,5 @@
 import chainlit as cl
-from biomni.agent import A1_HITS
+from biomni.agent import A1_HITS_step
 from langchain_core.messages import (
     AIMessage,
     AIMessageChunk,
@@ -40,7 +40,7 @@ CHAINLIT_DB_PATH = "chainlit.db"
 default_config.llm = LLM_MODEL
 default_config.commercial_mode = True
 # Initialize agent
-agent = A1_HITS(
+agent = A1_HITS_step(
     path=BIOMNI_DATA_PATH,
     llm=LLM_MODEL,
     use_tool_retriever=True,
@@ -152,37 +152,37 @@ async def start_chat():
 
     files = None
 
-    # Wait for the user to upload a file
-    while files == None:
-        files = await cl.AskFileMessage(
-            content="Please upload your omics data to analyze!",
-            accept=["*/*"],
-            max_size_mb=100,
-            max_files=10,
-        ).send()
+    # # Wait for the user to upload a file
+    # while files == None:
+    #     files = await cl.AskFileMessage(
+    #         content="Please upload your omics data to analyze!",
+    #         accept=["*/*"],
+    #         max_size_mb=800,
+    #         max_files=10,
+    #     ).send()
 
-    # Show loading indicator while copying file
-    user_uploaded_system_file = ""
-    uploading_status_message = ""
-    async with cl.Step(name=f"Processing files...") as step:
-        for file in files:
-            step.output = (
-                uploading_status_message
-                + f"Uploading file: {file.name} ({file.size} bytes)..."
-            )
-            os.system(f"cp {file.path} '{file.name}'")
-            step.output = (
-                uploading_status_message + f"✅ {file.name} uploaded successfully!\n"
-            )
-            uploading_status_message = step.output
-            user_uploaded_system_file += f" - user uploaded data file: {file.name}\n"
+    # # Show loading indicator while copying file
+    # user_uploaded_system_file = ""
+    # uploading_status_message = ""
+    # async with cl.Step(name=f"Processing files...") as step:
+    #     for file in files:
+    #         step.output = (
+    #             uploading_status_message
+    #             + f"Uploading file: {file.name} ({file.size} bytes)..."
+    #         )
+    #         os.system(f"cp {file.path} '{file.name}'")
+    #         step.output = (
+    #             uploading_status_message + f"✅ {file.name} uploaded successfully!\n"
+    #         )
+    #         uploading_status_message = step.output
+    #         user_uploaded_system_file += f" - user uploaded data file: {file.name}\n"
 
-    cl.user_session.set("user_uploaded_system_file", user_uploaded_system_file)
+    # cl.user_session.set("user_uploaded_system_file", user_uploaded_system_file)
 
-    # Let the user know that the system is ready
-    await cl.Message(
-        content=f"{len(files)} files uploaded, total size {sum(file.size for file in files) / (1024 * 1024):.2f} MB!. It is ready to analyze the files."
-    ).send()
+    # # Let the user know that the system is ready
+    # await cl.Message(
+    #     content=f"{len(files)} files uploaded, total size {sum(file.size for file in files) / (1024 * 1024):.2f} MB!. It is ready to analyze the files."
+    # ).send()
 
 
 @cl.on_chat_resume
