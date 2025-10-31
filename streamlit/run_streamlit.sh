@@ -7,9 +7,9 @@
 # mkdir -p streamlit_workspace
 
 # Run Streamlit app
-streamlit run streamlit_app.py \
-    --server.port 8502 \
+
+streamlit run main_app.py \
+    --server.port 8501 \
     --server.address 0.0.0.0 \
     --server.headless true \
     --browser.gatherUsageStats false
-
