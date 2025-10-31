@@ -62,6 +62,46 @@ TRANSLATIONS = {
         'qa_placeholder': 'e.g., Why was this threshold chosen? What does the p-value mean?',
         'qa_no_analysis': '💡 Complete at least one analysis step to start asking questions',
         'qa_caption': 'Ask questions about your analysis, methods, or results',
+        'refinement_title': '🔧 Analysis Refinement',
+        'refinement_expander': '🎯 Refine Analysis Results',
+        'refinement_desc': 'Make targeted modifications to your completed analysis:',
+        'refinement_examples': 'e.g., \'Change the volcano plot colors\', \'Add sample labels to the heatmap\', \'Use different statistical test\'',
+        'refinement_placeholder': 'Describe your refinement request:',
+        'refinement_example': 'Example: Change the x-axis label on the PCA plot to \'Principal Component 1\' or use FDR correction instead of Bonferroni for p-values',
+        'refinement_plan_button': '💡 Get Refinement Plan',
+        'refinement_apply_button': '⚡ Apply Refinement',
+        'refinement_target_step': 'Target specific step (optional):',
+        'refinement_plan_title': '📋 Refinement Plan',
+        'refinement_instructions_title': 'Analysis Refinement (After Completion):',
+        'refinement_instructions_1': '**Get Refinement Plan**: Describe what you want to change and get AI suggestions',
+        'refinement_instructions_2': '**Apply Refinement**: Make targeted modifications without re-running everything',
+        'refinement_instructions_3': '**Target Specific Steps**: Modify individual analysis steps as needed',
+        'refinement_instructions_4': '**Examples**: Change plot labels, adjust parameters, add annotations',
+        'sequential_mode': '🔄 Sequential Mode (Recommended)',
+        'batch_mode': '📦 Batch Mode (All steps visible)',
+        'choose_interaction_mode': 'Choose interaction mode:',
+        'switch_mode': '🔄 Switch Mode',
+        'batch_mode_desc': '📦 **Batch Mode**: All steps visible at once.\n- ▶️ Start any step when ready\n- 💬 Provide feedback to refine results\n- 🔄 Re-run steps as needed\n- Each step builds on previous results',
+        'sequential_mode_desc': '🔄 **Sequential Mode**: Step-by-step guided analysis.\n- Focus on one step at a time\n- Provide feedback after each step\n- Continue when satisfied with results',
+        'ready_to_start': '🚀 Ready to Start Analysis',
+        'total_steps': 'Total Steps:',
+        'workflow_overview': 'Workflow Overview:',
+        'start_analysis': '▶️ Start Analysis',
+        'step_completed': '✅ Step {step_num} Completed: {step_title}',
+        'step_execution': '🔬 Step {step_num}: {step_title}',
+        'previous_steps_summary': '📋 Previous Steps Summary',
+        'execute_step': '⚙️ Execute Step {step_num}',
+        'step_feedback': '💬 Step Feedback',
+        'step_feedback_placeholder': 'How was Step {step_num}? Any modifications needed?',
+        'step_feedback_example': "e.g., 'Change the plot colors', 'Use different parameters', 'Looks good - continue'",
+        'modify_step': '🔄 Modify Step',
+        'continue_to_next': '✅ Continue to Next',
+        'back_to_previous': '⬅️ Back to Previous',
+        'workflow_completed': '🎉 Analysis Workflow Completed!',
+        'workflow_summary': '📋 Workflow Summary',
+        'restart_workflow': '🔄 Restart Workflow',
+        'export_results': '📦 Export Results',
+        'review_steps': '⬅️ Review Steps',
     },
     'ko': {
         'app_title': 'OmicsHorizon™-Transcriptome',
@@ -90,6 +130,46 @@ TRANSLATIONS = {
         'qa_placeholder': '예: 왜 이 임계값이 선택되었나요? p-value는 무엇을 의미하나요?',
         'qa_no_analysis': '💡 질문하려면 최소 하나의 분석 단계를 완료하세요',
         'qa_caption': '분석, 방법론, 결과에 대해 질문하세요',
+        'refinement_title': '🔧 분석 정제',
+        'refinement_expander': '🎯 분석 결과 정제',
+        'refinement_desc': '완료된 분석에 대해 세부적인 수정을 수행하세요:',
+        'refinement_examples': '예: \'volcano plot 색상 변경\', \'heatmap에 샘플 라벨 추가\', \'다른 통계 검정 사용\'',
+        'refinement_placeholder': '수정 요청을 설명하세요:',
+        'refinement_example': '예: PCA plot의 x축 라벨을 \'주성분 1\'으로 변경하거나 Bonferroni 대신 FDR 보정 사용',
+        'refinement_plan_button': '💡 정제 계획 얻기',
+        'refinement_apply_button': '⚡ 정제 적용',
+        'refinement_target_step': '특정 단계 대상 (선택사항):',
+        'refinement_plan_title': '📋 정제 계획',
+        'refinement_instructions_title': '분석 정제 (완료 후):',
+        'refinement_instructions_1': '**정제 계획 얻기**: 변경하고 싶은 내용을 설명하고 AI 제안 받기',
+        'refinement_instructions_2': '**정제 적용**: 전체 재실행 없이 대상 수정 수행',
+        'refinement_instructions_3': '**특정 단계 대상**: 개별 분석 단계 필요에 따라 수정',
+        'refinement_instructions_4': '**예시**: 플롯 라벨 변경, 파라미터 조정, 주석 추가',
+        'sequential_mode': '🔄 순차 모드 (권장)',
+        'batch_mode': '📦 배치 모드 (모든 단계 표시)',
+        'choose_interaction_mode': '상호작용 모드 선택:',
+        'switch_mode': '🔄 모드 전환',
+        'batch_mode_desc': '📦 **배치 모드**: 모든 단계를 한 번에 표시.\n- ▶️ 원하는 단계부터 시작\n- 💬 결과 수정 피드백 제공\n- 🔄 단계 재실행 가능\n- 이전 결과 활용',
+        'sequential_mode_desc': '🔄 **순차 모드**: 단계별 안내 분석.\n- 한 단계씩 집중\n- 각 단계 후 피드백 제공\n- 만족 시 다음 단계 진행',
+        'ready_to_start': '🚀 분석 시작 준비됨',
+        'total_steps': '총 단계 수:',
+        'workflow_overview': '워크플로우 개요:',
+        'start_analysis': '▶️ 분석 시작',
+        'step_completed': '✅ {step_num}단계 완료: {step_title}',
+        'step_execution': '🔬 {step_num}단계: {step_title}',
+        'previous_steps_summary': '📋 이전 단계 요약',
+        'execute_step': '⚙️ {step_num}단계 실행',
+        'step_feedback': '💬 단계 피드백',
+        'step_feedback_placeholder': '{step_num}단계는 어떠셨나요? 수정이 필요한가요?',
+        'step_feedback_example': "예: '플롯 색상 변경', '다른 파라미터 사용', '괜찮음 - 계속 진행'",
+        'modify_step': '🔄 단계 수정',
+        'continue_to_next': '✅ 다음으로 계속',
+        'back_to_previous': '⬅️ 이전으로 돌아가기',
+        'workflow_completed': '🎉 분석 워크플로우 완료!',
+        'workflow_summary': '📋 워크플로우 요약',
+        'restart_workflow': '🔄 워크플로우 재시작',
+        'export_results': '📦 결과 내보내기',
+        'review_steps': '⬅️ 단계 검토',
     }
 }
 
@@ -995,7 +1075,7 @@ Provide a brief analysis with these sections:
 ## Data Overview
 [File types, sizes, structure summary]
 
-## Column Names (EXACT)
+## Column Names
 **CRITICAL: Use the column information provided above.**
 - For data columns: list each one exactly as shown
 - For sample columns: use the pattern and example format provided (do NOT list all 600 samples)
@@ -1819,6 +1899,638 @@ def extract_by_simple_headers(text, analysis_steps):
     return step_results
 
 
+def run_omicshorizon_app(from_lims=False, workspace_path=None):
+    """Main function to run OmicsHorizon Transcriptome Analysis App
+
+    Args:
+        from_lims: If True, app is launched from LIMS with pre-selected data files
+        workspace_path: Path to workspace directory (used when from_lims=True)
+    """
+
+    # Page config
+    st.set_page_config(
+        page_title="OmicsHorizon™-Transcriptome",
+        page_icon="🧬",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+
+    # Cache logo loading to avoid repeated file I/O
+    @st.cache_data
+    def load_logo_base64(logo_path):
+        """Load and cache logo as base64 string."""
+        try:
+            with open(logo_path, 'rb') as f:
+                return base64.b64encode(f.read()).decode()
+        except FileNotFoundError:
+            st.warning(f"Logo file not found: {logo_path}")
+            return ""
+
+    # Load logos once (cached)
+    LOGO_COLOR_BASE64 = load_logo_base64(LOGO_COLOR_PATH)
+    LOGO_MONO_BASE64 = load_logo_base64(LOGO_MONO_PATH)
+
+    # Custom CSS for better layout and logo theming
+    st.markdown("""
+    <style>
+        .main-header {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1f77b4;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .panel-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            padding: 10px;
+            background-color: #f0f2f6;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+        .stTextArea textarea {
+            font-family: monospace;
+        }
+        div[data-testid="stExpander"] {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+        }
+
+        /* Wider sidebar for Q&A */
+        [data-testid="stSidebar"] {
+            min-width: 420px !important;
+            max-width: 420px !important;
+        }
+
+        /* Logo container styling */
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem 0;
+            margin-bottom: -2rem;
+        }
+        .logo-container img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Light mode: show color logo, hide mono logo */
+        .logo-light {
+            display: block !important;
+        }
+        .logo-dark {
+            display: none !important;
+        }
+
+        /* Dark mode: hide color logo, show mono logo */
+        /* Multiple selectors for robust theme detection */
+        @media (prefers-color-scheme: dark) {
+            .logo-light {
+                display: none !important;
+            }
+            .logo-dark {
+                display: block !important;
+            }
+        }
+
+        /* Streamlit theme detection - multiple approaches */
+        [data-theme="dark"] .logo-light,
+        [data-baseweb-theme="dark"] .logo-light,
+        .stApp[data-theme="dark"] .logo-light {
+            display: none !important;
+        }
+
+        [data-theme="dark"] .logo-dark,
+        [data-baseweb-theme="dark"] .logo-dark,
+        .stApp[data-theme="dark"] .logo-dark {
+            display: block !important;
+        }
+
+        /* Main page logo styling */
+        .main-logo {
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Ensure proper z-index stacking */
+        .logo-light {
+            z-index: 2;
+        }
+        .logo-dark {
+            z-index: 1;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Add logo to sidebar
+    with st.sidebar:
+        # Display both logos with CSS-based theme switching (SVG)
+        if LOGO_COLOR_BASE64 and LOGO_MONO_BASE64:
+            st.markdown(f"""
+            <div class="logo-container">
+                <img src="data:image/svg+xml;base64,{LOGO_COLOR_BASE64}"
+                     class="logo-light" alt="OMICS-HORIZON Logo">
+                <img src="data:image/svg+xml;base64,{LOGO_MONO_BASE64}"
+                     class="logo-dark" alt="OMICS-HORIZON Logo">
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("---")
+
+    # Helper function for translations
+    def t(key):
+        """Get translated text based on current language setting."""
+        lang = st.session_state.get('language', 'en')
+        return TRANSLATIONS[lang].get(key, key)
+
+    # Initialize session state
+    if 'language' not in st.session_state:
+        st.session_state.language = 'en'  # Default language
+
+    if 'agent' not in st.session_state:
+        default_config.llm = LLM_MODEL
+        default_config.commercial_mode = True
+        st.session_state.agent = A1_HITS(
+            path=BIOMNI_DATA_PATH,
+            llm=LLM_MODEL,
+            use_tool_retriever=True,
+        )
+
+    if 'data_files' not in st.session_state:
+        st.session_state.data_files = []
+    if 'data_briefing' not in st.session_state:
+        st.session_state.data_briefing = ""
+    if 'paper_files' not in st.session_state:
+        st.session_state.paper_files = []
+    if 'analysis_method' not in st.session_state:
+        st.session_state.analysis_method = ""
+    if 'message_history' not in st.session_state:
+        st.session_state.message_history = []
+    if 'work_dir' not in st.session_state:
+        # Use provided workspace path if from LIMS, otherwise create unique work directory
+        if from_lims and workspace_path:
+            st.session_state.work_dir = workspace_path
+        else:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            st.session_state.work_dir = os.path.join(WORK_DIR, f"session_{timestamp}")
+            os.makedirs(st.session_state.work_dir, exist_ok=True)
+        # Don't change directory - use absolute paths instead
+
+    # Interactive mode: Step-by-step state management
+    if 'steps_state' not in st.session_state:
+        st.session_state.steps_state = {}  # {step_num: {...}}
+    if 'current_step' not in st.session_state:
+        st.session_state.current_step = 0  # 0 = not started
+    if 'interaction_mode' not in st.session_state:
+        st.session_state.interaction_mode = 'sequential'  # 'sequential' or 'batch'
+    if 'step_feedback' not in st.session_state:
+        st.session_state.step_feedback = {}  # {step_num: feedback_text}
+
+    # Q&A state management
+    if 'qa_history' not in st.session_state:
+        st.session_state.qa_history = []  # Global Q&A chat history
+
+    # Handle LIMS integration
+    if 'from_lims' not in st.session_state:
+        st.session_state.from_lims = from_lims
+
+    # Auto-load data from LIMS if available
+    if from_lims and 'selected_data_files' in st.session_state and st.session_state.selected_data_files:
+        # Load pre-selected files from LIMS
+        if not st.session_state.data_files:  # Only load if not already loaded
+            st.session_state.data_files = []
+            st.session_state.data_briefing = ""
+
+            # Get file paths from workspace (copied by LIMS)
+            for file_info in st.session_state.selected_data_files:
+                filename = file_info['name']
+                file_path = os.path.join(st.session_state.work_dir, filename)
+
+                if os.path.exists(file_path):
+                    if filename not in st.session_state.data_files:
+                        st.session_state.data_files.append(filename)
+
+            # Auto-generate briefing for loaded files
+            if st.session_state.data_files and not st.session_state.data_briefing:
+                file_paths = [os.path.join(st.session_state.work_dir, fname)
+                             for fname in st.session_state.data_files]
+                try:
+                    result = analyze_data_direct(file_paths)
+                    st.session_state.data_briefing = result
+                except Exception as e:
+                    st.session_state.data_briefing = f"Error analyzing data: {str(e)}"
+
+    # Main logo
+    if LOGO_COLOR_BASE64 and LOGO_MONO_BASE64:
+        st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 1rem; line-height: 0;">
+            <img src="data:image/svg+xml;base64,{LOGO_COLOR_BASE64}"
+                 class="logo-light main-logo" alt="OMICS-HORIZON Logo"
+                 style="max-width: 600px; height: auto; margin: 0 auto;">
+            <img src="data:image/svg+xml;base64,{LOGO_MONO_BASE64}"
+                 class="logo-dark main-logo" alt="OMICS-HORIZON Logo"
+                 style="max-width: 600px; height: auto; margin: 0 auto;">
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Title section
+    # st.markdown('<p style="text-align: center; color: #666; font-size: 1.1rem; margin-top: 0.5rem; margin-bottom: 2rem;">AI-Powered Transcriptomic Analysis Platform</p>', unsafe_allow_html=True)
+    st.markdown("---")
+
+    # Top row: 2 panels side by side
+    col1, col2 = st.columns(2)
+
+    # Panel 1: Data Upload & Briefing (Left) - Only show if not from LIMS
+    if not from_lims:
+        with col1:
+            st.markdown(f'<div class="panel-header">{t("panel1_title")}</div>', unsafe_allow_html=True)
+
+            # File uploader
+            uploaded_data = st.file_uploader(
+                t("upload_data"),
+                type=['csv', 'xlsx', 'xls', 'tsv', 'txt', 'json', 'gz'],
+                accept_multiple_files=True,
+                key="data_uploader"
+            )
+
+            if uploaded_data:
+                # Show uploaded files
+                st.info(f"📁 Uploaded {len(uploaded_data)} file(s)")
+                for file in uploaded_data:
+                    st.text(f"  • {file.name}")
+
+                # Analyze button
+                if st.button(t("analyze_data"), type="primary", key="analyze_data"):
+                    # Save files
+                    file_names = []
+                    file_paths = []
+                    for file in uploaded_data:
+                        file_name = save_uploaded_file(file)
+                        file_names.append(file_name)
+                        file_paths.append(os.path.join(st.session_state.work_dir, file_name))
+                        if file_name not in st.session_state.data_files:
+                            st.session_state.data_files.append(file_name)
+
+                    # Direct LLM analysis without agent (no history needed)
+                    with st.spinner("📊 Analyzing data files..."):
+                        result = analyze_data_direct(file_paths)
+                    st.session_state.data_briefing = result
+                    st.rerun()
+
+            # Display briefing
+            if st.session_state.data_briefing:
+                st.markdown("---")
+                st.markdown(f"### {t('data_briefing')}")
+                st.markdown(st.session_state.data_briefing)
+    else:
+        # LIMS integration: Show loaded data info
+        with col1:
+            st.markdown('<div class="panel-header">📊 Data from LIMS</div>', unsafe_allow_html=True)
+
+            # Show selected data files from LIMS
+            if 'selected_data_files' in st.session_state and st.session_state.selected_data_files:
+                st.markdown("**Selected files from LIMS:**")
+                for file_info in st.session_state.selected_data_files:
+                    st.markdown(f"• {file_info['name']} ({file_info['extension']})")
+
+            if st.session_state.data_files:
+                st.success(f"✅ Loaded {len(st.session_state.data_files)} file(s) from LIMS:")
+                for filename in st.session_state.data_files:
+                    st.markdown(f"• {filename}")
+
+                # Display briefing
+                if st.session_state.data_briefing:
+                    st.markdown("---")
+                    st.markdown(f"### {t('data_briefing')}")
+                    st.markdown(st.session_state.data_briefing)
+                else:
+                    st.info("📝 Generating data briefing...")
+            else:
+                st.warning("⚠️ No data files loaded from LIMS")
+
+    # Panel 2: Paper Upload & Method Extraction (Right)
+    with col2:
+        st.markdown(f'<div class="panel-header">{t("panel2_title")}</div>', unsafe_allow_html=True)
+
+        # File uploader
+        uploaded_paper = st.file_uploader(
+            t("upload_paper"),
+            type=['pdf', 'txt', 'doc', 'docx'],
+            accept_multiple_files=False,
+            key="paper_uploader"
+        )
+
+        if uploaded_paper:
+            st.info(f"📄 Uploaded: {uploaded_paper.name}")
+
+            # Extraction mode selector
+            extraction_mode = st.radio(
+                "추출 방식:" if st.session_state.language == 'ko' else "Extraction Mode:",
+                options=[
+                    ("integrated", "🎯 Results + Methods (추천)" if st.session_state.language == 'ko' else "🎯 Results + Methods (Recommended)"),
+                    ("methods_only", "📋 Methods만" if st.session_state.language == 'ko' else "📋 Methods Only"),
+                    ("results_only", "📊 Results만" if st.session_state.language == 'ko' else "📊 Results Only")
+                ],
+                format_func=lambda x: x[1],
+                horizontal=True,
+                key="extraction_mode",
+                help="• Results+Methods: 분석 순서와 세부 방법을 통합 추출\n• Methods만: 기존 방식\n• Results만: 분석 순서만 추출" if st.session_state.language == 'ko' else "• Results+Methods: Extract analysis order and detailed methods\n• Methods only: Traditional approach\n• Results only: Extract analysis sequence only"
+            )
+
+            mode = extraction_mode[0]
+
+            # Extract method button
+            if st.button(t("extract_workflow"), type="primary", key="extract_method"):
+                # Save file
+                file_name = save_uploaded_file(uploaded_paper)
+                if file_name not in st.session_state.paper_files:
+                    st.session_state.paper_files.append(file_name)
+
+                spinner_text = {
+                    "integrated": "📖 Extracting workflow by analyzing Results and Methods sections...",
+                    "methods_only": "📖 Extracting workflow from Methods section...",
+                    "results_only": "📖 Extracting analysis sequence from Results section..."
+                }
+
+                with st.spinner(spinner_text[mode]):
+                    # Extract workflow with selected mode
+                    result = extract_workflow_from_paper(
+                        os.path.join(st.session_state.work_dir, file_name),
+                        mode=mode
+                    )
+                    st.session_state.analysis_method = result
+                st.success(f"✅ Workflow extraction complete! ({extraction_mode[1]})")
+                st.rerun()
+
+        # Display and edit method
+        if st.session_state.analysis_method:
+            st.markdown("---")
+
+            # No need for complex extraction - result is already clean
+            clean_method = st.session_state.analysis_method
+
+            # Show method in tabs
+            method_tab1, method_tab2 = st.tabs(["📋 Analysis Workflow", "✏️ Edit"])
+
+            with method_tab1:
+                st.markdown("**🔬 Extracted Analysis Steps**")
+
+                # Display as simple numbered list
+                if clean_method:
+                    st.markdown(clean_method)
+                else:
+                    st.warning("No method extracted. Please edit to add steps.")
+
+            with method_tab2:
+                st.info("💡 Format: Numbered list with tool names and parameters")
+
+                edited_method = st.text_area(
+                    "Analysis Steps",
+                    value=clean_method,
+                    height=500,
+                    key="method_editor",
+                    placeholder="1. Preprocessing: log2 transformation using tool X\n2. DEG analysis: DESeq2 with |log2FC| > 2, p < 0.01\n3. Clustering: hierarchical clustering, heatmap\n..."
+                )
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("💾 Save", key="save_method", type="primary", use_container_width=True):
+                        st.session_state.analysis_method = edited_method
+                        st.success("✅ Saved!")
+                        st.rerun()
+
+                with col2:
+                    if st.button("🔄 Reset", key="reset_method", use_container_width=True):
+                        st.rerun()
+
+        elif st.button("✍️ Write Custom Method", key="write_custom"):
+            st.session_state.analysis_method = """1. Preprocessing: describe preprocessing, mention tools
+2. Quality control: filtering criteria
+3. Statistical analysis: test name, parameters (e.g., p < 0.05)
+4. Clustering: method, visualization
+5. Enrichment analysis: tool name, database
+..."""
+            st.rerun()
+
+    st.markdown("---")
+
+    # Bottom panel: Interactive Step-by-Step Analysis (Full width)
+    st.markdown(f'<div class="panel-header">🎮 {t("panel3_title")} - Interactive Mode</div>', unsafe_allow_html=True)
+
+    # Debug info (temporary)
+    with st.expander("🔧 Debug Info", expanded=False):
+        st.write(f"**Data files loaded:** {len(st.session_state.data_files) if st.session_state.data_files else 0}")
+        st.write(f"**Analysis method defined:** {'Yes' if st.session_state.analysis_method else 'No'}")
+        st.write(f"**Current interaction mode:** {st.session_state.get('interaction_mode', 'Not set')}")
+        if st.session_state.data_files:
+            st.write("**Data files:**", st.session_state.data_files)
+        if st.session_state.analysis_method:
+            st.write("**Analysis method (first 200 chars):**", st.session_state.analysis_method[:200] + "...")
+
+    # Check if ready to start
+    if st.session_state.data_files and st.session_state.analysis_method:
+        # Parse analysis steps
+        analysis_steps = parse_analysis_steps(st.session_state.analysis_method)
+
+        if analysis_steps:
+            # Set default mode to sequential
+            if 'interaction_mode' not in st.session_state:
+                st.session_state.interaction_mode = "sequential"
+
+            # Show mode info
+            st.info("🔄 **Sequential Interactive Mode**: Step-by-step guided analysis with feedback")
+            st.markdown("---")
+
+            # Always use sequential mode
+            render_sequential_interactive_mode(analysis_steps)
+
+        else:
+            st.warning("⚠️ Could not parse analysis steps from Panel 2. Please check the format.")
+
+    elif not st.session_state.data_files:
+        st.warning("⚠️ Please upload data files in Panel 1")
+    elif not st.session_state.analysis_method:
+        st.warning("⚠️ Please upload a paper or define analysis method in Panel 2")
+
+    # Sidebar
+    with st.sidebar:
+        # Q&A Section at the very top
+        st.markdown(f"### {t('qa_title')}")
+
+        # Check if there's any analysis to ask about
+        has_analysis = bool(st.session_state.steps_state and
+                           any(s.get('status') == 'completed' for s in st.session_state.steps_state.values()))
+
+        if has_analysis:
+            with st.expander(t("qa_ask_questions"), expanded=False):
+                st.caption(t("qa_caption"))
+
+                # Display chat history
+                for idx, msg in enumerate(st.session_state.qa_history):
+                    if msg["role"] == "user":
+                        user_label = "🙋 당신:" if st.session_state.language == 'ko' else "🙋 You:"
+                        st.markdown(f"**{user_label}** {msg['content']}")
+                    else:
+                        assistant_label = "🤖 어시스턴트:" if st.session_state.language == 'ko' else "🤖 Assistant:"
+                        st.markdown(f"**{assistant_label}**\n\n{msg['content']}")
+
+                    if idx < len(st.session_state.qa_history) - 1:
+                        st.markdown("---")
+
+                # Question input
+                question = st.text_input(
+                    "Your question:" if st.session_state.language == 'en' else "질문:",
+                    key="qa_input",
+                    placeholder=t("qa_placeholder"),
+                    label_visibility="collapsed"
+                )
+
+                col1, col2 = st.columns([3, 1])
+
+                with col1:
+                    ask_button_label = "🚀 Ask" if st.session_state.language == 'ko' else "🚀 질문"
+                    if st.button(ask_button_label, key="ask_button", use_container_width=True, type="primary"):
+                        if question and question.strip():
+                            # Add user question
+                            st.session_state.qa_history.append({
+                                "role": "user",
+                                "content": question
+                            })
+
+                            # Get answer
+                            thinking_msg = "🤔 생각 중..." if st.session_state.language == 'ko' else "🤔 Thinking..."
+                            with st.spinner(thinking_msg):
+                                answer = answer_qa_question(question)
+
+                            # Add assistant answer
+                            st.session_state.qa_history.append({
+                                "role": "assistant",
+                                "content": answer
+                            })
+
+                            st.rerun()
+                        else:
+                            warning_msg = "질문을 입력하세요" if st.session_state.language == 'ko' else "Please enter a question"
+                            st.warning(warning_msg)
+
+                with col2:
+                    clear_label = "🗑️ 지우기" if st.session_state.language == 'ko' else "🗑️ Clear"
+                    if st.button(clear_label, key="clear_qa", use_container_width=True):
+                        st.session_state.qa_history = []
+                        st.rerun()
+
+                # Show helpful prompts
+                if not st.session_state.qa_history:
+                    st.markdown("---")
+                    if st.session_state.language == 'ko':
+                        st.caption("**예시 질문:**")
+                        st.caption("• Step 2의 주요 발견은 무엇인가요?")
+                        st.caption("• 왜 이 통계 검정을 선택했나요?")
+                        st.caption("• volcano plot을 설명해주세요")
+                        st.caption("• 이 p-value는 무엇을 의미하나요?")
+                    else:
+                        st.caption("**Example questions:**")
+                        st.caption("• What were the main findings in Step 2?")
+                        st.caption("• Why was this statistical test chosen?")
+                        st.caption("• Can you explain the volcano plot?")
+                        st.caption("• What do these p-values indicate?")
+        else:
+            st.info(t("qa_no_analysis"))
+
+        st.markdown("---")
+
+        # Control Panel and Session Info
+        st.markdown(f"## {t('control_panel')}")
+
+        st.markdown(f"### {t('session_info')}")
+        st.info(f"""
+        - Data files: {len(st.session_state.data_files)}
+        - Paper files: {len(st.session_state.paper_files)}
+        - Method defined: {'✅' if st.session_state.analysis_method else '❌'}
+        - Work directory: `{st.session_state.work_dir.lstrip('/workdir_efs/jhjeon/Biomni/streamlit_workspace/')}`
+        """)
+
+        st.markdown("---")
+
+        # Reset Analysis button
+        if st.session_state.steps_state:
+            if st.button("🔄 Reset Analysis", key="reset_analysis", use_container_width=True):
+                st.session_state.steps_state = {}
+                st.session_state.current_step = 0
+                reset_msg = "✅ Analysis reset!" if st.session_state.language == 'en' else "✅ 분석이 초기화되었습니다!"
+                st.success(reset_msg)
+                st.rerun()
+            st.markdown("---")
+
+        # Clear all button
+        if st.button(t("clear_all"), key="clear_all", use_container_width=True):
+            st.session_state.data_files = []
+            st.session_state.data_briefing = ""
+            st.session_state.paper_files = []
+            st.session_state.analysis_method = ""
+            st.session_state.steps_state = {}
+            st.session_state.current_step = 0
+            st.session_state.qa_history = []
+            st.session_state.message_history = []
+            success_msg = "✅ All data cleared!" if st.session_state.language == 'en' else "✅ 모든 데이터가 삭제되었습니다!"
+            st.success(success_msg)
+            st.rerun()
+
+        st.markdown("---")
+
+        # Instructions
+        with st.expander(t("instructions")):
+            st.markdown("""
+            ### How to use (Interactive Mode):
+
+            1. **Upload Data** (Panel 1)
+               - Upload CSV, Excel, or other data files
+               - Click "Analyze Data" to get a briefing
+
+            2. **Upload Paper** (Panel 2)
+               - Upload a research paper (PDF)
+               - Click "Extract Analysis Workflow"
+               - Edit the workflow if needed
+
+            3. **Interactive Step-by-Step Analysis** (Panel 3)
+               - **Start Step 1**: Click "▶️ Start Step 1" button
+               - **Review Results**: Check the analysis output and figures
+               - **Provide Feedback** (optional): Enter modifications in natural language
+               - **Re-run** (if needed): Click "🔄 Re-run" to apply feedback
+               - **Next Step**: Click "▶️ Next" to proceed to Step 2
+               - **Repeat** for all steps
+
+            ### Tips:
+            - Each step builds on previous results
+            - You can re-run any step with different parameters
+            - Use natural language for feedback (e.g., "Use p-value < 0.01")
+            - All results are automatically saved
+            """)
+
+        st.markdown("---")
+        st.markdown("### 🔧 Settings")
+        st.text(f"Model: {LLM_MODEL}")
+        # st.text(f"Path: {BIOMNI_DATA_PATH}")
+
+        st.markdown("---")
+
+        # Language selector at the bottom
+        st.markdown(f"### {t('language')}")
+        col_en, col_ko = st.columns(2)
+        with col_en:
+            if st.button("English", key="lang_en", use_container_width=True,
+                        type="primary" if st.session_state.language == 'en' else "secondary"):
+                st.session_state.language = 'en'
+                st.rerun()
+        with col_ko:
+            if st.button("한국어", key="lang_ko", use_container_width=True,
+                        type="primary" if st.session_state.language == 'ko' else "secondary"):
+                st.session_state.language = 'ko'
+                st.rerun()
+
+
 # =============================================================================
 # INTERACTIVE MODE: STEP-BY-STEP EXECUTION
 # =============================================================================
@@ -1879,21 +2591,111 @@ def get_previous_context(step_num):
     return "\n".join(context_parts)
 
 
+def get_available_result_files(step_num):
+    """Get all result files available from previous steps"""
+    import os
+    import glob
+    from pathlib import Path
+
+    workspace = st.session_state.work_dir
+    available_files = []
+
+    # Get all files in workspace
+    all_files = []
+    for ext in ['*.csv', '*.txt', '*.tsv', '*.xlsx', '*.xls', '*.png', '*.jpg', '*.jpeg', '*.pdf']:
+        all_files.extend(glob.glob(os.path.join(workspace, ext)))
+
+    # Original data files (exclude these from result files)
+    original_files = set(st.session_state.data_files) if st.session_state.data_files else set()
+
+    # Categorize files by creation time and step association
+    result_files = []
+    for file_path in all_files:
+        filename = os.path.basename(file_path)
+
+        # Skip original data files
+        if filename in original_files:
+            continue
+
+        # Get file info
+        try:
+            stat = os.stat(file_path)
+            created_time = stat.st_ctime
+
+            # Try to associate with step based on filename or creation time
+            associated_step = None
+            if f'step{step_num-1}' in filename.lower() or f'step_{step_num-1}' in filename.lower():
+                associated_step = step_num - 1
+            elif 'step' in filename.lower():
+                # Extract step number from filename
+                import re
+                step_match = re.search(r'step[_\s]?(\d+)', filename.lower())
+                if step_match:
+                    associated_step = int(step_match.group(1))
+
+            file_info = {
+                'path': file_path,
+                'name': filename,
+                'size': stat.st_size,
+                'created': created_time,
+                'associated_step': associated_step,
+                'extension': Path(filename).suffix.lower()
+            }
+
+            # Only include files created before this step execution
+            # (approximate by checking if they exist and are not from future steps)
+            if associated_step is None or associated_step < step_num:
+                result_files.append(file_info)
+
+        except OSError:
+            continue
+
+    # Sort by creation time (newest first)
+    result_files.sort(key=lambda x: x['created'], reverse=True)
+
+    return result_files
+
 def execute_single_step(step_num, step_info):
     """Execute a single analysis step"""
-    
+
+    # Initialize step state if not exists
+    if step_num not in st.session_state.steps_state:
+        st.session_state.steps_state[step_num] = {
+            'status': 'pending',
+            'title': step_info['title'],
+            'description': step_info.get('description', ''),
+            'result': None,
+            'solution': None,
+            'formatted_process': None,
+            'files': [],
+            'feedback': None,
+            'iteration': 0
+        }
+
     # Update status
     st.session_state.steps_state[step_num]['status'] = 'in_progress'
     st.session_state.steps_state[step_num]['iteration'] += 1
-    
+
     # Get previous context
     previous_context = get_previous_context(step_num)
-    
+
+    # Get available result files from previous steps
+    available_result_files = get_available_result_files(step_num)
+
     # Get feedback if this is a re-run
     feedback = st.session_state.steps_state[step_num].get('feedback')
-    
+
     # Build prompt
     data_info = ", ".join([f"`{f}`" for f in st.session_state.data_files])
+
+    # Add available result files to prompt
+    result_files_info = ""
+    if available_result_files:
+        result_files_info = "\n\nAVAILABLE RESULT FILES FROM PREVIOUS STEPS:"
+        for file_info in available_result_files[:10]:  # Limit to 10 most recent
+            result_files_info += f"\n- {file_info['name']} ({file_info['extension']}, {file_info['size']/1024:.1f} KB)"
+            if file_info['associated_step']:
+                result_files_info += f" - from Step {file_info['associated_step']}"
     
     prompt = f"""Perform Step {step_num} of the bioinformatics analysis.
 
@@ -1910,6 +2712,8 @@ Before accessing any columns:
 {"PREVIOUS STEPS CONTEXT:" if previous_context else ""}
 {previous_context}
 
+{result_files_info}
+
 CURRENT STEP {step_num}: {step_info['title']}
 Description: {step_info.get('description', step_info.get('full_text', ''))}
 
@@ -1918,6 +2722,9 @@ Description: {step_info.get('description', step_info.get('full_text', ''))}
 
 INSTRUCTIONS:
 - Execute this step thoroughly
+- **IMPORTANT**: Check and utilize result files from previous steps when relevant
+- Load any CSV/TSV/TXT files from previous steps if they contain processed data you need
+- Reference previous analysis results to build upon existing work
 - Save any plots with descriptive filenames (e.g., "step{step_num}_*.png")
 - Provide detailed results in <solution> tag
 - Include specific numbers and statistics
@@ -1986,6 +2793,8 @@ Execute Step {step_num} now."""
         st.session_state.steps_state[step_num]['formatted_process'] = format_agent_output_for_display(result)  # Full formatted process
         st.session_state.steps_state[step_num]['files'] = new_files
         st.session_state.steps_state[step_num]['feedback'] = None  # Clear feedback after execution
+
+        # Don't add chat message here - it will be handled by render_sequential_interactive_mode
         
         # Update current step
         st.session_state.current_step = step_num
@@ -2066,12 +2875,880 @@ def get_qa_context():
     return full_context
 
 
+def render_batch_interactive_mode(analysis_steps):
+    """Render the traditional batch mode where all steps are visible"""
+    # Summary bar
+    total_steps = len(analysis_steps)
+    completed_steps = sum(1 for s in st.session_state.steps_state.values() if s.get('status') == 'completed')
+
+    col1, col2, col3 = st.columns([2, 1, 1])
+
+    with col1:
+        progress = completed_steps / total_steps if total_steps > 0 else 0
+        st.progress(progress)
+        st.caption(f"Progress: {completed_steps}/{total_steps} steps completed ({int(progress * 100)}%)")
+
+    with col2:
+        st.metric("Total Steps", total_steps)
+
+    with col3:
+        st.metric("Completed", completed_steps)
+
+    st.markdown("---")
+
+    # Info banner
+    st.info(t('batch_mode_desc'))
+
+    st.markdown("---")
+
+    # Render each step
+    for step in analysis_steps:
+        render_step_panel(step['step_num'], step)
+
+    # Final summary
+    if completed_steps == total_steps and total_steps > 0:
+        st.markdown("---")
+        st.success("🎉 **All steps completed!** You can review results above or re-run any step with modifications.")
+
+        # Export all results
+        if st.button("📦 Export All Results", key="export_all"):
+            st.info("Export functionality coming soon!")
+
+def initialize_step_state(step_num, step_data):
+    """Initialize state for a specific step if not exists"""
+    if step_num not in st.session_state.steps_state:
+        st.session_state.steps_state[step_num] = {
+            'status': 'pending',  # 'pending', 'in_progress', 'completed', 'error'
+            'title': step_data['title'],
+            'description': step_data.get('description', ''),
+            'result': None,
+            'solution': None,
+            'formatted_process': None,
+            'files': [],
+            'feedback': None,
+            'iteration': 0
+        }
+
+def render_sequential_interactive_mode(analysis_steps):
+    """Render sequential interactive mode with chat-like interface"""
+    total_steps = len(analysis_steps)
+    completed_steps = sum(1 for s in st.session_state.steps_state.values() if s.get('status') == 'completed')
+
+    # Initialize chat history if not exists
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = []
+
+    # Initialize completed processes storage if not exists
+    if 'completed_processes' not in st.session_state:
+        st.session_state.completed_processes = {}
+
+    # Progress header
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        progress = completed_steps / total_steps if total_steps > 0 else 0
+        st.progress(progress)
+        st.caption(f"Progress: {completed_steps}/{total_steps} steps completed ({int(progress * 100)}%)")
+    with col2:
+        st.metric("Current Step", st.session_state.current_step or 1)
+    with col3:
+        st.metric("Total Steps", total_steps)
+
+    # Chat-like interface container
+    st.markdown("---")
+    st.markdown("### 💬 Analysis Conversation")
+
+    # Chat history display
+    chat_container = st.container(height=500)
+
+    with chat_container:
+        # Show initial system message if not started
+        if not st.session_state.chat_history and st.session_state.current_step == 0:
+            with st.chat_message("assistant"):
+                st.markdown("👋 **안녕하세요! OmicsHorizon 분석 도우미입니다.**")
+                st.markdown(f"총 **{total_steps}개**의 분석 단계를 함께 진행하겠습니다.")
+                st.markdown("각 단계마다 결과를 확인하고, 필요시 피드백을 주시면 개선하여 진행하겠습니다.")
+                if st.button("🚀 분석 시작하기", type="primary"):
+                    st.session_state.current_step = 1
+                    add_chat_message("assistant", "🚀 분석을 시작합니다! 첫 번째 단계부터 차근차근 진행하겠습니다.")
+                    st.rerun()
+
+        # Display chat history
+        for message in st.session_state.chat_history:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+                if message.get("files"):
+                    display_chat_files(message["files"])
+                if message.get("timestamp"):
+                    st.caption(f"🕒 {message['timestamp']}")
+
+    # Current interaction area
+    if st.session_state.current_step > 0:
+        current_step_num = st.session_state.current_step
+        step_data = next((s for s in analysis_steps if s['step_num'] == current_step_num), None)
+
+        if step_data:
+            # Initialize step state if not exists (CRITICAL: prevents KeyError)
+            initialize_step_state(current_step_num, step_data)
+            step_info = st.session_state.steps_state.get(current_step_num, {})
+
+            # If step not started yet, show step introduction and execute button
+            if step_info.get('status') not in ['completed', 'in_progress']:
+                with chat_container:
+                    with st.chat_message("assistant"):
+                        st.markdown(f"📋 **Step {current_step_num}: {step_data['title']}**")
+                        if step_data.get('description'):
+                            st.info(step_data['description'])
+                        col1, col2 = st.columns([3, 1])
+                        with col1:
+                            st.markdown("**준비가 되면 실행 버튼을 클릭하세요:**")
+                        with col2:
+                            if st.button(f"▶️ 실행", key=f"start_step_{current_step_num}", type="primary", use_container_width=True):
+                                # Mark step as in progress and execute immediately
+                                st.session_state.steps_state[current_step_num]['status'] = 'in_progress'
+                                add_chat_message("user", f"Step {current_step_num} 실행을 요청했습니다.")
+                                add_chat_message("assistant", f"⚙️ Step {current_step_num}을 실행하고 있습니다...")
+                                st.rerun()
+            # If step in progress, show execution progress in chat
+            elif step_info.get('status') == 'in_progress':
+                with chat_container:
+                    with st.chat_message("assistant"):
+                        st.markdown(f"⚙️ **Step {current_step_num} 실행 중...**")
+                        st.info("AI가 분석을 수행하고 있습니다. 잠시만 기다려주세요.")
+                # Execute step automatically
+                render_step_execution_interface(step_data)
+            # If step completed, show completion in chat
+            elif step_info.get('status') == 'completed':
+                with chat_container:
+                    with st.chat_message("assistant"):
+                        st.markdown(f"✅ **Step {current_step_num} 완료!**")
+
+                        # Clean and display full solution content
+                        if step_info.get('solution'):
+                            # Additional cleaning to remove any remaining artifacts
+                            clean_solution = step_info['solution'].strip()
+                            clean_solution = re.sub(r'^tag\s*', '', clean_solution, flags=re.MULTILINE)  # Remove "tag" artifacts
+                            clean_solution = re.sub(r'^\s*Include specific numbers and statistics\s*$', '', clean_solution, flags=re.MULTILINE)
+                            clean_solution = re.sub(r'^\s*Execute Step \d+ now\.?\s*$', '', clean_solution, flags=re.MULTILINE)
+                            clean_solution = re.sub(r'^\s*Here is my plan.*?\n', '', clean_solution, flags=re.MULTILINE)
+                            clean_solution = re.sub(r'^\s*I will now.*?\n', '', clean_solution, flags=re.MULTILINE)
+                            clean_solution = clean_solution.strip()
+
+                            if clean_solution:
+                                st.info(clean_solution)
+                            else:
+                                st.info("✅ 분석이 완료되었습니다. 상세 결과는 아래 분석 과정에서 확인하세요.")
+
+                        if step_info.get('files'):
+                            st.markdown(f"📎 **생성된 파일:** {len(step_info['files'])}개")
+                            display_chat_files(step_info['files'])
+
+                        # Store analysis process in session state for persistence
+                        if step_info.get('formatted_process'):
+                            if 'completed_processes' not in st.session_state:
+                                st.session_state.completed_processes = {}
+                            st.session_state.completed_processes[current_step_num] = step_info['formatted_process']
+
+                        st.markdown("---")
+                        col1, col2 = st.columns([1, 1])
+                        with col1:
+                            if st.button("🔄 피드백 주기", key=f"feedback_step_{current_step_num}"):
+                                st.session_state.show_feedback = True
+                        with col2:
+                            if current_step_num < len(analysis_steps):
+                                if st.button("➡️ 다음 단계", key=f"next_step_{current_step_num}", type="primary"):
+                                    next_step_num = current_step_num + 1
+                                    st.session_state.current_step = next_step_num
+                                    # Initialize next step state
+                                    next_step_data = next((s for s in analysis_steps if s['step_num'] == next_step_num), None)
+                                    if next_step_data:
+                                        initialize_step_state(next_step_num, next_step_data)
+                                    add_chat_message("user", f"다음 단계(Step {next_step_num})로 진행합니다.")
+                                    st.rerun()
+                            else:
+                                if st.button("🎉 분석 완료", key=f"complete_analysis_{current_step_num}", type="primary"):
+                                    st.session_state.current_step = len(analysis_steps) + 1
+                                    add_chat_message("assistant", "🎉 모든 분석 단계가 완료되었습니다!")
+                                    st.rerun()
+
+                # Show detailed completion interface if feedback is requested
+                if st.session_state.get('show_feedback', False):
+                    render_step_completion_interface(step_data)
+
+    # Show completed analysis processes (persistent)
+    if st.session_state.get('completed_processes'):
+        st.markdown("---")
+        st.markdown("### 📋 완료된 분석 과정")
+        for step_num, process in st.session_state.completed_processes.items():
+            with st.expander(f"🔍 Step {step_num} 분석 과정", expanded=False):
+                st.markdown(process)
+
+    # Chat input area
+    if st.session_state.current_step > 0:
+        st.markdown("---")
+        st.markdown("### 💭 피드백 및 질문")
+
+        # User input
+        user_input = st.chat_input("분석 결과에 대한 피드백이나 질문을 입력하세요...")
+
+        if user_input:
+            add_chat_message("user", user_input)
+
+            # Handle user input
+            handle_chat_input(user_input, analysis_steps)
+
+            st.rerun()
+
+def render_workflow_start_screen(analysis_steps):
+    """Render the workflow start screen"""
+    st.markdown(f"## {t('ready_to_start')}")
+
+    total_steps = len(analysis_steps)
+
+    st.markdown(f"**{t('total_steps')}** {total_steps}")
+    st.markdown(f"**{t('workflow_overview')}**")
+
+    for i, step in enumerate(analysis_steps, 1):
+        status = st.session_state.steps_state.get(step['step_num'], {}).get('status', 'pending')
+        status_icon = {
+            'completed': '✅',
+            'in_progress': '⚙️',
+            'pending': '⏳',
+            'error': '❌'
+        }.get(status, '⏳')
+        st.markdown(f"{i}. {status_icon} {step['title']}")
+
+    st.markdown("---")
+
+    if st.button(t('start_analysis'), key="start_workflow", type="primary", use_container_width=True):
+        st.session_state.current_step = 1
+        st.rerun()
+
+def render_current_step_sequential(analysis_steps):
+    """Render the current step in sequential mode"""
+    current_step_num = st.session_state.current_step
+    current_step_data = next((s for s in analysis_steps if s['step_num'] == current_step_num), None)
+
+    if not current_step_data:
+        st.error(f"Step {current_step_num} not found.")
+        return
+
+    # Step header
+    step_status = st.session_state.steps_state.get(current_step_num, {}).get('status', 'pending')
+
+    if step_status == 'completed':
+        # Step completed - show results and feedback options
+        render_step_completion_interface(current_step_data)
+    else:
+        # Step not completed - show step execution interface
+        render_step_execution_interface(current_step_data)
+
+def render_step_execution_interface(step_data):
+    """Render interface for executing a step"""
+    step_num = step_data['step_num']
+    step_title = step_data['title']
+
+    # Initialize step state if not exists
+    if step_num not in st.session_state.steps_state:
+        st.session_state.steps_state[step_num] = {
+            'status': 'pending',
+            'title': step_title,
+            'description': step_data.get('description', ''),
+            'result': None,
+            'solution': None,
+            'formatted_process': None,
+            'files': [],
+            'feedback': None,
+            'iteration': 0
+        }
+
+    st.markdown(t('step_execution').format(step_num=step_num, step_title=step_title))
+
+    # Step description
+    if step_data.get('description'):
+        st.info(f"**Description:** {step_data['description']}")
+
+    # Previous steps summary
+    if step_num > 1:
+        st.markdown(f"### {t('previous_steps_summary')}")
+        prev_steps = []
+        for i in range(1, step_num):
+            step_info = st.session_state.steps_state.get(i, {})
+            if step_info.get('status') == 'completed':
+                prev_steps.append(f"✅ Step {i}: {step_info.get('title', 'Unknown')}")
+
+        if prev_steps:
+            for step_summary in prev_steps[-3:]:  # Show last 3 steps
+                st.markdown(f"- {step_summary}")
+        else:
+            st.markdown("*No previous steps completed*")
+
+        # Show available result files
+        available_files = get_available_result_files(step_num)
+        if available_files:
+            st.markdown("### 📁 Available Result Files")
+            for file_info in available_files[:5]:  # Show top 5
+                step_indicator = f" (Step {file_info['associated_step']})" if file_info['associated_step'] else ""
+                st.markdown(f"• {file_info['name']}{step_indicator}")
+            if len(available_files) > 5:
+                st.markdown(f"*... and {len(available_files) - 5} more files*")
+            st.markdown("*These files will be automatically available to this step.*")
+
+        st.markdown("---")
+
+    # Current step status and execution
+    step_info = st.session_state.steps_state.get(step_num, {})
+
+    if step_info.get('status') == 'in_progress':
+        # Step is marked as in progress - execute immediately
+        st.info("⚙️ Step 실행 중...")
+        with st.spinner("분석을 수행하고 있습니다..."):
+            success = execute_single_step(step_num, step_data)
+            if success:
+                st.success(f"✅ Step {step_num} 완료!")
+                st.rerun()
+            else:
+                st.error(f"❌ Step {step_num} 실행 실패")
+                # Reset status to allow retry
+                st.session_state.steps_state[step_num]['status'] = 'pending'
+    else:
+        # Step not started - show execute button
+        if st.button(t('execute_step').format(step_num=step_num), key=f"execute_step_{step_num}", type="primary", use_container_width=True):
+            # Mark as in progress and rerun to trigger execution
+            st.session_state.steps_state[step_num]['status'] = 'in_progress'
+            st.rerun()
+
+def render_step_completion_interface(step_data):
+    """Render interface for completed step with feedback options"""
+    step_num = step_data['step_num']
+    step_title = step_data['title']
+
+    st.markdown(t('step_completed').format(step_num=step_num, step_title=step_title))
+
+    # Show step results
+    step_info = st.session_state.steps_state.get(step_num, {})
+    if step_info.get('solution'):
+        st.markdown("### 📊 Results")
+        st.markdown(step_info['solution'])
+
+    # Show generated files with download buttons
+    if step_info.get('files'):
+        st.markdown("### 📈 Generated Files")
+        for file_path in step_info['files']:
+            filename = os.path.basename(file_path)
+            col1, col2, col3 = st.columns([2, 2, 1])
+
+            with col1:
+                # Show image if it's an image file, otherwise show filename
+                if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                    st.image(file_path, use_container_width=True, caption=filename)
+                else:
+                    st.markdown(f"📄 **{filename}**")
+
+            with col2:
+                # Show file size
+                try:
+                    file_size = os.path.getsize(file_path) / 1024  # KB
+                    st.caption(f"Size: {file_size:.1f} KB")
+                except:
+                    st.caption("Size: Unknown")
+
+            with col3:
+                # Download button
+                try:
+                    with open(file_path, "rb") as f:
+                        file_data = f.read()
+                    st.download_button(
+                        label="⬇️ Download",
+                        data=file_data,
+                        file_name=filename,
+                        mime="application/octet-stream",
+                        key=f"download_current_{step_num}_{filename}",
+                        use_container_width=True
+                    )
+                except Exception as e:
+                    st.error(f"Could not load {filename}")
+
+    st.markdown("---")
+
+    # Feedback interface
+    st.markdown(f"### {t('step_feedback')}")
+
+    # Check if this step already has feedback
+    existing_feedback = st.session_state.step_feedback.get(step_num, "")
+
+    feedback = st.text_area(
+        t('step_feedback_placeholder').format(step_num=step_num),
+        value=existing_feedback,
+        key=f"feedback_step_{step_num}",
+        placeholder=t('step_feedback_example'),
+        height=100
+    )
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if st.button(t('modify_step'), key=f"modify_step_{step_num}", use_container_width=True):
+            if feedback and feedback.strip():
+                st.session_state.step_feedback[step_num] = feedback.strip()
+                # Re-execute step with feedback
+                execute_single_step_with_feedback(step_num, step_data, feedback.strip())
+                st.rerun()
+            else:
+                st.warning("Please provide feedback for modification.")
+
+    with col2:
+        if st.button(t('continue_to_next'), key=f"continue_step_{step_num}", type="primary", use_container_width=True):
+            # Save feedback if provided
+            if feedback and feedback.strip():
+                st.session_state.step_feedback[step_num] = feedback.strip()
+
+            # Move to next step
+            next_step = step_num + 1
+            total_steps = len(parse_analysis_steps(st.session_state.analysis_method))
+
+            if next_step <= total_steps:
+                st.session_state.current_step = next_step
+            else:
+                st.session_state.current_step = total_steps + 1  # Mark as completed
+
+            st.rerun()
+
+    with col3:
+        if step_num > 1:
+            if st.button(t('back_to_previous'), key=f"back_step_{step_num}", use_container_width=True):
+                st.session_state.current_step = step_num - 1
+                st.rerun()
+
+def render_workflow_completion_screen(analysis_steps):
+    """Render the workflow completion screen"""
+    st.markdown(f"## {t('workflow_completed')}")
+
+    total_steps = len(analysis_steps)
+    completed_steps = sum(1 for s in st.session_state.steps_state.values() if s.get('status') == 'completed')
+
+    st.success(f"✅ All {total_steps} steps completed successfully!")
+
+    # Summary of all steps
+    st.markdown(f"### {t('workflow_summary')}")
+    for step in analysis_steps:
+        step_num = step['step_num']
+        step_info = st.session_state.steps_state.get(step_num, {})
+        status = step_info.get('status', 'pending')
+        status_icon = {
+            'completed': '✅',
+            'in_progress': '⚙️',
+            'pending': '⏳',
+            'error': '❌'
+        }.get(status, '⏳')
+
+        feedback = st.session_state.step_feedback.get(step_num, "")
+        feedback_indicator = " 💬" if feedback else ""
+
+        st.markdown(f"{status_icon} Step {step_num}: {step['title']}{feedback_indicator}")
+
+    st.markdown("---")
+
+    # Options for completed workflow
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if st.button(t('restart_workflow'), key="restart_workflow", use_container_width=True):
+            # Reset workflow
+            st.session_state.steps_state = {}
+            st.session_state.current_step = 0
+            st.session_state.step_feedback = {}
+            st.success("🔄 Workflow restarted!")
+            st.rerun()
+
+    with col2:
+        if st.button(t('export_results'), key="export_results", use_container_width=True):
+            st.info("Export functionality coming soon!")
+
+    with col3:
+        if st.button(t('review_steps'), key="review_steps", use_container_width=True):
+            # Go back to last step for review
+            st.session_state.current_step = total_steps
+            st.rerun()
+
+def add_chat_message(role, content, files=None, timestamp=None):
+    """Add a message to the chat history"""
+    if timestamp is None:
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%H:%M:%S")
+
+    message = {
+        "role": role,
+        "content": content,
+        "timestamp": timestamp
+    }
+
+    if files:
+        message["files"] = files
+
+    st.session_state.chat_history.append(message)
+
+def display_chat_files(files):
+    """Display files in chat message"""
+    if not files:
+        return
+
+    st.markdown("**📎 첨부 파일:**")
+    for file_path in files:
+        filename = os.path.basename(file_path)
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            # Show image if it's an image file
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                st.image(file_path, use_container_width=True, caption=filename)
+            else:
+                st.markdown(f"📄 {filename}")
+        with col2:
+            try:
+                with open(file_path, "rb") as f:
+                    file_data = f.read()
+                st.download_button(
+                    label="⬇️",
+                    data=file_data,
+                    file_name=filename,
+                    mime="application/octet-stream",
+                    key=f"chat_download_{filename}_{len(st.session_state.chat_history)}"
+                )
+            except Exception as e:
+                st.error(f"파일 로드 실패: {filename}")
+
+def handle_chat_input(user_input, analysis_steps):
+    """Handle user input in chat interface"""
+    # Simple keyword-based response system
+    user_input_lower = user_input.lower()
+
+    if any(word in user_input_lower for word in ['다음', 'next', '계속', 'proceed']):
+        # Move to next step
+        current_step = st.session_state.current_step
+        total_steps = len(analysis_steps)
+
+        if current_step < total_steps:
+            next_step = current_step + 1
+            st.session_state.current_step = next_step
+            # Initialize next step state
+            next_step_data = next((s for s in analysis_steps if s['step_num'] == next_step), None)
+            if next_step_data:
+                initialize_step_state(next_step, next_step_data)
+            add_chat_message("assistant", f"✅ 다음 단계(Step {next_step})로 진행합니다!")
+        else:
+            add_chat_message("assistant", "🎉 모든 단계가 완료되었습니다!")
+
+    elif any(word in user_input_lower for word in ['이전', 'previous', 'back']):
+        # Go back to previous step
+        current_step = st.session_state.current_step
+        if current_step > 1:
+            prev_step = current_step - 1
+            st.session_state.current_step = prev_step
+            add_chat_message("assistant", f"⬅️ 이전 단계(Step {prev_step})로 돌아갑니다.")
+        else:
+            add_chat_message("assistant", "❌ 첫 번째 단계입니다. 더 이전으로 갈 수 없습니다.")
+
+    elif any(word in user_input_lower for word in ['다시', 'rerun', '재실행', 'retry']):
+        # Rerun current step
+        add_chat_message("assistant", f"🔄 현재 단계(Step {st.session_state.current_step})를 다시 실행합니다.")
+        # Reset current step status to allow rerun
+        current_step = st.session_state.current_step
+        if current_step in st.session_state.steps_state:
+            st.session_state.steps_state[current_step]['status'] = 'pending'
+            st.session_state.steps_state[current_step]['iteration'] = 0
+        # Ensure step state exists
+        current_step_data = next((s for s in analysis_steps if s['step_num'] == current_step), None)
+        if current_step_data:
+            initialize_step_state(current_step, current_step_data)
+
+    elif any(word in user_input_lower for word in ['완료', 'done', 'finish', '종료']):
+        # Mark workflow as completed
+        total_steps = len(analysis_steps)
+        completed_steps = sum(1 for s in st.session_state.steps_state.values() if s.get('status') == 'completed')
+
+        if completed_steps == total_steps:
+            add_chat_message("assistant", "🎉 분석이 완료되었습니다! 결과를 확인해주세요.")
+            st.session_state.current_step = total_steps + 1  # Mark as fully completed
+        else:
+            add_chat_message("assistant", f"⚠️ 아직 {total_steps - completed_steps}개의 단계가 남아있습니다.")
+
+    else:
+        # General feedback or question - pass to LLM for refinement
+        add_chat_message("assistant", "💭 피드백을 처리하고 있습니다...")
+
+        # Here we could call an LLM to process the feedback
+        # For now, just acknowledge
+        add_chat_message("assistant", f"피드백 감사합니다: '{user_input}'\n\n현재 단계에서 이를 고려하여 분석을 진행하겠습니다.")
+
+def execute_single_step_with_feedback(step_num, step_info, feedback):
+    """Execute a single step with additional feedback context"""
+
+    # Initialize step state if not exists
+    if step_num not in st.session_state.steps_state:
+        st.session_state.steps_state[step_num] = {
+            'status': 'pending',
+            'title': step_info['title'],
+            'description': step_info.get('description', ''),
+            'result': None,
+            'solution': None,
+            'formatted_process': None,
+            'files': [],
+            'feedback': None,
+            'iteration': 0
+        }
+
+    # Update step status
+    st.session_state.steps_state[step_num]['status'] = 'in_progress'
+    st.session_state.steps_state[step_num]['iteration'] += 1
+
+    # Get previous context
+    previous_context = get_previous_context(step_num)
+
+    # Get available result files from previous steps
+    available_result_files = get_available_result_files(step_num)
+
+    # Build prompt with feedback
+    data_info = ", ".join([f"`{f}`" for f in st.session_state.data_files])
+
+    # Add available result files to prompt
+    result_files_info = ""
+    if available_result_files:
+        result_files_info = "\n\nAVAILABLE RESULT FILES FROM PREVIOUS STEPS:"
+        for file_info in available_result_files[:10]:  # Limit to 10 most recent
+            result_files_info += f"\n- {file_info['name']} ({file_info['extension']}, {file_info['size']/1024:.1f} KB)"
+            if file_info['associated_step']:
+                result_files_info += f" - from Step {file_info['associated_step']}"
+
+    prompt = f"""Perform Step {step_num} of the bioinformatics analysis with the following feedback applied.
+
+DATA FILES: {data_info}
+
+DATA BRIEFING:
+{st.session_state.data_briefing if st.session_state.data_briefing else "Files are available in the working directory"}
+
+{"PREVIOUS STEPS CONTEXT:" if previous_context else ""}
+{previous_context}
+
+{result_files_info}
+
+CURRENT STEP {step_num}: {step_info['title']}
+Description: {step_info.get('description', step_info.get('full_text', ''))}
+
+🔄 USER FEEDBACK (apply these modifications):
+{feedback}
+
+INSTRUCTIONS:
+- Apply the user's feedback to modify this step
+- **IMPORTANT**: Check and utilize result files from previous steps when relevant
+- Load any CSV/TSV/TXT files from previous steps if they contain processed data you need
+- Reference previous analysis results to build upon existing work
+- Save any plots with descriptive filenames (e.g., "step{step_num}_*.png")
+- Provide detailed results in <solution> tag
+- Include specific numbers and statistics
+
+Execute the modified Step {step_num} now."""
+
+    try:
+        # Execute with agent
+        result = process_with_agent(prompt, show_process=False, use_history=False)
+
+        # Extract solution content
+        solution_match = re.search(r'<solution>(.*?)</solution>', result, re.DOTALL)
+        if solution_match:
+            solution_content = solution_match.group(1).strip()
+
+            # Clean up solution content
+            solution_content = re.sub(r'<execute>.*?</execute>', '', solution_content, flags=re.DOTALL)
+            solution_content = re.sub(r'<observation>.*?</observation>', '', solution_content, flags=re.DOTALL)
+            solution_content = re.sub(r'<think>.*?</think>', '', solution_content, flags=re.DOTALL)
+            solution_content = re.sub(r'```[a-z]*\n.*?```', '', solution_content, flags=re.DOTALL)
+            solution_content = re.sub(r'^\s*\d+\.\s*\[[\s✓✗✅❌⬜]\].*?$', '', solution_content, flags=re.MULTILINE)
+            solution_content = re.sub(r'===.*?===', '', solution_content)
+            solution_content = re.sub(r'🐍\s*\*\*코드 실행.*?\*\*', '', solution_content)
+            solution_content = re.sub(r'✅\s*\*\*실행 성공.*?\*\*', '', solution_content)
+            solution_content = re.sub(r'^---+$', '', solution_content, flags=re.MULTILINE)
+            solution_content = re.sub(r'\n{3,}', '\n\n', solution_content).strip()
+        else:
+            observations = re.findall(r'<observation>(.*?)</observation>', result, re.DOTALL)
+            solution_content = observations[-1].strip() if observations else "Analysis completed. See process details below."
+
+        # Update step state
+        st.session_state.steps_state[step_num]['status'] = 'completed'
+        st.session_state.steps_state[step_num]['result'] = result
+        st.session_state.steps_state[step_num]['solution'] = solution_content
+        st.session_state.steps_state[step_num]['formatted_process'] = format_agent_output_for_display(result)
+
+        # Extract new files
+        image_extensions = ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.bmp']
+        all_images = []
+        for ext in image_extensions:
+            all_images.extend(glob.glob(os.path.join(st.session_state.work_dir, ext)))
+
+        new_files = [f for f in all_images if f not in get_all_previous_files(step_num)]
+        if new_files:
+            st.session_state.steps_state[step_num]['files'].extend(new_files)
+
+        # Don't add chat message here - it will be handled by render_sequential_interactive_mode
+
+        return f"✅ Step {step_num} has been refined successfully!"
+
+    except Exception as e:
+        st.session_state.steps_state[step_num]['status'] = 'error'
+        st.session_state.steps_state[step_num]['result'] = f"Error: {str(e)}"
+        return f"❌ Error executing refinement: {str(e)}"
+
+def is_workflow_completed():
+    """Check if the entire workflow has been completed"""
+    if not st.session_state.steps_state or not st.session_state.analysis_method:
+        return False
+
+    # Parse analysis steps
+    try:
+        analysis_steps = parse_analysis_steps(st.session_state.analysis_method)
+        total_steps = len(analysis_steps)
+        completed_steps = sum(1 for s in st.session_state.steps_state.values()
+                             if s.get('status') == 'completed')
+        return completed_steps == total_steps and total_steps > 0
+    except:
+        return False
+
+def apply_analysis_refinement(refinement_request):
+    """Apply user refinement request to the completed analysis"""
+
+    if not is_workflow_completed():
+        return "❌ Analysis workflow is not yet completed. Please complete all steps first."
+
+    # Get context from all completed steps
+    context_parts = []
+
+    # Add data briefing
+    if st.session_state.data_briefing:
+        context_parts.append("=== DATA BRIEFING ===")
+        context_parts.append(st.session_state.data_briefing[:2000])  # Limit size
+
+    # Add analysis method
+    if st.session_state.analysis_method:
+        context_parts.append("=== ANALYSIS WORKFLOW ===")
+        context_parts.append(st.session_state.analysis_method[:1000])
+
+    # Add completed steps results
+    context_parts.append("=== COMPLETED ANALYSIS RESULTS ===")
+    for step_num in sorted(st.session_state.steps_state.keys()):
+        step_data = st.session_state.steps_state[step_num]
+        if step_data['status'] == 'completed':
+            context_parts.append(f"--- Step {step_num}: {step_data['title']} ---")
+            if step_data.get('solution'):
+                # Truncate long results
+                solution = step_data['solution'][:1500]
+                if len(step_data['solution']) > 1500:
+                    solution += "... (truncated)"
+                context_parts.append(f"Results: {solution}")
+
+            # Mention generated files
+            if step_data.get('files'):
+                file_names = [os.path.basename(f) for f in step_data['files']]
+                context_parts.append(f"Generated files: {', '.join(file_names)}")
+
+    full_context = "\n".join(context_parts)
+
+    # Build refinement prompt
+    prompt = f"""You are a bioinformatics analysis assistant. The user has completed a full analysis workflow and now wants to make refinements or modifications.
+
+COMPLETED ANALYSIS CONTEXT:
+{full_context[:4000]}  # Limit context size
+
+USER REFINEMENT REQUEST:
+{refinement_request}
+
+INSTRUCTIONS:
+- Understand what specific modification or refinement the user is requesting
+- Apply the requested changes to the existing analysis results
+- If the request involves re-running analysis with different parameters, suggest the appropriate modifications
+- If the request is about figure modifications (labels, colors, etc.), provide guidance on how to implement them
+- If the request requires code changes, provide the specific code modifications needed
+- Be specific and actionable in your response
+- Reference the existing results and suggest concrete next steps
+
+Provide a detailed response on how to implement the requested refinement:"""
+
+    try:
+        llm = st.session_state.agent.llm
+        response = llm.invoke([HumanMessage(content=prompt)])
+        return response.content.strip()
+    except Exception as e:
+        return f"Error processing refinement request: {str(e)}\n\nPlease try again."
+
+def execute_refinement_action(refinement_request, target_step=None):
+    """Execute a specific refinement action on a step"""
+
+    if not target_step or target_step not in st.session_state.steps_state:
+        return "❌ Invalid target step specified."
+
+    step_data = st.session_state.steps_state[target_step]
+    if step_data['status'] != 'completed':
+        return f"❌ Step {target_step} is not completed yet."
+
+    # Build context for the specific step
+    context = f"""
+Step {target_step}: {step_data['title']}
+Description: {step_data.get('description', '')}
+
+Previous Results:
+{step_data.get('solution', 'No previous results')}
+
+Refinement Request: {refinement_request}
+"""
+
+    # Create refinement prompt
+    data_info = ", ".join([f"`{f}`" for f in st.session_state.data_files])
+
+    prompt = f"""Perform a refinement of Step {target_step} based on the user's request.
+
+DATA FILES: {data_info}
+
+PREVIOUS STEP RESULTS:
+{context}
+
+USER REFINEMENT REQUEST:
+{refinement_request}
+
+INSTRUCTIONS:
+- Apply the requested modifications to Step {target_step}
+- Use the existing results as a starting point
+- Generate updated results with the requested changes
+- Save any new plots with descriptive filenames including 'refined' suffix
+- Provide detailed results in <solution> tag
+
+Execute the refined Step {target_step} now."""
+
+    try:
+        # Execute refinement
+        result = process_with_agent(prompt, show_process=False, use_history=False)
+
+        # Update step data with refinement
+        step_data['solution'] = extract_solution_content(result)
+        step_data['formatted_process'] = format_agent_output_for_display(result)
+
+        # Extract new files if any
+        image_extensions = ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.bmp']
+        all_images = []
+        for ext in image_extensions:
+            all_images.extend(glob.glob(os.path.join(st.session_state.work_dir, ext)))
+
+        new_files = [f for f in all_images if f not in get_all_previous_files(target_step)]
+        if new_files:
+            step_data['files'].extend(new_files)
+
+        return f"✅ Step {target_step} has been refined successfully!"
+
+    except Exception as e:
+        return f"❌ Error executing refinement: {str(e)}"
+
 def answer_qa_question(question):
     """Answer a Q&A question based on current analysis context"""
-    
+
     # Get context
     context = get_qa_context()
-    
+
     # Build prompt
     prompt = f"""You are a helpful bioinformatics analysis assistant. A user is asking a question about their ongoing analysis.
 
@@ -2090,7 +3767,7 @@ INSTRUCTIONS:
 - If the user asks "why", provide reasoning based on the analysis
 
 Answer the question:"""
-    
+
     try:
         # Use agent's LLM to answer (without history, single-turn Q&A)
         llm = st.session_state.agent.llm
@@ -2210,7 +3887,19 @@ def render_completed_step(step_num, step_data, step_info):
     with st.expander("🔍 View Analysis Process", expanded=False):
         formatted_process = step_data.get('formatted_process', '')
         if formatted_process:
-            st.markdown(formatted_process)
+            # Remove the solution section from formatted process to avoid duplication
+            # since solution is already displayed above
+            formatted_process_clean = re.sub(
+                r'---\s*\n\s*🎯 \*\*최종 답변:\*\*\s*\n.*?(?=---|\Z)',
+                '',
+                formatted_process,
+                flags=re.DOTALL
+            ).strip()
+
+            if formatted_process_clean:
+                st.markdown(formatted_process_clean)
+            else:
+                st.info("Process details contain only final results (shown above)")
         else:
             st.info("Process details not available")
     
@@ -3199,7 +4888,78 @@ with st.sidebar:
         st.info(t("qa_no_analysis"))
     
     st.markdown("---")
-    
+
+    # Analysis Refinement Section (only show if workflow is completed)
+    if is_workflow_completed():
+        st.markdown(f"## {t('refinement_title')}")
+
+        with st.expander(t('refinement_expander'), expanded=False):
+            st.markdown(f"**{t('refinement_desc')}**")
+            st.caption(t('refinement_examples'))
+
+            # Refinement input
+            refinement_request = st.text_area(
+                t('refinement_placeholder'),
+                key="refinement_request",
+                height=100,
+                placeholder=t('refinement_example')
+            )
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                if st.button(t('refinement_plan_button'), key="get_refinement_plan", use_container_width=True):
+                    if refinement_request and refinement_request.strip():
+                        with st.spinner("🤔 Analyzing your refinement request..."):
+                            plan = apply_analysis_refinement(refinement_request.strip())
+                        st.markdown(f"### {t('refinement_plan_title')}")
+                        st.info(plan)
+                    else:
+                        st.warning("Please describe what refinement you want to make.")
+
+            with col2:
+                # Step selection for specific refinement
+                if st.session_state.analysis_method:
+                    try:
+                        analysis_steps = parse_analysis_steps(st.session_state.analysis_method)
+                        step_options = [f"Step {s['step_num']}: {s['title'][:30]}..." for s in analysis_steps
+                                       if st.session_state.steps_state.get(s['step_num'], {}).get('status') == 'completed']
+                    except:
+                        step_options = []
+
+                    if step_options:
+                        selected_step_display = st.selectbox(
+                            t('refinement_target_step'),
+                            ["All steps"] + step_options,
+                            key="refinement_target_step"
+                        )
+
+                        if st.button(t('refinement_apply_button'), key="apply_refinement", use_container_width=True, type="primary"):
+                            if refinement_request and refinement_request.strip():
+                                # Parse target step
+                                target_step = None
+                                if selected_step_display != "All steps":
+                                    target_step = int(selected_step_display.split(":")[0].replace("Step ", ""))
+
+                                with st.spinner("🔄 Applying refinement..."):
+                                    if target_step:
+                                        result = execute_refinement_action(refinement_request.strip(), target_step)
+                                    else:
+                                        # General refinement - get plan first
+                                        result = apply_analysis_refinement(refinement_request.strip())
+
+                                if "✅" in result:
+                                    st.success(result)
+                                    st.rerun()  # Refresh to show updated results
+                                else:
+                                    st.error(result)
+                            else:
+                                st.warning("Please describe what refinement you want to apply.")
+                    else:
+                        st.info("No completed steps available for refinement.")
+
+        st.markdown("---")
+
     # Control Panel and Session Info
     st.markdown(f"## {t('control_panel')}")
     
@@ -3261,10 +5021,17 @@ with st.sidebar:
            - **Next Step**: Click "▶️ Next" to proceed to Step 2
            - **Repeat** for all steps
            
+        ### {t('refinement_instructions_title')}
+        - {t('refinement_instructions_1')}
+        - {t('refinement_instructions_2')}
+        - {t('refinement_instructions_3')}
+        - {t('refinement_instructions_4')}
+
         ### Tips:
         - Each step builds on previous results
         - You can re-run any step with different parameters
         - Use natural language for feedback (e.g., "Use p-value < 0.01")
+        - After completion, use refinement tools for fine-tuning
         - All results are automatically saved
         """)
     
@@ -3289,3 +5056,11 @@ with st.sidebar:
             st.session_state.language = 'ko'
             st.rerun()
 
+
+# =============================================================================
+# MAIN EXECUTION
+# =============================================================================
+
+if __name__ == "__main__":
+    # When run directly (not from LIMS)
+    run_omicshorizon_app(from_lims=False, workspace_path=None)

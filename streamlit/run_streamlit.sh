@@ -7,9 +7,8 @@ cd /workdir_efs/jhjeon/Biomni
 mkdir -p streamlit_workspace
 
 # Run Streamlit app
-streamlit run streamlit_app.py \
+streamlit run streamlit/streamlit_app.py \
     --server.port 8501 \
     --server.address 0.0.0.0 \
     --server.headless true \
     --browser.gatherUsageStats false
-
