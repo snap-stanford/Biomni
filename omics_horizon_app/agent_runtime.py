@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import re
 import time
@@ -24,6 +25,9 @@ __all__ = [
     "display_chat_files",
     "maybe_add_assistant_message",
 ]
+
+_LOGGER = logging.getLogger("omics.streamlit_app")
+_LOG_PREVIEW_LIMIT = 800
 
 
 def format_agent_output_for_display(
@@ -443,6 +447,18 @@ def _compute_digest(text: str, files: Optional[Iterable[str]] = None) -> str:
     return hashlib.md5(digest_payload.encode("utf-8")).hexdigest()
 
 
+def _log_response_preview(content: str, files: Optional[Iterable[str]] = None) -> None:
+    if not _LOGGER:
+        return
+    normalized = " ".join((content or "").split())
+    if len(normalized) > _LOG_PREVIEW_LIMIT:
+        normalized = f"{normalized[:_LOG_PREVIEW_LIMIT]}... (truncated)"
+    file_info = ""
+    if files:
+        file_info = f" | files={','.join(os.path.basename(f) for f in files)}"
+    _LOGGER.info("Chat assistant response: %s%s", normalized if normalized else "<empty>", file_info)
+
+
 def maybe_add_assistant_message(content: str, files: Optional[Iterable[str]] = None) -> bool:
     """Add assistant message if it's not a duplicate of the last one."""
     if not content:
@@ -454,6 +470,7 @@ def maybe_add_assistant_message(content: str, files: Optional[Iterable[str]] = N
         return False
     add_chat_message("assistant", content, files=file_list)
     st.session_state.last_assistant_digest = digest
+    _log_response_preview(content, file_list)
     return True
 
 

@@ -17,15 +17,11 @@ DEFAULT_STATE: Dict[str, Any] = {
     "paper_files": [],
     "analysis_method": "",
     "message_history": [],
-    "steps_state": {},
-    "current_step": 0,
-    "interaction_mode": "sequential",
-    "step_feedback": {},
     "qa_history": [],
     "chat_history": [],
-    "completed_processes": {},
-    "pending_user_inputs": [],
     "is_streaming": False,
+    "analysis_started": False,
+    "should_run_agent": False,
 }
 
 
