@@ -429,19 +429,30 @@ def add_chat_message(
     st.session_state.message_history.append({"role": role, "content": content})
 
 
-def _compute_digest(text: str) -> str:
-    return hashlib.md5(text.encode("utf-8")).hexdigest()
+def _normalize_file_list(files: Optional[Iterable[str]]) -> tuple[str, ...]:
+    if not files:
+        return ()
+    normalized = {os.path.abspath(path) for path in files if path}
+    return tuple(sorted(normalized))
 
 
-def maybe_add_assistant_message(content: str) -> bool:
+def _compute_digest(text: str, files: Optional[Iterable[str]] = None) -> str:
+    digest_payload = text or ""
+    if files:
+        digest_payload += "||" + "|".join(_normalize_file_list(files))
+    return hashlib.md5(digest_payload.encode("utf-8")).hexdigest()
+
+
+def maybe_add_assistant_message(content: str, files: Optional[Iterable[str]] = None) -> bool:
     """Add assistant message if it's not a duplicate of the last one."""
     if not content:
         return False
-    digest = _compute_digest(content)
+    file_list = _normalize_file_list(files)
+    digest = _compute_digest(content, file_list)
     last_digest = st.session_state.get("last_assistant_digest")
     if last_digest == digest:
         return False
-    add_chat_message("assistant", content)
+    add_chat_message("assistant", content, files=file_list)
     st.session_state.last_assistant_digest = digest
     return True
 

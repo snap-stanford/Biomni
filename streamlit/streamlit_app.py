@@ -5,11 +5,12 @@ import os
 import re
 import shutil
 import sys
+import glob
 import tempfile
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Iterable, Optional
 
 import pandas as pd
 import streamlit as st
@@ -73,6 +74,26 @@ MIN_COLUMN_PATTERN_LENGTH = 3
 MAX_CONTENT_LENGTH_FOR_LLM = 15000
 MAX_DISPLAY_TEXT_LENGTH = 8000
 MIN_MEANINGFUL_CONTENT_LENGTH = 50
+CHAT_ATTACHMENT_PATTERNS: tuple[str, ...] = (
+    "*.png",
+    "*.jpg",
+    "*.jpeg",
+    "*.gif",
+    "*.bmp",
+)
+
+
+def _collect_workspace_artifacts(patterns: Iterable[str]) -> set[str]:
+    """Return absolute paths for matching files in the session workspace."""
+    workspace = st.session_state.get("work_dir")
+    if not workspace:
+        return set()
+
+    collected: set[str] = set()
+    for pattern in patterns:
+        for path in glob.glob(os.path.join(workspace, pattern)):
+            collected.add(os.path.abspath(path))
+    return collected
 
 @st.cache_data
 def _get_logo_assets() -> tuple[str, str]:
@@ -2164,34 +2185,21 @@ def render_batch_interactive_mode(analysis_steps):
         # Export all results
         if st.button("📦 Export All Results", key="export_all"):
             st.info("Export functionality coming soon!")
-def render_sequential_interactive_mode(analysis_steps):
-    """Render sequential interactive mode with chat-like interface"""
-    total_steps = len(analysis_steps)
 
-    # Initialize chat history if not exists
+
+def render_sequential_interactive_mode(analysis_steps):
+    """Render sequential interactive mode with chat-like interface."""
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
-
-    # Initialize completed processes storage if not exists
     if "completed_processes" not in st.session_state:
         st.session_state.completed_processes = {}
-
-    # Initialize pending user input queue if not exists
-    if "pending_user_inputs" not in st.session_state:
-        st.session_state.pending_user_inputs = []
-
-    # Initialize streaming state if not exists
     if "is_streaming" not in st.session_state:
         st.session_state.is_streaming = False
-
-    # Run control flag: ensure agent runs only when triggered (start button or new input)
     if "should_run_agent" not in st.session_state:
         st.session_state.should_run_agent = False
 
-    # Chat-like interface container
     st.markdown("### 💬 Analysis Conversation")
 
-    # 분석하기 버튼 추가
     if st.button(
         "Start Analysis",
         key="start_analysis_btn",
@@ -2199,52 +2207,43 @@ def render_sequential_interactive_mode(analysis_steps):
         use_container_width=True,
     ):
         st.session_state.analysis_started = True
-        # trigger initial run once
         st.session_state.should_run_agent = True
+        st.rerun()
 
-    # 버튼이 클릭되었을 때만 아래 코드 실행
-    if st.session_state.get("analysis_started", False):
-        # Display initial greeting
-        if not st.session_state.chat_history:
-            with st.chat_message("assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"):
-                st.markdown("👋 **Hi! I am OmicsHorizon, your bioinformatics assistant.**")
+    if not st.session_state.get("analysis_started", False):
+        return
 
-        # Display chat history - ensure it's always shown
-        # This will display all previous messages every time the page reruns
-        for message in st.session_state.chat_history:
-            with st.chat_message(
-                message["role"],
-                avatar=(
-                    f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"
-                    if message["role"] == "assistant"
-                    else None
-                ),
-            ):
-                # Format assistant messages to render code/observations/solution nicely
-                if message["role"] == "assistant":
-                    st.markdown(format_agent_output_for_display(message["content"]))
-                else:
-                    st.markdown(message["content"]) 
-                if message.get("files"):
-                    display_chat_files(message["files"])
+    if not st.session_state.chat_history:
+        with st.chat_message(
+            "assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"
+        ):
+            st.markdown("👋 **Hi! I am OmicsHorizon, your bioinformatics assistant.**")
 
-        # User input field (always available, even during streaming)
-        user_input = st.chat_input("메시지를 입력하세요...", key="user_chat_input")
+    for message in st.session_state.chat_history:
+        with st.chat_message(
+            message["role"],
+            avatar=(
+                f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"
+                if message["role"] == "assistant"
+                else None
+            ),
+        ):
+            if message["role"] == "assistant":
+                st.markdown(format_agent_output_for_display(message["content"]))
+            else:
+                st.markdown(message["content"])
+            if message.get("files"):
+                display_chat_files(message["files"])
 
-        # Handle user input
-        if user_input:
-            # Add user message to chat history
-            add_chat_message("user", user_input)
-            # Add to pending inputs queue for processing during/after streaming
-            st.session_state.pending_user_inputs.append(user_input)
-            # trigger agent run
-            st.session_state.should_run_agent = True
-            st.rerun()
+    user_input = st.chat_input("메시지를 입력하세요...", key="user_chat_input")
+    if user_input:
+        add_chat_message("user", user_input)
+        st.session_state.should_run_agent = True
+        st.rerun()
 
-        os.chdir(st.session_state.work_dir)
-        data_info = ", ".join([f"`{f}`" for f in st.session_state.data_files])
-
-        prompt = f"""Perform bioinformatics analysis.
+    os.chdir(st.session_state.work_dir)
+    data_info = ", ".join([f"`{f}`" for f in st.session_state.data_files])
+    prompt = f"""Perform bioinformatics analysis.
 #Analysis Instructions:
 {st.session_state.analysis_method}
 
@@ -2254,229 +2253,67 @@ DATA BRIEFING:
 {st.session_state.data_briefing if st.session_state.data_briefing else "Files are available in the working directory"}
 
 """
-        print(prompt)
 
-        # Prepare agent input - build from history if exists, otherwise start fresh
-        # Check if this is a continuation (has assistant messages in history)
-        has_assistant_history = any(
-            msg.get("role") == "assistant" for msg in st.session_state.chat_history
-        )
+    has_assistant_history = any(
+        msg.get("role") == "assistant" for msg in st.session_state.chat_history
+    )
+    agent_input = build_agent_input_from_history(
+        initial_prompt=prompt, include_initial=not has_assistant_history
+    )
 
-        if has_assistant_history:
-            # Continue existing conversation - build from full history
-            # Don't include initial prompt again, just use conversation history
-            agent_input = build_agent_input_from_history(
-                initial_prompt=prompt, include_initial=False
-            )
+    if not st.session_state.should_run_agent:
+        return
 
-            # Add any pending user inputs that came after the last assistant message
-            if st.session_state.pending_user_inputs:
-                for pending_input in st.session_state.pending_user_inputs:
-                    agent_input.append(HumanMessage(content=pending_input))
-                # Clear pending inputs after adding them
-                st.session_state.pending_user_inputs = []
-        else:
-            # First run - start with initial prompt
-            agent_input = build_agent_input_from_history(
-                initial_prompt=prompt, include_initial=True
-            )
-
-            # Process any pending user inputs before starting streaming
-            if st.session_state.pending_user_inputs:
-                # Add all pending user inputs to agent input
-                for pending_input in st.session_state.pending_user_inputs:
-                    agent_input.append(HumanMessage(content=pending_input))
-                # Clear pending inputs after adding them
-                st.session_state.pending_user_inputs = []
-
-        # Stream agent inference only when triggered
-        # Note: Chat history above is already displayed and will persist
-        if st.session_state.should_run_agent:
-            added_to_history = False
-            st.session_state.is_streaming = True
-            with st.chat_message("assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"):
-                result = ""
-                message_placeholder = st.empty()
-                user_input_detected = False
-                new_user_input = None
-
-                # Spinner during streaming (indeterminate loading)
-                with st.spinner("AI is performing the analysis...…"):
-                    message_stream = st.session_state.agent.go_stream(agent_input)
-
-                    for chunk in message_stream:
-                        # Check for new user input during streaming
-                        if st.session_state.pending_user_inputs:
-                            new_user_input = st.session_state.pending_user_inputs.pop(0)
-                            user_input_detected = True
-                            # Save current result once before breaking to process new input
-                            if result and not added_to_history:
-                                if maybe_add_assistant_message(result):
-                                    added_to_history = True
-                            # Break out of current streaming to process new input
-                            break
-
-                        node = chunk[1][1]["langgraph_node"]
-                        chunk_data = chunk[1][0]
-
-                        if node == "generate" and hasattr(chunk_data, "content"):
-                            result += chunk_data.content
-                            # Format and display streaming output
-                            formatted_result = format_agent_output_for_display(result)
-                            message_placeholder.markdown(formatted_result)
-                        elif node == "execute" and hasattr(chunk_data, "content"):
-                            # Handle case where content might be a list (skip non-text attachments)
-                            content = chunk_data.content
-                            if isinstance(content, list):
-                                parts = []
-                                for item in content:
-                                    if isinstance(item, str):
-                                        parts.append(item)
-                                    # Skip dict/image attachments to avoid dumping base64/pdf
-                                content = "".join(parts)
-                            result += content
-                            # Format and display streaming output
-                            formatted_result = format_agent_output_for_display(result)
-                            message_placeholder.markdown(formatted_result)
-
-        # If user input was detected during streaming, continue with new input
-        # This will be processed in the next iteration, building from updated history
-        if st.session_state.get("should_run_agent", False) and 'user_input_detected' in locals() and user_input_detected and new_user_input:
-            # User message is already in chat_history (added when input was received)
-            # Assistant message (current result) was just added above
-            # Now continue with streaming using updated conversation history
-            with st.chat_message("assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"):
-                new_result = ""
-                message_placeholder = st.empty()
-                with st.spinner("사용자 메시지를 처리하고 있습니다...…"):
-                    # Build agent input from updated conversation history (includes the assistant response we just added)
-                    # Don't include initial prompt again when continuing from history
-                    new_agent_input = build_agent_input_from_history(
-                        initial_prompt=prompt, include_initial=False
+    st.session_state.is_streaming = True
+    attachments: list[str] = []
+    result_text = ""
+    with st.chat_message(
+        "assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"
+    ):
+        message_placeholder = st.empty()
+        baseline_files = _collect_workspace_artifacts(CHAT_ATTACHMENT_PATTERNS)
+        with st.spinner("AI is performing the analysis..."):
+            try:
+                message_stream = st.session_state.agent.go_stream(agent_input)
+                for chunk in message_stream:
+                    node = chunk[1][1]["langgraph_node"]
+                    chunk_data = chunk[1][0]
+                    if node not in {"generate", "execute"} or not hasattr(
+                        chunk_data, "content"
+                    ):
+                        continue
+                    content = chunk_data.content
+                    if isinstance(content, list):
+                        content = "".join(
+                            item for item in content if isinstance(item, str)
+                        )
+                    if not content:
+                        continue
+                    result_text += content
+                    message_placeholder.markdown(
+                        format_agent_output_for_display(result_text)
                     )
+            except Exception as exc:  # pragma: no cover - UI fallback
+                st.error(f"Agent execution failed: {exc}")
+            finally:
+                st.session_state.is_streaming = False
 
-                    # Continue streaming with new input using full conversation history
-                    message_stream = st.session_state.agent.go_stream(new_agent_input)
+        updated_files = _collect_workspace_artifacts(CHAT_ATTACHMENT_PATTERNS)
+        new_files = sorted(
+            updated_files - baseline_files, key=lambda path: os.path.getmtime(path)
+        )
+        attachments = new_files
+        if result_text:
+            message_placeholder.markdown(
+                format_agent_output_for_display(result_text)
+            )
+        if new_files:
+            display_chat_files(new_files)
 
-                    for chunk in message_stream:
-                        # Check for more pending inputs
-                        if st.session_state.pending_user_inputs:
-                            # Store current result before processing next input
-                            if new_result and not added_to_history:
-                                if maybe_add_assistant_message(new_result):
-                                    added_to_history = True
-                            # Process next input (recursive-like behavior via rerun)
-                            st.rerun()
-
-                        node = chunk[1][1]["langgraph_node"]
-                        chunk_data = chunk[1][0]
-
-                        if node == "generate" and hasattr(chunk_data, "content"):
-                            new_result += chunk_data.content
-                            formatted_result = format_agent_output_for_display(
-                                new_result
-                            )
-                            message_placeholder.markdown(formatted_result)
-                        elif node == "execute" and hasattr(chunk_data, "content"):
-                            content = chunk_data.content
-                            if isinstance(content, list):
-                                parts = []
-                                for item in content:
-                                    if isinstance(item, str):
-                                        parts.append(item)
-                                content = "".join(parts)
-                            new_result += content
-                            formatted_result = format_agent_output_for_display(
-                                new_result
-                            )
-                            message_placeholder.markdown(formatted_result)
-
-            # Update result and add to chat history (once)
-            result = new_result
-            if result and not added_to_history:
-                if maybe_add_assistant_message(result):
-                    added_to_history = True
-
-        # Finalize run state
-        if st.session_state.should_run_agent:
-            st.session_state.is_streaming = False
-            # Add final result to chat history if streaming completed normally (no user input detected)
-            if 'result' in locals() and result and not ('user_input_detected' in locals() and user_input_detected) and not added_to_history:
-                maybe_add_assistant_message(result)
-            # reset trigger
-            st.session_state.should_run_agent = False
-
-        # Get generated files (images created during this step)
-        image_extensions = ["*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp"]
-        all_images = []
-        for ext in image_extensions:
-            all_images.extend(glob.glob(os.path.join(st.session_state.work_dir, ext)))
-
-        # Filter to new files (created after this step started)
-        # new_files = [f for f in all_images if f not in get_all_previous_files(step_num)]
-
-        # Extract solution content (clean results without execution details)
-        solution_match = re.search(r"<solution>(.*?)</solution>", result, re.DOTALL)
-        if solution_match:
-            solution_content = solution_match.group(1).strip()
-
-            # AGGRESSIVE CLEANING: Remove all execution artifacts from solution
-            # (same cleaning logic as execute_single_step)
-            solution_content = re.sub(
-                r"<execute>.*?</execute>", "", solution_content, flags=re.DOTALL
-            )
-            solution_content = re.sub(
-                r"<observation>.*?</observation>",
-                "",
-                solution_content,
-                flags=re.DOTALL,
-            )
-            solution_content = re.sub(
-                r"<think>.*?</think>", "", solution_content, flags=re.DOTALL
-            )
-            solution_content = re.sub(
-                r"```[a-z]*\n.*?```", "", solution_content, flags=re.DOTALL
-            )
-            solution_content = re.sub(
-                r"^\s*\d+\.\s*\[[\s✓✗✅❌⬜]\].*?$",
-                "",
-                solution_content,
-                flags=re.MULTILINE,
-            )
-            solution_content = re.sub(r"===.*?===", "", solution_content)
-            solution_content = re.sub(r"Plan Update:.*?\n", "", solution_content)
-            solution_content = re.sub(
-                r"🐍\s*\*\*코드 실행.*?\*\*", "", solution_content
-            )
-            solution_content = re.sub(
-                r"📊\s*\*\*코드 실행.*?\*\*", "", solution_content
-            )
-            solution_content = re.sub(
-                r"🔧\s*\*\*코드 실행.*?\*\*", "", solution_content
-            )
-            solution_content = re.sub(
-                r"✅\s*\*\*실행 성공.*?\*\*", "", solution_content
-            )
-            solution_content = re.sub(
-                r"❌\s*\*\*실행 오류.*?\*\*", "", solution_content
-            )
-            solution_content = re.sub(
-                r"^---+$", "", solution_content, flags=re.MULTILINE
-            )
-            solution_content = re.sub(r"\n{3,}", "\n\n", solution_content)
-            solution_content = solution_content.strip()
-
-            if not solution_content or len(solution_content) < 20:
-                solution_content = "✅ Analysis completed successfully.\n\nPlease see 'View Analysis Process' below for detailed execution steps and 'Figures' section for generated visualizations."
-        else:
-            observations = re.findall(
-                r"<observation>(.*?)</observation>", result, re.DOTALL
-            )
-            solution_content = (
-                observations[-1].strip()
-                if observations
-                else "Analysis completed. See process details below."
-            )
+    st.session_state.should_run_agent = False
+    if result_text.strip():
+        maybe_add_assistant_message(result_text, files=attachments)
+    st.rerun()
 
 
 def render_workflow_start_screen(analysis_steps):
