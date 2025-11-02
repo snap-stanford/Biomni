@@ -10,6 +10,10 @@ import time
 from datetime import datetime
 from typing import Iterable, List, Optional
 
+import base64
+import mimetypes
+from pathlib import Path
+
 import streamlit as st
 from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
 
@@ -183,6 +187,24 @@ def format_agent_output_for_display(
 
     for idx, code_block in enumerate(code_blocks):
         formatted = formatted.replace(f"__CODE_BLOCK_{idx}__", code_block)
+
+    def _figure_replacer(match: re.Match) -> str:
+        raw_path = match.group(1).strip()
+        try:
+            figure_path = Path(raw_path)
+            if not figure_path.is_file():
+                return ""
+            mime = mimetypes.guess_type(figure_path.name)[0] or "image/png"
+            encoded = base64.b64encode(figure_path.read_bytes()).decode("utf-8")
+            alt = figure_path.name
+            return (
+                f"\n\n<img src=\"data:{mime};base64,{encoded}\" alt=\"{alt}\" "
+                f"style=\"max-width:100%; height:auto;\"/>\n"
+            )
+        except Exception:
+            return ""
+
+    formatted = re.sub(r"\[\[FIGURE::(.*?)\]\]", _figure_replacer, formatted)
 
     return formatted
 
