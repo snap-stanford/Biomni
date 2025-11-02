@@ -193,17 +193,46 @@ def format_agent_output_for_display(
         try:
             figure_path = Path(raw_path)
             if not figure_path.is_file():
+                # Return empty string to remove unrenderable figure tokens completely
                 return ""
             mime = mimetypes.guess_type(figure_path.name)[0] or "image/png"
             encoded = base64.b64encode(figure_path.read_bytes()).decode("utf-8")
             alt = figure_path.name
+            # Extract figure name without extension for legend
+            figure_name = figure_path.stem
+            # Add extra spacing and figure legend
             return (
-                f"\n\n<img src=\"data:{mime};base64,{encoded}\" alt=\"{alt}\" "
-                f"style=\"max-width:100%; height:auto;\"/>\n"
+                f"\n\n<div style=\"margin: 40px 0; text-align: center;\">\n"
+                f"<img src=\"data:{mime};base64,{encoded}\" alt=\"{alt}\" "
+                f"style=\"max-width:100%; height:auto; margin: 20px 0;\"/>\n"
+                f"<p style=\"margin-top: 15px; font-style: italic; color: #666;\">"
+                f"<strong>Figure:</strong> {figure_name}</p>\n"
+                f"</div>\n\n"
             )
         except Exception:
+            # Return empty string to remove unrenderable figure tokens completely
             return ""
 
+    # First pass: Remove any figure tokens that don't have valid files
+    # This prevents icons/names from showing for unrenderable figures
+    def _check_and_remove_figure(match: re.Match) -> str:
+        raw_path = match.group(1).strip()
+        try:
+            figure_path = Path(raw_path)
+            if figure_path.is_file():
+                # Keep valid figures - they will be replaced in the next pass
+                return match.group(0)
+            else:
+                # Remove invalid figures immediately
+                return ""
+        except Exception:
+            # Remove invalid figures immediately
+            return ""
+    
+    # Remove invalid figure tokens first
+    formatted = re.sub(r"\[\[FIGURE::(.*?)\]\]", _check_and_remove_figure, formatted)
+    
+    # Then replace valid figure tokens with rendered HTML
     formatted = re.sub(r"\[\[FIGURE::(.*?)\]\]", _figure_replacer, formatted)
 
     return formatted

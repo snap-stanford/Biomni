@@ -177,6 +177,8 @@ def _render_paper_panel(
                     os.path.join(st.session_state.work_dir, file_name), mode=mode
                 )
                 st.session_state.analysis_method = result
+                # Initialize editor content with extracted result
+                st.session_state.method_editor_content = result
             st.success(f"✅ Workflow extraction complete! ({extraction_mode[1]})")
             st.rerun()
 
@@ -236,9 +238,16 @@ def _render_paper_panel(
 
         with method_tab2:
             st.info("💡 Format: Numbered list with tool names and parameters")
+            # Use session state to preserve edited content, but initialize with extracted method
+            if "method_editor_content" not in st.session_state:
+                st.session_state.method_editor_content = clean_method
+            elif not st.session_state.method_editor_content and clean_method:
+                # If editor is empty but we have extracted content, use extracted content
+                st.session_state.method_editor_content = clean_method
+            
             edited_method = st.text_area(
                 "Analysis Steps",
-                value=clean_method,
+                value=st.session_state.method_editor_content,
                 height=500,
                 key="method_editor",
                 placeholder="1. Preprocessing: log2 transformation using tool X\n2. DEG analysis: DESeq2 with |log2FC| > 2, p < 0.01\n3. Clustering: hierarchical clustering, heatmap\n...",
@@ -253,11 +262,14 @@ def _render_paper_panel(
                     use_container_width=True,
                 ):
                     st.session_state.analysis_method = edited_method
+                    st.session_state.method_editor_content = edited_method
                     st.success("✅ Saved!")
                     st.rerun()
 
             with col2:
                 if st.button("🔄 Reset", key="reset_method", use_container_width=True):
+                    # Reset to the extracted method
+                    st.session_state.method_editor_content = clean_method
                     st.rerun()
     elif st.button("✍️ Write Custom Method", key="write_custom"):
         st.session_state.analysis_method = """1. Preprocessing: describe preprocessing, mention tools

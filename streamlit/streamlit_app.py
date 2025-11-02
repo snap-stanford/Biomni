@@ -47,6 +47,7 @@ from omics_horizon_app.agent_service import get_or_create_agent
 from conversational_analysis import (
     answer_qa_question,
     render_analysis_conversation,
+    render_analysis_conversation2,
 )
 
 
@@ -929,7 +930,7 @@ def run_omicshorizon_app(from_lims=False, workspace_path=None):
 
     # Launch conversational analysis once data and workflow are ready
     if st.session_state.data_files and st.session_state.analysis_method:
-        render_analysis_conversation()
+        render_analysis_conversation2()
     elif not st.session_state.data_files:
         st.session_state.analysis_started = False
         st.session_state.should_run_agent = False

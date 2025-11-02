@@ -109,6 +109,48 @@ ANALYSIS_APPS = {
         "category": "Genomics",
         "enabled": True,
     },
+    "microbiome_analyzer": {
+        "name": "Microbiome Analyzer",
+        "description": "Microbial community analysis and diversity profiling",
+        "icon": "🦠",
+        "function": None,  # To be implemented
+        "data_types": [
+            ".csv",
+            ".tsv",
+            ".txt",
+            ".xlsx",
+            ".xls",
+            ".fasta",
+            ".fastq",
+            ".fa",
+            ".fq",
+            ".fa.gz",
+            ".fastq.gz",
+        ],
+        "category": "Microbiome",
+        "enabled": True,
+    },
+    "metabolic_simulator": {
+        "name": "Metabolic Simulator",
+        "description": "Metabolic network simulation and flux analysis",
+        "icon": "⚛️",
+        "function": None,  # To be implemented
+        "data_types": [
+            ".csv",
+            ".tsv",
+            ".txt",
+            ".xlsx",
+            ".xls",
+            ".json",
+            ".xml",
+            ".sbml",
+            ".gz",
+            ".csv.gz",
+            ".tsv.gz",
+        ],
+        "category": "Metabolomics",
+        "enabled": True,
+    },
     # Future apps can be added here
     # 'proteomics_app': {
     #     'name': 'Proteomics Analyzer',
@@ -444,7 +486,7 @@ def render_lims_dashboard(router, data_manager):
     st.markdown("---")
 
     # Data Files Section
-    st.markdown("## 📊 Laboratory Data Repository")
+    st.markdown("## 📊 LIMS Data Repository")
 
     data_files = data_manager.list_data_files()
 
