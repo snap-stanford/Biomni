@@ -109,14 +109,14 @@ def _extract_final_response(raw_text: str) -> str:
         candidate = solution_matches[-1]
         cleaned = _sanitize_solution_text(candidate)
         if cleaned:
-            # Also include any figure tokens that appear after the solution block
-            solution_end_pos = raw_text.rfind("</solution>")
-            if solution_end_pos > 0:
-                text_after_solution = raw_text[solution_end_pos + len("</solution>"):].strip()
-                # Check if there are figure tokens after the solution block
-                if "[[FIGURE::" in text_after_solution:
-                    # Append figures after the cleaned solution content
-                    cleaned = cleaned + "\n\n" + text_after_solution
+            # # Also include any figure tokens that appear after the solution block
+            # solution_end_pos = raw_text.rfind("</solution>")
+            # if solution_end_pos > 0:
+            #     text_after_solution = raw_text[solution_end_pos + len("</solution>"):].strip()
+            #     # Check if there are figure tokens after the solution block
+            #     if "[[FIGURE::" in text_after_solution:
+            #         # Append figures after the cleaned solution content
+            #         cleaned = cleaned + "\n\n" + text_after_solution
             return cleaned
 
     observation_matches = re.findall(
@@ -187,7 +187,7 @@ def render_analysis_conversation2() -> None:
             if message.get("files"):
                 display_chat_files(message["files"])
 
-    user_input = st.chat_input("메시지를 입력하세요...", key="user_chat_input")
+    user_input = st.chat_input("Enter your message...", key="user_chat_input")
     if user_input:
         add_chat_message("user", user_input)
         st.session_state.should_run_agent = True

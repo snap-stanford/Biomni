@@ -1067,28 +1067,6 @@ def run_omicshorizon_app(from_lims=False, workspace_path=None):
 
         st.markdown("---")
 
-        # Clear all button
-        if st.button(t("clear_all"), key="clear_all", use_container_width=True):
-            st.session_state.data_files = []
-            st.session_state.data_briefing = ""
-            st.session_state.paper_files = []
-            st.session_state.analysis_method = ""
-            st.session_state.qa_history = []
-            st.session_state.message_history = []
-            st.session_state.chat_history = []
-            st.session_state.analysis_started = False
-            st.session_state.should_run_agent = False
-            st.session_state.is_streaming = False
-            success_msg = (
-                "✅ All data cleared!"
-                if st.session_state.language == "en"
-                else "✅ 모든 데이터가 삭제되었습니다!"
-            )
-            st.success(success_msg)
-            st.rerun()
-
-        st.markdown("---")
-
         # Instructions
         with st.expander(t("instructions")):
             st.markdown(

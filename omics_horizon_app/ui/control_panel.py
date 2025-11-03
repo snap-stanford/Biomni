@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import streamlit as st
 
+from ..utils.pdf_export import export_to_pdf_button
+
 
 def render_control_panel(t, llm_model: str, workspace_display_fn) -> None:
     """Render the right-hand control panel with session utilities."""
@@ -20,6 +22,11 @@ def render_control_panel(t, llm_model: str, workspace_display_fn) -> None:
     """
     )
 
+    st.markdown("---")
+    
+    # PDF Export button
+    export_to_pdf_button()
+    
     st.markdown("---")
 
     if st.session_state.steps_state:

@@ -406,8 +406,6 @@ class DataManager:
 def render_sidebar(router, data_manager):
     """Render the sidebar with navigation and info"""
     with st.sidebar:
-        st.markdown("## 🔬 Navigation")
-
         # Current view indicator
         current_view = router.get_current_view()
         if current_view == "lims":
@@ -419,15 +417,6 @@ def render_sidebar(router, data_manager):
             if selected_app and selected_app in ANALYSIS_APPS:
                 app_info = ANALYSIS_APPS[selected_app]
                 st.markdown(f"{app_info['icon']} **Current: {app_info['name']}**")
-
-        st.markdown("---")
-
-        # Navigation buttons
-        if current_view != "lims":
-            if st.button(
-                "🏠 Back to LIMS", key="back_to_lims", use_container_width=True
-            ):
-                router.go_back_to_lims()
 
         st.markdown("---")
 
@@ -448,6 +437,34 @@ def render_sidebar(router, data_manager):
 
         # Quick Actions
         st.markdown("## ⚡ Quick Actions")
+
+        # Grouped action buttons
+        # Back to LIMS (only when not already on LIMS view)
+        if current_view != "lims":
+            if st.button("🏠 Back to LIMS", key="sidebar_back_to_lims", use_container_width=True):
+                router.go_back_to_lims()
+
+        # Export to PDF (chat history + workflow + briefing)
+        try:
+            from omics_horizon_app.utils.pdf_export import export_to_pdf_button
+            export_to_pdf_button()
+        except Exception:
+            pass
+
+        # Clear All Data (analysis-only reset)
+        if st.button("🧹 Clear All Data", key="sidebar_clear_all", use_container_width=True):
+            st.session_state.data_files = []
+            st.session_state.data_briefing = ""
+            st.session_state.paper_files = []
+            st.session_state.analysis_method = ""
+            st.session_state.qa_history = []
+            st.session_state.message_history = []
+            st.session_state.chat_history = []
+            st.session_state.analysis_started = False
+            st.session_state.should_run_agent = False
+            st.session_state.is_streaming = False
+            st.success("✅ All data cleared!")
+            st.rerun()
 
         if st.button("🗑️ Clear Session", key="clear_session", use_container_width=True):
             # Clear all session state

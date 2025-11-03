@@ -272,12 +272,11 @@ def _render_paper_panel(
                     st.session_state.method_editor_content = clean_method
                     st.rerun()
     elif st.button("✍️ Write Custom Method", key="write_custom"):
-        st.session_state.analysis_method = """1. Preprocessing: describe preprocessing, mention tools
-2. Quality control: filtering criteria
-3. Statistical analysis: test name, parameters (e.g., p < 0.05)
-4. Clustering: method, visualization
-5. Enrichment analysis: tool name, database
-..."""
+        st.session_state.analysis_method = """1. Statistical analysis: t-test, p-value < 0.1, |log2FC| > 2, Volcano plot.
+
+2. Clustering: Heatmap with dendrogram
+
+3. Enrichment analysis: GO enrichment analysis"""
         st.rerun()
 
 
