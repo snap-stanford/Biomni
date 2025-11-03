@@ -3433,6 +3433,7 @@ def initialize_step_state(step_num, step_data):
         }
 
 
+@st.fragment
 def render_sequential_interactive_mode(analysis_steps):
     """Render sequential interactive mode with chat-like interface"""
     total_steps = len(analysis_steps)
@@ -3470,7 +3471,7 @@ def render_sequential_interactive_mode(analysis_steps):
         # Display initial greeting
         if not st.session_state.chat_history:
             with st.chat_message("assistant"):
-                st.markdown("👋 **안녕하세요! OmicsHorizon 분석 도우미입니다.**")
+                st.markdown("👋 **Hello! I'm your OmicsHorizon analysis assistant.**")
 
         # Display chat history - ensure it's always shown
         # This will display all previous messages every time the page reruns
@@ -3479,17 +3480,6 @@ def render_sequential_interactive_mode(analysis_steps):
                 st.markdown(message["content"])
                 if message.get("files"):
                     display_chat_files(message["files"])
-
-        # User input field (always available, even during streaming)
-        user_input = st.chat_input("메시지를 입력하세요...", key="user_chat_input")
-
-        # Handle user input
-        if user_input:
-            # Add user message to chat history
-            add_chat_message("user", user_input)
-            # Add to pending inputs queue for processing during/after streaming
-            st.session_state.pending_user_inputs.append(user_input)
-            st.rerun()
 
         os.chdir(st.session_state.work_dir)
         data_info = ", ".join([f"`{f}`" for f in st.session_state.data_files])
@@ -3506,65 +3496,41 @@ DATA BRIEFING:
 """
         print(prompt)
 
-        # Prepare agent input - build from history if exists, otherwise start fresh
-        # Check if this is a continuation (has assistant messages in history)
-        has_assistant_history = any(
-            msg.get("role") == "assistant" for msg in st.session_state.chat_history
-        )
-
-        if has_assistant_history:
-            # Continue existing conversation - build from full history
-            # Don't include initial prompt again, just use conversation history
-            agent_input = build_agent_input_from_history(
-                initial_prompt=prompt, include_initial=False
-            )
-
-            # Add any pending user inputs that came after the last assistant message
-            if st.session_state.pending_user_inputs:
-                for pending_input in st.session_state.pending_user_inputs:
-                    agent_input.append(HumanMessage(content=pending_input))
-                # Clear pending inputs after adding them
-                st.session_state.pending_user_inputs = []
-        else:
-            # First run - start with initial prompt
-            agent_input = build_agent_input_from_history(
-                initial_prompt=prompt, include_initial=True
-            )
-
-            # Process any pending user inputs before starting streaming
-            if st.session_state.pending_user_inputs:
-                # Add all pending user inputs to agent input
-                for pending_input in st.session_state.pending_user_inputs:
-                    agent_input.append(HumanMessage(content=pending_input))
-                # Clear pending inputs after adding them
-                st.session_state.pending_user_inputs = []
-
-        # Stream agent inference in chat message
-        # Note: Chat history above is already displayed and will persist
-        st.session_state.is_streaming = True
         with st.chat_message("assistant"):
             result = ""
             message_placeholder = st.empty()
-            user_input_detected = False
-            new_user_input = None
 
+            st.session_state.user_interupt_message = None
+            st.session_state.agent.state
             # Spinner during streaming (indeterminate loading)
             with st.spinner("AI is performing the analysis...…"):
+                user_interupt_message = st.chat_input("Enter your message...")
+                if user_interupt_message:
+                    st.session_history.append(
+                        {"role": "user", "content": user_interupt_message}
+                    )
+                    with st.chat_message("user"):
+                        st.markdown(user_interupt_message)
+                    st.session_state.agent.state["messages"].append(
+                        HumanMessage(content=user_interupt_message)
+                    )
+                agent_input = build_agent_input_from_history(
+                    initial_prompt=prompt, include_initial=True
+                )
                 message_stream = st.session_state.agent.go_stream(agent_input)
 
+                count = 0
+                prev_node = None
                 for chunk in message_stream:
-                    # Check for new user input during streaming
-                    if st.session_state.pending_user_inputs:
-                        new_user_input = st.session_state.pending_user_inputs.pop(0)
-                        user_input_detected = True
-                        # Save current result to history before processing new input
-                        if result:
-                            add_chat_message("assistant", result)
-                        # Break out of current streaming to process new input
-                        break
-
                     node = chunk[1][1]["langgraph_node"]
                     chunk_data = chunk[1][0]
+
+                    if node == "generate" and prev_node == "execute":
+                        # st.session_state.user_interupt_message:
+                        st.session_state.chat_history.append(
+                            {"role": "assistant", "content": result}
+                        )
+                        st.rerun()
 
                     if node == "generate" and hasattr(chunk_data, "content"):
                         result += chunk_data.content
@@ -3575,70 +3541,14 @@ DATA BRIEFING:
                         # Handle case where content might be a list
                         content = chunk_data.content
                         if isinstance(content, list):
-                            content = "".join(str(item) for item in content)
+                            content = "".join(
+                                str(item) for item in content if item["type"] == "text"
+                            )
                         result += content
                         # Format and display streaming output
                         formatted_result = format_agent_output_for_display(result)
                         message_placeholder.markdown(formatted_result)
-
-        # If user input was detected during streaming, continue with new input
-        # This will be processed in the next iteration, building from updated history
-        if user_input_detected and new_user_input:
-            # User message is already in chat_history (added when input was received)
-            # Assistant message (current result) was just added above
-            # Now continue with streaming using updated conversation history
-            with st.chat_message("assistant"):
-                new_result = ""
-                message_placeholder = st.empty()
-                with st.spinner("사용자 메시지를 처리하고 있습니다...…"):
-                    # Build agent input from updated conversation history (includes the assistant response we just added)
-                    # Don't include initial prompt again when continuing from history
-                    new_agent_input = build_agent_input_from_history(
-                        initial_prompt=prompt, include_initial=False
-                    )
-
-                    # Continue streaming with new input using full conversation history
-                    message_stream = st.session_state.agent.go_stream(new_agent_input)
-
-                    for chunk in message_stream:
-                        # Check for more pending inputs
-                        if st.session_state.pending_user_inputs:
-                            # Store current result before processing next input
-                            if new_result:
-                                add_chat_message("assistant", new_result)
-                            # Process next input (recursive-like behavior via rerun)
-                            st.rerun()
-
-                        node = chunk[1][1]["langgraph_node"]
-                        chunk_data = chunk[1][0]
-
-                        if node == "generate" and hasattr(chunk_data, "content"):
-                            new_result += chunk_data.content
-                            formatted_result = format_agent_output_for_display(
-                                new_result
-                            )
-                            message_placeholder.markdown(formatted_result)
-                        elif node == "execute" and hasattr(chunk_data, "content"):
-                            content = chunk_data.content
-                            if isinstance(content, list):
-                                content = "".join(str(item) for item in content)
-                            new_result += content
-                            formatted_result = format_agent_output_for_display(
-                                new_result
-                            )
-                            message_placeholder.markdown(formatted_result)
-
-            # Update result and add to chat history
-            result = new_result
-            if result:
-                add_chat_message("assistant", result)
-
-        st.session_state.is_streaming = False
-
-        # Add final result to chat history if streaming completed normally (no user input detected)
-        if result and not user_input_detected:
-            add_chat_message("assistant", result)
-
+                    prev_node = node
         # Get generated files (images created during this step)
         image_extensions = ["*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp"]
         all_images = []
@@ -3646,8 +3556,8 @@ DATA BRIEFING:
             all_images.extend(glob.glob(os.path.join(st.session_state.work_dir, ext)))
 
         # Filter to new files (created after this step started)
-        new_files = [f for f in all_images if f not in get_all_previous_files(step_num)]
-
+        # new_files = [f for f in all_images if f not in get_all_previous_files(step_num)]
+        new_files = []
         # Extract solution content (clean results without execution details)
         solution_match = re.search(r"<solution>(.*?)</solution>", result, re.DOTALL)
         if solution_match:

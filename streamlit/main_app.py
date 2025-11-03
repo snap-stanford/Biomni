@@ -68,6 +68,7 @@ def _load_config_paths():
             os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         )
         config_path = os.path.join(repo_root, "config.yaml")
+        print(config_path)
         if os.path.isfile(config_path):
             with open(config_path, "r", encoding="utf-8") as f:
                 cfg = yaml.safe_load(f) or {}
