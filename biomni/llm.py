@@ -102,7 +102,42 @@ def get_llm(
             raise ImportError(  # noqa: B904
                 "langchain-openai package is required for OpenAI models. Install with: pip install langchain-openai"
             )
-        return ChatOpenAI(model=model, temperature=temperature, stop_sequences=stop_sequences)
+        # Newer OpenAI models (e.g., gpt-5-*) require the Responses API and may reject
+        # legacy Chat Completions parameters like `stop`. Force Responses API when
+        # using gpt-5 models to avoid 400 errors such as: "Unsupported parameter: 'stop'".
+        use_responses = model.startswith("gpt-5")
+
+        if use_responses:
+            # Define a minimal subclass that drops the `stop` field when using the
+            # Responses API, since certain models (gpt-5-*) reject it entirely.
+            class _ChatOpenAIResponsesNoStop(ChatOpenAI):
+                def _get_request_payload(self, input_, *, stop=None, **kwargs):  # type: ignore[override]
+                    payload = super()._get_request_payload(input_, stop=stop, **kwargs)
+                    try:
+                        # If this call will use the Responses API, drop `stop` to avoid 400s.
+                        if hasattr(self, "_use_responses_api") and self._use_responses_api(payload):  # type: ignore[attr-defined]
+                            payload.pop("stop", None)
+                            # Also drop temperature for gpt-5 models as they only support default value
+                            payload.pop("temperature", None)
+                    except Exception:
+                        # Be conservative: if anything goes wrong, still remove `stop` and `temperature`.
+                        payload.pop("stop", None)
+                        payload.pop("temperature", None)
+                    return payload
+
+            return _ChatOpenAIResponsesNoStop(
+                model=model,
+                temperature=1,  # Set to default value for gpt-5, will be removed in payload
+                stop_sequences=stop_sequences,
+                use_responses_api=True,
+                output_version="v0",
+            )
+        else:
+            return ChatOpenAI(
+                model=model,
+                temperature=temperature,
+                stop_sequences=stop_sequences,
+            )
 
     elif source == "AzureOpenAI":
         try:

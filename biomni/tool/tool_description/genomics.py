@@ -575,6 +575,67 @@ description = [
         ],
     },
     {
+        "description": "Generate State embeddings for single-cell RNA-seq data using the SE-600M model. "
+        "This function downloads the SE-600M model from Hugging Face, installs required dependencies "
+        "(git-lfs, uv, arc-state), and generates embeddings for the input AnnData object. "
+        "The SE-600M model is a state-of-the-art embedding model for single-cell data that can capture "
+        "complex biological patterns and cell states. Features include real-time streaming output, "
+        "automatic retry with reduced batch size on failure, GPU detection and warnings, and input validation.",
+        "name": "generate_embeddings_with_state",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Name of the output embeddings file. If None, will use input filename with '_state_embeddings' suffix",
+                "name": "output_filename",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Path to the specific model checkpoint. If None, uses the latest checkpoint in model_folder",
+                "name": "checkpoint",
+                "type": "str",
+            },
+            {
+                "default": "X_state",
+                "description": "Name of key to store embeddings in the output AnnData object",
+                "name": "embed_key",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Path to protein embeddings override (.pt). If omitted, auto-detects in model folder",
+                "name": "protein_embeddings",
+                "type": "str",
+            },
+            {
+                "default": 500,
+                "description": "Batch size for embedding forward pass. Increase to use more VRAM and speed up embedding",
+                "name": "batch_size",
+                "type": "int",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Name of the input AnnData file (.h5ad format)",
+                "name": "adata_filename",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Directory containing the input data file",
+                "name": "data_dir",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Directory where the SE-600M model will be downloaded and stored",
+                "name": "model_folder",
+                "type": "str",
+            },
+        ],
+    },
+    {
         "description": "Convert ENSEMBL gene IDs between different species using BioMart homology mapping. "
         "This function converts a list of ENSEMBL gene IDs from one species to their "
         "homologous counterparts in another species using the Ensembl BioMart database. "
@@ -652,6 +713,128 @@ description = [
                 "name": "ensembl_gene_ids",
                 "type": "List[str]",
             }
+        ],
+    },
+    {
+        "description": "Generate Transcriptformer embeddings for single-cell RNA-seq data. "
+        "This function downloads model checkpoints, prepares the AnnData object with required fields "
+        "(ensembl_id, raw counts, assay metadata), and runs inference to generate cell or gene embeddings. "
+        "Transcriptformer is a transformer-based model that can learn rich representations of "
+        "single-cell gene expression data. The function automatically handles Ensembl ID pattern "
+        "detection, model downloading, data preprocessing, and creates missing assay metadata columns "
+        "with 'unknown' values if needed.",
+        "name": "generate_transcriptformer_embeddings",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Name of the output embeddings file. If None, will use input filename with '_transcriptformer_embeddings' suffix",
+                "name": "output_filename",
+                "type": "str",
+            },
+            {
+                "default": "tf-sapiens",
+                "description": "Type of transcriptformer model to download and use. Options: 'tf-sapiens', 'tf-exemplar', 'tf-metazoa'",
+                "name": "model_type",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Path to the transcriptformer checkpoint directory. If None, will use './checkpoints/{model_type}'",
+                "name": "checkpoint_path",
+                "type": "str",
+            },
+            {
+                "default": 8,
+                "description": "Batch size for inference",
+                "name": "batch_size",
+                "type": "int",
+            },
+            {
+                "default": "16-mixed",
+                "description": "Precision for inference. Options: '16-mixed', '32'",
+                "name": "precision",
+                "type": "str",
+            },
+            {
+                "default": 30,
+                "description": "Maximum count value to clip to",
+                "name": "clip_counts",
+                "type": "int",
+            },
+            {
+                "default": -1,
+                "description": "Which layer to extract embeddings from (-1 for last layer)",
+                "name": "embedding_layer_index",
+                "type": "int",
+            },
+            {
+                "default": 1,
+                "description": "Number of GPUs to use",
+                "name": "num_gpus",
+                "type": "int",
+            },
+            {
+                "default": 0,
+                "description": "Number of data loading workers",
+                "name": "n_data_workers",
+                "type": "int",
+            },
+            {
+                "default": "ensembl_id",
+                "description": "Column name in AnnData.var containing gene identifiers",
+                "name": "gene_col_name",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Path to pretrained embeddings for out-of-distribution species",
+                "name": "pretrained_embedding",
+                "type": "str",
+            },
+            {
+                "default": True,
+                "description": "Whether to filter genes to only those in the vocabulary",
+                "name": "filter_to_vocabs",
+                "type": "bool",
+            },
+            {
+                "default": "None",
+                "description": "Whether to use raw counts from AnnData.raw.X (True), adata.X (False), or auto-detect (None/auto)",
+                "name": "use_raw",
+                "type": "str",
+            },
+            {
+                "default": "cell",
+                "description": "Type of embeddings to extract: 'cell' for mean-pooled cell embeddings or 'cge' for contextual gene embeddings",
+                "name": "emb_type",
+                "type": "str",
+            },
+            {
+                "default": False,
+                "description": "Remove duplicate genes if found instead of raising an error",
+                "name": "remove_duplicate_genes",
+                "type": "bool",
+            },
+            {
+                "default": False,
+                "description": "Use map-style out-of-memory DataLoader (DistributedSampler-friendly)",
+                "name": "oom_dataloader",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Name of the input AnnData file (.h5ad format)",
+                "name": "adata_filename",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Directory containing the input data file",
+                "name": "data_dir",
+                "type": "str",
+            },
         ],
     },
 ]
