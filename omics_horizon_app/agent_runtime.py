@@ -1,4 +1,4 @@
-"\"\"\"Agent interaction helpers for the Omics Horizon Streamlit app.\"\"\""
+'"""Agent interaction helpers for the Omics Horizon Streamlit app."""'
 
 from __future__ import annotations
 
@@ -34,11 +34,78 @@ _LOGGER = logging.getLogger("omics.streamlit_app")
 _LOG_PREVIEW_LIMIT = 800
 
 
+def _process_markdown_images(content: str) -> str:
+    """Process markdown image links and convert them to base64-encoded HTML images.
+
+    This function finds markdown image syntax like ![alt](path) and converts
+    local file paths to base64-encoded HTML img tags that Streamlit can display.
+
+    Args:
+        content: Markdown content that may contain image links
+
+    Returns:
+        Content with image links converted to base64 HTML images
+    """
+
+    # Pattern to find markdown images: ![alt](path)
+    image_pattern = r'!\[([^\]]*)\]\(([^)]+?)(?:\s+"[^"]*")?\)'
+
+    def replace_image(match: re.Match) -> str:
+        alt_text = match.group(1)
+        image_path = match.group(2).strip()
+
+        # Skip URLs (http/https)
+        if image_path.startswith(("http://", "https://")):
+            return match.group(0)
+
+        # Skip data URIs (already encoded)
+        if image_path.startswith("data:"):
+            return match.group(0)
+
+        # Try to resolve the path
+        try:
+            # First try as absolute path
+            if not os.path.isabs(image_path):
+                # If relative, try relative to current working directory
+                # This is typically the workspace directory
+                workspace = st.session_state.get("work_dir", os.getcwd())
+                image_path = os.path.join(workspace, image_path)
+
+            figure_path = Path(image_path)
+
+            if not figure_path.is_file():
+                # File doesn't exist, return original
+                return match.group(0)
+
+            # File exists, encode as base64
+            mime = mimetypes.guess_type(figure_path.name)[0] or "image/png"
+            encoded = base64.b64encode(figure_path.read_bytes()).decode("utf-8")
+
+            # Return HTML img tag with base64 data
+            return (
+                f'\n\n<div style="margin: 20px 0; text-align: center;">\n'
+                f'<img src="data:{mime};base64,{encoded}" alt="{alt_text}" '
+                f'style="max-width:100%; height:auto; margin: 10px 0;"/>\n'
+                f"</div>\n\n"
+            )
+        except Exception as e:
+            # If anything fails, return original markdown
+            # Log the error for debugging if needed
+            if _LOGGER:
+                _LOGGER.debug(f"Failed to process image {image_path}: {e}")
+            return match.group(0)
+
+    return re.sub(image_pattern, replace_image, content)
+
+
 def format_agent_output_for_display(
     raw_text: str, max_observation_length: int = MAX_OBSERVATION_DISPLAY_LENGTH
 ) -> str:
     """Format agent's raw output into clean, readable Markdown."""
     formatted = raw_text
+
+    # Process markdown images first (before other processing)
+    formatted = _process_markdown_images(formatted)
 
     incomplete_execute = re.search(
         r"<execute>((?:(?!<execute>|</execute>).)*?)$", formatted, re.DOTALL
@@ -202,10 +269,10 @@ def format_agent_output_for_display(
             figure_name = figure_path.stem
             # Add extra spacing and figure legend
             return (
-                f"\n\n<div style=\"margin: 40px 0; text-align: center;\">\n"
-                f"<img src=\"data:{mime};base64,{encoded}\" alt=\"{alt}\" "
-                f"style=\"max-width:100%; height:auto; margin: 20px 0;\"/>\n"
-                f"<p style=\"margin-top: 15px; font-style: italic; color: #666;\">"
+                f'\n\n<div style="margin: 40px 0; text-align: center;">\n'
+                f'<img src="data:{mime};base64,{encoded}" alt="{alt}" '
+                f'style="max-width:100%; height:auto; margin: 20px 0;"/>\n'
+                f'<p style="margin-top: 15px; font-style: italic; color: #666;">'
                 f"<strong>Figure:</strong> {figure_name}</p>\n"
                 f"</div>\n\n"
             )
@@ -228,10 +295,10 @@ def format_agent_output_for_display(
         except Exception:
             # Remove invalid figures immediately
             return ""
-    
+
     # Remove invalid figure tokens first
     formatted = re.sub(r"\[\[FIGURE::(.*?)\]\]", _check_and_remove_figure, formatted)
-    
+
     # Then replace valid figure tokens with rendered HTML
     formatted = re.sub(r"\[\[FIGURE::(.*?)\]\]", _figure_replacer, formatted)
 
@@ -319,7 +386,9 @@ def parse_step_progress(accumulated_text: str) -> dict:
         re.search(r"<execute>(?!.*</execute>)", accumulated_text, re.DOTALL)
     )
     is_thinking = bool(
-        re.search(r"(?:thinking|analyzing|processing)", accumulated_text[-500:], re.IGNORECASE)
+        re.search(
+            r"(?:thinking|analyzing|processing)", accumulated_text[-500:], re.IGNORECASE
+        )
     )
 
     return {
@@ -332,7 +401,9 @@ def parse_step_progress(accumulated_text: str) -> dict:
     }
 
 
-def process_with_agent(prompt: str, show_process: bool = False, use_history: bool = False) -> str:
+def process_with_agent(
+    prompt: str, show_process: bool = False, use_history: bool = False
+) -> str:
     """Execute the agent with progress feedback and optional streaming UI."""
     original_dir = os.getcwd()
     try:
@@ -363,7 +434,9 @@ def process_with_agent(prompt: str, show_process: bool = False, use_history: boo
                     node = chunk[1][1]["langgraph_node"]
                     chunk_data = chunk[1][0]
 
-                    if node in {"generate", "execute"} and hasattr(chunk_data, "content"):
+                    if node in {"generate", "execute"} and hasattr(
+                        chunk_data, "content"
+                    ):
                         result += chunk_data.content
                         formatted_result = format_agent_output_for_display(result)
                         process_container.markdown(formatted_result)
@@ -468,7 +541,10 @@ def process_with_agent(prompt: str, show_process: bool = False, use_history: boo
 
 
 def add_chat_message(
-    role: str, content: str, files: Optional[Iterable[str]] = None, timestamp: str | None = None
+    role: str,
+    content: str,
+    files: Optional[Iterable[str]] = None,
+    timestamp: str | None = None,
 ) -> None:
     """Append a chat message to session history."""
     if timestamp is None:
@@ -507,10 +583,16 @@ def _log_response_preview(content: str, files: Optional[Iterable[str]] = None) -
     file_info = ""
     if files:
         file_info = f" | files={','.join(os.path.basename(f) for f in files)}"
-    _LOGGER.info("Chat assistant response: %s%s", normalized if normalized else "<empty>", file_info)
+    _LOGGER.info(
+        "Chat assistant response: %s%s",
+        normalized if normalized else "<empty>",
+        file_info,
+    )
 
 
-def maybe_add_assistant_message(content: str, files: Optional[Iterable[str]] = None) -> bool:
+def maybe_add_assistant_message(
+    content: str, files: Optional[Iterable[str]] = None
+) -> bool:
     """Add assistant message if it's not a duplicate of the last one."""
     if not content:
         return False
