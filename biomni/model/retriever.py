@@ -16,7 +16,7 @@ class ToolRetriever:
 
         Args:
             query: The user's query
-            resources: A dictionary with keys 'tools', 'data_lake', and 'libraries',
+            resources: A dictionary with keys 'tools', 'data_lake', 'libraries', and 'know_how',
                       each containing a list of available resources
             llm: Optional LLM instance to use for retrieval (if None, will create a new one)
 
@@ -24,8 +24,9 @@ class ToolRetriever:
             A dictionary with the same keys, but containing only the most relevant resources
 
         """
-        # Create a prompt for the LLM to select relevant resources
-        prompt = f"""
+        # Build prompt sections for available resources
+        prompt_sections = []
+        prompt_sections.append(f"""
 You are an expert biomedical research assistant. Your task is to select the relevant resources to help answer a user's query.
 
 USER QUERY: {query}
@@ -41,17 +42,35 @@ AVAILABLE DATA LAKE ITEMS:
 {self._format_resources_for_prompt(resources.get("data_lake", []))}
 
 AVAILABLE SOFTWARE LIBRARIES:
-{self._format_resources_for_prompt(resources.get("libraries", []))}
+{self._format_resources_for_prompt(resources.get("libraries", []))}""")
 
+        # Add know-how section if available
+        if "know_how" in resources and resources["know_how"]:
+            prompt_sections.append(f"""
+AVAILABLE KNOW-HOW DOCUMENTS (Best Practices & Protocols):
+{self._format_resources_for_prompt(resources.get("know_how", []))}""")
+
+        # Build response format based on available categories
+        response_format = """
 For each category, respond with ONLY the indices of the relevant items in the following format:
 TOOLS: [list of indices]
 DATA_LAKE: [list of indices]
-LIBRARIES: [list of indices]
+LIBRARIES: [list of indices]"""
+
+        if "know_how" in resources and resources["know_how"]:
+            response_format += "\nKNOW_HOW: [list of indices]"
+
+        response_format += """
 
 For example:
 TOOLS: [0, 3, 5, 7, 9]
 DATA_LAKE: [1, 2, 4]
-LIBRARIES: [0, 2, 4, 5, 8]
+LIBRARIES: [0, 2, 4, 5, 8]"""
+
+        if "know_how" in resources and resources["know_how"]:
+            response_format += "\nKNOW_HOW: [0, 1]"
+
+        response_format += """
 
 If a category has no relevant items, use an empty list, e.g., DATA_LAKE: []
 
@@ -62,9 +81,12 @@ IMPORTANT GUIDELINES:
 4. For wet lab sequence type of queries, ALWAYS include molecular biology tools
 5. For data lake items, include datasets that could provide useful information
 6. For libraries, include those that provide functions needed for analysis
-7. Don't exclude resources just because they're not explicitly mentioned in the query
-8. When in doubt about a database tool or molecular biology tool, include it rather than exclude it
+7. For know-how documents, include those that provide relevant protocols, best practices, or troubleshooting guidance
+8. Don't exclude resources just because they're not explicitly mentioned in the query
+9. When in doubt about a database tool or molecular biology tool, include it rather than exclude it
 """
+
+        prompt = "\n".join(prompt_sections) + response_format
 
         # Use the provided LLM or create a new one
         if llm is None:
@@ -99,6 +121,14 @@ IMPORTANT GUIDELINES:
             ],
         }
 
+        # Add know-how if present
+        if "know_how" in resources and resources["know_how"]:
+            selected_resources["know_how"] = [
+                resources["know_how"][i]
+                for i in selected_indices.get("know_how", [])
+                if i < len(resources.get("know_how", []))
+            ]
+
         return selected_resources
 
     def _format_resources_for_prompt(self, resources: list) -> str:
@@ -123,7 +153,7 @@ IMPORTANT GUIDELINES:
 
     def _parse_llm_response(self, response: str) -> dict:
         """Parse the LLM response to extract the selected indices."""
-        selected_indices = {"tools": [], "data_lake": [], "libraries": []}
+        selected_indices = {"tools": [], "data_lake": [], "libraries": [], "know_how": []}
 
         # Extract indices for each category
         tools_match = re.search(r"TOOLS:\s*\[(.*?)\]", response, re.IGNORECASE)
@@ -143,6 +173,14 @@ IMPORTANT GUIDELINES:
             with contextlib.suppress(ValueError):
                 selected_indices["libraries"] = [
                     int(idx.strip()) for idx in libraries_match.group(1).split(",") if idx.strip()
+                ]
+
+        # Extract know-how indices
+        know_how_match = re.search(r"KNOW[-_]HOW:\s*\[(.*?)\]", response, re.IGNORECASE)
+        if know_how_match and know_how_match.group(1).strip():
+            with contextlib.suppress(ValueError):
+                selected_indices["know_how"] = [
+                    int(idx.strip()) for idx in know_how_match.group(1).split(",") if idx.strip()
                 ]
 
         return selected_indices

@@ -128,6 +128,24 @@ def get_llm(
             raise ImportError(  # noqa: B904
                 "langchain-anthropic package is required for Anthropic models. Install with: pip install langchain-anthropic"
             )
+
+        # Ensure ANTHROPIC_API_KEY is loaded from bash_profile if not in environment
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            try:
+                import subprocess
+
+                result = subprocess.run(
+                    ["bash", "-c", "source ~/.bash_profile 2>/dev/null && echo $ANTHROPIC_API_KEY"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if result.stdout.strip():
+                    os.environ["ANTHROPIC_API_KEY"] = result.stdout.strip()
+                    print("✓ Loaded ANTHROPIC_API_KEY from ~/.bash_profile")
+            except Exception as e:
+                print(f"Note: Could not load ANTHROPIC_API_KEY from bash_profile: {e}")
+
         return ChatAnthropic(
             model=model,
             temperature=temperature,
