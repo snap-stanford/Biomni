@@ -1,0 +1,3 @@
+BIOMNI_DATA_PATH: /workdir_efs/jhjeon/Biomni/biomni_data
+DATA_STORAGE_PATH: /workdir_efs/jhjeon/Biomni/data
+WORKSPACE_PATH: /workdir_efs/jhjeon/Biomni/workspace

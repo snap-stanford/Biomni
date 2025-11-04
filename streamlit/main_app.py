@@ -19,6 +19,7 @@ from datetime import datetime
 import tempfile
 import shutil
 from pathlib import Path
+from collections import defaultdict
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -106,6 +107,48 @@ ANALYSIS_APPS = {
             ".txt.gz",
         ],
         "category": "Genomics",
+        "enabled": True,
+    },
+    "microbiome_analyzer": {
+        "name": "Microbiome Analyzer",
+        "description": "Microbial community analysis and diversity profiling",
+        "icon": "🦠",
+        "function": None,  # To be implemented
+        "data_types": [
+            ".csv",
+            ".tsv",
+            ".txt",
+            ".xlsx",
+            ".xls",
+            ".fasta",
+            ".fastq",
+            ".fa",
+            ".fq",
+            ".fa.gz",
+            ".fastq.gz",
+        ],
+        "category": "Microbiome",
+        "enabled": True,
+    },
+    "metabolic_simulator": {
+        "name": "Metabolic Simulator",
+        "description": "Metabolic network simulation and flux analysis",
+        "icon": "⚛️",
+        "function": None,  # To be implemented
+        "data_types": [
+            ".csv",
+            ".tsv",
+            ".txt",
+            ".xlsx",
+            ".xls",
+            ".json",
+            ".xml",
+            ".sbml",
+            ".gz",
+            ".csv.gz",
+            ".tsv.gz",
+        ],
+        "category": "Metabolomics",
         "enabled": True,
     },
     # Future apps can be added here
@@ -293,33 +336,59 @@ class DataManager:
     def list_data_files(self):
         """List all available data files in LIMS"""
         files = []
-        if os.path.exists(self.data_path):
-            for file in os.listdir(self.data_path):
-                file_path = os.path.join(self.data_path, file)
-                if os.path.isfile(file_path):
-                    # Extract extension with better handling for compressed files
-                    suffix = Path(file).suffix.lower()
-                    if suffix == ".gz":
-                        # For .gz files, try to get the actual file type
-                        # e.g., 'data.txt.gz' -> '.txt.gz'
-                        stem = Path(file).stem  # remove .gz
-                        if "." in stem:
-                            # Has another extension
-                            inner_suffix = Path(stem).suffix.lower()
-                            extension = inner_suffix + ".gz"
-                        else:
-                            extension = ".gz"
-                    else:
-                        extension = suffix
+        if not os.path.exists(self.data_path):
+            return files
 
-                    file_info = {
-                        "name": file,
-                        "path": file_path,
-                        "size": os.path.getsize(file_path),
-                        "modified": datetime.fromtimestamp(os.path.getmtime(file_path)),
-                        "extension": extension,
-                    }
-                    files.append(file_info)
+        root_path = Path(self.data_path)
+        for dirpath, dirnames, filenames in os.walk(self.data_path):
+            # Skip hidden directories
+            dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+
+            for filename in filenames:
+                if filename.startswith("."):
+                    continue
+
+                file_path = Path(dirpath) / filename
+                if not file_path.is_file():
+                    continue
+
+                try:
+                    stat = file_path.stat()
+                except OSError:
+                    continue
+
+                relative_path = file_path.relative_to(root_path)
+                parts = relative_path.parts
+
+                if len(parts) > 1:
+                    instrument = parts[0]
+                    remainder = (
+                        Path(*parts[1:-1]) if len(parts) > 2 else Path()
+                    )
+                else:
+                    instrument = "General"
+                    remainder = Path()
+
+                relative_folder = remainder.as_posix() if remainder.parts else ""
+
+                suffixes = [s.lower() for s in file_path.suffixes]
+                if suffixes and suffixes[-1] == ".gz" and len(suffixes) > 1:
+                    extension = "".join(suffixes[-2:])
+                else:
+                    extension = suffixes[-1] if suffixes else ""
+
+                file_info = {
+                    "name": filename,
+                    "path": str(file_path),
+                    "size": stat.st_size,
+                    "modified": datetime.fromtimestamp(stat.st_mtime),
+                    "extension": extension,
+                    "instrument": instrument,
+                    "relative_path": relative_path.as_posix(),
+                    "relative_folder": relative_folder,
+                }
+                files.append(file_info)
+
         return sorted(files, key=lambda x: x["modified"], reverse=True)
 
     def copy_files_to_workspace(self, file_paths, workspace_path):
@@ -337,8 +406,6 @@ class DataManager:
 def render_sidebar(router, data_manager):
     """Render the sidebar with navigation and info"""
     with st.sidebar:
-        st.markdown("## 🔬 Navigation")
-
         # Current view indicator
         current_view = router.get_current_view()
         if current_view == "lims":
@@ -350,15 +417,6 @@ def render_sidebar(router, data_manager):
             if selected_app and selected_app in ANALYSIS_APPS:
                 app_info = ANALYSIS_APPS[selected_app]
                 st.markdown(f"{app_info['icon']} **Current: {app_info['name']}**")
-
-        st.markdown("---")
-
-        # Navigation buttons
-        if current_view != "lims":
-            if st.button(
-                "🏠 Back to LIMS", key="back_to_lims", use_container_width=True
-            ):
-                router.go_back_to_lims()
 
         st.markdown("---")
 
@@ -379,6 +437,34 @@ def render_sidebar(router, data_manager):
 
         # Quick Actions
         st.markdown("## ⚡ Quick Actions")
+
+        # Grouped action buttons
+        # Back to LIMS (only when not already on LIMS view)
+        if current_view != "lims":
+            if st.button("🏠 Back to LIMS", key="sidebar_back_to_lims", use_container_width=True):
+                router.go_back_to_lims()
+
+        # Export to PDF (chat history + workflow + briefing)
+        try:
+            from omics_horizon_app.utils.pdf_export import export_to_pdf_button
+            export_to_pdf_button()
+        except Exception:
+            pass
+
+        # Clear All Data (analysis-only reset)
+        if st.button("🧹 Clear All Data", key="sidebar_clear_all", use_container_width=True):
+            st.session_state.data_files = []
+            st.session_state.data_briefing = ""
+            st.session_state.paper_files = []
+            st.session_state.analysis_method = ""
+            st.session_state.qa_history = []
+            st.session_state.message_history = []
+            st.session_state.chat_history = []
+            st.session_state.analysis_started = False
+            st.session_state.should_run_agent = False
+            st.session_state.is_streaming = False
+            st.success("✅ All data cleared!")
+            st.rerun()
 
         if st.button("🗑️ Clear Session", key="clear_session", use_container_width=True):
             # Clear all session state
@@ -417,53 +503,84 @@ def render_lims_dashboard(router, data_manager):
     st.markdown("---")
 
     # Data Files Section
-    st.markdown("## 📊 Laboratory Data Repository")
+    st.markdown("## 📊 LIMS Data Repository")
 
     data_files = data_manager.list_data_files()
 
     if not data_files:
         st.info("No data files found in the repository. Add files to get started.")
     else:
-        st.markdown(f"**{len(data_files)} files available**")
-
-        # File selection table (fixed height with scroll)
-        selected_names = {f["name"] for f in st.session_state.selected_data_files}
-        rows = []
+        grouped_files: dict[str, list[dict]] = defaultdict(list)
         for file_info in data_files:
-            rows.append(
-                {
-                    "Select": file_info["name"] in selected_names,
-                    "Name": file_info["name"],
-                    "Size (MB)": round(file_info["size"] / (1024 * 1024), 1),
-                    "Type": file_info["extension"].upper(),
-                    "Modified": file_info["modified"].strftime("%Y-%m-%d %H:%M"),
-                }
-            )
+            grouped_files[file_info["instrument"]].append(file_info)
 
-        df = pd.DataFrame(rows)
-        edited_df = st.data_editor(
-            df,
-            hide_index=True,
-            height=360,
-            use_container_width=True,
-            column_config={
-                "Select": st.column_config.CheckboxColumn("Select"),
-                "Name": st.column_config.TextColumn("Name", disabled=True),
-                "Size (MB)": st.column_config.NumberColumn(
-                    "Size (MB)", disabled=True, format="%.1f"
-                ),
-                "Type": st.column_config.TextColumn("Type", disabled=True),
-                "Modified": st.column_config.TextColumn("Modified", disabled=True),
-            },
+        st.markdown(
+            f"**{len(data_files)} files available across {len(grouped_files)} instrument folders**"
         )
 
-        # Collect selected files
-        selected_files = []
-        for _, row in edited_df.iterrows():
-            if bool(row.get("Select")):
-                match = next((f for f in data_files if f["name"] == row["Name"]), None)
-                if match:
-                    selected_files.append(match)
+        selected_keys = {
+            f["relative_path"] for f in st.session_state.selected_data_files
+        }
+        selected_files: list[dict] = []
+
+        for instrument in sorted(grouped_files.keys()):
+            instrument_files = grouped_files[instrument]
+            instrument_label = (
+                f"{instrument}" if instrument != "General" else "General Files"
+            )
+
+            with st.expander(
+                f"{instrument_label} ({len(instrument_files)} files)", expanded=True
+            ):
+                rows = []
+                for info in instrument_files:
+                    display_folder = info["relative_folder"] or "-"
+                    rows.append(
+                        {
+                            "Select": info["relative_path"] in selected_keys,
+                            "Folder": display_folder,
+                            "File": info["name"],
+                            "Type": info["extension"].upper(),
+                            "Size (MB)": round(info["size"] / (1024 * 1024), 1),
+                            "Modified": info["modified"].strftime("%Y-%m-%d %H:%M"),
+                            "Path": info["relative_path"],
+                        }
+                    )
+
+                df = pd.DataFrame(rows)
+                editor_key = f"data_editor_{instrument}"
+                edited_df = st.data_editor(
+                    df,
+                    hide_index=True,
+                    height=min(320, 100 + 44 * len(rows)),
+                    use_container_width=True,
+                    key=editor_key,
+                    column_config={
+                        "Select": st.column_config.CheckboxColumn("Select"),
+                        "Folder": st.column_config.TextColumn("Folder", disabled=True),
+                        "File": st.column_config.TextColumn("File", disabled=True),
+                        "Size (MB)": st.column_config.NumberColumn(
+                            "Size (MB)", disabled=True, format="%.1f"
+                        ),
+                        "Type": st.column_config.TextColumn("Type", disabled=True),
+                        "Modified": st.column_config.TextColumn(
+                            "Modified", disabled=True
+                        ),
+                        "Path": st.column_config.TextColumn(
+                            "Relative Path", disabled=True, width="medium"
+                        ),
+                    },
+                )
+
+                for _, row in edited_df.iterrows():
+                    if bool(row.get("Select")):
+                        row_path = row.get("Path")
+                        match = next(
+                            (f for f in instrument_files if f["relative_path"] == row_path),
+                            None,
+                        )
+                        if match:
+                            selected_files.append(match)
 
         # Update selected files in session state
         st.session_state.selected_data_files = selected_files
@@ -474,7 +591,12 @@ def render_lims_dashboard(router, data_manager):
             # Show selected files summary
             with st.expander("📋 Selected Files Summary", expanded=False):
                 for file_info in selected_files:
-                    st.markdown(f"- **{file_info['name']}** ({file_info['extension']})")
+                    instrument_label = (
+                        f"{file_info['instrument']} / " if file_info["instrument"] != "General" else ""
+                    )
+                    st.markdown(
+                        f"- **{instrument_label}{file_info['relative_path']}** ({file_info['extension']})"
+                    )
 
         st.markdown("---")
 

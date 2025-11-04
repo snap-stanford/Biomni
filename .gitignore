@@ -236,3 +236,5 @@ chainlit/chainlit.md
 streamlit_workspace
 biomni_data
 *.md
+streamlit/streamlit_app_v3.py
+workspace/
