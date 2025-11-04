@@ -22,6 +22,8 @@ try:
         Table,
         TableStyle,
     )
+    from reportlab.platypus import ListFlowable, ListItem, Preformatted
+    from reportlab.platypus.flowables import HRFlowable
     from reportlab.lib.enums import TA_CENTER, TA_LEFT
     REPORTLAB_AVAILABLE = True
 except ImportError:
@@ -30,21 +32,118 @@ except ImportError:
 import streamlit as st
 
 
-def _markdown_to_text(markdown_text: str) -> str:
-    """Convert markdown to plain text for PDF."""
-    # Remove markdown links but keep text
-    text = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", markdown_text)
-    # Remove bold/italic markers
-    text = re.sub(r"\*\*([^\*]+)\*\*", r"\1", text)
-    text = re.sub(r"\*([^\*]+)\*", r"\1", text)
-    # Remove code blocks (keep content)
-    text = re.sub(r"```[\w]*\n(.*?)```", r"\1", text, flags=re.DOTALL)
-    text = re.sub(r"`([^`]+)`", r"\1", text)
-    # Remove HTML tags
-    text = re.sub(r"<[^>]+>", "", text)
-    # Clean up extra whitespace
-    text = re.sub(r"\n{3,}", "\n\n", text)
-    return text.strip()
+def _convert_inline_markdown_to_html(text: str) -> str:
+    """Convert a subset of inline markdown to simple HTML supported by ReportLab Paragraph."""
+    # Escape HTML first to avoid conflicts
+    text = (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
+    # Bold **text**
+    text = re.sub(r"\*\*([^*]+)\*\*", r"<b>\1</b>", text)
+    # Italic *text*
+    text = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"<i>\1</i>", text)
+    # Inline code `code`
+    text = re.sub(r"`([^`]+)`", r"<font name='Courier'>\1</font>", text)
+    # Links [text](url) -> text (url)
+    text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1 (\2)", text)
+    # Restore explicit line breaks
+    text = text.replace("\n", "<br/>")
+    return text
+
+
+def _markdown_to_flowables(markdown_text: str, styles) -> list:
+    """Convert basic markdown into ReportLab flowables (headings, lists, code, paragraphs)."""
+    flowables = []
+    if not markdown_text:
+        return flowables
+
+    # Normalize newlines
+    md = markdown_text.replace("\r\n", "\n").replace("\r", "\n")
+
+    # Split into code and non-code blocks by fenced code blocks
+    parts = re.split(r"(```[\w-]*\n[\s\S]*?```)", md)
+    for part in parts:
+        if not part:
+            continue
+        code_match = re.match(r"```([\w-]*)\n([\s\S]*?)```", part)
+        if code_match:
+            code_text = code_match.group(2)
+            # Use monospaced preformatted block
+            flowables.append(Spacer(1, 6))
+            flowables.append(Preformatted(code_text, styles["Code"]))
+            flowables.append(Spacer(1, 6))
+            continue
+
+        # Process non-code text by lines to detect headings and lists
+        lines = part.split("\n")
+        list_buffer = []
+        ordered_list_buffer = []
+
+        def _flush_lists():
+            nonlocal list_buffer, ordered_list_buffer
+            if list_buffer:
+                items = [ListItem(Paragraph(_convert_inline_markdown_to_html(item), styles["Normal"])) for item in list_buffer]
+                flowables.append(ListFlowable(items, bulletType="bullet", leftIndent=18))
+                list_buffer = []
+            if ordered_list_buffer:
+                items = [ListItem(Paragraph(_convert_inline_markdown_to_html(item), styles["Normal"])) for item in ordered_list_buffer]
+                flowables.append(ListFlowable(items, bulletType="1", leftIndent=18))
+                ordered_list_buffer = []
+
+        for raw in lines:
+            line = raw.rstrip()
+            if not line.strip():
+                _flush_lists()
+                flowables.append(Spacer(1, 6))
+                continue
+
+            # Horizontal rule
+            if re.match(r"^\s*---+\s*$", line):
+                _flush_lists()
+                flowables.append(Spacer(1, 6))
+                flowables.append(HRFlowable(color=colors.HexColor("#cccccc")))
+                flowables.append(Spacer(1, 6))
+                continue
+
+            # Headings
+            h = re.match(r"^(#{1,6})\s+(.*)$", line)
+            if h:
+                _flush_lists()
+                level = len(h.group(1))
+                text = _convert_inline_markdown_to_html(h.group(2).strip())
+                if level == 1:
+                    style = styles["Heading1"]
+                elif level == 2:
+                    style = styles["Heading2"]
+                elif level == 3:
+                    style = styles["Heading3"]
+                else:
+                    style = styles["Heading4"]
+                flowables.append(Paragraph(text, style))
+                continue
+
+            # Unordered list item
+            ul = re.match(r"^\s*[-*]\s+(.*)$", line)
+            if ul:
+                list_buffer.append(ul.group(1).strip())
+                continue
+
+            # Ordered list item
+            ol = re.match(r"^\s*\d+\.\s+(.*)$", line)
+            if ol:
+                ordered_list_buffer.append(ol.group(1).strip())
+                continue
+
+            # Normal paragraph line
+            _flush_lists()
+            html = _convert_inline_markdown_to_html(line)
+            flowables.append(Paragraph(html, styles["Normal"]))
+
+        _flush_lists()
+
+    return flowables
 
 
 def _extract_figure_paths(content: str, workspace_dir: str) -> list[tuple[str, Path]]:
@@ -161,22 +260,21 @@ def generate_pdf_report(
     story.append(Paragraph(f"<i>Generated: {timestamp}</i>", styles["Normal"]))
     story.append(Spacer(1, 0.3 * inch))
     
+    # Custom code style for Preformatted blocks
+    styles.add(ParagraphStyle("Code", parent=styles["Normal"], fontName="Courier", fontSize=9, leading=11, backColor=colors.whitesmoke))
+
     # Add data briefing section
     if data_briefing:
         story.append(Paragraph("<b>Data Briefing</b>", heading1_style))
-        briefing_text = _markdown_to_text(data_briefing)
-        for para in briefing_text.split("\n\n"):
-            if para.strip():
-                story.append(Paragraph(para.strip().replace("\n", "<br/>"), styles["Normal"]))
+        for flow in _markdown_to_flowables(data_briefing, styles):
+            story.append(flow)
         story.append(Spacer(1, 0.2 * inch))
     
     # Add analysis method section
     if analysis_method:
         story.append(Paragraph("<b>Analysis Workflow</b>", heading1_style))
-        method_text = _markdown_to_text(analysis_method)
-        for para in method_text.split("\n\n"):
-            if para.strip():
-                story.append(Paragraph(para.strip().replace("\n", "<br/>"), styles["Normal"]))
+        for flow in _markdown_to_flowables(analysis_method, styles):
+            story.append(flow)
         story.append(Spacer(1, 0.2 * inch))
     
     # Add chat history/conversation section
@@ -201,23 +299,12 @@ def generate_pdf_report(
             
             story.append(Paragraph(role_text, role_style))
             
-            # Convert content to plain text (removing HTML)
-            text_content = _markdown_to_text(content)
-            
             # Check for figures in content
             figures = _extract_figure_paths(content, workspace_dir)
-            
-            # Add text paragraphs
-            paragraphs = [p.strip() for p in text_content.split("\n\n") if p.strip()]
-            for para in paragraphs:
-                # Skip if it's just a figure reference
-                if "[[FIGURE::" not in para:
-                    para_html = para.replace("\n", "<br/>")
-                    # Escape special characters for reportlab
-                    para_html = para_html.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                    # Restore intentional breaks
-                    para_html = para_html.replace("&lt;br/&gt;", "<br/>")
-                    story.append(Paragraph(para_html, styles["Normal"]))
+
+            # Add text paragraphs with markdown formatting
+            for flow in _markdown_to_flowables(content, styles):
+                story.append(flow)
             
             # Add figures
             for fig_label, fig_path in figures:
