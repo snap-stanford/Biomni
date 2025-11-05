@@ -28,6 +28,7 @@ from biomni.llm import get_llm
 from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from biomni.model.retriever import ToolRetrieverByRAG
+from biomni.utils.resource_filter import apply_resource_filters
 
 # tool_llm_model_id = "gemini-2.5-pro"
 # tool_llm_model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
@@ -35,8 +36,46 @@ tool_llm_model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
 
 class A1_HITS(A1):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, resource_filter_config_path=None, **kwargs):
+        """
+        Initialize A1_HITS agent with optional resource filtering.
+
+        Args:
+            *args: Arguments passed to parent A1 class
+            resource_filter_config_path: Path to YAML file with resource filter configuration.
+                                        If None, will auto-detect resource_filter.yaml
+            **kwargs: Keyword arguments passed to parent A1 class
+        """
         super().__init__(*args, **kwargs)
+
+        # Apply resource filters if available
+        if (
+            hasattr(self, "module2api")
+            and hasattr(self, "data_lake_dict")
+            and hasattr(self, "library_content_dict")
+        ):
+            (
+                filtered_module2api,
+                filtered_data_lake_dict,
+                filtered_library_content_dict,
+            ) = apply_resource_filters(
+                self.module2api,
+                self.data_lake_dict,
+                self.library_content_dict,
+                config_path=resource_filter_config_path,
+            )
+
+            # Update the filtered resources
+            self.module2api = filtered_module2api
+            self.data_lake_dict = filtered_data_lake_dict
+            self.library_content_dict = filtered_library_content_dict
+
+            # Recreate tool registry if it exists
+            if hasattr(self, "tool_registry") and self.use_tool_retriever:
+                from biomni.tool.tool_registry import ToolRegistry
+
+                self.tool_registry = ToolRegistry(self.module2api)
+
         self.timer = {"generate": 0.0, "execute": 0.0, "error_fixing": 0.0}
 
     def _initialize_error_fixing_history(self, state):
@@ -352,6 +391,7 @@ Output:
             # Update the system prompt with the selected resources
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
+        print(self.system_prompt)
         if additional_system_prompt:
             self.system_prompt += "\n----\n" + additional_system_prompt
 
@@ -436,9 +476,9 @@ Output:
             for chunk in self.llm.stream(messages):
                 chunk_msg = chunk.content
                 msg += chunk_msg
-                if "chunk_messages" not in state:
-                    state["chunk_messages"] = []
-                state["chunk_messages"].append(chunk_msg)
+                # if "chunk_messages" not in state:
+                #     state["chunk_messages"] = []
+                # state["chunk_messages"].append(chunk_msg)
                 # yield {"messages": [AIMessage(content=chunk_msg)]}
 
             # Parse the response
@@ -446,8 +486,10 @@ Output:
             # Check for incomplete tags and fix them
             if "<execute>" in msg and "</execute>" not in msg:
                 msg += "</execute>"
+                state["messages"].append(AIMessageChunk(content="</execute>"))
             if "<solution>" in msg and "</solution>" not in msg:
                 msg += "</solution>"
+                state["messages"].append(AIMessageChunk(content="</solution>"))
             if "<think>" in msg and "</think>" not in msg:
                 msg += "</think>"
 

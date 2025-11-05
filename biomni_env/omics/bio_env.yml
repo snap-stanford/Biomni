@@ -1,0 +1,47 @@
+name: biomni_hits
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - blast
+  - samtools
+  - bowtie2
+  - bwa
+  - bedtools
+  - fastqc
+  - trimmomatic
+  - mafft
+  - gseapy
+  - mageck
+  - plannotate
+  - pip:
+    - scanpy
+    - biopython
+    - biopandas
+    - macs2
+    - gget
+    - cellxgene-census
+    - scikit-bio
+    - umap-learn
+    - scrublet
+    - scvelo
+    - scvi-tools
+    - harmony-pytorch
+    - pyliftover
+    - pytdc==0.4.0
+    - pysam
+    - pyfaidx
+    - pyranges
+    - pybedtools
+    - pyscenic
+    - cooler
+    - viennarna
+    - PyMassSpec
+    - python-libsbml
+    - cobra
+    - hmmlearn
+    - msprime
+    - tskit
+    - cyvcf2
+    - fanc
