@@ -1,0 +1,322 @@
+Application,Cas9 Species,Depositor,Plasmid ID,PubMed ID,Target Gene,Target Sequence,Target Species
+cut,S. pyogenes,Goncalves,"<a href=""/58252/"">58252</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24870050/"">24870050</a>",AAVS1,GGGGCCACTAGGGACAGGAT,H. sapiens
+cut,S. pyogenes,Church,"<a href=""/41818/"">41818</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23287722/"">23287722</a>",AAVS1,GGGGCCACTAGGGACAGGAT,H. sapiens
+cut,S. pyogenes,Sabatini,"<a href=""/50662/"">50662</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24336569/"">24336569</a>",AAVS1,GGGGCCACTAGGGACAGGAT,H. sapiens
+cut,S. pyogenes,Sabatini,"<a href=""/70661/"">70661</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26472758/"">26472758</a>",AAVS1,GGGGCCACTAGGGACAGGAT,H. sapiens
+cut,S. pyogenes,Church,"<a href=""/41817/"">41817</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23287722/"">23287722</a>",AAVS1,GTCCCCTCCACCCCACAGTG,H. sapiens
+cut,S. pyogenes,Kanemaki,"<a href=""/72833/"">72833</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/27052166/"">27052166</a>",AAVS1,GGGGCCACTAGGGACAGGAT,H. sapiens
+cut,S. pyogenes,Corn,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26789497/"">26789497</a>",AAVS1,TGTCCCTAGTGGCCCCACTG,H. sapiens
+cut,S. pyogenes,Corn,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26789497/"">26789497</a>",AAVS1,ACAGTGGGGCCACTAGGGAC,H. sapiens
+RNA targeting,S. pyogenes,Yeo,"<a href=""/74705/"">74705</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26997482/"">26997482</a>",ACTB,UGGAGCGAGCAUCCCCCAAA,H. sapiens
+cut,S. pyogenes,Jiang,"<a href=""/62552/"">62552</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25739462/"">25739462</a>",actII-orf4,ATTACCAGGGACCGGAGTTC,S. coelicolor
+cut,S. pyogenes,Zaratiegui,"<a href=""/52225/"">52225</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25352017/"">25352017</a>",ade6+,TCTATTGTTCAGATGCCTCG,S. pombe
+cut,S. pyogenes,Zaratiegui,"<a href=""/52227/"">52227</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25352017/"">25352017</a>",ade6-L469,TCTATTGTTCAGATGCCTTG,S. pombe
+cut,S. pyogenes,Zaratiegui,"<a href=""/52226/"">52226</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25352017/"">25352017</a>",ade6-M210,TCTATTGTTCAGATGCTTCG,S. pombe
+cut,S. pyogenes,Ventura,"<a href=""/64071/"">64071</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25337876/"">25337876</a>",Alk and Eml,,M. musculus
+nick,S. pyogenes,Shaw,"<a href=""/74374/"">74374</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26816379/"">26816379</a>",AMPK alpha 1,GGCTGTCGCCATCTTTCTCC,H. sapiens
+nick,S. pyogenes,Shaw,"<a href=""/74375/"">74375</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26816379/"">26816379</a>",AMPK alpha 1,GAAGATCGGCCACTACATTC,H. sapiens
+nick,S. pyogenes,Shaw,"<a href=""/74376/"">74376</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26816379/"">26816379</a>",AMPK alpha 2,GTCAGCCATCTTCGGCGCGCG,H. sapiens
+nick,S. pyogenes,Shaw,"<a href=""/74377/"">74377</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26816379/"">26816379</a>",AMPK alpha 2,GAAGATCGGACACTACGTGC,H. sapiens
+cut,S. pyogenes,Sabatini,"<a href=""/70660/"">70660</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26472758/"">26472758</a>","Amplicon, JAK2",GAGGCATATTCTTCTCCTGG,H. sapiens
+cut,S. pyogenes,Voytas,"<a href=""/70019/"">70019</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26541286/"">26541286</a>",ANT1,TGTCGTTTATAATTTGTAGA,S. lycopersicum
+cut,S. pyogenes,Voytas,"<a href=""/70018/"">70018</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26541286/"">26541286</a>",ANT1,ACAATTTAATACACCTTTT,S. lycopersicum
+cut,S. pyogenes,Kim,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26479191/"">26479191</a>",AOC,CAAAAGACTGTCAATTCCCT,N. attenuata
+cut/nick,S. pyogenes,Yamamoto,"<a href=""/58780/"">58780</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24954249/"">24954249</a>",APC,GAAGCGGGCAAAGGGGCGAC,H. sapiens
+cut,S. pyogenes,Joung,"<a href=""/42241/"">42241</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23360964/"">23360964</a>",apoea,GGATGAGCCAAGAAGCCGCT,D. rerio
+activate,S. pyogenes,Sato,"<a href=""/64131/"">64131</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",ASCL1,TGGATGGAGAGTTTGCAAGGAGC,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64130/"">64130</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",ASCL1,TGGGCAGCCGCTCGCTGCAGCAG,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64129/"">64129</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",ASCL1,TGGGGCTGGGTGTCCCATTGAAA,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64132/"">64132</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",ASCL1,TGGTGTTTATTCAGCCGGGAGTC,H. sapiens
+cut,S. pyogenes,Mashimo,"<a href=""/60968/"">60968</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24967838/"">24967838</a>",Asip,ATGACAGGAGTCTAACTCAC,R. norvegicus
+tag,S. pyogenes,Mendenhall,"<a href=""/64690/"">64690</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26355004/"">26355004</a>",ATF1,TAGGAATCAAACACTTTTATTGG,H. sapiens
+cut,S. pyogenes,Yamamoto,"<a href=""/58779/"">58779</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24954249/"">24954249</a>",ATM,TGAATTGGGATGCTGTTTTT,H. sapiens
+cut,S. pyogenes,Mello,"<a href=""/58981/"">58981</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24879462/"">24879462</a>",avr-14,GATTGGAGAGTTAGACCACG,C. elegans
+cut,S. pyogenes,Mello,"<a href=""/58982/"">58982</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24879462/"">24879462</a>",avr-15,GTTTGCAATATAAGTCACCC,C. elegans
+cut,S. pyogenes,Yamamoto,"<a href=""/58782/"">58782</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24954249/"">24954249</a>",AXIN2,TATGTTGGTGACTTGCCTCC,H. sapiens
+methylation,S. pyogenes,Zoldoš,"<a href=""/71828/"">71828</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26969735/"">26969735</a>",BACH2,AATGTAGCGATTGAGAGTGTGGG,H. sapiens
+cut,S. pyogenes,Sabatini,"<a href=""/70658/"">70658</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26472758/"">26472758</a>",BCR/ABL amplicon,GGCTCCCTTCAAGTGGGATG,H. sapiens
+cut,S. pyogenes,Corn,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26789497/"">26789497</a>",BFP,ATGGCGTGCAGTGCTTCAGC,
+cut,S. pyogenes,Kim,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26479191/"">26479191</a>",BIN2,ATCACAGTGATGCTCGTCAA,L. sativa
+cut,S. pyogenes,Hanna,"<a href=""/59724/"">59724</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25543152/"">25543152</a>",BLIMP1,CGGATGGGGTAAACGACCCG,H. sapiens
+cut,S. pyogenes,Kim,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26479191/"">26479191</a>",BRI1,TTTGAAAGATGGAAGCGCGG,A. thaliana
+cut,S. pyogenes,Kim,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26479191/"">26479191</a>",BRI1,TGAAACTAAACTGGTCCACA,A. thaliana
+interfere,S. pyogenes,Lu,"<a href=""/68892/"">68892</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26918244/"">26918244</a>",BT1754,GAAAATGGGGTGTATCCTGC,B. thetaiotaomicron
+interfere,S. pyogenes,Lu,"<a href=""/68891/"">68891</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26918244/"">26918244</a>",BT1854,ATTGAAGAACAAAAGCAGTT,B. thetaiotaomicron
+cut,S. pyogenes,Sabatini,"<a href=""/70650/"">70650</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26472758/"">26472758</a>",C16orf80,CGATGCTGTAGAGGATGGAG,H. sapiens
+cut,S. pyogenes,Sabatini,"<a href=""/70651/"">70651</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26472758/"">26472758</a>",C16orf80,TGTCTGAGAAGTAAACCCGT,H. sapiens
+cut,S. pyogenes,Sabatini,"<a href=""/70653/"">70653</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26472758/"">26472758</a>",C3orf17,GGGCCAAATGGGGTTTGTGG,H. sapiens
+cut,S. pyogenes,Sabatini,"<a href=""/70652/"">70652</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26472758/"">26472758</a>",C3orf17,GTGTGAGAATCCCTAAGGCG,H. sapiens
+cut,S. pyogenes,Sabatini,"<a href=""/70654/"">70654</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26472758/"">26472758</a>",C9orf114,CAGGCGGGCTCACCTCCGTG,H. sapiens
+cut,S. pyogenes,Sabatini,"<a href=""/70655/"">70655</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26472758/"">26472758</a>",C9orf114,GCGGCAGAGAAGGAGGACCG,H. sapiens
+cut,S. pyogenes,Church,"<a href=""/43803/"">43803</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23460208/"">23460208</a>",CAN1,GATACGTTCTCTATGGAGGA,S. cerevisiae
+cut,S. pyogenes,Bornhauser,"<a href=""/75164/"">75164</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/27194728/"">27194728</a>",Caspase-8,GCCTGGACTACATTCCGCAA,H. sapiens
+cut,S. pyogenes,Corn,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26789497/"">26789497</a>",CCR5,TGACATCAATTATTATACAT,H. sapiens
+interfere,S. pyogenes,Qi,"<a href=""/46918/"">46918</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23849981/"">23849981</a>",CD71,GGACGCGCTAGTGTGAGTGC,H. sapiens
+cut,S. pyogenes,Yamamoto,"<a href=""/58781/"">58781</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24954249/"">24954249</a>",CDH1,TGACTTGCGAGGGACGCATT,H. sapiens
+activate,S. pyogenes,Vale,"<a href=""/60905/"">60905</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25307933/"">25307933</a>",CDKN1B,GAAGCCGGGACCTGGACCAG,H. sapiens
+tag,S. pyogenes,Mendenhall,"<a href=""/64036/"">64036</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26355004/"">26355004</a>",CEBPB,CTCCGGCCACTGCTAGCGCGG,H. sapiens
+tag,S. pyogenes,Mendenhall,"<a href=""/64047/"">64047</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26355004/"">26355004</a>",CEBPB,GCCGGCAGGGGGACGCGCGCGG,H. sapiens
+cut,S. pyogenes,Ikawa,"<a href=""/50718/"">50718</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24284873/"">24284873</a>",Cent1,GGCAACGTTTGACTTCCTGA,M. musculus
+cut,S. pyogenes,Yamamoto,"<a href=""/58783/"">58783</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24954249/"">24954249</a>",CFTR,TCTGTATCTATATTCATCAT,H. sapiens
+tag,S. pyogenes,Mendenhall,"<a href=""/64940/"">64940</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26355004/"">26355004</a>",CREB1,GCCACAAATCAGATTAATTTGG,H. sapiens
+tag,S. pyogenes,Mendenhall,"<a href=""/64939/"">64939</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26355004/"">26355004</a>",CREB1,GCCACAAATCAGATTAATTTGGG,H. sapiens
+cut,S. pyogenes,Hong,"<a href=""/68060/"">68060</a>","<a href=""http://fungalbiolbiotech.biomedcentral.com/articles/10.1186/s40694-015-0015-1"">Fungal Biology and Biotechnology 2015, 2:4</a>",csr-1,GAGTGGGAGGGTCCCGTCCT,N. crassa
+cut,S. pyogenes,Jacks,"<a href=""/59912/"">59912</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25119044/"">25119044</a>",Ctnnb1,AGCTCCTTCCCTGAGTGGCA,M. musculus
+cut,S. pyogenes,Jacks,"<a href=""/59911/"">59911</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25119044/"">25119044</a>",Ctnnb1,CTGTGGTGGTGGCACCAGAA,M. musculus
+interfere,S. pyogenes,Qi,"<a href=""/46917/"">46917</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23849981/"">23849981</a>",CXCR4,GCAGGTAGCAAAGTGACGCCGA,H. sapiens
+cut,S. pyogenes,Corn,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26789497/"">26789497</a>",CXCR4,CCTCTTTGTCATCACGCTTC,H. sapiens
+activate,S. pyogenes,Lu,"<a href=""/64385/"">64385</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23977949/"">23977949</a>",CYC1m promoter,ACAGAGCACATGCATGCCAT,S. cerevisiae
+activate,S. pyogenes,Lu,"<a href=""/64387/"">64387</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23977949/"">23977949</a>",CYC1m promoter,ACTAATACTTTCAACATTTT,S. cerevisiae
+activate,S. pyogenes,Lu,"<a href=""/64382/"">64382</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23977949/"">23977949</a>",CYC1m promoter,ATATCGAATTCCTGCAGCCC,S. cerevisiae
+activate,S. pyogenes,Lu,"<a href=""/64380/"">64380</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23977949/"">23977949</a>",CYC1m promoter,ATATTCTTTCCTTATACATT,S. cerevisiae
+activate,S. pyogenes,Lu,"<a href=""/64379/"">64379</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23977949/"">23977949</a>",CYC1m promoter,CTAGATATTAAAATGTCTAA,S. cerevisiae
+activate,S. pyogenes,Lu,"<a href=""/64388/"">64388</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23977949/"">23977949</a>",CYC1m promoter,GTTGAAAGTATTAGTTAAAG,S. cerevisiae
+activate,S. pyogenes,Lu,"<a href=""/64381/"">64381</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23977949/"">23977949</a>",CYC1m promoter,TACATACAGTAGGATCCTA,S. cerevisiae
+activate,S. pyogenes,Lu,"<a href=""/64383/"">64383</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23977949/"">23977949</a>",CYC1m promoter,TATAGTAATTTATGCTGCAA,S. cerevisiae
+activate,S. pyogenes,Lu,"<a href=""/64384/"">64384</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23977949/"">23977949</a>",CYC1m promoter,TGCAAAGGTCCTAATGTATA,S. cerevisiae
+activate,S. pyogenes,Lu,"<a href=""/64386/"">64386</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23977949/"">23977949</a>",CYC1m promoter,TGTATGTACATACAGTACCC,S. cerevisiae
+activate,S. pyogenes,Lu,"<a href=""/64378/"">64378</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23977949/"">23977949</a>",CYC1m promoter,TTACTGTATGTACATACAGT,S. cerevisiae
+cut,S. pyogenes,Wente,"<a href=""/47932/"">47932</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23918387/"">23918387</a>",ddx19,GGCAACAGATTCGTGGGCCC,D. rerio
+cut,S. pyogenes,Sabatini,"<a href=""/70656/"">70656</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26472758/"">26472758</a>",DDX3Y,GCAGTTTAGCGATATTGACA,H. sapiens
+cut,S. pyogenes,Sabatini,"<a href=""/70657/"">70657</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26472758/"">26472758</a>",DDX3Y,TCTTGTTGGGGCTAAAACCA,H. sapiens
+cut,S. pyogenes,Church,"<a href=""/41822/"">41822</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23287722/"">23287722</a>",DNMT3A,GAGATGATCGCCCCTTCTTC,H. sapiens
+cut,S. pyogenes,Church,"<a href=""/41821/"">41821</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23287722/"">23287722</a>",DNMT3A,GCATGATGCGCGGCCCAAGG,H. sapiens
+cut,S. pyogenes,Church,"<a href=""/41823/"">41823</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23287722/"">23287722</a>",DNMT3B,GAATTACTCACGCCCCAAGG,H. sapiens
+cut,VRER Cas9 mutant,Fire,"<a href=""/71516/"">71516</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26680661/"">26680661</a>",dpy-10,CGCTACCATAGGCACCACG,C. elegans
+cut,S. pyogenes,Katic,"<a href=""/65630/"">65630</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26044730/"">26044730</a>",dpy-10,GCTACCATAGGCACCACGAG,C.elegans
+cut,S. pyogenes,Fire,"<a href=""/59933/"">59933</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25161212/"">25161212</a>",dpy-10,GCTACCATAGGCACCACGAG,C. elegans
+cut,VQR Cas9 variant,Fire,"<a href=""/71479/"">71479</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26680661/"">26680661</a>",dpy-10,TCCGCTACCATAGGCACCA,C. elegans
+cut,S. pyogenes,Seydoux,"<a href=""/70047/"">70047</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26187122/"">26187122</a>",dpy‐10,GCTACCATAGGCACCACGAG,C. elegans
+cut,S. pyogenes,Joung,"<a href=""/42242/"">42242</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23360964/"">23360964</a>",drd3,GGAAACTACAGCCCAGCGTC,D. rerio
+cut,S. pyogenes,Kim,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26479191/"">26479191</a>",DWD1,TGCATCGTCCAAGCGCACAG,O. sativa
+cut,S. pyogenes,Kim,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26479191/"">26479191</a>",DWD1,CTACGACGTCAGGTTCTACC,O. sativa
+cut,S. pyogenes,Christiaen,"<a href=""/59990/"">59990</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25336740/"">25336740</a>",Ebf,GCTGAGGGTTGGACAACAGG,C. intestinalis
+dCas9-FokI,S. pyogenes,Joung,"<a href=""/60071/"">60071</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24770325/"">24770325</a>",EGFP,"multiple, see article",A. victoria
+cut,S. pyogenes,Zhang,"<a href=""/51764/"">51764</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24336571/"">24336571</a>",EGFP,GAAGTTCGAGGGCGACACCC,A. victoria
+cut,S. pyogenes,Zhang,"<a href=""/51761/"">51761</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24336571/"">24336571</a>",EGFP,GAGCTGGACGGCGACGTAAA,A. victoria
+cut,S. pyogenes,Joung,"<a href=""/47512/"">47512</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23792628/"">23792628</a>",EGFP,GATGCCGTTCTTCTGCTTGT,A. victoria
+cut,S. pyogenes,Zhang,"<a href=""/51763/"">51763</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24336571/"">24336571</a>",EGFP,GGAGCGCACCATCTTCTTCA,A. victoria
+cut,S. pyogenes,Zhang,"<a href=""/51762/"">51762</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24336571/"">24336571</a>",EGFP,GGCCACAAGTTCAGCGTGTC,A. victoria
+cut,S. pyogenes,Del Bene,"<a href=""/61051/"">61051</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24179142/"">24179142</a>",EGFP,GGCGAGGGCGATGCCACCTA,A. victoria
+cut,S. pyogenes,Chen,"<a href=""/46760/"">46760</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23918387/"">23918387</a>",EGFP,GGGCACGGGCAGCTTGCCGG,A. victoria
+cut,S. pyogenes,Joung,"<a href=""/47511/"">47511</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23792628/"">23792628</a>",EGFP,GGGCACGGGCAGCTTGCCGG,A. victoria
+cut,S. pyogenes,Zhang,"<a href=""/51760/"">51760</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24336571/"">24336571</a>",EGFP,GGGCGAGGAGCTGTTCACCG,A. victoria
+cut,S. pyogenes,Zhang,"<a href=""/51765/"">51765</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24336571/"">24336571</a>",EGFP,GGTGAACCGCATCGAGCTGA,A. victoria
+cut,S. pyogenes,Joung,"<a href=""/47513/"">47513</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23792628/"">23792628</a>",EGFP,GGTGGTGCAGATGAACTTCA,A. victoria
+cut,S. pyogenes,Goncalves,"<a href=""/58255/"">58255</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24870050/"">24870050</a>",EGFP,TGAAGAAGATGGTGCGCTC,A. victoria
+cut,S. pyogenes,Moffat,"<a href=""/74187/"">74187</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26627737/"">26627737</a>",EIF3D,TGTAGGTTGCCTCCATGGCC,H. sapiens
+cut,S. pyogenes,Moffat,"<a href=""/74188/"">74188</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26627737/"">26627737</a>",EIF3D,AGACGACCCTGTCATCCGCA,H. sapiens
+cut,S. pyogenes,Zhang,"<a href=""/42337/"">42337</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23287718/"">23287718</a>",Emx1,,H. sapiens
+cut,S. pyogenes,Joung,"<a href=""/47508/"">47508</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23792628/"">23792628</a>",EMX1,GAGTCCGAGCAGAAGAAGAA,H. sapiens
+cut,S. pyogenes,Corn,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26789497/"">26789497</a>",EMX1,CGATGTCACCTCCAATGACT,H. sapiens
+cut,S. pyogenes,Chen,"<a href=""/71288/"">71288</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26193878/"">26193878</a>","ETC2, TRY, and CPC",,A. thaliana
+cut,S. pyogenes,Bornhauser,"<a href=""/75166/"">75166</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/27194728/"">27194728</a>",FADD,ACTCCCGCACACGCTCTGTC,H. sapiens
+cut,S. pyogenes,Joung,"<a href=""/47510/"">47510</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23792628/"">23792628</a>",FANCF,GGAATCCCTTCTGCAGCACC,H. sapiens
+cut,S. pyogenes,Seydoux,"<a href=""/65597/"">65597</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25249454/"">25249454</a>",fbf-2,GTAGTCACGGCGATGATTA,C. elegans
+cut,S. pyogenes,Seydoux,"<a href=""/65591/"">65591</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25249454/"">25249454</a>",fbf-2,TAATCATCGCCGTGACTAC,C. elegans
+cut,S. pyogenes,Joung,"<a href=""/42244/"">42244</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23360964/"">23360964</a>",fh,GGAGCGAGCGGAGCGGTACA,D. rerio
+cut,S. pyogenes,Joung,"<a href=""/42243/"">42243</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23360964/"">23360964</a>",fh,GGAGCGGTACATGGCGACCG,D. rerio
+tag,S. pyogenes,Mendenhall,"<a href=""/64254/"">64254</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26355004/"">26355004</a>",GABPA,GAAAAGGATAATTGAGCCCCAGG,H. sapiens
+tag,S. pyogenes,Mendenhall,"<a href=""/64255/"">64255</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26355004/"">26355004</a>",GABPA,TTTGGAGTCTCAGAATGTCCTGG,H. sapiens
+activate,S. pyogenes,Qi,"<a href=""/46916/"">46916</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23849981/"">23849981</a>",GAL4 UAS,GAACGACTAGTTAGGCGTGTA,
+activate,S. pyogenes,Qi,"<a href=""/46915/"">46915</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23849981/"">23849981</a>",GAL4 UAS,GTTGGAGCACTGTCCTCCGAACGT,
+activate,S. pyogenes,Sato,"<a href=""/64158/"">64158</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",GAL4UAS,TGGGGACAGTACTCCGCTCGAGT,
+activate,S. pyogenes,Sato,"<a href=""/64157/"">64157</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",GAL4UAS,TGGGTCTTCGGAGGACAGTACTC,
+activate,S. pyogenes,Sato,"<a href=""/64159/"">64159</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",GAL4UAS,TGGTCCGTCTAGAAACTCGGTAC,
+cut,S. pyogenes,Du,"<a href=""/65566/"">65566</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25849248/"">25849248</a>",gfap,GTGCGCAACACATAGCACCA,D. rerio
+interfere,S. pyogenes,Qi,"<a href=""/46914/"">46914</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23849981/"">23849981</a>",GFP,GAATAGCTCAGAGGCCGAGG,A. victoria
+cut,S. pyogenes,Church,"<a href=""/41820/"">41820</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23287722/"">23287722</a>",GFP,GGAGCGCACCATCTTCTTCA,A. victoria
+cut,S. pyogenes,Church,"<a href=""/41819/"">41819</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23287722/"">23287722</a>",GFP,GTGAACCGCATCGAGCTGAA,A. victoria
+cut,S. pyogenes,"Guigo, Johnson","<a href=""/72619/"">72619</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26493208/"">26493208</a>",GFP,gRNA1: GAGCTGGACGGCGACGTAAA; gRNA2: CAGAACACCCCCATCGGCGA,Synthetic
+interfere,S. pyogenes,Hudson,"<a href=""/73221/"">73221</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26689101/"">26689101</a>",GFPmut3b,ACCATCTAATTCAACAAGAATT,A. victoria
+interfere,S. pyogenes,Hudson,"<a href=""/73224/"">73224</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26689101/"">26689101</a>",GFPmut3b,ACCATCTAATTCAACAAGAATT,synthetic
+CRISPR-display,S. pyogenes,Rinn,"<a href=""/68422/"">68422</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26030444/"">26030444</a>",GLuc,GATCTAGATACGACTCACTAT,synthetic
+cut,S. pyogenes,Ye,"<a href=""/61833/"">61833</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24424410/"">24424410</a>",gp78,GCCCAGCCTCCGCACCTACA,H. sapiens
+cut,S. pyogenes,Joung,"<a href=""/42245/"">42245</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23360964/"">23360964</a>",gsk3b,GGGACCTGACCGGCCGCAGG,D. rerio
+cut,S. pyogenes,Jin,"<a href=""/64333/"">64333</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25281382/"">25281382</a>",his3,ATTGCGATCTCTTTAAAGGG,S. cerevisiae
+cut,S. pyogenes,Yan,"<a href=""/69539/"">69539</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26130722/"">26130722</a>",HPRT,GACTGTAAGTGAATTACTT,H. sapiens
+cut,S. pyogenes,Yamamoto,"<a href=""/58778/"">58778</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24954249/"">24954249</a>",HPRT1,CTGATAAAATCTACAGTCAT,H. sapiens
+cut,S. pyogenes,Yamamoto,"<a href=""/58771/"">58771</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24954249/"">24954249</a>",HPRT1,TTATGCTGAGGATTTGGAAA,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64142/"">64142</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",IL1RN,TGGACGCAGATAAGAACCAGTT,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64151/"">64151</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",IL1RN,TGGCATCAAGTCAGCCATCAGC,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64152/"">64152</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",IL1RN,TGGGAGTCACCCTCCTGGAAAC,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64140/"">64140</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",IL1RN,TGGTGTACTCTCTGAGGTGCTC,H. sapiens
+cut,S. pyogenes,Xue,"<a href=""/66582/"">66582</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26018130/"">26018130</a>",inverted GFP,GAGCGGCCGCTCGAGTCTAG,A. victoria
+cut,S. pyogenes,Xue,"<a href=""/66583/"">66583</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26018130/"">26018130</a>",inverted GFP,GATATCGAATTCCTGCAGCC,A. victoria
+cut,S. pyogenes,Xue,"<a href=""/66581/"">66581</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26018130/"">26018130</a>",inverted GFP,GTATCGATACCGTCGACCTCG,A. victoria
+cut,S. pyogenes,Xue,"<a href=""/66584/"">66584</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26018130/"">26018130</a>",inverted GFP,GTTGATCCATAACTTCGTAT,A. victoria
+purify,S. pyogenes,Fujii,"<a href=""/61079/"">61079</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23942116/"">23942116</a>",IRF1,CCGGGGGCGCTGGGCTGTCCCGG,H. sapiens
+purify,S. pyogenes,Fujii,"<a href=""/61080/"">61080</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25051498/"">25051498</a>",IRF1,GCGCTTACACTTTAGGAGACACTC,H. sapiens
+cut,S. pyogenes,Sabatini,"<a href=""/70679/"">70679</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26472758/"">26472758</a>",JAK2 amplicon&nbsp;,GGTTTAATGGAAGAGAAGGG,H. sapiens
+cut,S. pyogenes,Seydoux,"<a href=""/66085/"">66085</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25249454/"">25249454</a>",K08F4.2,AATCACTCCCTGTTTGTGT,C. elegans
+cut,S. pyogenes,Seydoux,"<a href=""/66095/"">66095</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25249454/"">25249454</a>",K08F4.2,CACGAGGTGGTATGCGCAG,C. elegans
+cut,S. pyogenes,Seydoux,"<a href=""/66092/"">66092</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25249454/"">25249454</a>",K08F4.2,CGCAGCGGTTTCCAAAATG,C. elegans
+cut,S. pyogenes,Seydoux,"<a href=""/66087/"">66087</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25249454/"">25249454</a>",K08F4.2,GCCTTAACCCAGAATAAGA,C. elegans
+cut,S. pyogenes,Seydoux,"<a href=""/66089/"">66089</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25249454/"">25249454</a>",K08F4.2,TATTAAATGCAGATAACCT,C. elegans
+cut,S. pyogenes,Wolfe,"<a href=""/69238/"">69238</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26480473/"">26480473</a>",KANK3,GCATGGGTGATGTCAATGCC,H. sapiens
+cut,S. pyogenes,Mashimo,"<a href=""/60969/"">60969</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24967838/"">24967838</a>",Kit-1,CATCTGTGCGGCCGTTGGCT,R. norvegicus
+cut,S. pyogenes,Mashimo,"<a href=""/60970/"">60970</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24967838/"">24967838</a>",Kit-2,CTAACGTTCCAGCGCTCGTT,R. norvegicus
+cut,S. pyogenes,Mashimo,"<a href=""/60971/"">60971</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24967838/"">24967838</a>",Kit-2,GTCAAGATGTCATCTTACGG,R. norvegicus
+cut,S. pyogenes,Calarco,"<a href=""/46170/"">46170</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23817069/"">23817069</a>",klp-12,GATCCACAAGTTACAATTGG,C. elegans
+cut,S. pyogenes,Zhang,"<a href=""/60224/"">60224</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25263330/"">25263330</a>","Kras, p53, and Lkb1","multiple, see article",M. musculus
+cut,S. pyogenes,Zhang,"<a href=""/60225/"">60225</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25263330/"">25263330</a>",LacZ,TGCGAATACGCCCACGCGAT,E. coli
+cut,S. pyogenes,Moffat,"<a href=""/74179/"">74179</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26627737/"">26627737</a>",LacZ,CCCGAATCTCTATCGTGCGG,E.coli
+cut,S. pyogenes,Patron,"<a href=""/68256/"">68256</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26616834/"">26616834</a>",lC.GA4a,GTTGAGAGGGGAGCCGGTGA,B. oleracea
+cut,S. pyogenes,Patron,"<a href=""/68255/"">68255</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26616834/"">26616834</a>",lC.GA4a,GTTTTCACTTGCGGCCGGAG,B. oleracea
+cut,S. pyogenes,Jin,"<a href=""/64332/"">64332</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25281382/"">25281382</a>",leu2,AATCACAGCCGAAGCCATTA,S. cerevisiae
+cut,S. pyogenes,Winslow,"<a href=""/66894/"">66894</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26178787/"">26178787</a>",Lkb1,GTGGTGGGCCGCAGTCACAA,M. musculus
+cut,S. pyogenes,Xue,"<a href=""/66586/"">66586</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26018130/"">26018130</a>",Lox-STOP-Lox,GCGTATAGCATACATTATACG,synthetic
+cut,S. pyogenes,Xue,"<a href=""/66585/"">66585</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26018130/"">26018130</a>",Lox-STOP-Lox,GCGTATAGTACACATTATACG,synthetic
+cut,S. pyogenes,Wolfe,"<a href=""/69237/"">69237</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26480473/"">26480473</a>",LRTM2,GCTGGCGGAAGACAGAGTGC,H. sapiens
+cut,S. pyogenes,Moffat,"<a href=""/74190/"">74190</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26627737/"">26627737</a>",Luciferase,ACAACTTTACCGACCGCGCC,
+cut,S. pyogenes,Cate,"<a href=""/60847/"">60847</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25139909/"">25139909</a>",LYP1,CATAATAACGTCCAATAAAT,S. cerevisiae
+cut,S. pyogenes,"Guigo, Johnson","<a href=""/72620/"">72620</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26493208/"">26493208</a>",Malat1,gRNA1: GAACCGGTGGGGCTGCGTCA; gRNA2: GGCAGGAGAGGCCAGTTGCG,H. sapiens
+cut,S. pyogenes,"Guigo, Johnson","<a href=""/72621/"">72621</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26493208/"">26493208</a>",Malat1,gRNA1: GCAACTTCCATTTTCAGTCT; gRNA2: GGAAGCCTCAGCTCGCCTGA,H. sapiens
+cut,S. pyogenes,"Guigo, Johnson","<a href=""/72622/"">72622</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26493208/"">26493208</a>",Malat1,gRNA1:GCTGGGGCTCAGTTGCGTAA; gRNA2:AGGTTTCTAAAACATGACGG,H. sapiens
+cut,S. pyogenes,"Guigo, Johnson","<a href=""/72623/"">72623</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26493208/"">26493208</a>",Malat1,gRNA1:GTTGAGATGAAGCTTCTTCA; gRNA2:TCAACCGTCCCTGCAAGGCT,H. sapiens
+cut,S. pyogenes,"Guigo, Johnson","<a href=""/72624/"">72624</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26493208/"">26493208</a>",Malat1,gRNA1: GAAACCTCGTGTAGCTATCA; gRNA2: AATGTGAAGGACTTTCGTAA,H. sapiens
+nick,S. pyogenes,Hanna,"<a href=""/61514/"">61514</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25569111/"">25569111</a>",Mettl14,GCCGCTCCCGGATCTCCTGC,M. musculus
+nick,S. pyogenes,Hanna,"<a href=""/61515/"">61515</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25569111/"">25569111</a>",Mettl14,GCGGCAGCTCCTAGCTCAGC,M. musculus
+cut,S. pyogenes,Zhao,"<a href=""/69801/"">69801</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26293209/"">26293209</a>",mitf,CTTTCGGATATAATCCACGG,S. scrofa&nbsp;
+cut,S. pyogenes,Chen,"<a href=""/47931/"">47931</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23918387/"">23918387</a>",mitfa,GGTCTCTCGCAGGATGTTGC,D. rerio
+cut,S. pyogenes,Bleris,"<a href=""/62715/"">62715</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25527740/"">25527740</a>",mKate,ATGAGAATCAAGGCGGTCGA,synthetic
+cut,S. pyogenes,Bornhauser,"<a href=""/75167/"">75167</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/27194728/"">27194728</a>",MLKL,ATCCCCGTGGATTCTGCTAA,H. sapiens
+cut,S. pyogenes,Katsanis,"<a href=""/72890/"">72890</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26429889/"">26429889</a>",mmp21,CGGAGCTGATCACTGACA,D. rerio
+visualize,S. pyogenes,Qi,"<a href=""/51025/"">51025</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24360272/"">24360272</a>",MUC4,GTGGCGTGACCTGTGGATGCTG,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64138/"">64138</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",MYOD1,TGGCCTCCCTCCCTGCCCGGTAG,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64139/"">64139</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",MYOD1,TGGGAGGTTTGGAAAGGGCGTGC,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64136/"">64136</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",MYOD1,TGGGCCTGGGCTCCGGGGCGTTT,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64137/"">64137</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",MYOD1,TGGGGGCCCCTGCGGCCACCCCG,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64156/"">64156</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",NANOG,TGGCATATTCCTGATTTAAAAGT,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64153/"">64153</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",NANOG,TGGCGCCAGGAGGGGTGGGTCTA,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64154/"">64154</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",NANOG,TGGGCCTTGGTGAGACTGGTAGA,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64155/"">64155</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",NANOG,TGGTGTCTTCAGGTTCTGTTGCT,H. sapiens
+interfere,S. pyogenes,Lu,"<a href=""/68897/"">68897</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26918244/"">26918244</a>",NanoLuc,AGCTTACGCCACCCTGTTCC,synthetic
+interfere,S. pyogenes,Lu,"<a href=""/68898/"">68898</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26918244/"">26918244</a>",NanoLuc,GACAGAACGATGCGCTGAAT,synthetic
+interfere,S. pyogenes,Lu,"<a href=""/68895/"">68895</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26918244/"">26918244</a>",NanoLuc,TCACGCTCACACCCAGGTTC,synthetic
+interfere,S. pyogenes,Lu,"<a href=""/68896/"">68896</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26918244/"">26918244</a>",NanoLuc,TTGATCCAAATTATAACCCG,synthetic
+cut,S. pyogenes,Lu,"<a href=""/61270/"">61270</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25240928/"">25240928</a>",NDM-1,GGGCAGTCGCTTCCAACGGTTTGATCGTCA,
+cut,S. pyogenes,Cepko,"<a href=""/69992/"">69992</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25155555/"">25155555</a>",near LoxP sites,CGAAGTTATATTAAGGGTTC,synthetic
+interfere,S. pyogenes,Lu,"<a href=""/68893/"">68893</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26918244/"">26918244</a>",negative control,CTGGAATGAATTGGCCTATG,
+cut,S. pyogenes,Winslow,"<a href=""/66895/"">66895</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26178787/"">26178787</a>",negative control,GCGAGGTATTCGGCTCCGCG,M. musculus
+cut,S. pyogenes,Christiaen,"<a href=""/60006/"">60006</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25336740/"">25336740</a>",negative control,GCTTTGCTACGATCTACATT,C. intestinalis
+cut,S. pyogenes,Bleris,"<a href=""/64955/"">64955</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25527740/"">25527740</a>",negative control,GTCAAGGCACTCTTGCCTA,synthetic
+,S. pyogenes,Wolfe,"<a href=""/50927/"">50927</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24346702/"">24346702</a>",negative control,GTTCCGCGTTACATAACTTA,H. sapiens
+cut,S. pyogenes,Winslow,"<a href=""/67594/"">67594</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26178787/"">26178787</a>",Neomycin,TCATGGCTGATGCAATGCGG,
+cut,S. pyogenes,Zhang,"<a href=""/60227/"">60227</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25263330/"">25263330</a>",NeuN,TCCGGTTCAGGGACCCCGAC,M. musculus
+activate,S. pyogenes,Sato,"<a href=""/64161/"">64161</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",Neurog2,GTCTCTATCACTGATAGGGA,H. sapiens
+activate,S. pyogenes,Sato,"<a href=""/64160/"">64160</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25619936/"">25619936</a>",Neurog2,GTGAATGATGATAATACGAT,H. sapiens
+methylation,S. pyogenes,Zoldoš,"<a href=""/71830/"">71830</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26969735/"">26969735</a>",Non-targeting,GTAGGCGCGCCGCTCTCTAC,H. sapiens
+cut,S. pyogenes,Huangfu,"<a href=""/66989/"">66989</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26028531/"">26028531</a>",OCT4,CTCCCATGCATTCAAACTG,H. sapiens
+activate,S. pyogenes,Otonkoski,"<a href=""/69537/"">69537</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26352799/"">26352799</a>",OCT4,"multiple, see article",H. sapiens
+cut,N. meningitidis,Thomson,"<a href=""/47870/"">47870</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23940360/"">23940360</a>",OCT4,GTTGTAGCTCCCTTTCTCATTTCG,H. sapiens
+interfere,S. pyogenes,Wolfe,"<a href=""/50922/"">50922</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24346702/"">24346702</a>",Oct4A (POU5F1),GGGGCGCCAGTTGTGTCTCC,H. sapiens
+interfere,S. pyogenes,Wolfe,"<a href=""/50921/"">50921</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24346702/"">24346702</a>",Oct4A (POU5F1),GTGGGACTGGGGAGGGAGAG,H. sapiens
+cut,S. pyogenes,Kim,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26479191/"">26479191</a>",P450,CATATAGTTGGGTCATGGCA,O. sativa
+cut,S. pyogenes,Sherwood,"<a href=""/71483/"">71483</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26527385/"">26527385</a>",Pal1,GCTCTGTGACTAGTCACAGAG,synthetic
+cut,S. pyogenes,Sherwood,"<a href=""/71484/"">71484</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26527385/"">26527385</a>",Pal7,GGCTTAGTACTAGTACTAAGC,synthetic
+cut,S. pyogenes,Zhang,"<a href=""/68466/"">68466</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26145478/"">26145478</a>",PAX6,GATACTGGAGAAGCAGGGGC,H. sapiens
+cut,S. pyogenes,Zhang,"<a href=""/68465/"">68465</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26145478/"">26145478</a>",PAX6,GTAGATTTTGTATGCACTGC,H. sapiens
+interfere,S. pyogenes,Lu,"<a href=""/68900/"">68900</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26918244/"">26918244</a>",PcfiA,AAACAAAACCTCATCAGGCA,
+interfere,S. pyogenes,Lu,"<a href=""/68899/"">68899</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26918244/"">26918244</a>",PcfiA,GAAGCTCACTCCTTAGCACG,
+interfere,S. pyogenes,Lu,"<a href=""/74068/"">74068</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26829286/"">26829286</a>",pck,AGGGCGAGGCGCCGACCAAGAATA,C. glutamicum
+interfere,S. pyogenes,Lu,"<a href=""/74069/"">74069</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26829286/"">26829286</a>",pck,TCCAGTTCAGCAGTTCCTTATTCT,C. glutamicum
+cut,S. pyogenes,Kamoun,"<a href=""/46966/"">46966</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23929340/"">23929340</a>",PDS,GCCGTTAATTTGAGAGTCCA,N. benthamiana
+cut,S. pyogenes,Kamoun,"<a href=""/49772/"">49772</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24112467/"">24112467</a>",PDS1,"multiple, see article",N. benthamiana
+cut,S. pyogenes,Sheen,"<a href=""/52255/"">52255</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23929339/"">23929339</a>",PDS3,GGACTTTTGCCAGCCATGGT,A. thaliana
+interfere,S. pyogenes,Lu,"<a href=""/74066/"">74066</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26829286/"">26829286</a>",pgi,TGACCGATCATTACTCAAACTTCC,C. glutamicum
+interfere,S. pyogenes,Lu,"<a href=""/74067/"">74067</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26829286/"">26829286</a>",pgi,TTGCCTGGAAGTTTGAGTAATGAT,C. glutamicum
+activate,S. pyogenes,Gersbach,"<a href=""/60719/"">60719</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25664691/"">25664691</a>",pGL3-Basic-8x-gRNA-eGFP reporter,AAAGGTCGAGAAACTGCAAA,synthetic
+cut,S. pyogenes,Ward,"<a href=""/61252/"">61252</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25491644/"">25491644</a>",pha-1,ATGAATAACTTGATGAACAT,C. elegans
+cut,S. pyogenes,Kim,"<a href=""//""></a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26479191/"">26479191</a>",PHYB,CACTAGGAGCAACACCCAA,A. thaliana
+cut,S. pyogenes,Wolfe,"<a href=""/69240/"">69240</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26480473/"">26480473</a>",PLXNB2,GGGCCCAACCTAGGGCATGG,H. sapiens
+cut,S. pyogenes,Patron,"<a href=""/68253/"">68253</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26616834/"">26616834</a>",PM19,GCTCTCCACTCTGGGCTCTT,H. vulgare
+cut,S. pyogenes,Patron,"<a href=""/68254/"">68254</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26616834/"">26616834</a>",PM19,GGCTGGCGTTGGTCGTAACA,H. vulgare
+cut,S. pyogenes,Shaw,"<a href=""/79004/"">79004</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26944679/"">26944679</a>",Prkaa1,TTATTGTCACAGGCATATGG,M. musculus
+cut,S. pyogenes,Shaw,"<a href=""/79005/"">79005</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26944679/"">26944679</a>",Prkaa2,ACAGGCATATGGTTGTCCAT,M. musculus
+cut,S. pyogenes,Schmitt-Ulms,"<a href=""/61857/"">61857</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25490046/"">25490046</a>",Prnp,GGTGGAACACCGGTGGAAGC,M. musculus
+cut,S. pyogenes,Schmitt-Ulms,"<a href=""/61856/"">61856</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25490046/"">25490046</a>",Prnp,TTGGCCCCATCCACCGCCAT,M. musculus
+cut,N. meningitidis,Church,"<a href=""/48651/"">48651</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24076762/"">24076762</a>",Protospacer A,TACCATCTCAAGCTTGTTGA,Synthetic
+cut,S. thermophilus,Church,"<a href=""/48653/"">48653</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24076762/"">24076762</a>",Protospacer A,TACCATCTCAAGCTTGTTGA,Synthetic
+cut,T. denticola,Church,"<a href=""/48655/"">48655</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24076762/"">24076762</a>",Protospacer A,TACCATCTCAAGCTTGTTGA,Synthetic
+cut,N. meningitidis,Church,"<a href=""/48652/"">48652</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24076762/"">24076762</a>",Protospacer B,ACTTTAAAAGTATTCGCCAT,Synthetic
+cut,S. thermophilus,Church,"<a href=""/48654/"">48654</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24076762/"">24076762</a>",Protospacer B,ACTTTAAAAGTATTCGCCAT,Synthetic
+cut,T. denticola,Church,"<a href=""/48656/"">48656</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24076762/"">24076762</a>",Protospacer B,ACTTTAAAAGTATTCGCCAT,Synthetic
+cut,S. pyogenes,Moffat,"<a href=""/74184/"">74184</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26627737/"">26627737</a>",PSMB2,ATGTTCTTGTCGCCTCCGAC,H. sapiens
+cut,S. pyogenes,Moffat,"<a href=""/74185/"">74185</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26627737/"">26627737</a>",PSMB2,AATATTGTCCAGATGAAGGA,H. sapiens
+cut,S. pyogenes,Moffat,"<a href=""/74180/"">74180</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26627737/"">26627737</a>",PSMD1,TGTGCGCTACGGAGCTGCAA,H. sapiens
+cut,S. pyogenes,Moffat,"<a href=""/74181/"">74181</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26627737/"">26627737</a>",PSMD1,ACCAGAGCCACAATAAGCCA,H. sapiens
+cut,S. pyogenes,Jacks,"<a href=""/59909/"">59909</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25119044/"">25119044</a>",Pten,AGATCGTTAGCAGAAACAAA,M. musculus
+cut,S. pyogenes,Xue,"<a href=""/66588/"">66588</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26018130/"">26018130</a>",Pten,GCTGTAGTAATATCTGCTAT,M. musculus
+cut,S. pyogenes,Xue,"<a href=""/66587/"">66587</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26018130/"">26018130</a>",Pten,GTTTCATAGCGGCCACGAAGT,M. musculus
+interfere,S. pyogenes,Lu,"<a href=""/74070/"">74070</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26829286/"">26829286</a>",pyk,AGATTGTATGTACCCTAGGCCCAG,C. glutamicum
+interfere,S. pyogenes,Lu,"<a href=""/74072/"">74072</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26829286/"">26829286</a>",pyk,ATTCCATCTGCACTAGCCACCGCT,C. glutamicum
+tag,S. pyogenes,Mendenhall,"<a href=""/64057/"">64057</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26355004/"">26355004</a>",RAD21,CCAAGGTTCCATATTATATAAGG,H. sapiens
+cut,S. pyogenes,Fire,"<a href=""/59927/"">59927</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25161212/"">25161212</a>",rde-1(D718),TGCCATTAACTATGTATGT,C. elegans
+cut,S. pyogenes,Fire,"<a href=""/59928/"">59928</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25161212/"">25161212</a>",rde-1(D801),GATATTGTAGTCTATCGAGA,C. elegans
+cut,S. pyogenes,Fire,"<a href=""/59929/"">59929</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25161212/"">25161212</a>",rde-1(H974),GATAAATGAGCATAATGAAC,C. elegans
+interfere,S. pyogenes,Lu,"<a href=""/74075/"">74075</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26829286/"">26829286</a>",rfp,AAGTTCGTATGGAAGGTTCCGTTAA,
+cut,S. pyogenes,Joung,"<a href=""/42246/"">42246</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23360964/"">23360964</a>",rgs4,GGAGAAGGTGAAGGACACTG,D. rerio
+cut,S. pyogenes,Bornhauser,"<a href=""/75165/"">75165</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/27194728/"">27194728</a>",RIP3,TACACGAGTGATGGTTCGGT,H. sapiens
+cut,S. pyogenes,Bornhauser,"<a href=""/75163/"">75163</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/27194728/"">27194728</a>",RIPK1,GCTCTGCTGGGAAGCGAATC,H. sapiens
+cut,S. pyogenes,Joung,"<a href=""/47509/"">47509</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23792628/"">23792628</a>",RNF2,GTCATCTTAGTCATTACCTG,H. sapiens
+cut,S. pyogenes,Fire,"<a href=""/59930/"">59930</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25161212/"">25161212</a>",rol-6(su1006),GTGAGACGTCAACAATATGG,C. elegans
+cut,S. pyogenes,Kuhn,"<a href=""/64216/"">64216</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25803306/"">25803306</a>",Rosa26,ACTCCAGTCTTTCTAGAAGA,M.musculus
+cut,S. pyogenes,Marraffini,"<a href=""/44505/"">44505</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23360965/"">23360965</a>",rpsL,AAAAAACCGAACTCCGCGCTGCGTAAAGTA,E. coli
+interfere,S. pyogenes,Voigt,"<a href=""/62285/"">62285</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25422271/"">25422271</a>",scramble,AACCCCTGATTGTATCCGCA,synthetic
+cut,S. pyogenes,Chen,"<a href=""/47930/"">47930</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23918387/"">23918387</a>",slc24a5 (golden),GGTCTCTCGCAGGATGTTGC,D. rerio
+cut,S. pyogenes,Hanna,"<a href=""/59725/"">59725</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25543152/"">25543152</a>",SOX17,GCCCAGCCCGGCCATCACCG,H. sapiens
+activate,S. pyogenes,Wolfe,"<a href=""/50925/"">50925</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24346702/"">24346702</a>",Sox17,GCTCCGGCTAGTTTTCCCGG,H. sapiens
+activate,S. pyogenes,Wolfe,"<a href=""/50924/"">50924</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24346702/"">24346702</a>",Sox17,GGAGGGGCAAGGGGCGGGCG,H. sapiens
+activate,S. pyogenes,Wolfe,"<a href=""/50926/"">50926</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24346702/"">24346702</a>",Sox17,GGGCAAGTACGTCGATTCCA,H. sapiens
+activate,S. pyogenes,Wolfe,"<a href=""/50923/"">50923</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24346702/"">24346702</a>",Sox17,GGGCGTGGGCCTAACGACGC,H. sapiens
+cut,S. pyogenes,Fire,"<a href=""/59935/"">59935</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25161212/"">25161212</a>",sqt-1,GGAAGGACATAGTTGTCAT,C. elegans
+cut,S. pyogenes,Fire,"<a href=""/60212/"">60212</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25161212/"">25161212</a>",sqt-1,TGTGGAGTTGGGGTAGCGT,C. elegans
+activate/interfere,S. pyogenes,Qi,"<a href=""/62338/"">62338</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25533786/"">25533786</a>",sv40 promoter,CATACTTCTGCCTGCTGGGGAGCCTG,synthetic
+scaffold,S. pyogenes,Qi &amp; Lim,"<a href=""/62340/"">62340</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25533786/"">25533786</a>",SV40.NT1,GAATAGCTCAGAGGCCGAGG,H. sapiens
+cut,S. pyogenes,Seydoux,"<a href=""/66100/"">66100</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25249454/"">25249454</a>",swan-2,ACAAATTGATATCCAATCA,C. elegans
+cut,S. pyogenes,Seydoux,"<a href=""/66099/"">66099</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25249454/"">25249454</a>",swan-2,TGAAGAAAGTTATACTCGA,C. elegans
+cut,S. pyogenes,Hanna,"<a href=""/59726/"">59726</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25543152/"">25543152</a>",T (BRACHYURY),CACGCGCAGTTCGCGCTCTG,H. sapiens
+cut,S. pyogenes,"Guigo, Johnson","<a href=""/72627/"">72627</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26493208/"">26493208</a>",TCRC,gRNA1:GGGGAGCGGGAAAGCGGTCG; gRNA2:AACTGACCTTCAGGCCCGTA,H. sapiens
+cut,N. meningitidis,Thomson,"<a href=""/47869/"">47869</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23940360/"">23940360</a>",tdtomato,CGAAATGAGAAAGGGAGCTACAAC,Synthetic
+scaffold,S. pyogenes,Qi &amp; Lim,"<a href=""/62320/"">62320</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25533786/"">25533786</a>",TEF,TTGATATTTAAGTTAATAAA,S. cerevisiae
+interfere,S. pyogenes,Weissman,"<a href=""/46922/"">46922</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23849981/"">23849981</a>",TEF1,TTGATATTTAAGTTAATAAA,S. cerevisiae
+visualize,S. pyogenes,Qi,"<a href=""/51024/"">51024</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24360272/"">24360272</a>",telomeres,GTTAGGGTTAGGGTTAGGGTTA,H. sapiens
+scaffold,S. pyogenes,Qi &amp; Lim,"<a href=""/62313/"">62313</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25533786/"">25533786</a>",TET,ACTTTTCTCTATCACTGATA,S. cerevisiae
+interfere,S. pyogenes,Weissman,"<a href=""/46923/"">46923</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23849981/"">23849981</a>",TET promoter,TATCAGTGATAGAGAAAAGT,
+activate/interfere,S. pyogenes,Qi,"<a href=""/62327/"">62327</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25533786/"">25533786</a>",Tet3G,GTACGTTCTCTATCACTGATA,synthetic
+cut,S. pyogenes,Shaw,"<a href=""/79006/"">79006</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26944679/"">26944679</a>",Tfeb,AGCACTGTTGCCGGCCGAGG,M. musculus
+RNA targeting,S. pyogenes,Yeo,"<a href=""/74709/"">74709</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26997482/"">26997482</a>",TFRC,GCACUGACCAGAUAAGAAUG,H. sapiens
+cut,S. pyogenes,"Guigo, Johnson","<a href=""/72626/"">72626</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26493208/"">26493208</a>",TFRC,"gRNA1:GCAGCCTCAGAAATACAAAA, gRNA2CGGGATATCGGGTGGCGGCT",H. sapiens
+cut,S. pyogenes,Wolfe,"<a href=""/69239/"">69239</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26480473/"">26480473</a>",TGM2,CCTGGACCCAACGCCCCAGG,H. sapiens
+cut,S. pyogenes,Sibley,"<a href=""/59855/"">59855</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25480939/"">25480939</a>",TGME49_290860,ATTGGTCTGACAGCGATGTG,T. gondii
+cut,S. pyogenes,Joung,"<a href=""/42247/"">42247</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23360964/"">23360964</a>",th,GGATGCGCGTAAGGAGCGCG,D. rerio
+cut,S. pyogenes,Du,"<a href=""/65565/"">65565</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25849248/"">25849248</a>",th,GGGTTGTTACACTCATAAAG,D. rerio
+cut,S. pyogenes,Joung,"<a href=""/42248/"">42248</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23360964/"">23360964</a>",tia1l,GGTATGTCGGGAACCTCTCC,D. rerio
+cut,S. pyogenes,Joung,"<a href=""/42249/"">42249</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23360964/"">23360964</a>",tph1a,GGGAAAACACAACCGCAGCC,D. rerio
+scaffold,S. pyogenes,Qi &amp; Lim,"<a href=""/62325/"">62325</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25533786/"">25533786</a>",TRE3G,GTACGTTCTCTATCACTGATA,H. sapiens
+cut,S. pyogenes,Jin,"<a href=""/64331/"">64331</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25281382/"">25281382</a>",trp1,GTCAATTGTTCTCTTTCTAT,S. cerevisiae
+cut,S. pyogenes,Jacks,"<a href=""/59910/"">59910</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25119044/"">25119044</a>",Trp53,CCTCGAGCTCCCTCTGAGCC,M. musculus
+cut,S. pyogenes,Wolfe,"<a href=""/69234/"">69234</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26480473/"">26480473</a>",TS2,GACCCCCTCCACCCCGCCTC,H. sapiens
+cut,S. pyogenes,Wolfe,"<a href=""/69235/"">69235</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26480473/"">26480473</a>",TS3,GGTGAGTGAGTGTGTGCGTG,H. sapiens
+cut,S. pyogenes,Wolfe,"<a href=""/69236/"">69236</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26480473/"">26480473</a>",TS4,GAGTCCGAGCAGAAGAAGAA,H. sapiens
+cut,S. pyogenes,Goldstein,"<a href=""/47550/"">47550</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23995389/"">23995389</a>",ttTi5605 Mos1 insertion site,ATATCAGTCTGTTTCGTAA,C. elegans
+cut,S. pyogenes,Chen,"<a href=""/46761/"">46761</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23918387/"">23918387</a>",tyr,CCCCAGAAGTCCTCCAGTCC,D. rerio
+cut,S. pyogenes,Chen,"<a href=""/64250/"">64250</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25855067/"">25855067</a>",tyr,GGACTGGAGGACTTCTGGGG,D. rerio
+cut,S. pyogenes,Mashimo,"<a href=""/60966/"">60966</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24967838/"">24967838</a>",Tyr (albino),TTTCCAGGATTATGTAATAG,R. norvegicus
+cut,S. pyogenes,Mashimo,"<a href=""/60967/"">60967</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24967838/"">24967838</a>",Tyr (wild type),TTTCCAGGATTACGTAATAG,R. norvegicus
+cut,S. pyogenes,"Guigo, Johnson","<a href=""/72628/"">72628</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/26493208/"">26493208</a>",UCA1,gRNA1:GGTTTCCTTTTAGATGACGG; gRNA2:TCTGAAAAGAGAGTCAGCGA,H. sapiens
+cut,S. pyogenes,Fire,"<a href=""/59932/"">59932</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25161212/"">25161212</a>",unc-109(n499),GGAACTCGTGTCAAAACAAC,C. elegans
+cut,S. pyogenes,Calarco,"<a href=""/46169/"">46169</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23817069/"">23817069</a>",unc-119,GAATTTTCTGAAATTAAAGA,C. elegans
+cut,S. pyogenes,Mello,"<a href=""/58202/"">58202</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24879462/"">24879462</a>",unc-22,GAACCCGTTGCCGAATACAC,C. elegans
+cut,S. pyogenes,Fire,"<a href=""/59931/"">59931</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25161212/"">25161212</a>",unc-58(e665),TCCACGCACATGGTCACTA,C. elegans
+cut,S. pyogenes,Sibley,"<a href=""/54467/"">54467</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24825012/"">24825012</a>",UPRT,GGCGTCTCGATTGTGAGAGC,Toxoplasma gondii
+cut,S. pyogenes,Jin,"<a href=""/64330/"">64330</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25281382/"">25281382</a>",ura3,GAGTAAAAAATTGTACTTGG,S. cerevisiae
+cut,S. pyogenes,Ye,"<a href=""/61812/"">61812</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24424410/"">24424410</a>",USP13,GCCGCCCGGCATGCCGAACA,H. sapiens
+cut,S. pyogenes,Joung,"<a href=""/47506/"">47506</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23792628/"">23792628</a>",VEGF,GACCCCCTCCACCCCGCCTC,H. sapiens
+cut,S. pyogenes,Joung,"<a href=""/47505/"">47505</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23792628/"">23792628</a>",VEGF,GGGTGGGGGGAGTTTGCTCC,H. sapiens
+cut,S. pyogenes,Joung,"<a href=""/47507/"">47507</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/23792628/"">23792628</a>",VEGF,GGTGAGTGAGTGTGTGCGTG,H. sapiens
+interfere,S. pyogenes,Voigt,"<a href=""/62286/"">62286</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25422271/"">25422271</a>",VR,TGCGCTCGGTCGTTCGGCTG,synthetic
+nick,S. pyogenes,Yang,"<a href=""/73228/"">73228</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/27213844/"">27213844</a>",xylR,CGAGTTAGACATAATAGTGA,C. beijerinckii
+cut,S. pyogenes,Ward,"<a href=""/61250/"">61250</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/25491644/"">25491644</a>",Y61A9LA.1,GGATGGATGTGTAGTCAATT,C. elegans
+cut,S. pyogenes,Liu,"<a href=""/49331/"">49331</a>","<a href=""https://www.ncbi.nlm.nih.gov/pubmed/24326186/"">24326186</a>",yellow,GGTTTTGGACACTGGAACCG,D. melanogaster
