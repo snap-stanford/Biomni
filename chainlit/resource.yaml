@@ -1,0 +1,52 @@
+# Resource Filter Configuration
+# This file allows you to restrict which tools, data lake items, and libraries
+# are available to the A1_HITS agent.
+#
+# Usage:
+# 1. Place this file as 'resource_filter.yaml' in the Biomni_HITS directory
+# 2. Or specify the path when initializing A1_HITS: 
+#    agent = A1_HITS(..., resource_filter_config_path="path/to/resource_filter.yaml")
+#
+# If no configuration is found, all resources will be available (no filtering).
+
+allowed_resources:
+  # Tools can be specified in three ways:
+  # 1. By tool name (string): exact tool name
+  #    Example: - query_uniprot
+  #
+  # 2. By file path (dict with "file" key): all functions/tools in that Python file
+  #    Example: - file: biomni/tool/genetics.py
+  #
+  # 3. By module name (dict with "module" key): all tools in that module
+  #    Example: - module: biomni.tool.genetics
+  #    or:      - module: biomni.tool.tool_description.genetics
+  
+  tools:
+    # Example: Allow specific tools by name
+    # Uncomment and add tool names you want to allow:
+    - query_uniprot
+    - liftover_coordinates
+    
+    # Example: Allow all tools from a specific Python file
+    # - file: biomni/tool/genetics.py
+    
+    # Example: Allow all tools from genetics module
+    # - module: biomni.tool.genetics
+    
+    # Example: Allow all tools from database module
+    - module: biomni.tool.database
+  
+  # Data lake items: list of allowed data lake item names
+  # Uncomment and add data lake item names you want to allow:
+  data_lake:
+    - example_data_item_1
+    # - example_data_item_2
+  
+  # Libraries: list of allowed library/software names
+  # Uncomment and add library names you want to allow:
+  libraries:
+    - pandas
+    - numpy
+    - scipy
+    - matplotlib
+

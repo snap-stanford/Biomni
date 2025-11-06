@@ -1,5 +1,5 @@
 import chainlit as cl
-from biomni.agent import A1_HITS_step
+from biomni.agent import A1_HITS
 from langchain_core.messages import (
     AIMessage,
     AIMessageChunk,
@@ -33,17 +33,21 @@ import logging
 LLM_MODEL = "gemini-2.5-pro"
 # LLM_MODEL = "grok-4-fast"
 BIOMNI_DATA_PATH = "/workdir_efs/jhjeon/Biomni/biomni_data"
-CURRENT_ABS_DIR = "/workdir_efs/jhjeon/Biomni/chainlit"
+CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = f"{CURRENT_ABS_DIR}/public"
 CHAINLIT_DB_PATH = "chainlit.db"
+# 스트리밍 타임아웃 설정 (초)
+STREAMING_HEARTBEAT_INTERVAL = 30  # 하트비트 간격 (초)
+STREAMING_MAX_TIMEOUT = 600  # 최대 대기 시간 (초, 기본 10분)
 
 default_config.llm = LLM_MODEL
 default_config.commercial_mode = True
 # Initialize agent
-agent = A1_HITS_step(
+agent = A1_HITS(
     path=BIOMNI_DATA_PATH,
     llm=LLM_MODEL,
     use_tool_retriever=True,
+    resource_filter_config_path=f"{CURRENT_ABS_DIR}/resource.yaml",
 )
 
 # 로깅 설정
@@ -137,7 +141,7 @@ def auth_callback(username: str, password: str):
         ("admin@example.com", "admin"),  # Email format
         ("admin@biomni.com", "admin"),  # Another email format
     ]
-    
+
     if (username, password) in valid_logins:
         return cl.User(
             identifier="admin", metadata={"role": "admin", "provider": "credentials"}
@@ -226,11 +230,7 @@ async def _process_user_message(user_message: cl.Message) -> str:
     # Process uploaded files
     step_message = ""
     for file in user_message.elements:
-        async with cl.Step(name=f"Processing {file.name}...") as step:
-            step.output = step_message + f"Copying file..."
-            os.system(f"cp {file.path} '{file.name}'")
-            step.output = step_message + f"✅ File copied successfully!\n"
-            step_message = step.output
+        os.system(f"cp {file.path} '{file.name}'")
         user_prompt += f"\n - user uploaded data file: {file.name}\n"
 
     user_prompt += "\n" + cl.user_session.get("user_uploaded_system_file", "")
@@ -262,81 +262,207 @@ async def _process_agent_response(agent_input: list, message_history: list):
     with open(f"conversion_history.txt", "a") as f:
         f.write(agent_input[-1].content + "\n")
 
-    async with cl.Step(name="Plan and execute") as chainlit_step:
-        await chainlit_step.update()
-        message_stream = agent.go_stream(agent_input)
-        full_message, step_message, raw_full_message = await _handle_message_stream(
-            message_stream, chainlit_step
+    try:
+        async with cl.Step(name="Plan and execute") as chainlit_step:
+            await chainlit_step.update()
+            message_stream = agent.go_stream(agent_input)
+            full_message, step_message, raw_full_message = await _handle_message_stream(
+                message_stream, chainlit_step
+            )
+
+        final_message = _extract_final_message(raw_full_message)
+        final_message = _detect_image_name_and_move_to_public(final_message)
+
+        await cl.Message(content=final_message).send()
+
+        print(os.getcwd())
+        print(final_message)
+
+        with open(f"conversion_history.txt", "a") as f:
+            f.write(raw_full_message + "\n")
+        message_history.append({"role": "assistant", "content": raw_full_message})
+
+    except asyncio.CancelledError:
+        # Handle stop button click
+        logger.info("User requested to stop the execution")
+        # await cl.Message(
+        #     content="⏹️ **실행 중지됨**: 사용자가 실행을 중지했습니다."
+        # ).send()
+        message_history.append(
+            {"role": "assistant", "content": "실행이 사용자에 의해 중지되었습니다."}
         )
-
-    final_message = _extract_final_message(raw_full_message)
-    final_message = _detect_image_name_and_move_to_public(final_message)
-
-    await cl.Message(content=final_message).send()
-
-    print(os.getcwd())
-    print(final_message)
-
-    with open(f"conversion_history.txt", "a") as f:
-        f.write(raw_full_message + "\n")
-    message_history.append({"role": "assistant", "content": raw_full_message})
+        raise  # Re-raise to properly propagate cancellation
+    except TimeoutError as e:
+        error_message = str(e)
+        logger.error(f"Streaming timeout: {error_message}")
+        await cl.Message(
+            content=f"⚠️ **타임아웃 발생**: {error_message}\n\n"
+            f"최대 대기 시간({STREAMING_MAX_TIMEOUT}초)이 초과되었습니다. "
+            "더 작은 작업으로 나누어 다시 시도해주세요."
+        ).send()
+        message_history.append(
+            {"role": "assistant", "content": f"타임아웃 발생: {error_message}"}
+        )
+    except Exception as e:
+        error_message = f"스트리밍 처리 중 오류 발생: {str(e)}"
+        logger.error(error_message, exc_info=True)
+        await cl.Message(content=f"❌ **오류**: {error_message}").send()
+        message_history.append({"role": "assistant", "content": error_message})
 
 
 async def _handle_message_stream(message_stream, chainlit_step):
-    """Handle streaming messages from the agent."""
-    full_message = ""
-    step_message = ""
-    raw_full_message = ""
+    """Handle streaming messages from the agent.
+
+    Similar to streamlit's approach: accumulate raw content, format when displaying,
+    and only stream the delta to avoid duplicates.
+
+    Includes heartbeat mechanism to keep connection alive during long waits.
+    """
+    raw_full_message = ""  # Accumulate raw content without modifications
+    step_message = ""  # Step-specific message
     current_step = 1
-    update_counter = 0
-    last_update = time.time()
-    update_pending = False
-    stream_index = 0
-    for chunk in message_stream:
-        this_step = chunk[1][1]["langgraph_step"]
-        if this_step != current_step:
-            step_message = ""
-            current_step = this_step
-            if full_message.count("```") % 2 == 1:
-                full_message += "```\n"
-                raw_full_message += "```\n"
-            await chainlit_step.stream_token(full_message[stream_index:])
-            stream_index = max(len(full_message) - 1, 0)
-        chunk_content = _extract_chunk_content(chunk)
-        if chunk_content is None:
-            continue
+    last_formatted_text = ""  # Track last formatted text that was displayed
+    last_chunk_time = time.time()  # Track last chunk received time
+    heartbeat_task = None
+    stream_completed = False
 
-        if isinstance(chunk_content, str):
-            raw_full_message += chunk_content
-            full_message += chunk_content
-            step_message += chunk_content
+    async def heartbeat_loop():
+        """Send heartbeat tokens to keep connection alive."""
+        nonlocal last_chunk_time, stream_completed
+        while not stream_completed:
+            try:
+                await asyncio.sleep(STREAMING_HEARTBEAT_INTERVAL)
+            except asyncio.CancelledError:
+                break
 
-        tmp_full_message = full_message
-        a = len(tmp_full_message)
-        full_message = _modify_chunk(full_message)
-        b = len(full_message)
-        full_message = _detect_image_name_and_move_to_public(full_message)
-        c = len(full_message)
+            if stream_completed:
+                break
 
-        print(f"{a}\t{b}\t{c}\t{stream_index}")
-        if tmp_full_message[:stream_index] != full_message[:stream_index]:
-            print(tmp_full_message[:stream_index])
-            print("--------------------------------")
-            print(full_message[:stream_index])
-            print("--------------------------------")
+            # Check for cancellation
+            current_task = asyncio.current_task()
+            if current_task and current_task.cancelled():
+                break
 
-        chainlit_step.output = full_message
-        stream_chunk = full_message[stream_index:]
-        if len(stream_chunk) > 100:
-            await chainlit_step.stream_token(stream_chunk)
-            stream_index = len(full_message) - 1
+            # Check if we've received a chunk recently
+            time_since_last_chunk = time.time() - last_chunk_time
+            if time_since_last_chunk >= STREAMING_HEARTBEAT_INTERVAL:
+                # Send a zero-width space to keep connection alive without visible effect
+                try:
+                    await chainlit_step.stream_token("\u200b")  # Zero-width space
+                    logger.debug(
+                        f"Heartbeat sent (last chunk: {time_since_last_chunk:.1f}s ago)"
+                    )
+                except (asyncio.CancelledError, Exception) as e:
+                    logger.warning(f"Failed to send heartbeat: {e}")
+                    break
 
-    await chainlit_step.stream_token(full_message[stream_index:])
+    # Start heartbeat task
+    heartbeat_task = asyncio.create_task(heartbeat_loop())
 
-    step_message = _detect_image_name_and_move_to_public(step_message)
-    step_message = _modify_chunk(step_message)
+    try:
+        # Wrap the streaming loop with timeout
+        start_time = time.time()
 
-    return full_message, step_message, raw_full_message
+        for chunk in message_stream:
+            # Check for cancellation (stop button)
+            current_task = asyncio.current_task()
+            if current_task and current_task.cancelled():
+                logger.info("Task cancelled, stopping stream")
+                stream_completed = True
+                raise asyncio.CancelledError("Execution stopped by user")
+
+            # Allow cancellation to be checked periodically
+            await asyncio.sleep(0)  # Yield control to allow cancellation
+
+            # Check for timeout
+            elapsed_time = time.time() - start_time
+            if elapsed_time > STREAMING_MAX_TIMEOUT:
+                logger.warning(f"Streaming timeout after {elapsed_time:.1f}s")
+                raise TimeoutError(
+                    f"스트리밍이 최대 대기 시간({STREAMING_MAX_TIMEOUT}초)을 초과했습니다. "
+                    "연결이 끊어졌을 수 있습니다."
+                )
+
+            last_chunk_time = time.time()  # Update last chunk time
+
+            this_step = chunk[1][1]["langgraph_step"]
+            if this_step != current_step:
+                # Step changed - reset step message
+                step_message = ""
+                current_step = this_step
+
+            chunk_content = _extract_chunk_content(chunk)
+            if chunk_content is None:
+                continue
+
+            if isinstance(chunk_content, str):
+                # Accumulate raw content (no modifications during accumulation)
+                raw_full_message += chunk_content
+                step_message += chunk_content
+
+                # Format the entire accumulated message (similar to streamlit)
+                # This ensures consistency even if modifications affect earlier parts
+                formatted_text = _modify_chunk(raw_full_message)
+                formatted_text = _detect_image_name_and_move_to_public(formatted_text)
+
+                # Only stream if the formatted text has changed
+                # Stream only the delta (new portion) to avoid duplicates
+                if formatted_text != last_formatted_text:
+                    # Calculate delta: what's new since last display
+                    if last_formatted_text and formatted_text.startswith(
+                        last_formatted_text
+                    ):
+                        # Incremental: only stream the new part
+                        delta = formatted_text[len(last_formatted_text) :]
+                    else:
+                        # Content changed in a non-sequential way (e.g., image processing)
+                        # Stream the entire new content (this is rare)
+                        delta = formatted_text
+
+                    if delta:
+                        await chainlit_step.stream_token(delta)
+                        chainlit_step.output = formatted_text
+                        last_formatted_text = formatted_text
+
+        stream_completed = True
+
+        # Final formatting for return values
+        full_formatted = _modify_chunk(raw_full_message)
+        full_formatted = _detect_image_name_and_move_to_public(full_formatted)
+
+        # Ensure we've sent everything
+        if full_formatted != last_formatted_text:
+            remaining_delta = (
+                full_formatted[len(last_formatted_text) :]
+                if last_formatted_text
+                and full_formatted.startswith(last_formatted_text)
+                else full_formatted
+            )
+            if remaining_delta:
+                await chainlit_step.stream_token(remaining_delta)
+                chainlit_step.output = full_formatted
+
+        # Format step_message for return (if needed)
+        step_message = _modify_chunk(step_message)
+        step_message = _detect_image_name_and_move_to_public(step_message)
+
+        return full_formatted, step_message, raw_full_message
+
+    except asyncio.CancelledError:
+        # Propagate cancellation to properly handle stop button
+        stream_completed = True
+        if heartbeat_task and not heartbeat_task.done():
+            heartbeat_task.cancel()
+        raise
+    finally:
+        # Cancel heartbeat task
+        stream_completed = True
+        if heartbeat_task and not heartbeat_task.done():
+            heartbeat_task.cancel()
+            try:
+                await heartbeat_task
+            except asyncio.CancelledError:
+                pass
 
 
 def _extract_chunk_content(chunk):
@@ -439,8 +565,10 @@ def _modify_chunk(chunk: str) -> str:
         ("</execute>", "```\n"),
         ("<solution>", ""),
         ("</solution>", ""),
-        ("<observation>", "```\n#Execute result\n"),
-        ("</observation>", "\n```\n"),
+        # ("<observation>", "```\n#Execute result\n"),
+        # ("</observation>", "\n```\n"),
+        ("<observation>", "\n"),
+        ("</observation>", "\n"),
     ]
 
     for tag1, tag2 in tag_replacements:
@@ -537,7 +665,9 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
         if image_path.startswith(("./public/", "public/", "/public/")):
             # Normalize to absolute path
             if not image_path.startswith("/public/"):
-                image_path = "/public/" + image_path.replace("./public/", "").replace("public/", "")
+                image_path = "/public/" + image_path.replace("./public/", "").replace(
+                    "public/", ""
+                )
             return (
                 f"[![{alt_text}]({image_path})]({image_path})[Download]({image_path})"
             )

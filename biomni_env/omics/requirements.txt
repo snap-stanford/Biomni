@@ -1,0 +1,70 @@
+# Omics-related packages
+scanpy
+anndata
+igraph
+leidenalg
+louvain
+hdbscan
+gseapy
+gget
+biopython
+biopandas
+
+# General data science libraries (commented out)
+numpy==1.26.4
+pandas
+matplotlib
+scipy
+statsmodels
+scikit-learn
+
+# UI frameworks (commented out)
+#gradio
+streamlit
+chainlit==2.6
+
+# NLP/LLM tools (commented out)
+#openai
+transformers
+sentencepiece
+
+# Web scraping/search tools (commented out)
+#beautifulsoup4
+#lxml
+#googlesearch-python
+#pymed
+#scholarly
+#duckduckgo-search
+ddgs
+
+# Utilities (commented out)
+tqdm
+seaborn
+networkx
+requests
+pyyaml
+jupyter
+notebook
+ipykernel
+pytest
+python-dotenv
+pytz
+markdown
+docstring_parser
+openpyxl
+
+# Cheminformatics/Flow cytometry (commented out)
+#FlowKit
+#rdkit
+#flowkit
+
+# Infrastructure/Cloud (commented out)
+#asyncpg
+boto3
+botocore
+
+# Other (commented out)
+faiss-cpu
+#pypdf2
+lifelines
+#geoparse
