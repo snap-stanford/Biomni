@@ -16,9 +16,7 @@
 
 **License**: CC BY 4.0
 
-**Commercial Use**: ✅ Allowed (with attribution to original source)
-
-**Status**: Community-Reviewed
+**Commercial Use**: ✅ Allowed
 
 **Source**: https://www.sc-best-practices.org/cellular_structure/annotation.html
 

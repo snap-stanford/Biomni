@@ -14,11 +14,7 @@
 
 **License**: CC BY 4.0
 
-**Commercial Use**: ✅ Allowed (with attribution to original sources)
-
-**Status**: Active
-
----
+**Commercial Use**: ✅ Allowed
 
 ## Citations and Acknowledgments
 
@@ -39,7 +35,7 @@
 
 This guide provides a three-tiered approach to sgRNA design, prioritizing validated sequences before moving to computational predictions. Always start with Option 1 and proceed to subsequent options only if needed.
 
----
+
 
 ## Option 1: Search Validated sgRNA Sequences (Recommended First)
 
@@ -51,7 +47,7 @@ This guide provides a three-tiered approach to sgRNA design, prioritizing valida
 
 We maintain a curated database of 300+ validated sgRNA sequences from Addgene with experimental evidence.
 
-**Location**: `biomni/know_how/addgene_grna_sequences.csv`
+**Location**: `biomni/know_how/resource/addgene_grna_sequences.csv`
 
 **Search the database**:
 ```python
@@ -145,7 +141,7 @@ Validation: Tested in HEK293T cells, 85% cutting efficiency
 ❌ **If no matches found in BOTH Method 1 AND Method 2:**
 Only then proceed to **Option 2: Download CRISPick Dataset**
 
----
+
 
 ## Option 2: Download Pre-Computed sgRNAs from CRISPick
 
@@ -171,7 +167,7 @@ Only then proceed to **Option 2: Download CRISPick Dataset**
 
 ### 2.2 Find the Download Link
 
-**All 238 download links are available in**: `biomni/know_how/download_links.txt`
+**All 238 download links are available in**: `biomni/know_how/resource/CRISPick_download_links.txt`
 
 #### Step 1: Understand File Naming Convention
 
@@ -180,7 +176,7 @@ Files are named: `sgRNA_design_{TAXID}_{GENOME}_{CAS}_{APPLICATION}_{ALGORITHM}_
 **Common datasets:**
 
 | Organism | Genome | Cas9 | Application | Search Pattern |
-|----------|--------|------|-------------|----------------|
+|-|--||-|-|
 | Human | GRCh38 | SpCas9 | Knockout | `9606_GRCh38_SpyoCas9_CRISPRko` |
 | Human | GRCh38 | SpCas9 | Activation | `9606_GRCh38_SpyoCas9_CRISPRa` |
 | Human | GRCh38 | SaCas9 | Knockout | `9606_GRCh38_SaurCas9_CRISPRko` |
@@ -201,10 +197,10 @@ Files are named: `sgRNA_design_{TAXID}_{GENOME}_{CAS}_{APPLICATION}_{ALGORITHM}_
 
 ```bash
 # Search the download links file
-grep "9606_GRCh38_SpyoCas9_CRISPRko" biomni/know_how/download_links.txt
+grep "9606_GRCh38_SpyoCas9_CRISPRko" biomni/know_how/resource/CRISPick_download_links.txt
 
 # Or for mouse
-grep "10090_GRCm38_SpyoCas9_CRISPRko" biomni/know_how/download_links.txt
+grep "10090_GRCm38_SpyoCas9_CRISPRko" biomni/know_how/resource/CRISPick_download_links.txt
 ```
 
 #### Step 3: Download and Extract
@@ -335,7 +331,7 @@ print(final_selection[['sgRNA Sequence', 'Exon Number', 'Combined Rank']])
 ❌ **If dataset doesn't cover your gene or organism:**
 Proceed to **Option 3: De Novo sgRNA Design**
 
----
+
 
 ## Option 3: General sgRNA Design Guidelines (Last Resort)
 
@@ -371,7 +367,7 @@ Proceed to **Option 3: De Novo sgRNA Design**
 - Select sgRNAs with high efficiency scores (>0.5) and minimal off-targets
 - Validate experimentally with Sanger sequencing
 
----
+
 
 ## Quick Start Examples
 
@@ -418,6 +414,6 @@ print(oct4_results['Target_Sequence'].values[0])
 # Use this sequence ✅
 ```
 
----
+
 
 **Remember**: Always start with validated sequences (Option 1), then move to pre-computed designs (Option 2), and only use de novo design (Option 3) when necessary. Testing 3-4 sgRNAs per gene is standard practice regardless of prediction scores.
