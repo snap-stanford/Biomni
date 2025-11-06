@@ -15,6 +15,7 @@ import random
 import string
 from biomni.config import default_config
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
+from chainlit.data.storage_clients.base import BaseStorageClient
 import time
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.pool import StaticPool, QueuePool
@@ -60,6 +61,64 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
+
+
+class LocalStorageClient(BaseStorageClient):
+    """로컬 파일 시스템에 파일을 저장하는 스토리지 클라이언트"""
+
+    def __init__(self, storage_dir: str = None):
+        """
+        Args:
+            storage_dir: 파일을 저장할 디렉토리 경로 (기본값: PUBLIC_DIR)
+        """
+        if storage_dir is None:
+            storage_dir = PUBLIC_DIR
+        self.storage_dir = os.path.abspath(storage_dir)
+        os.makedirs(self.storage_dir, exist_ok=True)
+
+    async def upload_file(
+        self,
+        object_key: str,
+        data: bytes | str,
+        mime: str = "application/octet-stream",
+        overwrite: bool = True,
+        content_disposition: str | None = None,
+    ) -> dict:
+        """파일을 로컬 파일 시스템에 업로드"""
+        file_path = os.path.join(self.storage_dir, object_key)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        if isinstance(data, str):
+            data = data.encode("utf-8")
+
+        with open(file_path, "wb") as f:
+            f.write(data)
+
+        return {
+            "object_key": object_key,
+            "path": file_path,
+            "url": f"/public/{object_key}",
+        }
+
+    async def delete_file(self, object_key: str) -> bool:
+        """파일 삭제"""
+        file_path = os.path.join(self.storage_dir, object_key)
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Failed to delete file {object_key}: {e}")
+            return False
+
+    async def get_read_url(self, object_key: str) -> str:
+        """파일 읽기 URL 반환"""
+        return f"/public/{object_key}"
+
+    async def close(self) -> None:
+        """리소스 정리 (로컬 파일 시스템에서는 필요 없음)"""
+        pass
 
 
 class CustomSQLAlchemyDataLayer(SQLAlchemyDataLayer):
@@ -128,7 +187,12 @@ def get_data_layer():
     conninfo = f"sqlite+aiosqlite:///{db_path}"
     print(f"Chainlit database path: {db_path}")
 
-    return CustomSQLAlchemyDataLayer(conninfo=conninfo, show_logger=False)
+    # 스토리지 클라이언트 초기화 (파일 저장용)
+    storage_provider = LocalStorageClient()
+
+    return CustomSQLAlchemyDataLayer(
+        conninfo=conninfo, storage_provider=storage_provider, show_logger=False
+    )
 
 
 @cl.password_auth_callback
