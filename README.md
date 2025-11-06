@@ -330,6 +330,29 @@ score = evaluator.evaluate('gwas_causal_gene_opentargets', 0, 'BRCA1')
 ```
 
 
+## 📚 Know-How Library
+
+Biomni includes a **Know-How Library** — a curated collection of best practices, protocols, and troubleshooting guides for biomedical techniques. These documents are automatically retrieved by the A1 agent when relevant to provide domain expertise and practical knowledge.
+
+**Features:**
+- Automatic retrieval based on query relevance
+- Metadata tracking (authors, affiliations, licensing, commercial use)
+- Compatible with commercial mode (filters non-commercial content)
+
+### 📝 Contributing Know-How Documents
+
+We're actively seeking community contributions to expand our Know-How Library! Share your expertise by contributing:
+
+- **Lab protocols** (cell culture, flow cytometry, western blotting, etc.)
+- **Analysis best practices** (NGS workflows, microscopy techniques, etc.)
+- **Troubleshooting guides** (common issues and solutions)
+- **Experimental design guidelines** (sample size, controls, validation)
+- **Domain-specific knowledge** (drug formulation, animal models, clinical trials, etc.)
+
+Know-how documents should be practical, succinct, and include proper attribution. Use [this know-how](know_how/single_cell_annotation.md) as an example.
+
+**To contribute:** Create a markdown file following our template and submit a pull request.
+
 ## 🤝 Contributing to Biomni
 
 Biomni is an open-science initiative that thrives on community contributions. We welcome:
@@ -338,6 +361,7 @@ Biomni is an open-science initiative that thrives on community contributions. We
 - **📊 Datasets**: Curated biomedical data and knowledge bases
 - **💻 Software**: Integration of existing biomedical software packages
 - **📋 Benchmarks**: Evaluation datasets and performance metrics
+- **📚 Know-How**: Best practices, protocols, and domain expertise
 - **📚 Misc**: Tutorials, examples, and use cases
 - **🔧 Update existing tools**: many current tools are not optimized - fix and replacements are welcome!
 

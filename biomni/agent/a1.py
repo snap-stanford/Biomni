@@ -15,6 +15,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from biomni.config import default_config
+from biomni.know_how import KnowHowLoader
 from biomni.llm import SourceType, get_llm
 from biomni.model.retriever import ToolRetriever
 from biomni.tool.support_tools import run_python_repl
@@ -207,6 +208,15 @@ class A1:
         if self.use_tool_retriever:
             self.tool_registry = ToolRegistry(module2api)
             self.retriever = ToolRetriever()
+
+        # Initialize know-how loader
+        self.know_how_loader = KnowHowLoader()
+
+        # Filter know-how documents based on commercial mode
+        if commercial_mode:
+            self._filter_know_how_for_commercial_mode()
+
+        print(f"📚 Loaded {len(self.know_how_loader.documents)} know-how documents")
 
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
@@ -863,6 +873,28 @@ class A1:
 
         return removed
 
+    def _filter_know_how_for_commercial_mode(self):
+        """Filter out know-how documents that don't allow commercial use.
+
+        This method removes documents from the know-how loader that have
+        commercial use restrictions when the agent is in commercial mode.
+        """
+        docs_to_remove = []
+
+        for doc_id, doc in self.know_how_loader.documents.items():
+            metadata = doc.get("metadata", {})
+            commercial_use = metadata.get("commercial_use", "")
+
+            # Check if commercial use is NOT allowed
+            if "❌" in commercial_use or "Not Allowed" in commercial_use or "Non-Commercial" in commercial_use:
+                docs_to_remove.append(doc_id)
+
+        # Remove documents that don't allow commercial use
+        for doc_id in docs_to_remove:
+            doc_name = self.know_how_loader.documents[doc_id]["name"]
+            self.know_how_loader.remove_document(doc_id)
+            print(f"  ⚠️  Excluded know-how '{doc_name}' (non-commercial license)")
+
     def _generate_system_prompt(
         self,
         tool_desc,
@@ -873,6 +905,7 @@ class A1:
         custom_tools=None,
         custom_data=None,
         custom_software=None,
+        know_how_docs=None,
     ):
         """Generate the system prompt based on the provided resources.
 
@@ -885,6 +918,7 @@ class A1:
             custom_tools: List of custom tools to highlight
             custom_data: List of custom data items to highlight
             custom_software: List of custom software items to highlight
+            know_how_docs: List of know-how documents with best practices and protocols
 
         Returns:
             The generated system prompt
@@ -1050,6 +1084,16 @@ class A1:
                     desc = self.library_content_dict.get(item, f"Custom software: {item}")
                     custom_software_formatted.append(f"⚙️ {format_item_with_description(item, desc)}")
 
+        # Format know-how documents - include FULL content (metadata already stripped)
+        know_how_formatted = []
+        if know_how_docs:
+            for doc in know_how_docs:
+                if isinstance(doc, dict):
+                    name = doc.get("name", "Unknown")
+                    content = doc.get("content", "")
+                    # Include full content in system prompt (metadata already removed)
+                    know_how_formatted.append(f"📚 {name}:\n{content}")
+
         # Base prompt
         prompt_modifier = """
 You are a helpful biomedical assistant assigned with the task of problem-solving.
@@ -1105,7 +1149,9 @@ You may or may not receive feedbacks from human. If so, address the feedbacks by
 """
 
         # Add custom resources section first (highlighted)
-        has_custom_resources = any([custom_tools_formatted, custom_data_formatted, custom_software_formatted])
+        has_custom_resources = any(
+            [custom_tools_formatted, custom_data_formatted, custom_software_formatted, know_how_formatted]
+        )
 
         if has_custom_resources:
             prompt_modifier += """
@@ -1115,6 +1161,21 @@ PRIORITY CUSTOM RESOURCES
 IMPORTANT: The following custom resources have been specifically added for your use.
     PRIORITIZE using these resources as they are directly relevant to your task.
     Always consider these FIRST and in the meantime using default resources.
+
+"""
+
+            if know_how_formatted:
+                prompt_modifier += """
+📚 KNOW-HOW DOCUMENTS (BEST PRACTICES & PROTOCOLS - ALREADY LOADED):
+{know_how_docs}
+
+IMPORTANT: These documents are ALREADY AVAILABLE in your context. You do NOT need to
+retrieve them or "review" them as a separate step. You can DIRECTLY reference and use
+the information from these documents to answer questions, provide protocols, suggest
+parameters, and offer troubleshooting guidance.
+
+These documents contain expert knowledge, protocols, and troubleshooting guidance.
+Reference them directly for experimental design, methodology, and problem-solving.
 
 """
 
@@ -1206,6 +1267,8 @@ Each library is listed with its description to help you understand its functiona
         }
 
         # Add custom resources to format dict if they exist
+        if know_how_formatted:
+            format_dict["know_how_docs"] = "\n\n".join(know_how_formatted)
         if custom_tools_formatted:
             format_dict["custom_tools"] = "\n".join(custom_tools_formatted)
         if custom_data_formatted:
@@ -1279,6 +1342,23 @@ Each library is listed with its description to help you understand its functiona
             for name, info in self._custom_software.items():
                 custom_software.append({"name": name, "description": info["description"]})
 
+        # Load ALL know-how documents into initial system prompt
+        # This makes best practices always available, not just when retrieved
+        know_how_docs = []
+        if hasattr(self, "know_how_loader") and self.know_how_loader.documents:
+            for _doc_id, doc in self.know_how_loader.documents.items():
+                # Use content without metadata for efficiency
+                know_how_docs.append(
+                    {
+                        "id": doc["id"],
+                        "name": doc["name"],
+                        "description": doc["description"],
+                        "content": doc["content_without_metadata"],
+                        "metadata": doc["metadata"],
+                    }
+                )
+            print(f"📚 Loading {len(know_how_docs)} know-how documents into system prompt")
+
         self.system_prompt = self._generate_system_prompt(
             tool_desc=tool_desc,
             data_lake_content=data_lake_with_desc,
@@ -1288,6 +1368,7 @@ Each library is listed with its description to help you understand its functiona
             custom_tools=custom_tools if custom_tools else None,
             custom_data=custom_data if custom_data else None,
             custom_software=custom_software if custom_software else None,
+            know_how_docs=know_how_docs if know_how_docs else None,
         )
 
         # Define the nodes
@@ -1600,15 +1681,22 @@ Each library is listed with its description to help you understand its functiona
                 if not any(lib["name"] == name for lib in library_descriptions):
                     library_descriptions.append({"name": name, "description": info["description"]})
 
+        # 4. Know-how documents
+        know_how_summaries = self.know_how_loader.get_document_summaries()
+
         # Use retrieval to get relevant resources
         resources = {
             "tools": all_tools,
             "data_lake": data_lake_descriptions,
             "libraries": library_descriptions,
+            "know_how": know_how_summaries,
         }
 
         # Use prompt-based retrieval with the agent's LLM
         selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
+        print("\n" + "=" * 60)
+        print("🔍 RESOURCE RETRIEVAL")
+        print("=" * 60)
         print("Using prompt-based retrieval with the agent's LLM")
 
         # Extract the names from the selected resources for the system prompt
@@ -1616,6 +1704,7 @@ Each library is listed with its description to help you understand its functiona
             "tools": selected_resources["tools"],
             "data_lake": [],
             "libraries": [lib["name"] if isinstance(lib, dict) else lib for lib in selected_resources["libraries"]],
+            "know_how": [],
         }
 
         # Process data lake items to extract just the names
@@ -1628,6 +1717,36 @@ Each library is listed with its description to help you understand its functiona
                 selected_resources_names["data_lake"].append(name)
             else:
                 selected_resources_names["data_lake"].append(item)
+
+        # Process know-how documents - get the full content for selected documents
+        if "know_how" in selected_resources and selected_resources["know_how"]:
+            print("\n📚 Know-How Documents Retrieved:")
+            for item in selected_resources["know_how"]:
+                if isinstance(item, dict):
+                    doc_id = item["id"]
+                    doc = self.know_how_loader.get_document_by_id(doc_id)
+                    if doc:
+                        print(f"  ✓ {doc['name']}")
+                        # Create a copy with content_without_metadata for agent context
+                        doc_for_agent = {
+                            "id": doc["id"],
+                            "name": doc["name"],
+                            "description": doc["description"],
+                            "content": doc["content_without_metadata"],  # Use stripped version for agent
+                            "metadata": doc["metadata"],
+                        }
+                        selected_resources_names["know_how"].append(doc_for_agent)
+        else:
+            print("\n📚 Know-How: None retrieved for this query")
+
+        # Print summary of what was retrieved
+        print("\n" + "-" * 60)
+        print("📊 RETRIEVAL SUMMARY:")
+        print(f"  🔧 Tools: {len(selected_resources_names['tools'])} selected")
+        print(f"  📊 Data Lake: {len(selected_resources_names['data_lake'])} selected")
+        print(f"  ⚙️  Libraries: {len(selected_resources_names['libraries'])} selected")
+        print(f"  📚 Know-How: {len(selected_resources_names['know_how'])} selected")
+        print("=" * 60 + "\n")
 
         return selected_resources_names
 
@@ -1794,6 +1913,9 @@ Each library is listed with its description to help you understand its functiona
             for name, info in self._custom_software.items():
                 custom_software.append({"name": name, "description": info["description"]})
 
+        # Extract know-how documents if present
+        know_how_docs = selected_resources.get("know_how", [])
+
         self.system_prompt = self._generate_system_prompt(
             tool_desc=tool_desc,
             data_lake_content=data_lake_with_desc,
@@ -1803,6 +1925,7 @@ Each library is listed with its description to help you understand its functiona
             custom_tools=custom_tools if custom_tools else None,
             custom_data=custom_data if custom_data else None,
             custom_software=custom_software if custom_software else None,
+            know_how_docs=know_how_docs if know_how_docs else None,
         )
 
         # Print the raw system prompt for debugging
