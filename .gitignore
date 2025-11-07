@@ -232,3 +232,9 @@ data/ddinter_raw/
 # Sphinx build
 /docs/build/
 /docs/source/api/
+*.csv
+*.txt
+*.json
+local_outputs/
+logs/
+sandbox/

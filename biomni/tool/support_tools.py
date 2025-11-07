@@ -1,5 +1,6 @@
 import base64
 import io
+import os
 import sys
 from io import StringIO
 
@@ -10,20 +11,46 @@ _persistent_namespace = {}
 _captured_plots = []
 
 
-def run_python_repl(command: str) -> str:
+def run_python_repl(command: str, working_dir: str | None = None, original_cwd: str | None = None) -> str:
     """Executes the provided Python command in a persistent environment and returns the output.
     Variables defined in one execution will be available in subsequent executions.
+
+    Args:
+        command: Python command to execute
+        working_dir: Optional working directory to change to before execution
+        original_cwd: Original working directory (for sandbox mode data access)
     """
 
     def execute_in_repl(command: str) -> str:
         """Helper function to execute the command in the persistent environment."""
         old_stdout = sys.stdout
+        old_cwd = None
         sys.stdout = mystdout = StringIO()
 
         # Use the persistent namespace
         global _persistent_namespace
 
         try:
+            # Change working directory if specified
+            if working_dir is not None:
+                old_cwd = os.getcwd()
+                os.chdir(working_dir)
+
+            # Inject sandbox-aware helper variables for data access
+            if working_dir is not None and original_cwd is not None:
+                _persistent_namespace["__sandbox_mode__"] = True
+                _persistent_namespace["__original_cwd__"] = original_cwd
+                _persistent_namespace["__sandbox_path__"] = working_dir
+
+                # Helper function for accessing original project data
+                def _get_project_path(relative_path):
+                    """Helper function to get absolute path to project data from sandbox."""
+                    return os.path.join(original_cwd, relative_path)
+
+                _persistent_namespace["get_project_path"] = _get_project_path
+            else:
+                _persistent_namespace["__sandbox_mode__"] = False
+
             # Apply matplotlib monkey patches before execution
             _apply_matplotlib_patches()
 
@@ -37,6 +64,9 @@ def run_python_repl(command: str) -> str:
         except Exception as e:
             output = f"Error: {str(e)}"
         finally:
+            # Restore original working directory
+            if old_cwd is not None:
+                os.chdir(old_cwd)
             sys.stdout = old_stdout
         return output
 
