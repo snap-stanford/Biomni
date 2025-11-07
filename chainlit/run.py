@@ -8,17 +8,13 @@ from langchain_core.messages import (
 )
 import os
 import re
-from datetime import datetime
-import pytz
 import shutil
 import random
 import string
 from biomni.config import default_config
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from chainlit.data.storage_clients.base import BaseStorageClient
-import time
-from sqlalchemy import create_engine, event, text
-from sqlalchemy.pool import StaticPool, QueuePool
+from sqlalchemy import create_engine, event
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     AsyncEngine,
@@ -27,8 +23,7 @@ from sqlalchemy.ext.asyncio import (
 )
 import asyncio
 import logging
-
-# from chainlit.data.base import BaseStorageClient
+import concurrent.futures
 
 # Configuration
 LLM_MODEL = "gemini-2.5-pro"
@@ -38,9 +33,6 @@ BIOMNI_DATA_PATH = "./"
 CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = f"{CURRENT_ABS_DIR}/public"
 CHAINLIT_DB_PATH = "chainlit.db"
-# 스트리밍 타임아웃 설정 (초)
-STREAMING_HEARTBEAT_INTERVAL = 15  # 하트비트 간격 (초) - 더 자주 전송하여 연결 유지
-STREAMING_MAX_TIMEOUT = 1800  # 최대 대기 시간 (초, 기본 30분) - 더 긴 타임아웃 허용
 
 default_config.llm = LLM_MODEL
 default_config.commercial_mode = True
@@ -58,7 +50,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler("chainlit_db.log", mode="a"),
+        logging.FileHandler("chainlit_stream.log", mode="a"),
     ],
 )
 logger = logging.getLogger(__name__)
@@ -321,18 +313,45 @@ def _convert_to_agent_format(message_history: list) -> list:
     return agent_input
 
 
+async def _sync_generator_to_async(sync_gen):
+    """Convert a sync generator to async generator.
+
+    This allows us to use async for loop which automatically checks
+    for CancelledError at each iteration.
+    """
+    loop = asyncio.get_running_loop()
+
+    def get_next_item():
+        try:
+            return next(sync_gen)
+        except StopIteration:
+            return None
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        while True:
+            # Run next() in executor to avoid blocking
+            item = await loop.run_in_executor(executor, get_next_item)
+            if item is None:
+                break
+            yield item
+
+
 async def _process_agent_response(agent_input: list, message_history: list):
     """Process agent response and handle streaming."""
 
     with open(f"conversion_history.txt", "a") as f:
         f.write(agent_input[-1].content + "\n")
 
+    logger.info("[RESPONSE] Starting agent response processing")
+
     try:
         async with cl.Step(name="Plan and execute") as chainlit_step:
             await chainlit_step.update()
-            message_stream = agent.go_stream(agent_input)
+            sync_message_stream = agent.go_stream(agent_input)
+            # Convert sync generator to async
+            message_stream = _sync_generator_to_async(sync_message_stream)
             full_message, step_message, raw_full_message = await _handle_message_stream(
-                message_stream, chainlit_step
+                message_stream, chainlit_step, sync_message_stream
             )
 
         final_message = _extract_final_message(raw_full_message)
@@ -375,91 +394,93 @@ async def _process_agent_response(agent_input: list, message_history: list):
         message_history.append({"role": "assistant", "content": error_message})
 
 
-async def _handle_message_stream(message_stream, chainlit_step):
-    """Handle streaming messages from the agent.
+async def _handle_message_stream(message_stream, chainlit_step, sync_generator):
+    """Handle streaming messages from the agent using async for loop.
 
-    Similar to streamlit's approach: accumulate raw content, format when displaying,
-    and only stream the delta to avoid duplicates.
+    This approach is much simpler and automatically handles CancelledError
+    at each await point in the async for loop.
 
-    Includes heartbeat mechanism to keep connection alive during long waits.
+    Args:
+        message_stream: Async generator (converted from sync)
+        chainlit_step: Chainlit Step object
+        sync_generator: Original sync generator for cleanup
     """
-    raw_full_message = ""  # Accumulate raw content without modifications
-    step_message = ""  # Step-specific message
+    raw_full_message = ""
+    step_message = ""
     current_step = 1
-    last_formatted_text = ""  # Track last formatted text that was displayed
-    last_chunk_time = time.time()  # Track last chunk received time
-    heartbeat_task = None
-    stream_completed = False
+    last_formatted_text = ""
+    image_cache = {}
+    last_chunk_time = [
+        asyncio.get_event_loop().time()
+    ]  # Mutable to share with heartbeat
+    stream_done = [False]  # Mutable flag to stop heartbeat
+    last_heartbeat_msg = [""]  # Mutable to share with main loop
 
-    async def heartbeat_loop():
-        """Send heartbeat tokens to keep connection alive."""
-        nonlocal last_chunk_time, stream_completed
+    logger.info("[STREAM] Starting message stream processing")
+
+    async def heartbeat():
+        """Send periodic 'working...' messages if no chunks received for a while."""
         heartbeat_count = 0
-        while not stream_completed:
+
+        while not stream_done[0]:
             try:
-                await asyncio.sleep(STREAMING_HEARTBEAT_INTERVAL)
+                await asyncio.sleep(2)  # Check every 2 seconds
             except asyncio.CancelledError:
                 break
 
-            if stream_completed:
+            if stream_done[0]:
                 break
 
-            # Check for cancellation
-            current_task = asyncio.current_task()
-            if current_task and current_task.cancelled():
-                break
+            elapsed = asyncio.get_event_loop().time() - last_chunk_time[0]
 
-            # Check if we've received a chunk recently
-            time_since_last_chunk = time.time() - last_chunk_time
-            # 마지막 chunk 이후 일정 시간이 지났으면 하트비트 전송
-            # 이렇게 하면 오래 걸리는 작업 중에도 연결이 끊어지지 않음
-            if time_since_last_chunk >= STREAMING_HEARTBEAT_INTERVAL:
+            # Only show message if waiting > 5 seconds
+            if elapsed >= 5:
                 heartbeat_count += 1
-                try:
-                    # 주기적으로 하트비트를 전송하여 HTTP 연결 유지
-                    # 공백 문자를 사용하여 시각적으로 방해하지 않으면서 연결 유지
-                    await chainlit_step.stream_token(" ")  # Regular space
-                    # Step 업데이트를 통해 연결이 활성 상태임을 확인
-                    await chainlit_step.update()
-                    logger.debug(
-                        f"Heartbeat #{heartbeat_count} sent (last chunk: {time_since_last_chunk:.1f}s ago)"
-                    )
-                except (asyncio.CancelledError, Exception) as e:
-                    logger.warning(f"Failed to send heartbeat: {e}")
-                    break
+                elapsed_int = int(elapsed)
 
-    # Start heartbeat task
-    heartbeat_task = asyncio.create_task(heartbeat_loop())
-
-    try:
-        # Wrap the streaming loop with timeout
-        start_time = time.time()
-
-        for chunk in message_stream:
-            # Check for cancellation (stop button)
-            current_task = asyncio.current_task()
-            if current_task and current_task.cancelled():
-                logger.info("Task cancelled, stopping stream")
-                stream_completed = True
-                raise asyncio.CancelledError("Execution stopped by user")
-
-            # Allow cancellation to be checked periodically
-            await asyncio.sleep(0)  # Yield control to allow cancellation
-
-            # Check for timeout
-            elapsed_time = time.time() - start_time
-            if elapsed_time > STREAMING_MAX_TIMEOUT:
-                logger.warning(f"Streaming timeout after {elapsed_time:.1f}s")
-                raise TimeoutError(
-                    f"스트리밍이 최대 대기 시간({STREAMING_MAX_TIMEOUT}초)을 초과했습니다. "
-                    "연결이 끊어졌을 수 있습니다."
+                logger.info(
+                    f"[HEARTBEAT #{heartbeat_count}] Showing working message (elapsed: {elapsed_int}s)"
                 )
 
-            last_chunk_time = time.time()  # Update last chunk time
+                # Create new heartbeat message
+                new_msg = f"\n\n_⏳ Still working... ({elapsed_int} seconds elapsed)_"
+
+                try:
+                    # Get current output and append heartbeat
+                    current_output = chainlit_step.output or last_formatted_text
+
+                    # Remove old heartbeat if present
+                    if last_heartbeat_msg[0] and current_output.endswith(
+                        last_heartbeat_msg[0]
+                    ):
+                        current_output = current_output[: -len(last_heartbeat_msg[0])]
+
+                    # Set new output with heartbeat
+                    chainlit_step.output = current_output + new_msg
+                    await chainlit_step.update()  # UI 업데이트 필수!
+                    last_heartbeat_msg[0] = new_msg
+                    logger.debug(f"[HEARTBEAT] Updated output with message")
+                except Exception as e:
+                    logger.warning(f"[HEARTBEAT] Failed to update: {e}")
+            else:
+                # Silent heartbeat for debugging
+                logger.debug(
+                    f"[HEARTBEAT] Check (elapsed: {elapsed:.1f}s, waiting for 5s)"
+                )
+
+    # Start heartbeat task
+    heartbeat_task = asyncio.create_task(heartbeat())
+
+    try:
+        # async for automatically checks for CancelledError at each iteration!
+        async for chunk in message_stream:
+            # Update last chunk time
+            last_chunk_time[0] = asyncio.get_event_loop().time()
+            # At this await point, CancelledError is automatically raised
+            # if the task is cancelled (page refresh or stop button)
 
             this_step = chunk[1][1]["langgraph_step"]
             if this_step != current_step:
-                # Step changed - reset step message
                 step_message = ""
                 current_step = this_step
 
@@ -468,41 +489,62 @@ async def _handle_message_stream(message_stream, chainlit_step):
                 continue
 
             if isinstance(chunk_content, str):
-                # Accumulate raw content (no modifications during accumulation)
                 raw_full_message += chunk_content
                 step_message += chunk_content
 
-                # Format the entire accumulated message (similar to streamlit)
-                # This ensures consistency even if modifications affect earlier parts
-                formatted_text = _modify_chunk(raw_full_message)
-                formatted_text = _detect_image_name_and_move_to_public(formatted_text)
+                # Remove heartbeat message if present (new chunk arrived!)
+                if last_heartbeat_msg[0]:
+                    logger.debug(
+                        "[STREAM] Removing heartbeat message (new chunk arrived)"
+                    )
+                    current_output = chainlit_step.output or ""
+                    if current_output.endswith(last_heartbeat_msg[0]):
+                        chainlit_step.output = current_output[
+                            : -len(last_heartbeat_msg[0])
+                        ]
+                    last_heartbeat_msg[0] = ""  # Clear heartbeat message
 
-                # Only stream if the formatted text has changed
-                # Stream only the delta (new portion) to avoid duplicates
+                # Format and detect images
+                formatted_text = _modify_chunk(raw_full_message)
+                formatted_text = _detect_image_name_and_move_to_public(
+                    formatted_text, image_cache
+                )
+
+                # Only stream if changed
                 if formatted_text != last_formatted_text:
-                    # Calculate delta: what's new since last display
-                    if last_formatted_text and formatted_text.startswith(
-                        last_formatted_text
-                    ):
-                        # Incremental: only stream the new part
-                        delta = formatted_text[len(last_formatted_text) :]
+                    prev_output = last_formatted_text
+
+                    if prev_output and formatted_text.startswith(prev_output):
+                        delta = formatted_text[len(prev_output) :]
                     else:
-                        # Content changed in a non-sequential way (e.g., image processing)
-                        # Stream the entire new content (this is rare)
                         delta = formatted_text
 
                     if delta:
+                        # This await also checks for CancelledError
                         await chainlit_step.stream_token(delta)
                         chainlit_step.output = formatted_text
                         last_formatted_text = formatted_text
 
-        stream_completed = True
+        logger.info("[STREAM] Stream completed successfully")
 
-        # Final formatting for return values
+        # Stop heartbeat
+        stream_done[0] = True
+
+        # Remove any remaining heartbeat message
+        if last_heartbeat_msg[0]:
+            logger.debug("[STREAM] Removing heartbeat message at completion")
+            current_output = chainlit_step.output or ""
+            if current_output.endswith(last_heartbeat_msg[0]):
+                chainlit_step.output = current_output[: -len(last_heartbeat_msg[0])]
+            last_heartbeat_msg[0] = ""
+
+        # Final formatting
         full_formatted = _modify_chunk(raw_full_message)
-        full_formatted = _detect_image_name_and_move_to_public(full_formatted)
+        full_formatted = _detect_image_name_and_move_to_public(
+            full_formatted, image_cache
+        )
 
-        # Ensure we've sent everything
+        # Final update if needed
         if full_formatted != last_formatted_text:
             remaining_delta = (
                 full_formatted[len(last_formatted_text) :]
@@ -514,21 +556,39 @@ async def _handle_message_stream(message_stream, chainlit_step):
                 await chainlit_step.stream_token(remaining_delta)
                 chainlit_step.output = full_formatted
 
-        # Format step_message for return (if needed)
         step_message = _modify_chunk(step_message)
-        step_message = _detect_image_name_and_move_to_public(step_message)
+        step_message = _detect_image_name_and_move_to_public(step_message, image_cache)
 
         return full_formatted, step_message, raw_full_message
 
     except asyncio.CancelledError:
-        # Propagate cancellation to properly handle stop button
-        stream_completed = True
-        if heartbeat_task and not heartbeat_task.done():
-            heartbeat_task.cancel()
+        logger.info("[STREAM] CancelledError - closing generator and stopping")
+        stream_done[0] = True
+
+        # Close the sync generator explicitly to clean up resources
+        if sync_generator and hasattr(sync_generator, "close"):
+            try:
+                sync_generator.close()
+                logger.info("[STREAM] Sync generator closed successfully")
+            except Exception as e:
+                logger.warning(f"[STREAM] Failed to close generator: {e}")
+        raise  # Re-raise to propagate cancellation
+
+    except Exception as e:
+        logger.error(f"[STREAM] Error during streaming: {e}", exc_info=True)
+        stream_done[0] = True
+
+        # Also close generator on error
+        if sync_generator and hasattr(sync_generator, "close"):
+            try:
+                sync_generator.close()
+            except:
+                pass
         raise
+
     finally:
-        # Cancel heartbeat task
-        stream_completed = True
+        # Always stop and cleanup heartbeat task
+        stream_done[0] = True
         if heartbeat_task and not heartbeat_task.done():
             heartbeat_task.cancel()
             try:
@@ -709,16 +769,22 @@ def _replace_biomni_imports(content: str) -> str:
     return content
 
 
-def _detect_image_name_and_move_to_public(content: str) -> str:
+def _detect_image_name_and_move_to_public(
+    content: str, image_cache: dict = None
+) -> str:
     """
     Detect images in markdown text, move them to public folder with random prefix.
 
     Args:
         content: Markdown text content
+        image_cache: Dictionary to cache already moved images {original_path: public_path}
 
     Returns:
         Modified markdown text with updated image paths
     """
+    if image_cache is None:
+        image_cache = {}
+
     public_dir = PUBLIC_DIR
     os.makedirs(public_dir, exist_ok=True)
 
@@ -748,6 +814,11 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
         if not os.path.exists(image_path):
             return match.group(0)
 
+        # Check cache first to avoid duplicate copies
+        if image_path in image_cache:
+            public_path = image_cache[image_path]
+            return f"[![{alt_text}]({public_path})]({public_path})[Download]({public_path})"
+
         # Generate random prefix and new filename
         random_prefix = "".join(
             random.choices(string.ascii_lowercase + string.digits, k=6)
@@ -758,8 +829,10 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
 
         try:
             shutil.copy2(image_path, new_file_path)
+            public_path = f"/public/{new_file_name}"
+            image_cache[image_path] = public_path  # Cache the result
             print("copied image to", new_file_path)
-            return f"[![{alt_text}](/public/{new_file_name})](/public/{new_file_name})[Download](/public/{new_file_name})"
+            return f"[![{alt_text}]({public_path})]({public_path})[Download]({public_path})"
         except Exception as e:
             print(f"Error moving image {image_path}: {e}")
             return match.group(0)
