@@ -11,6 +11,7 @@ import re
 import shutil
 import random
 import string
+import base64
 from biomni.config import default_config
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from chainlit.data.storage_clients.base import BaseStorageClient
@@ -273,32 +274,88 @@ async def main(user_message: cl.Message):
         user_message: The user's message from Chainlit UI.
     """
     print("current dir:", os.getcwd())
-    user_prompt = await _process_user_message(user_message)
-    message_history = _update_message_history(user_prompt)
+    user_data = await _process_user_message(user_message)
+    message_history = _update_message_history(user_data)
     agent_input = _convert_to_agent_format(message_history)
 
     await _process_agent_response(agent_input, message_history)
 
 
-async def _process_user_message(user_message: cl.Message) -> str:
-    """Process user message and handle file uploads."""
+async def _process_user_message(user_message: cl.Message) -> dict:
+    """Process user message and handle file uploads.
+
+    Returns:
+        dict with 'text' and optional 'images' keys
+    """
     user_prompt = user_message.content.strip()
+    images = []
+
+    # Image file extensions
+    image_extensions = {
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".bmp",
+        ".webp",
+        ".tiff",
+        ".tif",
+    }
 
     # Process uploaded files
-    step_message = ""
     for file in user_message.elements:
         os.system(f"cp {file.path} '{file.name}'")
-        user_prompt += f"\n - user uploaded data file: {file.name}\n"
+
+        # Check if it's an image file
+        file_ext = os.path.splitext(file.name)[1].lower()
+        if file_ext in image_extensions:
+            try:
+                # Read image and encode to base64
+                with open(file.path, "rb") as f:
+                    image_data = base64.b64encode(f.read()).decode("utf-8")
+
+                # Determine MIME type
+                mime_type_map = {
+                    ".png": "image/png",
+                    ".jpg": "image/jpeg",
+                    ".jpeg": "image/jpeg",
+                    ".gif": "image/gif",
+                    ".bmp": "image/bmp",
+                    ".webp": "image/webp",
+                    ".tiff": "image/tiff",
+                    ".tif": "image/tiff",
+                }
+                mime_type = mime_type_map.get(file_ext, "image/jpeg")
+
+                images.append(
+                    {"name": file.name, "data": f"data:{mime_type};base64,{image_data}"}
+                )
+                user_prompt += f"\n - user uploaded image file: {file.name}\n"
+            except Exception as e:
+                print(f"Error processing image {file.name}: {e}")
+                user_prompt += f"\n - user uploaded data file: {file.name}\n"
+        else:
+            user_prompt += f"\n - user uploaded data file: {file.name}\n"
 
     user_prompt += "\n" + cl.user_session.get("user_uploaded_system_file", "")
 
-    return user_prompt
+    return {"text": user_prompt, "images": images}
 
 
-def _update_message_history(user_prompt: str) -> list:
-    """Update and return message history."""
+def _update_message_history(user_data: dict) -> list:
+    """Update and return message history.
+
+    Args:
+        user_data: dict with 'text' and optional 'images' keys
+    """
     message_history = cl.user_session.get("message_history", [])
-    message_history.append({"role": "user", "content": user_prompt})
+    message_history.append(
+        {
+            "role": "user",
+            "content": user_data["text"],
+            "images": user_data.get("images", []),
+        }
+    )
     return message_history
 
 
@@ -307,7 +364,19 @@ def _convert_to_agent_format(message_history: list) -> list:
     agent_input = []
     for message in message_history:
         if message["role"] == "user":
-            agent_input.append(HumanMessage(content=message["content"]))
+            # Check if there are images to include
+            images = message.get("images", [])
+            if images:
+                # Create content as a list with text and images
+                content = [{"type": "text", "text": message["content"]}]
+                for img in images:
+                    content.append(
+                        {"type": "image_url", "image_url": {"url": img["data"]}}
+                    )
+                agent_input.append(HumanMessage(content=content))
+            else:
+                # Text only
+                agent_input.append(HumanMessage(content=message["content"]))
         elif message["role"] == "assistant":
             agent_input.append(AIMessage(content=message["content"]))
     return agent_input
@@ -336,11 +405,34 @@ async def _sync_generator_to_async(sync_gen):
             yield item
 
 
+def _extract_text_from_content(content):
+    """Extract text from message content (handles both string and list formats).
+
+    Args:
+        content: Either a string or a list with text and image_url dicts
+
+    Returns:
+        str: The text content
+    """
+    if isinstance(content, str):
+        return content
+    elif isinstance(content, list):
+        # Extract text from list format
+        text_parts = []
+        for item in content:
+            if isinstance(item, dict) and item.get("type") == "text":
+                text_parts.append(item.get("text", ""))
+        return "".join(text_parts)
+    else:
+        return str(content)
+
+
 async def _process_agent_response(agent_input: list, message_history: list):
     """Process agent response and handle streaming."""
 
     with open(f"conversion_history.txt", "a") as f:
-        f.write(agent_input[-1].content + "\n")
+        user_content_text = _extract_text_from_content(agent_input[-1].content)
+        f.write(user_content_text + "\n")
 
     logger.info("[RESPONSE] Starting agent response processing")
 
