@@ -26,7 +26,10 @@ from biomni.agent.a1 import A1
 from .a1 import AgentState
 from biomni.llm import get_llm
 from langchain_community.vectorstores import FAISS
-from langchain.chains import ConversationalRetrievalChain
+try:
+    from langchain.chains import ConversationalRetrievalChain
+except:
+    from langchain_classic.chains import ConversationalRetrievalChain
 from biomni.model.retriever import ToolRetrieverByRAG
 from biomni.utils.resource_filter import (
     apply_resource_filters,

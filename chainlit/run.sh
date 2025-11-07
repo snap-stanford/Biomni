@@ -11,4 +11,5 @@
 # 해당 서버의 타임아웃 설정도 확인해야 할 수 있습니다.
 
 # Chainlit 서버 실행
-chainlit run /workdir_efs/jaechang/work2/biomni_hits_test/Biomni_HITS/chainlit/run.py -w -h --host 0.0.0.0 --port 8001
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+chainlit run "${SCRIPT_DIR}/run.py" -w -h --host 0.0.0.0 --port 8001

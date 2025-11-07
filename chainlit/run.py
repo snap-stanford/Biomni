@@ -34,6 +34,7 @@ import logging
 LLM_MODEL = "gemini-2.5-pro"
 # LLM_MODEL = "grok-4-fast"
 BIOMNI_DATA_PATH = "/workdir_efs/jhjeon/Biomni/biomni_data"
+BIOMNI_DATA_PATH = "./"
 CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = f"{CURRENT_ABS_DIR}/public"
 CHAINLIT_DB_PATH = "chainlit.db"
