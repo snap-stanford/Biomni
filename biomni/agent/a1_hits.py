@@ -26,6 +26,7 @@ from biomni.agent.a1 import A1
 from .a1 import AgentState
 from biomni.llm import get_llm
 from langchain_community.vectorstores import FAISS
+
 try:
     from langchain.chains import ConversationalRetrievalChain
 except:
@@ -39,8 +40,8 @@ from biomni.utils.resource_filter import (
 from biomni.config import default_config
 
 # tool_llm_model_id = "gemini-2.5-pro"
-# tool_llm_model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
-tool_llm_model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+tool_llm_model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+# tool_llm_model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
 
 class A1_HITS(A1):
@@ -292,8 +293,14 @@ Output:
 
             # Use prompt-based retrieval with the agent's LLM
             tool_llm = get_llm(model=tool_llm_model_id)
+            # text prompt만 추출해서 전달
+            if isinstance(prompt, dict) and "content" in prompt:
+                text_prompt = prompt["content"]
+            else:
+                text_prompt = prompt
+
             selected_resources = self.retriever.prompt_based_retrieval(
-                prompt, resources, llm=tool_llm
+                text_prompt, resources, llm=tool_llm
             )
             # self.retriever = ToolRetrieverByRAG()
             # selected_resources = self.retriever.prompt_based_retrieval(prompt)
@@ -432,9 +439,49 @@ Output:
             }
             # Use prompt-based retrieval with the agent's LLM
             tool_llm = get_llm(model=tool_llm_model_id)
+
             print("start tool retrieval")
+            # Extract text from prompt (handles both string and list formats)
+            # prompt can be a list of message objects (HumanMessage, AIMessage, etc.)
+            if isinstance(prompt, list) and len(prompt) > 0:
+                # Get the last message (user's message)
+                last_message = prompt[-1]
+                # Extract content from message object
+                if hasattr(last_message, "content"):
+                    content = last_message.content
+                else:
+                    content = last_message
+
+                # Handle list format (when images are included)
+                if isinstance(content, list):
+                    # Extract text parts only
+                    text_parts = [
+                        item.get("text", "")
+                        for item in content
+                        if isinstance(item, dict) and item.get("type") == "text"
+                    ]
+                    text_prompt = "\n".join(text_parts) if text_parts else ""
+                elif isinstance(content, str):
+                    text_prompt = content
+                else:
+                    text_prompt = str(content)
+            elif isinstance(prompt, dict) and "content" in prompt:
+                content = prompt["content"]
+                # Handle list format
+                if isinstance(content, list):
+                    text_parts = [
+                        item.get("text", "")
+                        for item in content
+                        if isinstance(item, dict) and item.get("type") == "text"
+                    ]
+                    text_prompt = "\n".join(text_parts) if text_parts else ""
+                else:
+                    text_prompt = content
+            else:
+                text_prompt = str(prompt)
+            print(text_prompt)
             selected_resources = self.retriever.prompt_based_retrieval(
-                prompt, resources, llm=tool_llm
+                text_prompt, resources, llm=tool_llm
             )
             print("end tool retrieval")
             # self.retriever = ToolRetrieverByRAG()
