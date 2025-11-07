@@ -38,8 +38,8 @@ CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = f"{CURRENT_ABS_DIR}/public"
 CHAINLIT_DB_PATH = "chainlit.db"
 # 스트리밍 타임아웃 설정 (초)
-STREAMING_HEARTBEAT_INTERVAL = 30  # 하트비트 간격 (초)
-STREAMING_MAX_TIMEOUT = 600  # 최대 대기 시간 (초, 기본 10분)
+STREAMING_HEARTBEAT_INTERVAL = 15  # 하트비트 간격 (초) - 더 자주 전송하여 연결 유지
+STREAMING_MAX_TIMEOUT = 1800  # 최대 대기 시간 (초, 기본 30분) - 더 긴 타임아웃 허용
 
 default_config.llm = LLM_MODEL
 default_config.commercial_mode = True
@@ -393,6 +393,7 @@ async def _handle_message_stream(message_stream, chainlit_step):
     async def heartbeat_loop():
         """Send heartbeat tokens to keep connection alive."""
         nonlocal last_chunk_time, stream_completed
+        heartbeat_count = 0
         while not stream_completed:
             try:
                 await asyncio.sleep(STREAMING_HEARTBEAT_INTERVAL)
@@ -409,12 +410,18 @@ async def _handle_message_stream(message_stream, chainlit_step):
 
             # Check if we've received a chunk recently
             time_since_last_chunk = time.time() - last_chunk_time
+            # 마지막 chunk 이후 일정 시간이 지났으면 하트비트 전송
+            # 이렇게 하면 오래 걸리는 작업 중에도 연결이 끊어지지 않음
             if time_since_last_chunk >= STREAMING_HEARTBEAT_INTERVAL:
-                # Send a zero-width space to keep connection alive without visible effect
+                heartbeat_count += 1
                 try:
-                    await chainlit_step.stream_token("\u200b")  # Zero-width space
+                    # 주기적으로 하트비트를 전송하여 HTTP 연결 유지
+                    # 공백 문자를 사용하여 시각적으로 방해하지 않으면서 연결 유지
+                    await chainlit_step.stream_token(" ")  # Regular space
+                    # Step 업데이트를 통해 연결이 활성 상태임을 확인
+                    await chainlit_step.update()
                     logger.debug(
-                        f"Heartbeat sent (last chunk: {time_since_last_chunk:.1f}s ago)"
+                        f"Heartbeat #{heartbeat_count} sent (last chunk: {time_since_last_chunk:.1f}s ago)"
                     )
                 except (asyncio.CancelledError, Exception) as e:
                     logger.warning(f"Failed to send heartbeat: {e}")
