@@ -789,7 +789,9 @@ def _detect_image_name_and_move_to_public(
     os.makedirs(public_dir, exist_ok=True)
 
     # Pattern to find markdown images, excluding those already with download functionality
-    image_pattern = r'(?<!\[)!\[([^\]]*)\]\(([^)]+?)(?:\s+"[^"]*")?\)(?!\[Download\])'
+    image_pattern = (
+        r'(?<!\[)!\[([^\]]*)\]\(([^)]+?)(?:\s+"[^"]*")?\)(?!\]\([^\)]*\)<br>)'
+    )
 
     def replace_image(match):
         alt_text = match.group(1)
@@ -806,8 +808,10 @@ def _detect_image_name_and_move_to_public(
                 image_path = "/public/" + image_path.replace("./public/", "").replace(
                     "public/", ""
                 )
+            file_name = os.path.basename(image_path)
             return (
-                f"[![{alt_text}]({image_path})]({image_path})[Download]({image_path})"
+                f"[![{alt_text}]({image_path})]({image_path})<br>"
+                f'<a href="{image_path}" download="{file_name}">Download</a>'
             )
 
         # Check if file exists
@@ -817,7 +821,11 @@ def _detect_image_name_and_move_to_public(
         # Check cache first to avoid duplicate copies
         if image_path in image_cache:
             public_path = image_cache[image_path]
-            return f"[![{alt_text}]({public_path})]({public_path})[Download]({public_path})"
+            file_name = os.path.basename(public_path)
+            return (
+                f"[![{alt_text}]({public_path})]({public_path})<br>"
+                f'<a href="{public_path}" download="{file_name}">Download</a>'
+            )
 
         # Generate random prefix and new filename
         random_prefix = "".join(
@@ -832,7 +840,10 @@ def _detect_image_name_and_move_to_public(
             public_path = f"/public/{new_file_name}"
             image_cache[image_path] = public_path  # Cache the result
             print("copied image to", new_file_path)
-            return f"[![{alt_text}]({public_path})]({public_path})[Download]({public_path})"
+            return (
+                f"[![{alt_text}]({public_path})]({public_path})<br>"
+                f'<a href="{public_path}" download="{new_file_name}">Download</a>'
+            )
         except Exception as e:
             print(f"Error moving image {image_path}: {e}")
             return match.group(0)
