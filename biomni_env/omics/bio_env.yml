@@ -4,6 +4,7 @@ channels:
   - bioconda
   - defaults
 dependencies:
+  # Bioinformatics tools
   - blast
   - samtools
   - bowtie2
@@ -17,11 +18,71 @@ dependencies:
   - plannotate
   - macs2
   - fanc
+  
+  # Omics analysis packages
+  - scanpy
+  - anndata
+  - igraph
+  - leidenalg
+  - louvain
+  - hdbscan
+  - biopython
+  - biopandas
+  - gget
+  
+  # Data science core libraries
+  - numpy=1.26.4
+  - pandas
+  - matplotlib
+  - scipy
+  - statsmodels
+  - scikit-learn
+  
+  # NLP/LLM tools
+  - transformers
+  - sentencepiece
+  
+  # LangChain ecosystem (conda-forge versions)
+  - langchain
+  - langgraph
+  - langchain-community
+  - langchain-openai
+  
+  # UI frameworks
+  - streamlit
+  
+  # Utilities
+  - tqdm
+  - seaborn
+  - networkx
+  - requests
+  - pyyaml
+  - jupyter
+  - notebook
+  - ipykernel
+  - pytest
+  - python-dotenv
+  - pytz
+  - markdown
+  - openpyxl
+  
+  # Cloud/Infrastructure
+  - boto3
+  - botocore
+  
+  # Other analysis tools
+  - faiss-cpu
+  - lifelines
+  
+  # Packages that must be installed via pip (not available in conda or need specific versions)
   - pip:
-    - scanpy
-    - biopython
-    - biopandas
-    - gget
+    # UI frameworks (conda-forge에 없음)
+    - chainlit==2.6
+    
+    # LangChain AWS (conda에 없음)
+    - langchain_aws
+    
+    # Omics packages (conda 버전 없거나 최신 버전 필요)
     - cellxgene-census
     - scikit-bio
     - umap-learn
@@ -31,6 +92,8 @@ dependencies:
     - harmony-pytorch
     - pyliftover
     - pytdc==0.4.0
+    
+    # Bioinformatics tools
     - pysam
     - pyfaidx
     - pyranges
@@ -45,3 +108,9 @@ dependencies:
     - msprime
     - tskit
     - cyvcf2
+    
+    # Web scraping/search tools
+    - ddgs
+    
+    # Other utilities
+    - docstring_parser
