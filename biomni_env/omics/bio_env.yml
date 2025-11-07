@@ -15,11 +15,12 @@ dependencies:
   - gseapy
   - mageck
   - plannotate
+  - macs2
+  - fanc
   - pip:
     - scanpy
     - biopython
     - biopandas
-    - macs2
     - gget
     - cellxgene-census
     - scikit-bio
@@ -44,4 +45,3 @@ dependencies:
     - msprime
     - tskit
     - cyvcf2
-    - fanc
