@@ -8,16 +8,14 @@ from langchain_core.messages import (
 )
 import os
 import re
-from datetime import datetime
-import pytz
 import shutil
 import random
 import string
+import base64
 from biomni.config import default_config
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
-import time
-from sqlalchemy import create_engine, event, text
-from sqlalchemy.pool import StaticPool, QueuePool
+from chainlit.data.storage_clients.base import BaseStorageClient
+from sqlalchemy import create_engine, event
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     AsyncEngine,
@@ -26,19 +24,17 @@ from sqlalchemy.ext.asyncio import (
 )
 import asyncio
 import logging
-
-# from chainlit.data.base import BaseStorageClient
+import concurrent.futures
 
 # Configuration
 LLM_MODEL = "gemini-2.5-pro"
 # LLM_MODEL = "grok-4-fast"
 BIOMNI_DATA_PATH = "/workdir_efs/jhjeon/Biomni/biomni_data"
+BIOMNI_DATA_PATH = "./"
 CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = f"{CURRENT_ABS_DIR}/public"
 CHAINLIT_DB_PATH = "chainlit.db"
-# 스트리밍 타임아웃 설정 (초)
-STREAMING_HEARTBEAT_INTERVAL = 30  # 하트비트 간격 (초)
-STREAMING_MAX_TIMEOUT = 600  # 최대 대기 시간 (초, 기본 10분)
+STREAMING_MAX_TIMEOUT = 3600  # Maximum streaming timeout in seconds (1 hour)
 
 default_config.llm = LLM_MODEL
 default_config.commercial_mode = True
@@ -56,10 +52,68 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler("chainlit_db.log", mode="a"),
+        logging.FileHandler("chainlit_stream.log", mode="a"),
     ],
 )
 logger = logging.getLogger(__name__)
+
+
+class LocalStorageClient(BaseStorageClient):
+    """로컬 파일 시스템에 파일을 저장하는 스토리지 클라이언트"""
+
+    def __init__(self, storage_dir: str = None):
+        """
+        Args:
+            storage_dir: 파일을 저장할 디렉토리 경로 (기본값: PUBLIC_DIR)
+        """
+        if storage_dir is None:
+            storage_dir = PUBLIC_DIR
+        self.storage_dir = os.path.abspath(storage_dir)
+        os.makedirs(self.storage_dir, exist_ok=True)
+
+    async def upload_file(
+        self,
+        object_key: str,
+        data: bytes | str,
+        mime: str = "application/octet-stream",
+        overwrite: bool = True,
+        content_disposition: str | None = None,
+    ) -> dict:
+        """파일을 로컬 파일 시스템에 업로드"""
+        file_path = os.path.join(self.storage_dir, object_key)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        if isinstance(data, str):
+            data = data.encode("utf-8")
+
+        with open(file_path, "wb") as f:
+            f.write(data)
+
+        return {
+            "object_key": object_key,
+            "path": file_path,
+            "url": f"/public/{object_key}",
+        }
+
+    async def delete_file(self, object_key: str) -> bool:
+        """파일 삭제"""
+        file_path = os.path.join(self.storage_dir, object_key)
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Failed to delete file {object_key}: {e}")
+            return False
+
+    async def get_read_url(self, object_key: str) -> str:
+        """파일 읽기 URL 반환"""
+        return f"/public/{object_key}"
+
+    async def close(self) -> None:
+        """리소스 정리 (로컬 파일 시스템에서는 필요 없음)"""
+        pass
 
 
 class CustomSQLAlchemyDataLayer(SQLAlchemyDataLayer):
@@ -128,7 +182,12 @@ def get_data_layer():
     conninfo = f"sqlite+aiosqlite:///{db_path}"
     print(f"Chainlit database path: {db_path}")
 
-    return CustomSQLAlchemyDataLayer(conninfo=conninfo, show_logger=False)
+    # 스토리지 클라이언트 초기화 (파일 저장용)
+    storage_provider = LocalStorageClient()
+
+    return CustomSQLAlchemyDataLayer(
+        conninfo=conninfo, storage_provider=storage_provider, show_logger=False
+    )
 
 
 @cl.password_auth_callback
@@ -216,32 +275,88 @@ async def main(user_message: cl.Message):
         user_message: The user's message from Chainlit UI.
     """
     print("current dir:", os.getcwd())
-    user_prompt = await _process_user_message(user_message)
-    message_history = _update_message_history(user_prompt)
+    user_data = await _process_user_message(user_message)
+    message_history = _update_message_history(user_data)
     agent_input = _convert_to_agent_format(message_history)
 
     await _process_agent_response(agent_input, message_history)
 
 
-async def _process_user_message(user_message: cl.Message) -> str:
-    """Process user message and handle file uploads."""
+async def _process_user_message(user_message: cl.Message) -> dict:
+    """Process user message and handle file uploads.
+
+    Returns:
+        dict with 'text' and optional 'images' keys
+    """
     user_prompt = user_message.content.strip()
+    images = []
+
+    # Image file extensions
+    image_extensions = {
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".bmp",
+        ".webp",
+        ".tiff",
+        ".tif",
+    }
 
     # Process uploaded files
-    step_message = ""
     for file in user_message.elements:
         os.system(f"cp {file.path} '{file.name}'")
-        user_prompt += f"\n - user uploaded data file: {file.name}\n"
+
+        # Check if it's an image file
+        file_ext = os.path.splitext(file.name)[1].lower()
+        if file_ext in image_extensions:
+            try:
+                # Read image and encode to base64
+                with open(file.path, "rb") as f:
+                    image_data = base64.b64encode(f.read()).decode("utf-8")
+
+                # Determine MIME type
+                mime_type_map = {
+                    ".png": "image/png",
+                    ".jpg": "image/jpeg",
+                    ".jpeg": "image/jpeg",
+                    ".gif": "image/gif",
+                    ".bmp": "image/bmp",
+                    ".webp": "image/webp",
+                    ".tiff": "image/tiff",
+                    ".tif": "image/tiff",
+                }
+                mime_type = mime_type_map.get(file_ext, "image/jpeg")
+
+                images.append(
+                    {"name": file.name, "data": f"data:{mime_type};base64,{image_data}"}
+                )
+                user_prompt += f"\n - user uploaded image file: {file.name}\n"
+            except Exception as e:
+                print(f"Error processing image {file.name}: {e}")
+                user_prompt += f"\n - user uploaded data file: {file.name}\n"
+        else:
+            user_prompt += f"\n - user uploaded data file: {file.name}\n"
 
     user_prompt += "\n" + cl.user_session.get("user_uploaded_system_file", "")
 
-    return user_prompt
+    return {"text": user_prompt, "images": images}
 
 
-def _update_message_history(user_prompt: str) -> list:
-    """Update and return message history."""
+def _update_message_history(user_data: dict) -> list:
+    """Update and return message history.
+
+    Args:
+        user_data: dict with 'text' and optional 'images' keys
+    """
     message_history = cl.user_session.get("message_history", [])
-    message_history.append({"role": "user", "content": user_prompt})
+    message_history.append(
+        {
+            "role": "user",
+            "content": user_data["text"],
+            "images": user_data.get("images", []),
+        }
+    )
     return message_history
 
 
@@ -250,24 +365,86 @@ def _convert_to_agent_format(message_history: list) -> list:
     agent_input = []
     for message in message_history:
         if message["role"] == "user":
-            agent_input.append(HumanMessage(content=message["content"]))
+            # Check if there are images to include
+            images = message.get("images", [])
+            if images:
+                # Create content as a list with text and images
+                content = [{"type": "text", "text": message["content"]}]
+                for img in images:
+                    content.append(
+                        {"type": "image_url", "image_url": {"url": img["data"]}}
+                    )
+                agent_input.append(HumanMessage(content=content))
+            else:
+                # Text only
+                agent_input.append(HumanMessage(content=message["content"]))
         elif message["role"] == "assistant":
             agent_input.append(AIMessage(content=message["content"]))
     return agent_input
+
+
+async def _sync_generator_to_async(sync_gen):
+    """Convert a sync generator to async generator.
+
+    This allows us to use async for loop which automatically checks
+    for CancelledError at each iteration.
+    """
+    loop = asyncio.get_running_loop()
+
+    def get_next_item():
+        try:
+            return next(sync_gen)
+        except StopIteration:
+            return None
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        while True:
+            # Run next() in executor to avoid blocking
+            item = await loop.run_in_executor(executor, get_next_item)
+            if item is None:
+                break
+            yield item
+
+
+def _extract_text_from_content(content):
+    """Extract text from message content (handles both string and list formats).
+
+    Args:
+        content: Either a string or a list with text and image_url dicts
+
+    Returns:
+        str: The text content
+    """
+    if isinstance(content, str):
+        return content
+    elif isinstance(content, list):
+        # Extract text from list format
+        text_parts = []
+        for item in content:
+            if isinstance(item, dict) and item.get("type") == "text":
+                text_parts.append(item.get("text", ""))
+        return "".join(text_parts)
+    else:
+        return str(content)
 
 
 async def _process_agent_response(agent_input: list, message_history: list):
     """Process agent response and handle streaming."""
 
     with open(f"conversion_history.txt", "a") as f:
-        f.write(agent_input[-1].content + "\n")
+        user_content_text = _extract_text_from_content(agent_input[-1].content)
+        f.write(user_content_text + "\n")
+
+    logger.info("[RESPONSE] Starting agent response processing")
 
     try:
         async with cl.Step(name="Plan and execute") as chainlit_step:
             await chainlit_step.update()
-            message_stream = agent.go_stream(agent_input)
+            sync_message_stream = agent.go_stream(agent_input)
+            # Convert sync generator to async
+            message_stream = _sync_generator_to_async(sync_message_stream)
             full_message, step_message, raw_full_message = await _handle_message_stream(
-                message_stream, chainlit_step
+                message_stream, chainlit_step, sync_message_stream
             )
 
         final_message = _extract_final_message(raw_full_message)
@@ -306,88 +483,98 @@ async def _process_agent_response(agent_input: list, message_history: list):
     except Exception as e:
         error_message = f"스트리밍 처리 중 오류 발생: {str(e)}"
         logger.error(error_message, exc_info=True)
+        error_message = _replace_biomni_imports(error_message)
         await cl.Message(content=f"❌ **오류**: {error_message}").send()
         message_history.append({"role": "assistant", "content": error_message})
 
 
-async def _handle_message_stream(message_stream, chainlit_step):
-    """Handle streaming messages from the agent.
+async def _handle_message_stream(message_stream, chainlit_step, sync_generator):
+    """Handle streaming messages from the agent using async for loop.
 
-    Similar to streamlit's approach: accumulate raw content, format when displaying,
-    and only stream the delta to avoid duplicates.
+    This approach is much simpler and automatically handles CancelledError
+    at each await point in the async for loop.
 
-    Includes heartbeat mechanism to keep connection alive during long waits.
+    Args:
+        message_stream: Async generator (converted from sync)
+        chainlit_step: Chainlit Step object
+        sync_generator: Original sync generator for cleanup
     """
-    raw_full_message = ""  # Accumulate raw content without modifications
-    step_message = ""  # Step-specific message
+    raw_full_message = ""
+    step_message = ""
     current_step = 1
-    last_formatted_text = ""  # Track last formatted text that was displayed
-    last_chunk_time = time.time()  # Track last chunk received time
-    heartbeat_task = None
-    stream_completed = False
+    last_formatted_text = ""
+    image_cache = {}
+    last_chunk_time = [
+        asyncio.get_event_loop().time()
+    ]  # Mutable to share with heartbeat
+    stream_done = [False]  # Mutable flag to stop heartbeat
+    last_heartbeat_msg = [""]  # Mutable to share with main loop
 
-    async def heartbeat_loop():
-        """Send heartbeat tokens to keep connection alive."""
-        nonlocal last_chunk_time, stream_completed
-        while not stream_completed:
+    logger.info("[STREAM] Starting message stream processing")
+
+    async def heartbeat():
+        """Send periodic 'working...' messages if no chunks received for a while."""
+        heartbeat_count = 0
+
+        while not stream_done[0]:
             try:
-                await asyncio.sleep(STREAMING_HEARTBEAT_INTERVAL)
+                await asyncio.sleep(2)  # Check every 2 seconds
             except asyncio.CancelledError:
                 break
 
-            if stream_completed:
+            if stream_done[0]:
                 break
 
-            # Check for cancellation
-            current_task = asyncio.current_task()
-            if current_task and current_task.cancelled():
-                break
+            elapsed = asyncio.get_event_loop().time() - last_chunk_time[0]
 
-            # Check if we've received a chunk recently
-            time_since_last_chunk = time.time() - last_chunk_time
-            if time_since_last_chunk >= STREAMING_HEARTBEAT_INTERVAL:
-                # Send a zero-width space to keep connection alive without visible effect
-                try:
-                    await chainlit_step.stream_token("\u200b")  # Zero-width space
-                    logger.debug(
-                        f"Heartbeat sent (last chunk: {time_since_last_chunk:.1f}s ago)"
-                    )
-                except (asyncio.CancelledError, Exception) as e:
-                    logger.warning(f"Failed to send heartbeat: {e}")
-                    break
+            # Only show message if waiting > 5 seconds
+            if elapsed >= 5:
+                heartbeat_count += 1
+                elapsed_int = int(elapsed)
 
-    # Start heartbeat task
-    heartbeat_task = asyncio.create_task(heartbeat_loop())
-
-    try:
-        # Wrap the streaming loop with timeout
-        start_time = time.time()
-
-        for chunk in message_stream:
-            # Check for cancellation (stop button)
-            current_task = asyncio.current_task()
-            if current_task and current_task.cancelled():
-                logger.info("Task cancelled, stopping stream")
-                stream_completed = True
-                raise asyncio.CancelledError("Execution stopped by user")
-
-            # Allow cancellation to be checked periodically
-            await asyncio.sleep(0)  # Yield control to allow cancellation
-
-            # Check for timeout
-            elapsed_time = time.time() - start_time
-            if elapsed_time > STREAMING_MAX_TIMEOUT:
-                logger.warning(f"Streaming timeout after {elapsed_time:.1f}s")
-                raise TimeoutError(
-                    f"스트리밍이 최대 대기 시간({STREAMING_MAX_TIMEOUT}초)을 초과했습니다. "
-                    "연결이 끊어졌을 수 있습니다."
+                logger.info(
+                    f"[HEARTBEAT #{heartbeat_count}] Showing working message (elapsed: {elapsed_int}s)"
                 )
 
-            last_chunk_time = time.time()  # Update last chunk time
+                # Create new heartbeat message
+                new_msg = f"\n\n_⏳ Still working... ({elapsed_int} seconds elapsed)_"
+
+                try:
+                    # Get current output and append heartbeat
+                    current_output = chainlit_step.output or last_formatted_text
+
+                    # Remove old heartbeat if present
+                    if last_heartbeat_msg[0] and current_output.endswith(
+                        last_heartbeat_msg[0]
+                    ):
+                        current_output = current_output[: -len(last_heartbeat_msg[0])]
+
+                    # Set new output with heartbeat
+                    chainlit_step.output = current_output + new_msg
+                    await chainlit_step.update()  # UI 업데이트 필수!
+                    last_heartbeat_msg[0] = new_msg
+                    logger.debug(f"[HEARTBEAT] Updated output with message")
+                except Exception as e:
+                    logger.warning(f"[HEARTBEAT] Failed to update: {e}")
+            else:
+                # Silent heartbeat for debugging
+                logger.debug(
+                    f"[HEARTBEAT] Check (elapsed: {elapsed:.1f}s, waiting for 5s)"
+                )
+
+    # Start heartbeat task
+    heartbeat_task = asyncio.create_task(heartbeat())
+
+    try:
+        # async for automatically checks for CancelledError at each iteration!
+        async for chunk in message_stream:
+            # Update last chunk time
+            last_chunk_time[0] = asyncio.get_event_loop().time()
+            # At this await point, CancelledError is automatically raised
+            # if the task is cancelled (page refresh or stop button)
 
             this_step = chunk[1][1]["langgraph_step"]
             if this_step != current_step:
-                # Step changed - reset step message
                 step_message = ""
                 current_step = this_step
 
@@ -396,41 +583,62 @@ async def _handle_message_stream(message_stream, chainlit_step):
                 continue
 
             if isinstance(chunk_content, str):
-                # Accumulate raw content (no modifications during accumulation)
                 raw_full_message += chunk_content
                 step_message += chunk_content
 
-                # Format the entire accumulated message (similar to streamlit)
-                # This ensures consistency even if modifications affect earlier parts
-                formatted_text = _modify_chunk(raw_full_message)
-                formatted_text = _detect_image_name_and_move_to_public(formatted_text)
+                # Remove heartbeat message if present (new chunk arrived!)
+                if last_heartbeat_msg[0]:
+                    logger.debug(
+                        "[STREAM] Removing heartbeat message (new chunk arrived)"
+                    )
+                    current_output = chainlit_step.output or ""
+                    if current_output.endswith(last_heartbeat_msg[0]):
+                        chainlit_step.output = current_output[
+                            : -len(last_heartbeat_msg[0])
+                        ]
+                    last_heartbeat_msg[0] = ""  # Clear heartbeat message
 
-                # Only stream if the formatted text has changed
-                # Stream only the delta (new portion) to avoid duplicates
+                # Format and detect images
+                formatted_text = _modify_chunk(raw_full_message)
+                formatted_text = _detect_image_name_and_move_to_public(
+                    formatted_text, image_cache
+                )
+
+                # Only stream if changed
                 if formatted_text != last_formatted_text:
-                    # Calculate delta: what's new since last display
-                    if last_formatted_text and formatted_text.startswith(
-                        last_formatted_text
-                    ):
-                        # Incremental: only stream the new part
-                        delta = formatted_text[len(last_formatted_text) :]
+                    prev_output = last_formatted_text
+
+                    if prev_output and formatted_text.startswith(prev_output):
+                        delta = formatted_text[len(prev_output) :]
                     else:
-                        # Content changed in a non-sequential way (e.g., image processing)
-                        # Stream the entire new content (this is rare)
                         delta = formatted_text
 
                     if delta:
+                        # This await also checks for CancelledError
                         await chainlit_step.stream_token(delta)
                         chainlit_step.output = formatted_text
                         last_formatted_text = formatted_text
 
-        stream_completed = True
+        logger.info("[STREAM] Stream completed successfully")
 
-        # Final formatting for return values
+        # Stop heartbeat
+        stream_done[0] = True
+
+        # Remove any remaining heartbeat message
+        if last_heartbeat_msg[0]:
+            logger.debug("[STREAM] Removing heartbeat message at completion")
+            current_output = chainlit_step.output or ""
+            if current_output.endswith(last_heartbeat_msg[0]):
+                chainlit_step.output = current_output[: -len(last_heartbeat_msg[0])]
+            last_heartbeat_msg[0] = ""
+
+        # Final formatting
         full_formatted = _modify_chunk(raw_full_message)
-        full_formatted = _detect_image_name_and_move_to_public(full_formatted)
+        full_formatted = _detect_image_name_and_move_to_public(
+            full_formatted, image_cache
+        )
 
-        # Ensure we've sent everything
+        # Final update if needed
         if full_formatted != last_formatted_text:
             remaining_delta = (
                 full_formatted[len(last_formatted_text) :]
@@ -442,21 +650,39 @@ async def _handle_message_stream(message_stream, chainlit_step):
                 await chainlit_step.stream_token(remaining_delta)
                 chainlit_step.output = full_formatted
 
-        # Format step_message for return (if needed)
         step_message = _modify_chunk(step_message)
-        step_message = _detect_image_name_and_move_to_public(step_message)
+        step_message = _detect_image_name_and_move_to_public(step_message, image_cache)
 
         return full_formatted, step_message, raw_full_message
 
     except asyncio.CancelledError:
-        # Propagate cancellation to properly handle stop button
-        stream_completed = True
-        if heartbeat_task and not heartbeat_task.done():
-            heartbeat_task.cancel()
+        logger.info("[STREAM] CancelledError - closing generator and stopping")
+        stream_done[0] = True
+
+        # Close the sync generator explicitly to clean up resources
+        if sync_generator and hasattr(sync_generator, "close"):
+            try:
+                sync_generator.close()
+                logger.info("[STREAM] Sync generator closed successfully")
+            except Exception as e:
+                logger.warning(f"[STREAM] Failed to close generator: {e}")
+        raise  # Re-raise to propagate cancellation
+
+    except Exception as e:
+        logger.error(f"[STREAM] Error during streaming: {e}", exc_info=True)
+        stream_done[0] = True
+
+        # Also close generator on error
+        if sync_generator and hasattr(sync_generator, "close"):
+            try:
+                sync_generator.close()
+            except:
+                pass
         raise
+
     finally:
-        # Cancel heartbeat task
-        stream_completed = True
+        # Always stop and cleanup heartbeat task
+        stream_done[0] = True
         if heartbeat_task and not heartbeat_task.done():
             heartbeat_task.cancel()
             try:
@@ -560,25 +786,43 @@ def _detect_code_type(code: str) -> str:
 def _modify_chunk(chunk: str) -> str:
     """Modify chunk content by replacing tags."""
     retval = chunk
+    
+    # First, handle observation tags with proper formatting
+    # This prevents backticks and other special characters from being misinterpreted as markdown
+    observation_pattern = r"<observation>(.*?)</observation>"
+    
+    def format_observation(match):
+        observation_content = match.group(1).strip()
+        
+        # Check if it's an error message
+        is_error = any(
+            keyword in observation_content
+            for keyword in ["Error", "error", "Exception", "Traceback", "Failed", "Execution halted"]
+        )
+        
+        if is_error:
+            return f"\n\n**❌ Execution Error:**\n```\n{observation_content}\n```\n"
+        else:
+            return f"\n\n**✅ Execution Result:**\n```\n{observation_content}\n```\n"
+    
+    retval = re.sub(observation_pattern, format_observation, retval, flags=re.DOTALL)
+    
+    # Then handle other tags
     tag_replacements = [
         ("<execute>", "\n```CODE_TYPE\n"),
         ("</execute>", "```\n"),
         ("<solution>", ""),
         ("</solution>", ""),
-        # ("<observation>", "```\n#Execute result\n"),
-        # ("</observation>", "\n```\n"),
-        ("<observation>", "\n"),
-        ("</observation>", "\n"),
     ]
 
     for tag1, tag2 in tag_replacements:
         if tag1 in retval:
             retval = retval.replace(tag1, tag2)
 
-    # # Handle existing CODE_TYPE placeholders in already generated code blocks
+    # Handle existing CODE_TYPE placeholders in already generated code blocks
     retval = _replace_code_type_placeholders(retval)
 
-    # # Replace biomni imports with hits imports in code blocks
+    # Replace biomni imports with hits imports in code blocks
     retval = _replace_biomni_imports(retval)
 
     return retval
@@ -621,9 +865,9 @@ def _replace_biomni_imports(content: str) -> str:
         language = match.group(1) if match.group(1) else ""
         code_content = match.group(2)
 
-        # Replace biomni imports with hits imports
-        modified_code = code_content.replace("from biomni.", "from hits.")
-
+        modified_code = code_content.replace("biomni", "hits")
+        modified_code = code_content.replace("Biomni", "hits")
+        
         if language:
             return f"```{language}\n{modified_code}```"
         else:
@@ -637,21 +881,29 @@ def _replace_biomni_imports(content: str) -> str:
     return content
 
 
-def _detect_image_name_and_move_to_public(content: str) -> str:
+def _detect_image_name_and_move_to_public(
+    content: str, image_cache: dict = None
+) -> str:
     """
     Detect images in markdown text, move them to public folder with random prefix.
 
     Args:
         content: Markdown text content
+        image_cache: Dictionary to cache already moved images {original_path: public_path}
 
     Returns:
         Modified markdown text with updated image paths
     """
+    if image_cache is None:
+        image_cache = {}
+
     public_dir = PUBLIC_DIR
     os.makedirs(public_dir, exist_ok=True)
 
     # Pattern to find markdown images, excluding those already with download functionality
-    image_pattern = r'(?<!\[)!\[([^\]]*)\]\(([^)]+?)(?:\s+"[^"]*")?\)(?!\[Download\])'
+    image_pattern = (
+        r'(?<!\[)!\[([^\]]*)\]\(([^)]+?)(?:\s+"[^"]*")?\)(?!\]\([^\)]*\)<br>)'
+    )
 
     def replace_image(match):
         alt_text = match.group(1)
@@ -668,13 +920,24 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
                 image_path = "/public/" + image_path.replace("./public/", "").replace(
                     "public/", ""
                 )
+            file_name = os.path.basename(image_path)
             return (
-                f"[![{alt_text}]({image_path})]({image_path})[Download]({image_path})"
+                f"[![{alt_text}]({image_path})]({image_path})<br>"
+                f'<a href="{image_path}" download="{file_name}">Download</a>'
             )
 
         # Check if file exists
         if not os.path.exists(image_path):
             return match.group(0)
+
+        # Check cache first to avoid duplicate copies
+        if image_path in image_cache:
+            public_path = image_cache[image_path]
+            file_name = os.path.basename(public_path)
+            return (
+                f"[![{alt_text}]({public_path})]({public_path})<br>"
+                f'<a href="{public_path}" download="{file_name}">Download</a>'
+            )
 
         # Generate random prefix and new filename
         random_prefix = "".join(
@@ -686,8 +949,13 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
 
         try:
             shutil.copy2(image_path, new_file_path)
+            public_path = f"/public/{new_file_name}"
+            image_cache[image_path] = public_path  # Cache the result
             print("copied image to", new_file_path)
-            return f"[![{alt_text}](/public/{new_file_name})](/public/{new_file_name})[Download](/public/{new_file_name})"
+            return (
+                f"[![{alt_text}]({public_path})]({public_path})<br>"
+                f'<a href="{public_path}" download="{new_file_name}">Download</a>'
+            )
         except Exception as e:
             print(f"Error moving image {image_path}: {e}")
             return match.group(0)

@@ -26,7 +26,11 @@ from biomni.agent.a1 import A1
 from .a1 import AgentState
 from biomni.llm import get_llm
 from langchain_community.vectorstores import FAISS
-from langchain.chains import ConversationalRetrievalChain
+
+try:
+    from langchain.chains import ConversationalRetrievalChain
+except:
+    from langchain_classic.chains import ConversationalRetrievalChain
 from biomni.model.retriever import ToolRetrieverByRAG
 from biomni.utils.resource_filter import (
     apply_resource_filters,
@@ -36,8 +40,8 @@ from biomni.utils.resource_filter import (
 from biomni.config import default_config
 
 # tool_llm_model_id = "gemini-2.5-pro"
-# tool_llm_model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
-tool_llm_model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+tool_llm_model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+# tool_llm_model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
 
 class A1_HITS(A1):
@@ -289,8 +293,14 @@ Output:
 
             # Use prompt-based retrieval with the agent's LLM
             tool_llm = get_llm(model=tool_llm_model_id)
+            # text prompt만 추출해서 전달
+            if isinstance(prompt, dict) and "content" in prompt:
+                text_prompt = prompt["content"]
+            else:
+                text_prompt = prompt
+
             selected_resources = self.retriever.prompt_based_retrieval(
-                prompt, resources, llm=tool_llm
+                text_prompt, resources, llm=tool_llm
             )
             # self.retriever = ToolRetrieverByRAG()
             # selected_resources = self.retriever.prompt_based_retrieval(prompt)
@@ -429,9 +439,49 @@ Output:
             }
             # Use prompt-based retrieval with the agent's LLM
             tool_llm = get_llm(model=tool_llm_model_id)
+
             print("start tool retrieval")
+            # Extract text from prompt (handles both string and list formats)
+            # prompt can be a list of message objects (HumanMessage, AIMessage, etc.)
+            if isinstance(prompt, list) and len(prompt) > 0:
+                # Get the last message (user's message)
+                last_message = prompt[-1]
+                # Extract content from message object
+                if hasattr(last_message, "content"):
+                    content = last_message.content
+                else:
+                    content = last_message
+
+                # Handle list format (when images are included)
+                if isinstance(content, list):
+                    # Extract text parts only
+                    text_parts = [
+                        item.get("text", "")
+                        for item in content
+                        if isinstance(item, dict) and item.get("type") == "text"
+                    ]
+                    text_prompt = "\n".join(text_parts) if text_parts else ""
+                elif isinstance(content, str):
+                    text_prompt = content
+                else:
+                    text_prompt = str(content)
+            elif isinstance(prompt, dict) and "content" in prompt:
+                content = prompt["content"]
+                # Handle list format
+                if isinstance(content, list):
+                    text_parts = [
+                        item.get("text", "")
+                        for item in content
+                        if isinstance(item, dict) and item.get("type") == "text"
+                    ]
+                    text_prompt = "\n".join(text_parts) if text_parts else ""
+                else:
+                    text_prompt = content
+            else:
+                text_prompt = str(prompt)
+            print(text_prompt)
             selected_resources = self.retriever.prompt_based_retrieval(
-                prompt, resources, llm=tool_llm
+                text_prompt, resources, llm=tool_llm
             )
             print("end tool retrieval")
             # self.retriever = ToolRetrieverByRAG()
@@ -1266,11 +1316,7 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
     -- Turn 3 (using R): In the subsequent turn, use R and its hgu133plus2.db package to convert the probe ID of GSE data to Ensembl gene ID.
 
 # GUIDELINES FOR OMICS DATA ANALYSIS
-- When performing KEGG and GO enrichment analysis, try to use clusterProfiler of R
-- Map microarray probe IDs to Ensembl gene IDs using AnnotationDbi and hgu133plus2.db in R."
-- For lasso regression, use R package "glmnet" and "survival".
-- Use GEOquery of R for dealing with GEO data.
-- You MUST use log2 transformed data for running a Cox regression analysis.
+- You can use recommend_statistical_test function to know the appropriate statistical test.
 - You can use upto 4 workers for performing the parallel computation. If it seems to take long time, consider parallel computing
 
 # GUIDELINES FOR FILE HANDLING

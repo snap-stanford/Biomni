@@ -35,6 +35,11 @@ allowed_resources:
     
     # Example: Allow all tools from database module
     - module: biomni.tool.database
+    
+    # Universal omics analysis modules
+    - module: biomni.tool.omics
+    - module: biomni.tool.qc
+    - module: biomni.tool.statistics
   
   # Data lake items: list of allowed data lake item names
   # Uncomment and add data lake item names you want to allow:

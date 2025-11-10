@@ -1,10 +1,17 @@
-env_name="biomni_hits_omics"
+env_name="hits_omics"
 
-conda create -n $env_name -f bio_env.yml
-conda activate $env_name
-pip install -r requirements.txt
-pip install -r requirements_langchain.txt
-conda env update --file r_packages.yml
+# Install mamba if not already installed
+conda install -n base mamba -c conda-forge -y
+mamba env create -n $env_name -f environment.yml
+
+# Activate environment
+source activate $env_name
+
+mamba install -f bio_env.yml
+
+# Install R packages if needed
+mamba env update --file r_packages.yml
 Rscript install_r_packages.R
 
-pip install -e ../../../
+# Install the main package in editable mode
+pip install -e ../../
