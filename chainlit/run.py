@@ -34,6 +34,7 @@ BIOMNI_DATA_PATH = "./"
 CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = f"{CURRENT_ABS_DIR}/public"
 CHAINLIT_DB_PATH = "chainlit.db"
+STREAMING_MAX_TIMEOUT = 3600  # Maximum streaming timeout in seconds (1 hour)
 
 default_config.llm = LLM_MODEL
 default_config.commercial_mode = True
@@ -482,6 +483,7 @@ async def _process_agent_response(agent_input: list, message_history: list):
     except Exception as e:
         error_message = f"스트리밍 처리 중 오류 발생: {str(e)}"
         logger.error(error_message, exc_info=True)
+        error_message = _replace_biomni_imports(error_message)
         await cl.Message(content=f"❌ **오류**: {error_message}").send()
         message_history.append({"role": "assistant", "content": error_message})
 
@@ -784,25 +786,43 @@ def _detect_code_type(code: str) -> str:
 def _modify_chunk(chunk: str) -> str:
     """Modify chunk content by replacing tags."""
     retval = chunk
+    
+    # First, handle observation tags with proper formatting
+    # This prevents backticks and other special characters from being misinterpreted as markdown
+    observation_pattern = r"<observation>(.*?)</observation>"
+    
+    def format_observation(match):
+        observation_content = match.group(1).strip()
+        
+        # Check if it's an error message
+        is_error = any(
+            keyword in observation_content
+            for keyword in ["Error", "error", "Exception", "Traceback", "Failed", "Execution halted"]
+        )
+        
+        if is_error:
+            return f"\n\n**❌ Execution Error:**\n```\n{observation_content}\n```\n"
+        else:
+            return f"\n\n**✅ Execution Result:**\n```\n{observation_content}\n```\n"
+    
+    retval = re.sub(observation_pattern, format_observation, retval, flags=re.DOTALL)
+    
+    # Then handle other tags
     tag_replacements = [
         ("<execute>", "\n```CODE_TYPE\n"),
         ("</execute>", "```\n"),
         ("<solution>", ""),
         ("</solution>", ""),
-        # ("<observation>", "```\n#Execute result\n"),
-        # ("</observation>", "\n```\n"),
-        ("<observation>", "\n"),
-        ("</observation>", "\n"),
     ]
 
     for tag1, tag2 in tag_replacements:
         if tag1 in retval:
             retval = retval.replace(tag1, tag2)
 
-    # # Handle existing CODE_TYPE placeholders in already generated code blocks
+    # Handle existing CODE_TYPE placeholders in already generated code blocks
     retval = _replace_code_type_placeholders(retval)
 
-    # # Replace biomni imports with hits imports in code blocks
+    # Replace biomni imports with hits imports in code blocks
     retval = _replace_biomni_imports(retval)
 
     return retval
@@ -845,9 +865,9 @@ def _replace_biomni_imports(content: str) -> str:
         language = match.group(1) if match.group(1) else ""
         code_content = match.group(2)
 
-        # Replace biomni imports with hits imports
         modified_code = code_content.replace("biomni", "hits")
-
+        modified_code = code_content.replace("Biomni", "hits")
+        
         if language:
             return f"```{language}\n{modified_code}```"
         else:

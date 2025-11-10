@@ -1316,11 +1316,7 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
     -- Turn 3 (using R): In the subsequent turn, use R and its hgu133plus2.db package to convert the probe ID of GSE data to Ensembl gene ID.
 
 # GUIDELINES FOR OMICS DATA ANALYSIS
-- When performing KEGG and GO enrichment analysis, try to use clusterProfiler of R
-- Map microarray probe IDs to Ensembl gene IDs using AnnotationDbi and hgu133plus2.db in R."
-- For lasso regression, use R package "glmnet" and "survival".
-- Use GEOquery of R for dealing with GEO data.
-- You MUST use log2 transformed data for running a Cox regression analysis.
+- You can use recommend_statistical_test function to know the appropriate statistical test.
 - You can use upto 4 workers for performing the parallel computation. If it seems to take long time, consider parallel computing
 
 # GUIDELINES FOR FILE HANDLING

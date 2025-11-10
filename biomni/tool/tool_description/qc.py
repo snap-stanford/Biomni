@@ -1,5 +1,5 @@
 import os
-from .proteomics import get_description
+from .statistics import get_description
 
 
 description = get_description(
