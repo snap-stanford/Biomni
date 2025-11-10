@@ -140,7 +140,9 @@ class A1_HITS(A1):
         SEARCH_K = 10
         SCORE_THRESHOLD = 0.7
 
-        embeddings = BedrockEmbeddings(normalize=True)
+        embeddings = BedrockEmbeddings(
+            normalize=True, region_name=os.getenv("AWS_REGION", "us-east-1")
+        )
 
         db = FAISS.load_local(
             RAG_DB_PATH,

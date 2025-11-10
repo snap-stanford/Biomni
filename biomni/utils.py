@@ -2045,84 +2045,84 @@ def format_single_list(text: str) -> str:
         return "\n".join(list_items)
 
 
-# def convert_markdown_to_pdf(markdown_path: str, pdf_path: str) -> None:
-#     """Convert markdown file to PDF using weasyprint or fallback libraries.
+def convert_markdown_to_pdf(markdown_path: str, pdf_path: str) -> None:
+    """Convert markdown file to PDF using weasyprint or fallback libraries.
 
-#     This function converts a markdown file to PDF format using multiple fallback
-#     strategies. It prioritizes weasyprint for better layout control, then falls back
-#     to markdown2pdf and finally pandoc if the preferred libraries are not available.
+    This function converts a markdown file to PDF format using multiple fallback
+    strategies. It prioritizes weasyprint for better layout control, then falls back
+    to markdown2pdf and finally pandoc if the preferred libraries are not available.
 
-#     Args:
-#         markdown_path: Path to the input markdown file
-#         pdf_path: Path where the output PDF file should be saved
+    Args:
+        markdown_path: Path to the input markdown file
+        pdf_path: Path where the output PDF file should be saved
 
-#     Raises:
-#         ImportError: If no PDF conversion library is available
-#         Exception: If PDF conversion fails for any other reason
+    Raises:
+        ImportError: If no PDF conversion library is available
+        Exception: If PDF conversion fails for any other reason
 
-#     Note:
-#         The function uses minimal markdown extensions for better performance
-#         and applies custom CSS styling for consistent formatting.
-#     """
-#     try:
-#         # Try weasyprint first (better for complex layouts)
-#         from weasyprint import HTML
-#         from weasyprint.text.fonts import FontConfiguration
+    Note:
+        The function uses minimal markdown extensions for better performance
+        and applies custom CSS styling for consistent formatting.
+    """
+    try:
+        # Try weasyprint first (better for complex layouts)
+        from weasyprint import HTML
+        from weasyprint.text.fonts import FontConfiguration
 
-#         # Read markdown content
-#         with open(markdown_path, encoding="utf-8") as f:
-#             markdown_content = f.read()
+        # Read markdown content
+        with open(markdown_path, encoding="utf-8") as f:
+            markdown_content = f.read()
 
-#         # Convert markdown to HTML with minimal extensions for better performance
-#         import markdown
+        # Convert markdown to HTML with minimal extensions for better performance
+        import markdown
 
-#         # Use minimal extensions to improve performance
-#         html_content = markdown.markdown(
-#             markdown_content,
-#             extensions=["fenced_code"],  # Removed codehilite for better performance
-#         )
+        # Use minimal extensions to improve performance
+        html_content = markdown.markdown(
+            markdown_content,
+            extensions=["fenced_code"],  # Removed codehilite for better performance
+        )
 
-#         # Add CSS styling
-#         css_content = get_pdf_css_content()
+        # Add CSS styling
+        css_content = get_pdf_css_content()
 
-#         # Create HTML document
-#         html_doc = f"""
-#         <!DOCTYPE html>
-#         <html>
-#         <head>
-#             <meta charset="utf-8">
-#             <title>Biomni Conversation History</title>
-#             <style>{css_content}</style>
-#         </head>
-#         <body>
-#             {html_content}
-#         </body>
-#         </html>
-#         """
+        # Create HTML document
+        html_doc = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Biomni Conversation History</title>
+            <style>{css_content}</style>
+        </head>
+        <body>
+            {html_content}
+        </body>
+        </html>
+        """
 
-#         # Convert to PDF with performance optimizations
-#         font_config = FontConfiguration()
-#         html_obj = HTML(string=html_doc)
-#         html_obj.write_pdf(pdf_path, font_config=font_config, optimize_images=True)
+        # Convert to PDF with performance optimizations
+        font_config = FontConfiguration()
+        html_obj = HTML(string=html_doc)
+        html_obj.write_pdf(pdf_path, font_config=font_config, optimize_images=True)
 
-#     except ImportError:
-#         # Fallback to markdown2pdf if weasyprint is not available
-#         try:
-#             from markdown2pdf import markdown2pdf
+    except ImportError:
+        # Fallback to markdown2pdf if weasyprint is not available
+        try:
+            from markdown2pdf import markdown2pdf
 
-#             markdown2pdf(markdown_path, pdf_path)
-#         except ImportError:
-#             # Final fallback - try using pandoc if available
-#             import subprocess
+            markdown2pdf(markdown_path, pdf_path)
+        except ImportError:
+            # Final fallback - try using pandoc if available
+            import subprocess
 
-#             try:
-#                 subprocess.run(["pandoc", markdown_path, "-o", pdf_path], check=True)
-#             except (subprocess.CalledProcessError, FileNotFoundError) as e:
-#                 raise ImportError(
-#                     "No PDF conversion library available. Please install weasyprint, markdown2pdf, or pandoc."
-#                 ) from e
-#     except Exception as e:
-#         raise Exception(f"PDF conversion failed: {e}") from e
+            try:
+                subprocess.run(["pandoc", markdown_path, "-o", pdf_path], check=True)
+            except (subprocess.CalledProcessError, FileNotFoundError) as e:
+                raise ImportError(
+                    "No PDF conversion library available. Please install weasyprint, markdown2pdf, or pandoc."
+                ) from e
+    except Exception as e:
+        raise Exception(f"PDF conversion failed: {e}") from e
 
 
 def get_pdf_css_content() -> str:

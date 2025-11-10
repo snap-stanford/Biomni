@@ -802,7 +802,84 @@ def _modify_chunk(chunk: str) -> str:
         
         if is_error:
             return f"\n\n**❌ Execution Error:**\n```\n{observation_content}\n```\n"
+        
+        # Check if observation contains file listings (CSV or other files)
+        has_file_listings = (
+            "**Newly created files:**" in observation_content
+            or "**Other files:**" in observation_content
+        )
+        
+        if has_file_listings:
+            # Split into text before files and file section
+            lines = observation_content.split('\n')
+            text_before_files = []
+            file_section_start = -1
+            
+            # Find where file section starts
+            for i, line in enumerate(lines):
+                if "**Newly created files:**" in line or "**Other files:**" in line:
+                    file_section_start = i
+                    break
+                text_before_files.append(line)
+            
+            # Format text before files (regular text, not in code block)
+            formatted_text = '\n'.join(text_before_files).strip()
+            
+            # Format file section
+            if file_section_start >= 0:
+                file_section = '\n'.join(lines[file_section_start:])
+                
+                # Detect CSV content in file section (lines with many commas)
+                file_lines = file_section.split('\n')
+                formatted_file_lines = []
+                csv_block_lines = []
+                in_csv_block = False
+                
+                for line in file_lines:
+                    # Check if line looks like CSV data (starts with comma or has many commas)
+                    is_csv_line = (
+                        line.strip().startswith(',') or 
+                        (',' in line and line.count(',') >= 3)
+                    )
+                    
+                    if is_csv_line:
+                        if not in_csv_block:
+                            # Start new CSV block
+                            in_csv_block = True
+                        csv_block_lines.append(line)
+                    else:
+                        if in_csv_block:
+                            # End CSV block - format and add it
+                            if csv_block_lines:
+                                csv_lines = csv_block_lines[:10]
+                                if len(csv_block_lines) > 10:
+                                    csv_lines.append("... (truncated: more lines)")
+                                csv_content = '\n'.join(csv_lines)
+                                formatted_file_lines.append(f"```csv\n{csv_content}\n```")
+                                csv_block_lines = []
+                            in_csv_block = False
+                        formatted_file_lines.append(line)
+                
+                # Handle remaining CSV block
+                if csv_block_lines:
+                    csv_lines = csv_block_lines[:10]
+                    if len(csv_block_lines) > 10:
+                        csv_lines.append("... (truncated: more lines)")
+                    csv_content = '\n'.join(csv_lines)
+                    formatted_file_lines.append(f"```csv\n{csv_content}\n```")
+                
+                formatted_file_section = '\n'.join(formatted_file_lines)
+                
+                # Combine formatted text and file section
+                if formatted_text:
+                    return f"\n\n**✅ Execution Result:**\n\n{formatted_text}\n\n{formatted_file_section}\n"
+                else:
+                    return f"\n\n**✅ Execution Result:**\n\n{formatted_file_section}\n"
+            else:
+                # No file section found, format as regular text
+                return f"\n\n**✅ Execution Result:**\n\n{formatted_text}\n"
         else:
+            # No file listings, format as regular code block
             return f"\n\n**✅ Execution Result:**\n```\n{observation_content}\n```\n"
     
     retval = re.sub(observation_pattern, format_observation, retval, flags=re.DOTALL)
@@ -857,7 +934,7 @@ def _replace_code_type_placeholders(content: str) -> str:
 
 
 def _replace_biomni_imports(content: str) -> str:
-    """Replace 'from biomni.' with 'from hits.' in code blocks."""
+    """Replace all occurrences of 'biomni' and 'Biomni' with 'hits' in code blocks."""
     # Pattern to find code blocks (both with specific language and generic)
     code_block_pattern = r"```(\w+)?\n(.*?)```"
 
@@ -865,8 +942,10 @@ def _replace_biomni_imports(content: str) -> str:
         language = match.group(1) if match.group(1) else ""
         code_content = match.group(2)
 
-        modified_code = code_content.replace("biomni", "hits")
-        modified_code = code_content.replace("Biomni", "hits")
+        # Replace ALL occurrences, case-insensitive for biomni
+        modified_code = re.sub(r"\bbiomni\b", "hits", code_content, flags=re.IGNORECASE)
+        # Also handle lowercase/uppercase word-boundary safe (edge: Biomni in class names etc.)
+        # But above regex with IGNORECASE handles both "biomni" and "Biomni"
         
         if language:
             return f"```{language}\n{modified_code}```"

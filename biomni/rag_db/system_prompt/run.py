@@ -1,6 +1,7 @@
 from biomni.env_desc import data_lake_dict, library_content_dict
 from biomni.utils import read_module2api
 import glob
+import os
 from biomni.tool.tool_registry import ToolRegistry
 from langchain_aws.embeddings.bedrock import BedrockEmbeddings
 from langchain_community.vectorstores import FAISS, Chroma
@@ -8,7 +9,9 @@ from langchain.schema import Document
 
 data_path = "/workdir_efs/jaechang/work2/biomni_hits_test/biomni_data/biomni_data"
 
-embeddings = BedrockEmbeddings(normalize=True)
+embeddings = BedrockEmbeddings(
+    normalize=True, region_name=os.getenv("AWS_REGION", "us-east-1")
+)
 
 # Prepare tool descriptions
 module2api = read_module2api()

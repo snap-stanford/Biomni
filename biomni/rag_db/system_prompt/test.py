@@ -1,13 +1,16 @@
 from langchain_aws.embeddings.bedrock import BedrockEmbeddings
 from langchain_community.vectorstores import FAISS
 from typing import List, Tuple, Dict, Any
+import os
 
 
 class RAGDatabaseTester:
     """Test class for evaluating RAG database retrieval performance."""
 
     def __init__(self):
-        self.embeddings = BedrockEmbeddings(normalize=True)
+        self.embeddings = BedrockEmbeddings(
+            normalize=True, region_name=os.getenv("AWS_REGION", "us-east-1")
+        )
         self.databases = self._load_databases()
 
     def _load_databases(self) -> Dict[str, FAISS]:
