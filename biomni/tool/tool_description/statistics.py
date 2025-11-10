@@ -1,22 +1,20 @@
-import inspect
-import ast
 import os
+import ast
 from docstring_parser import parse
-
 
 def get_description(filepath):
     """
-    주어진 파일 경로에서 모든 함수와 해당 docstring을 추출합니다.
+    Extracts all functions and their docstrings from the given file path.
 
     Args:
-        filepath (str): 파이썬 파일의 경로.
+        filepath (str): Path to the Python file.
 
     Returns:
-        dict: 함수 이름을 키로 하고 docstring을 값으로 하는 딕셔너리.
-              docstring이 없는 경우 값은 None입니다.
+        dict: A dictionary with function names as keys and their docstrings as values.
+              If a function has no docstring, the value is None.
     """
     if not os.path.exists(filepath):
-        print(f"오류: '{filepath}' 파일을 찾을 수 없습니다.")
+        print(f"Error: File '{filepath}' not found.")
         return {}
 
     with open(filepath, "r", encoding="utf-8") as f:
@@ -53,5 +51,5 @@ def get_description(filepath):
 
 
 description = get_description(
-    os.path.dirname(os.path.abspath(__file__)) + "/../proteomics.py"
+    os.path.dirname(os.path.abspath(__file__)) + "/../statistics.py"
 )

@@ -846,7 +846,7 @@ def _replace_biomni_imports(content: str) -> str:
         code_content = match.group(2)
 
         # Replace biomni imports with hits imports
-        modified_code = code_content.replace("from biomni.", "from hits.")
+        modified_code = code_content.replace("biomni", "hits")
 
         if language:
             return f"```{language}\n{modified_code}```"
