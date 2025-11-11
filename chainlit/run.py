@@ -12,6 +12,7 @@ import shutil
 import random
 import string
 import base64
+from PIL import Image
 from biomni.config import default_config
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from chainlit.data.storage_clients.base import BaseStorageClient
@@ -376,6 +377,14 @@ async def _process_user_message(user_message: cl.Message) -> dict:
         file_ext = os.path.splitext(file.name)[1].lower()
         if file_ext in image_extensions:
             try:
+                # Extract image resolution
+                img_width, img_height = None, None
+                try:
+                    with Image.open(file.path) as img:
+                        img_width, img_height = img.size
+                except Exception as e:
+                    print(f"Could not extract image dimensions for {file.name}: {e}")
+
                 # Read image and encode to base64
                 with open(file.path, "rb") as f:
                     image_data = base64.b64encode(f.read()).decode("utf-8")
@@ -396,7 +405,12 @@ async def _process_user_message(user_message: cl.Message) -> dict:
                 images.append(
                     {"name": file.name, "data": f"data:{mime_type};base64,{image_data}"}
                 )
-                user_prompt += f"\n - user uploaded image file: {file.name}\n"
+
+                # Add image info with resolution to prompt
+                if img_width and img_height:
+                    user_prompt += f"\n - user uploaded image file: {file.name} (resolution: {img_width}x{img_height} pixels)\n"
+                else:
+                    user_prompt += f"\n - user uploaded image file: {file.name}\n"
             except Exception as e:
                 print(f"Error processing image {file.name}: {e}")
                 user_prompt += f"\n - user uploaded data file: {file.name}\n"
@@ -647,42 +661,40 @@ async def _handle_message_stream(message_stream, chainlit_step, sync_generator):
             if chunk_content is None:
                 continue
 
-            if isinstance(chunk_content, str):
-                raw_full_message += chunk_content
-                step_message += chunk_content
+            if not isinstance(chunk_content, str):
+                chunk_content = chunk_content[0]["text"] + "\n"
 
-                # Remove heartbeat message if present (new chunk arrived!)
-                if last_heartbeat_msg[0]:
-                    logger.debug(
-                        "[STREAM] Removing heartbeat message (new chunk arrived)"
-                    )
-                    current_output = chainlit_step.output or ""
-                    if current_output.endswith(last_heartbeat_msg[0]):
-                        chainlit_step.output = current_output[
-                            : -len(last_heartbeat_msg[0])
-                        ]
-                    last_heartbeat_msg[0] = ""  # Clear heartbeat message
+            raw_full_message += chunk_content
+            step_message += chunk_content
 
-                # Format and detect images
-                formatted_text = _modify_chunk(raw_full_message)
-                formatted_text = _detect_image_name_and_move_to_public(
-                    formatted_text, image_cache
-                )
+            # Remove heartbeat message if present (new chunk arrived!)
+            if last_heartbeat_msg[0]:
+                logger.debug("[STREAM] Removing heartbeat message (new chunk arrived)")
+                current_output = chainlit_step.output or ""
+                if current_output.endswith(last_heartbeat_msg[0]):
+                    chainlit_step.output = current_output[: -len(last_heartbeat_msg[0])]
+                last_heartbeat_msg[0] = ""  # Clear heartbeat message
 
-                # Only stream if changed
-                if formatted_text != last_formatted_text:
-                    prev_output = last_formatted_text
+            # Format and detect images
+            formatted_text = _modify_chunk(raw_full_message)
+            formatted_text = _detect_image_name_and_move_to_public(
+                formatted_text, image_cache
+            )
 
-                    if prev_output and formatted_text.startswith(prev_output):
-                        delta = formatted_text[len(prev_output) :]
-                    else:
-                        delta = formatted_text
+            # Only stream if changed
+            if formatted_text != last_formatted_text:
+                prev_output = last_formatted_text
 
-                    if delta:
-                        # This await also checks for CancelledError
-                        await chainlit_step.stream_token(delta)
-                        chainlit_step.output = formatted_text
-                        last_formatted_text = formatted_text
+                if prev_output and formatted_text.startswith(prev_output):
+                    delta = formatted_text[len(prev_output) :]
+                else:
+                    delta = formatted_text
+
+                if delta:
+                    # This await also checks for CancelledError
+                    await chainlit_step.stream_token(delta)
+                    chainlit_step.output = formatted_text
+                    last_formatted_text = formatted_text
 
         logger.info("[STREAM] Stream completed successfully")
 
@@ -770,29 +782,21 @@ def _extract_chunk_content(chunk):
 
 
 def _extract_final_message(step_message: str) -> str:
-    """Extract content between the last <solution> and the last </solution>."""
+    """Extract final message from the last <solution> tag pair."""
     # Close unclosed solution tag if needed
     if "<solution>" in step_message and "</solution>" not in step_message:
         step_message += "</solution>"
 
-    # Find the last occurrence of <solution>
-    last_solution_start = step_message.rfind("<solution>")
+    # Find all solution tag matches
+    solution_matches = list(
+        re.finditer(r"<solution>(.*?)</solution>", step_message, re.DOTALL)
+    )
 
-    if last_solution_start == -1:
-        # No <solution> tag found
+    # Return content from the last match, or original message if no match found
+    if solution_matches:
+        return solution_matches[-1].group(1).strip()
+    else:
         return step_message
-
-    # Find the last occurrence of </solution>
-    last_solution_end = step_message.rfind("</solution>")
-
-    if last_solution_end == -1 or last_solution_end < last_solution_start:
-        # No closing tag found or it's before the opening tag, return everything after last <solution>
-        content_start = last_solution_start + len("<solution>")
-        return step_message[content_start:].strip()
-
-    # Extract content between last <solution> and last </solution>
-    content_start = last_solution_start + len("<solution>")
-    return step_message[content_start:last_solution_end].strip()
 
 
 def _detect_code_type(code: str) -> str:
@@ -1049,11 +1053,12 @@ def _replace_biomni(content: str) -> str:
 
     # Additional replacements for text outside code blocks:
     # 1. Replace 'biomni.' pattern (e.g., biomni.tool.omics -> hits.tool.omics)
-    content = re.sub(r"\bbiomni\.", "hits.", content, flags=re.IGNORECASE)
+    content = re.sub(r"biomni\.", "hits.", content, flags=re.IGNORECASE)
 
     # 2. Replace biomni/Biomni in paths and general text with 'hits'
     # This handles cases like /home/ec2-user/Biomni_HITS/... -> /home/ec2-user/hits_HITS/...
-    content = re.sub(r"\bbiomni\b", "hits", content, flags=re.IGNORECASE)
+    # Also handles biomni_hits_test -> hits_hits_test
+    content = re.sub(r"biomni", "hits", content, flags=re.IGNORECASE)
 
     return content
 

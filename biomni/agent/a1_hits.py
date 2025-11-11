@@ -672,6 +672,7 @@ Output:
             import os
             import base64
             from pathlib import Path
+            from PIL import Image
 
             # Get newly created files
             new_files = files_after - files_before
@@ -707,7 +708,21 @@ Output:
                 if new_images:
                     files_info += "\n**Images:**\n"
                     for img_path in new_images:
-                        files_info += f"- {os.path.basename(img_path)}: {img_path}\n"
+                        # Extract image resolution
+                        img_width, img_height = None, None
+                        try:
+                            with Image.open(img_path) as img:
+                                img_width, img_height = img.size
+                        except Exception as e:
+                            pass  # If we can't get dimensions, continue without them
+
+                        # Add image info with resolution
+                        if img_width and img_height:
+                            files_info += f"- {os.path.basename(img_path)}: {img_path} (resolution: {img_width}x{img_height} pixels)\n"
+                        else:
+                            files_info += (
+                                f"- {os.path.basename(img_path)}: {img_path}\n"
+                            )
 
                         # Read and encode image as base64
                         try:
