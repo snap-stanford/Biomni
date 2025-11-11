@@ -770,12 +770,29 @@ def _extract_chunk_content(chunk):
 
 
 def _extract_final_message(step_message: str) -> str:
-    """Extract final message from step message."""
+    """Extract content between the last <solution> and the last </solution>."""
+    # Close unclosed solution tag if needed
     if "<solution>" in step_message and "</solution>" not in step_message:
         step_message += "</solution>"
 
-    solution_match = re.search(r"<solution>(.*?)</solution>", step_message, re.DOTALL)
-    return solution_match.group(1) if solution_match else step_message
+    # Find the last occurrence of <solution>
+    last_solution_start = step_message.rfind("<solution>")
+
+    if last_solution_start == -1:
+        # No <solution> tag found
+        return step_message
+
+    # Find the last occurrence of </solution>
+    last_solution_end = step_message.rfind("</solution>")
+
+    if last_solution_end == -1 or last_solution_end < last_solution_start:
+        # No closing tag found or it's before the opening tag, return everything after last <solution>
+        content_start = last_solution_start + len("<solution>")
+        return step_message[content_start:].strip()
+
+    # Extract content between last <solution> and last </solution>
+    content_start = last_solution_start + len("<solution>")
+    return step_message[content_start:last_solution_end].strip()
 
 
 def _detect_code_type(code: str) -> str:
