@@ -47,15 +47,66 @@ agent = A1_HITS(
 )
 
 # 로깅 설정
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("chainlit_stream.log", mode="a"),
-    ],
-)
+LOG_FILE_PATH = f"{CURRENT_ABS_DIR}/chainlit_stream.log"
+
+# Create logger and set up handlers directly
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Remove any existing handlers to avoid duplicates
+logger.handlers.clear()
+
+# Create and configure handlers
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+# Console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
+# File handler for global log
+file_handler = logging.FileHandler(LOG_FILE_PATH, mode="a")
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+# Prevent propagation to root logger to avoid duplicate logs
+logger.propagate = False
+
+logger.info(f"Logger initialized. Log file: {LOG_FILE_PATH}")
+
+# Thread-specific log handler management
+_thread_log_handler = None
+
+
+def add_thread_log_handler(thread_id: str):
+    """Add a thread-specific log handler to capture logs for individual chat sessions.
+
+    Args:
+        thread_id: The unique thread/session identifier
+    """
+    global _thread_log_handler
+
+    # Remove previous thread-specific handler if exists
+    if _thread_log_handler:
+        logger.removeHandler(_thread_log_handler)
+        _thread_log_handler.close()
+
+    # Create new thread-specific log file
+    thread_log_path = f"{CURRENT_ABS_DIR}/chainlit_logs/{thread_id}/chainlit_stream.log"
+    os.makedirs(os.path.dirname(thread_log_path), exist_ok=True)
+
+    # Add new handler for this thread
+    _thread_log_handler = logging.FileHandler(thread_log_path, mode="a")
+    _thread_log_handler.setLevel(logging.INFO)
+    _thread_log_handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    )
+    logger.addHandler(_thread_log_handler)
+
+    logger.info(f"Thread-specific log handler added for thread: {thread_id}")
+    logger.info(f"Thread log file: {thread_log_path}")
 
 
 class LocalStorageClient(BaseStorageClient):
@@ -220,8 +271,13 @@ async def start_chat():
     dir_name = cl.context.session.thread_id
     log_dir = f"chainlit_logs/{dir_name}"
     os.makedirs(log_dir, exist_ok=True)
+
+    # Add thread-specific log handler
+    add_thread_log_handler(dir_name)
+
     os.chdir(log_dir)
     print("current dir", os.getcwd())
+    logger.info(f"Chat session started for thread: {dir_name}")
     cl.user_session.set("message_history", [])
 
     files = None
@@ -266,8 +322,13 @@ async def resume_chat():
     dir_name = thread_id
     log_dir = f"chainlit_logs/{dir_name}"
     os.makedirs(log_dir, exist_ok=True)
+
+    # Add thread-specific log handler
+    add_thread_log_handler(dir_name)
+
     os.chdir(log_dir)
     print("current dir", os.getcwd())
+    logger.info(f"Chat session resumed for thread: {dir_name}")
 
 
 @cl.on_message
