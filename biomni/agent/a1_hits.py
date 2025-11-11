@@ -32,6 +32,7 @@ from biomni.model.retriever import ToolRetrieverByRAG
 # tool_llm_model_id = "gemini-2.5-pro"
 # tool_llm_model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 tool_llm_model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+# tool_llm_model_id = "gemini-2.5-flash"  # Use Gemini instead of Bedrock for tool retrieval
 
 
 class A1_HITS(A1):
