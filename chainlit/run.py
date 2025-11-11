@@ -195,15 +195,19 @@ def auth_callback(username: str, password: str):
     # Fetch the user matching username from your database
     # and compare the hashed password with the value stored in the database
     # Support both username and email format for login
-    valid_logins = [
-        ("admin", "admin"),
-        ("admin@example.com", "admin"),  # Email format
-        ("admin@biomni.com", "admin"),  # Another email format
-    ]
+    valid_logins = {
+        ("admin", "admin"): "admin",
+        ("admin@example.com", "admin"): "admin@example.com",
+        ("admin@biomni.com", "admin"): "admin@biomni.com",
+        ("jslink", "5fdf7e4a-6632-48b1-a9c8-b79d9a9be2e0"): "jslink",
+    }
 
-    if (username, password) in valid_logins:
+    identifier = valid_logins.get((username, password))
+
+    if identifier:
         return cl.User(
-            identifier="admin", metadata={"role": "admin", "provider": "credentials"}
+            identifier=identifier,  # 각 사용자마다 고유한 identifier 사용
+            metadata={"role": "admin", "provider": "credentials"},
         )
     else:
         return None
