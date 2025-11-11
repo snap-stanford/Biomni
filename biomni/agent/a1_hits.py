@@ -1319,39 +1319,29 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
 
 # GUIDELINES FOR OMICS DATA ANALYSIS
 - QUALITY CONTROL IS MANDATORY: Always perform quality control (QC) BEFORE any statistical analysis.
-  * Use calculate_qc_metrics() to assess overall data quality, detect outliers, and identify batch effects.
-  * Use test_normality() to check if data follows normal distribution (critical for test selection).
-  * Use assess_missing_value_patterns() to understand missing data mechanisms before imputation.
-  * Use detect_outlier_features() and check outlier_samples from QC results to identify problematic features/samples.
+  * Assess overall data quality, detect outliers, and identify batch effects.
+  * Check if data follows normal distribution (critical for appropriate test selection).
+  * Understand missing data mechanisms before imputation.
+  * Identify and handle problematic features and samples.
   * Review QC results carefully - poor quality data will lead to unreliable statistical results.
-  * If batch effects are detected, use correct_batch_effects() before differential analysis.
+  * Correct batch effects if detected before differential analysis.
 
-- RECOMMENDED WORKFLOW FOR DIFFERENTIAL ANALYSIS:
-  Step 1: Perform QC using calculate_qc_metrics() to assess data quality, detect outliers, and check for batch effects.
-  Step 2: Use smart_differential_analysis(data, sample_groups) - This is the RECOMMENDED function for most cases.
-    * smart_differential_analysis automatically:
-      - Checks data assumptions (normality, variance homogeneity, sample size)
-      - Selects the most appropriate statistical test based on data characteristics
-      - Executes the selected test with proper FDR correction
-      - Returns results with detailed metadata explaining why the test was chosen
-    * Example: results, metadata = smart_differential_analysis(data, {{'Control': [...], 'Treatment': [...]}})
-    * Review metadata['selection_rationale'] and metadata['warnings'] to understand the analysis.
-  
-- WHEN TO USE OTHER FUNCTIONS:
-  * Use recommend_statistical_test() ONLY if you want a recommendation WITHOUT running the test (e.g., for planning).
-  * Use individual test functions (t_test_FDR, perform_multi_group_test, etc.) ONLY if you need specific control over the test.
-  * For most cases, smart_differential_analysis() is sufficient and recommended.
+- DIFFERENTIAL ANALYSIS:
+  * Always perform QC first to assess data quality and assumptions.
+  * Select statistical tests based on data characteristics (normality, variance homogeneity, sample size, number of groups).
+  * Verify test assumptions before applying statistical tests.
+  * Apply appropriate multiple testing correction (e.g., FDR) to control false discovery rate.
+  * Review test selection rationale and warnings to understand the analysis.
 
-- IMPORTANT NOTES ON STATISTICAL TESTS:
-  * smart_differential_analysis handles test selection automatically, but be aware:
-    - For 2 groups: May select t-test, Welch's t-test, Mann-Whitney U, Wilcoxon, or permutation test.
-    - For 3+ groups: May select ANOVA, Welch's ANOVA, or Kruskal-Wallis test.
-  * smart_differential_analysis automatically applies FDR correction (adjust_pvalues=True by default).
-  * If you need to force a specific test, use: smart_differential_analysis(..., auto_select_test=False, force_test='mannwhitney')
+- STATISTICAL TEST SELECTION:
+  * Choose tests appropriate for your data characteristics and number of groups.
+  * For 2 groups: Consider parametric tests (t-test, Welch's t-test) or non-parametric alternatives (Mann-Whitney U, Wilcoxon) based on data distribution.
+  * For 3+ groups: Consider parametric tests (ANOVA, Welch's ANOVA) or non-parametric alternatives (Kruskal-Wallis) based on data distribution.
+  * Always apply multiple testing correction when performing multiple comparisons.
 
 - PERFORMANCE OPTIMIZATION:
-  * You can use up to 4 workers for performing parallel computation. If analysis seems to take long time, consider parallel computing.
-  * For large datasets, consider sampling features for QC tests (e.g., test_normality with sample_size parameter).
+  * For large datasets, consider parallel computation to reduce processing time.
+  * For QC tests on large datasets, consider sampling features to improve efficiency.
 
 # GUIDELINES FOR FILE HANDLING
 - When handling CSV, TSV, or TXT files, first examine the file's structure using head command or pandas function. Do not make assumptions about its layout.
