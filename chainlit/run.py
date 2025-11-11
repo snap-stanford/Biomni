@@ -483,7 +483,7 @@ async def _process_agent_response(agent_input: list, message_history: list):
     except Exception as e:
         error_message = f"스트리밍 처리 중 오류 발생: {str(e)}"
         logger.error(error_message, exc_info=True)
-        error_message = _replace_biomni_imports(error_message)
+        error_message = _replace_biomni(error_message)
         await cl.Message(content=f"❌ **오류**: {error_message}").send()
         message_history.append({"role": "assistant", "content": error_message})
 
@@ -786,62 +786,68 @@ def _detect_code_type(code: str) -> str:
 def _modify_chunk(chunk: str) -> str:
     """Modify chunk content by replacing tags."""
     retval = chunk
-    
+
     # First, handle observation tags with proper formatting
     # This prevents backticks and other special characters from being misinterpreted as markdown
     observation_pattern = r"<observation>(.*?)</observation>"
-    
+
     def format_observation(match):
         observation_content = match.group(1).strip()
-        
+
         # Check if it's an error message
         is_error = any(
             keyword in observation_content
-            for keyword in ["Error", "error", "Exception", "Traceback", "Failed", "Execution halted"]
+            for keyword in [
+                "Error",
+                "error",
+                "Exception",
+                "Traceback",
+                "Failed",
+                "Execution halted",
+            ]
         )
-        
+
         if is_error:
             return f"\n\n**❌ Execution Error:**\n```\n{observation_content}\n```\n"
-        
+
         # Check if observation contains file listings (CSV or other files)
         has_file_listings = (
             "**Newly created files:**" in observation_content
             or "**Other files:**" in observation_content
         )
-        
+
         if has_file_listings:
             # Split into text before files and file section
-            lines = observation_content.split('\n')
+            lines = observation_content.split("\n")
             text_before_files = []
             file_section_start = -1
-            
+
             # Find where file section starts
             for i, line in enumerate(lines):
                 if "**Newly created files:**" in line or "**Other files:**" in line:
                     file_section_start = i
                     break
                 text_before_files.append(line)
-            
+
             # Format text before files (regular text, not in code block)
-            formatted_text = '\n'.join(text_before_files).strip()
-            
+            formatted_text = "\n".join(text_before_files).strip()
+
             # Format file section
             if file_section_start >= 0:
-                file_section = '\n'.join(lines[file_section_start:])
-                
+                file_section = "\n".join(lines[file_section_start:])
+
                 # Detect CSV content in file section (lines with many commas)
-                file_lines = file_section.split('\n')
+                file_lines = file_section.split("\n")
                 formatted_file_lines = []
                 csv_block_lines = []
                 in_csv_block = False
-                
+
                 for line in file_lines:
                     # Check if line looks like CSV data (starts with comma or has many commas)
-                    is_csv_line = (
-                        line.strip().startswith(',') or 
-                        (',' in line and line.count(',') >= 3)
+                    is_csv_line = line.strip().startswith(",") or (
+                        "," in line and line.count(",") >= 3
                     )
-                    
+
                     if is_csv_line:
                         if not in_csv_block:
                             # Start new CSV block
@@ -854,22 +860,24 @@ def _modify_chunk(chunk: str) -> str:
                                 csv_lines = csv_block_lines[:10]
                                 if len(csv_block_lines) > 10:
                                     csv_lines.append("... (truncated: more lines)")
-                                csv_content = '\n'.join(csv_lines)
-                                formatted_file_lines.append(f"```csv\n{csv_content}\n```")
+                                csv_content = "\n".join(csv_lines)
+                                formatted_file_lines.append(
+                                    f"```csv\n{csv_content}\n```"
+                                )
                                 csv_block_lines = []
                             in_csv_block = False
                         formatted_file_lines.append(line)
-                
+
                 # Handle remaining CSV block
                 if csv_block_lines:
                     csv_lines = csv_block_lines[:10]
                     if len(csv_block_lines) > 10:
                         csv_lines.append("... (truncated: more lines)")
-                    csv_content = '\n'.join(csv_lines)
+                    csv_content = "\n".join(csv_lines)
                     formatted_file_lines.append(f"```csv\n{csv_content}\n```")
-                
-                formatted_file_section = '\n'.join(formatted_file_lines)
-                
+
+                formatted_file_section = "\n".join(formatted_file_lines)
+
                 # Combine formatted text and file section
                 if formatted_text:
                     return f"\n\n**✅ Execution Result:**\n\n{formatted_text}\n\n{formatted_file_section}\n"
@@ -881,9 +889,9 @@ def _modify_chunk(chunk: str) -> str:
         else:
             # No file listings, format as regular code block
             return f"\n\n**✅ Execution Result:**\n```\n{observation_content}\n```\n"
-    
+
     retval = re.sub(observation_pattern, format_observation, retval, flags=re.DOTALL)
-    
+
     # Then handle other tags
     tag_replacements = [
         ("<execute>", "\n```CODE_TYPE\n"),
@@ -900,7 +908,7 @@ def _modify_chunk(chunk: str) -> str:
     retval = _replace_code_type_placeholders(retval)
 
     # Replace biomni imports with hits imports in code blocks
-    retval = _replace_biomni_imports(retval)
+    retval = _replace_biomni(retval)
 
     return retval
 
@@ -933,8 +941,8 @@ def _replace_code_type_placeholders(content: str) -> str:
     return content
 
 
-def _replace_biomni_imports(content: str) -> str:
-    """Replace all occurrences of 'biomni' and 'Biomni' with 'hits' in code blocks."""
+def _replace_biomni(content: str) -> str:
+    """Replace all occurrences of 'biomni' and 'Biomni' with 'hits' in code blocks and text."""
     # Pattern to find code blocks (both with specific language and generic)
     code_block_pattern = r"```(\w+)?\n(.*?)```"
 
@@ -946,7 +954,7 @@ def _replace_biomni_imports(content: str) -> str:
         modified_code = re.sub(r"\bbiomni\b", "hits", code_content, flags=re.IGNORECASE)
         # Also handle lowercase/uppercase word-boundary safe (edge: Biomni in class names etc.)
         # But above regex with IGNORECASE handles both "biomni" and "Biomni"
-        
+
         if language:
             return f"```{language}\n{modified_code}```"
         else:
@@ -956,6 +964,14 @@ def _replace_biomni_imports(content: str) -> str:
     content = re.sub(
         code_block_pattern, replace_imports_in_code, content, flags=re.DOTALL
     )
+
+    # Additional replacements for text outside code blocks:
+    # 1. Replace 'biomni.' pattern (e.g., biomni.tool.omics -> hits.tool.omics)
+    content = re.sub(r"\bbiomni\.", "hits.", content, flags=re.IGNORECASE)
+
+    # 2. Replace biomni/Biomni in paths and general text with 'hits'
+    # This handles cases like /home/ec2-user/Biomni_HITS/... -> /home/ec2-user/hits_HITS/...
+    content = re.sub(r"\bbiomni\b", "hits", content, flags=re.IGNORECASE)
 
     return content
 
