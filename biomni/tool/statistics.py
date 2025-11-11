@@ -794,6 +794,131 @@ def adjust_pvalues(
     return padj
 
 
+def t_test_FDR(
+    data: pd.DataFrame,
+    group1_samples: List[str],
+    group2_samples: List[str],
+    equal_var: bool = False,
+    adjust_p: bool = True,
+    alpha: float = 0.05
+) -> pd.DataFrame:
+    """
+    Perform Welch's t-test with FDR correction for two-group comparison.
+    
+    This function performs Welch's t-test (unequal variances) between two groups
+    and applies FDR correction for multiple testing. Returns results compatible
+    with smart_differential_analysis.
+    
+    Parameters
+    ----------
+    data : pd.DataFrame
+        DataFrame with features as rows and samples as columns
+    group1_samples : list
+        Sample names for group 1
+    group2_samples : list
+        Sample names for group 2
+    equal_var : bool, optional (default: False)
+        Whether to assume equal variances. If False, uses Welch's t-test.
+    adjust_p : bool, optional (default: True)
+        Apply FDR correction using Benjamini-Hochberg method
+    alpha : float, optional (default: 0.05)
+        Significance level
+    
+    Returns
+    -------
+    pd.DataFrame
+        Results with columns:
+        - statistic: t-statistic
+        - p_value: Raw p-value
+        - FDR: FDR-adjusted p-value (if adjust_p=True)
+        - p_value_adj: FDR-adjusted p-value (alias for FDR)
+        - significant: Boolean indicating significance
+        - mean_group1: Mean of group 1
+        - mean_group2: Mean of group 2
+        - fold_change: Log2 fold change (group1/group2)
+    
+    Examples
+    --------
+    >>> data = pd.DataFrame({
+    ...     'C1': [10, 20, 30], 'C2': [12, 22, 32],
+    ...     'T1': [15, 25, 35], 'T2': [17, 27, 37]
+    ... })
+    >>> results = t_test_FDR(data, ['C1', 'C2'], ['T1', 'T2'])
+    >>> print(results[results['significant']])
+    
+    Notes
+    -----
+    - Uses Welch's t-test by default (equal_var=False) for unequal variances
+    - FDR correction uses Benjamini-Hochberg procedure
+    - Compatible with smart_differential_analysis function
+    """
+    # Extract data for both groups
+    group1_data = data[group1_samples].values
+    group2_data = data[group2_samples].values
+    
+    # Calculate means
+    mean1 = np.nanmean(group1_data, axis=1)
+    mean2 = np.nanmean(group2_data, axis=1)
+    
+    # Calculate fold change (log2)
+    fc = mean1 / (mean2 + 1e-10)
+    log2_fc = np.log2(fc + 1e-10)
+    
+    # Perform t-test (Welch's by default)
+    t_stats = []
+    p_values = []
+    
+    for i in range(len(data)):
+        x = group1_data[i, :]
+        y = group2_data[i, :]
+        
+        # Remove NaN values
+        x_clean = x[~np.isnan(x)]
+        y_clean = y[~np.isnan(y)]
+        
+        if len(x_clean) > 0 and len(y_clean) > 0:
+            t_stat, p_val = stats.ttest_ind(x_clean, y_clean, equal_var=equal_var)
+            t_stats.append(t_stat)
+            p_values.append(p_val)
+        else:
+            t_stats.append(np.nan)
+            p_values.append(np.nan)
+    
+    # Create results DataFrame
+    results = pd.DataFrame({
+        'statistic': t_stats,
+        'p_value': p_values,
+        'mean_group1': mean1,
+        'mean_group2': mean2,
+        'fold_change': log2_fc
+    }, index=data.index)
+    
+    # Apply FDR correction
+    if adjust_p:
+        valid_pvals = results['p_value'].dropna()
+        if len(valid_pvals) > 0:
+            # Use Benjamini-Hochberg FDR correction
+            padj = adjust_pvalues(valid_pvals.values, method='fdr_bh')
+            
+            # Add adjusted p-values
+            results['FDR'] = np.nan
+            results['p_value_adj'] = np.nan
+            results.loc[valid_pvals.index, 'FDR'] = padj
+            results.loc[valid_pvals.index, 'p_value_adj'] = padj
+        else:
+            results['FDR'] = np.nan
+            results['p_value_adj'] = np.nan
+    else:
+        results['FDR'] = results['p_value']
+        results['p_value_adj'] = results['p_value']
+    
+    # Mark significant features
+    fdr_col = results.get('FDR', results.get('p_value_adj', results['p_value']))
+    results['significant'] = fdr_col < alpha
+    
+    return results.sort_values('p_value')
+
+
 def calculate_correlation(
     data1: pd.DataFrame,
     data2: pd.DataFrame = None,
@@ -1981,9 +2106,15 @@ def smart_differential_analysis(
             group2_samples = sample_groups[group_names[1]]
             
             if selected_test in ["Welch's t-test", "welch", "ttest"]:
-                # Use proteomics t_test_FDR (Welch's)
-                from biomni.tool.proteomics import t_test_FDR
-                results = t_test_FDR(data.copy(), group1_samples, group2_samples)
+                # Use t_test_FDR (Welch's t-test with FDR correction)
+                results = t_test_FDR(
+                    data.copy(), 
+                    group1_samples, 
+                    group2_samples,
+                    equal_var=False,
+                    adjust_p=adjust_pvalues,
+                    alpha=alpha
+                )
                 test_function = "t_test_FDR"
                 
             elif selected_test in ["Mann-Whitney U test", "mannwhitney"]:
