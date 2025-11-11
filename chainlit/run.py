@@ -47,15 +47,66 @@ agent = A1_HITS(
 )
 
 # 로깅 설정
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("chainlit_stream.log", mode="a"),
-    ],
-)
+LOG_FILE_PATH = f"{CURRENT_ABS_DIR}/chainlit_stream.log"
+
+# Create logger and set up handlers directly
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Remove any existing handlers to avoid duplicates
+logger.handlers.clear()
+
+# Create and configure handlers
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+# Console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
+# File handler for global log
+file_handler = logging.FileHandler(LOG_FILE_PATH, mode="a")
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+# Prevent propagation to root logger to avoid duplicate logs
+logger.propagate = False
+
+logger.info(f"Logger initialized. Log file: {LOG_FILE_PATH}")
+
+# Thread-specific log handler management
+_thread_log_handler = None
+
+
+def add_thread_log_handler(thread_id: str):
+    """Add a thread-specific log handler to capture logs for individual chat sessions.
+
+    Args:
+        thread_id: The unique thread/session identifier
+    """
+    global _thread_log_handler
+
+    # Remove previous thread-specific handler if exists
+    if _thread_log_handler:
+        logger.removeHandler(_thread_log_handler)
+        _thread_log_handler.close()
+
+    # Create new thread-specific log file
+    thread_log_path = f"{CURRENT_ABS_DIR}/chainlit_logs/{thread_id}/chainlit_stream.log"
+    os.makedirs(os.path.dirname(thread_log_path), exist_ok=True)
+
+    # Add new handler for this thread
+    _thread_log_handler = logging.FileHandler(thread_log_path, mode="a")
+    _thread_log_handler.setLevel(logging.INFO)
+    _thread_log_handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    )
+    logger.addHandler(_thread_log_handler)
+
+    logger.info(f"Thread-specific log handler added for thread: {thread_id}")
+    logger.info(f"Thread log file: {thread_log_path}")
 
 
 class LocalStorageClient(BaseStorageClient):
@@ -195,15 +246,19 @@ def auth_callback(username: str, password: str):
     # Fetch the user matching username from your database
     # and compare the hashed password with the value stored in the database
     # Support both username and email format for login
-    valid_logins = [
-        ("admin", "admin"),
-        ("admin@example.com", "admin"),  # Email format
-        ("admin@biomni.com", "admin"),  # Another email format
-    ]
+    valid_logins = {
+        ("admin", "admin"): "admin",
+        ("admin@example.com", "admin"): "admin@example.com",
+        ("admin@biomni.com", "admin"): "admin@biomni.com",
+        ("jslink", "5fdf7e4a-6632-48b1-a9c8-b79d9a9be2e0"): "jslink",
+    }
 
-    if (username, password) in valid_logins:
+    identifier = valid_logins.get((username, password))
+
+    if identifier:
         return cl.User(
-            identifier="admin", metadata={"role": "admin", "provider": "credentials"}
+            identifier=identifier,  # 각 사용자마다 고유한 identifier 사용
+            metadata={"role": "admin", "provider": "credentials"},
         )
     else:
         return None
@@ -216,8 +271,13 @@ async def start_chat():
     dir_name = cl.context.session.thread_id
     log_dir = f"chainlit_logs/{dir_name}"
     os.makedirs(log_dir, exist_ok=True)
+
+    # Add thread-specific log handler
+    add_thread_log_handler(dir_name)
+
     os.chdir(log_dir)
     print("current dir", os.getcwd())
+    logger.info(f"Chat session started for thread: {dir_name}")
     cl.user_session.set("message_history", [])
 
     files = None
@@ -262,8 +322,13 @@ async def resume_chat():
     dir_name = thread_id
     log_dir = f"chainlit_logs/{dir_name}"
     os.makedirs(log_dir, exist_ok=True)
+
+    # Add thread-specific log handler
+    add_thread_log_handler(dir_name)
+
     os.chdir(log_dir)
     print("current dir", os.getcwd())
+    logger.info(f"Chat session resumed for thread: {dir_name}")
 
 
 @cl.on_message
@@ -431,7 +496,7 @@ def _extract_text_from_content(content):
 async def _process_agent_response(agent_input: list, message_history: list):
     """Process agent response and handle streaming."""
 
-    with open(f"conversion_history.txt", "a") as f:
+    with open(f"conversation_history.txt", "a") as f:
         user_content_text = _extract_text_from_content(agent_input[-1].content)
         f.write(user_content_text + "\n")
 
@@ -455,7 +520,7 @@ async def _process_agent_response(agent_input: list, message_history: list):
         print(os.getcwd())
         print(final_message)
 
-        with open(f"conversion_history.txt", "a") as f:
+        with open(f"conversation_history.txt", "a") as f:
             f.write(raw_full_message + "\n")
         message_history.append({"role": "assistant", "content": raw_full_message})
 
@@ -705,12 +770,29 @@ def _extract_chunk_content(chunk):
 
 
 def _extract_final_message(step_message: str) -> str:
-    """Extract final message from step message."""
+    """Extract content between the last <solution> and the last </solution>."""
+    # Close unclosed solution tag if needed
     if "<solution>" in step_message and "</solution>" not in step_message:
         step_message += "</solution>"
 
-    solution_match = re.search(r"<solution>(.*?)</solution>", step_message, re.DOTALL)
-    return solution_match.group(1) if solution_match else step_message
+    # Find the last occurrence of <solution>
+    last_solution_start = step_message.rfind("<solution>")
+
+    if last_solution_start == -1:
+        # No <solution> tag found
+        return step_message
+
+    # Find the last occurrence of </solution>
+    last_solution_end = step_message.rfind("</solution>")
+
+    if last_solution_end == -1 or last_solution_end < last_solution_start:
+        # No closing tag found or it's before the opening tag, return everything after last <solution>
+        content_start = last_solution_start + len("<solution>")
+        return step_message[content_start:].strip()
+
+    # Extract content between last <solution> and last </solution>
+    content_start = last_solution_start + len("<solution>")
+    return step_message[content_start:last_solution_end].strip()
 
 
 def _detect_code_type(code: str) -> str:
