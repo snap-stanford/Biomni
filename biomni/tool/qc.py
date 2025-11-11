@@ -50,7 +50,8 @@ def calculate_qc_metrics(
         - overall_metrics: Overall data quality metrics (dict)
         - correlation_matrix: Sample correlation matrix (DataFrame)
         - outlier_samples: List of potential outlier samples
-        - pca_variance: Variance explained by first 5 PCs
+        - pca_variance: Variance explained by first 5 PCs (dict)
+        - pca_coordinates: PCA coordinates for each sample (DataFrame)
     
     Examples
     --------
@@ -88,6 +89,24 @@ def calculate_qc_metrics(
     """
     from sklearn.ensemble import IsolationForest
     from sklearn.preprocessing import StandardScaler
+    
+    # Validate inputs
+    missing_samples = set(sample_columns) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All sample_columns must exist in data.columns. "
+            f"Available columns: {list(data.columns)[:10]}..."
+        )
+    
+    if metadata is not None:
+        missing_metadata_samples = set(sample_columns) - set(metadata.index)
+        if missing_metadata_samples:
+            raise ValueError(
+                f"Sample(s) not found in metadata.index: {missing_metadata_samples}. "
+                f"metadata.index must contain all sample_columns. "
+                f"Example: metadata = pd.DataFrame(..., index=sample_columns)"
+            )
     
     # Extract data matrix
     data_matrix = data[sample_columns].values.T  # Transpose to samples x features
@@ -210,6 +229,297 @@ def calculate_qc_metrics(
             pass
     
     return results
+
+
+# def draw_pca(
+#     data: pd.DataFrame,
+#     sample_columns: list,
+#     metadata: pd.DataFrame = None,
+#     color_by: str = None,
+#     n_components: int = 2,
+#     show_loadings: bool = False,
+#     n_loadings: int = 10,
+#     output_file: str = "pca_plot.png",
+# ) -> str:
+#     """
+#     Create PCA visualization for quality control and sample relationship assessment.
+    
+#     Essential QC visualization tool for identifying sample relationships, batch effects,
+#     and outliers. Part of quality control workflow for omics data analysis.
+    
+#     Parameters
+#     ----------
+#     data : pd.DataFrame
+#         Data with features as rows, samples as columns
+#     sample_columns : list
+#         Sample names to include. All must exist in data.columns.
+#     metadata : pd.DataFrame, optional
+#         Sample metadata for coloring. Index must match sample_columns.
+#         Example: metadata = pd.DataFrame(..., index=sample_columns)
+#     color_by : str, optional
+#         Metadata column for coloring (e.g., 'batch', 'group', 'treatment')
+#     n_components : int, optional (default: 2)
+#         Number of PCs to compute (2 or 3 for visualization)
+#     show_loadings : bool, optional (default: False)
+#         Show feature loading vectors (not yet implemented)
+#     n_loadings : int, optional (default: 10)
+#         Number of loadings to show if show_loadings=True
+#     output_file : str, optional (default: "pca_plot.png")
+#         Output file path
+    
+#     Returns
+#     -------
+#     str
+#         Path to saved plot
+    
+#     Examples
+#     --------
+#     >>> import pandas as pd
+#     >>> import numpy as np
+#     >>> 
+#     >>> # Create sample data
+#     >>> data = pd.DataFrame(np.random.randn(100, 6))
+#     >>> 
+#     >>> # Basic PCA plot
+#     >>> plot_path = draw_pca(data, data.columns.tolist())
+#     >>> 
+#     >>> # With metadata coloring
+#     >>> metadata = pd.DataFrame({
+#     ...     'batch': ['Batch1', 'Batch1', 'Batch2', 'Batch2', 'Batch3', 'Batch3']
+#     ... }, index=data.columns)
+#     >>> plot_path = draw_pca(data, data.columns.tolist(), metadata, color_by='batch')
+    
+#     Notes
+#     -----
+#     - Normalize and clean data before PCA
+#     - Missing values are automatically removed (features with any NaN are excluded)
+#     - Data is standardized (z-score) before PCA
+#     - Use this for QC to identify batch effects and outliers
+#     - For QC metrics calculation, use calculate_qc_metrics() which also performs PCA
+#     - This function focuses on visualization, while calculate_qc_metrics() focuses on metrics
+    
+#     See Also
+#     --------
+#     calculate_qc_metrics : Calculate comprehensive QC metrics including PCA coordinates
+#     generate_qc_report : Generate HTML QC report with PCA plot included
+#     """
+#     from sklearn.decomposition import PCA
+#     from sklearn.preprocessing import StandardScaler
+    
+#     # Validate inputs
+#     missing_samples = set(sample_columns) - set(data.columns)
+#     if missing_samples:
+#         raise ValueError(
+#             f"Sample(s) not found in data.columns: {missing_samples}. "
+#             f"All sample_columns must exist in data.columns. "
+#             f"Available columns: {list(data.columns)[:10]}..."
+#         )
+    
+#     if metadata is not None and color_by is not None:
+#         missing_metadata_samples = set(sample_columns) - set(metadata.index)
+#         if missing_metadata_samples:
+#             raise ValueError(
+#                 f"Sample(s) not found in metadata.index: {missing_metadata_samples}. "
+#                 f"metadata.index must contain all sample_columns. "
+#                 f"Example: metadata = pd.DataFrame(..., index=sample_columns)"
+#             )
+    
+#     # Extract data
+#     data_matrix = data[sample_columns].values.T  # Transpose: samples x features
+    
+#     # Remove missing values
+#     valid_features = ~np.any(np.isnan(data_matrix), axis=0)
+#     data_clean = data_matrix[:, valid_features]
+    
+#     if data_clean.shape[1] == 0:
+#         raise ValueError("No valid features after removing missing values. Check data quality.")
+    
+#     # Standardize
+#     scaler = StandardScaler()
+#     data_scaled = scaler.fit_transform(data_clean)
+    
+#     # Perform PCA
+#     pca = PCA(n_components=n_components)
+#     pca_result = pca.fit_transform(data_scaled)
+    
+#     # Calculate variance explained
+#     variance_explained = pca.explained_variance_ratio_ * 100
+    
+#     # Set style
+#     plt.style.use('seaborn-v0_8-whitegrid')
+#     sns.set_palette("husl")
+    
+#     # Create plot with enhanced styling
+#     if n_components == 2:
+#         fig, ax = plt.subplots(figsize=(12, 10))
+#         fig.patch.set_facecolor('white')
+        
+#         # Color by metadata if provided
+#         if metadata is not None and color_by is not None:
+#             groups = metadata.loc[sample_columns, color_by]
+#             unique_groups = groups.unique()
+#             colors = sns.color_palette("husl", len(unique_groups))
+            
+#             for i, group in enumerate(unique_groups):
+#                 mask = groups == group
+#                 ax.scatter(
+#                     pca_result[mask, 0],
+#                     pca_result[mask, 1],
+#                     c=[colors[i]],
+#                     label=group,
+#                     s=150,
+#                     alpha=0.7,
+#                     edgecolors='white',
+#                     linewidths=2,
+#                     zorder=3
+#                 )
+            
+#             # Enhanced legend
+#             legend = ax.legend(title=color_by, loc='best', frameon=True,
+#                               fancybox=True, shadow=True,
+#                               fontsize=11, title_fontsize=12,
+#                               framealpha=0.95, edgecolor='gray', facecolor='white')
+#             legend.get_frame().set_linewidth(1.5)
+#         else:
+#             ax.scatter(
+#                 pca_result[:, 0],
+#                 pca_result[:, 1],
+#                 c='#3498DB',
+#                 s=150,
+#                 alpha=0.7,
+#                 edgecolors='white',
+#                 linewidths=2,
+#                 zorder=3
+#             )
+        
+#         # Add sample labels with better styling
+#         for i, sample in enumerate(sample_columns):
+#             ax.annotate(
+#                 sample,
+#                 (pca_result[i, 0], pca_result[i, 1]),
+#                 xytext=(8, 8),
+#                 textcoords='offset points',
+#                 fontsize=9,
+#                 fontweight='bold',
+#                 alpha=0.8,
+#                 bbox=dict(boxstyle='round,pad=0.3', 
+#                         facecolor='white', 
+#                         alpha=0.7,
+#                         edgecolor='gray',
+#                         linewidth=0.5),
+#                 zorder=4
+#             )
+        
+#         # Enhanced labels with variance explained
+#         ax.set_xlabel(f'PC1 ({variance_explained[0]:.1f}% variance)', 
+#                      fontsize=14, fontweight='bold', color='#2C3E50')
+#         ax.set_ylabel(f'PC2 ({variance_explained[1]:.1f}% variance)', 
+#                      fontsize=14, fontweight='bold', color='#2C3E50')
+#         ax.set_title('Principal Component Analysis', fontsize=16, fontweight='bold', 
+#                     color='#2C3E50', pad=15)
+        
+#         # Enhanced grid
+#         ax.grid(True, alpha=0.3, linestyle='-', linewidth=0.5, color='gray')
+#         ax.set_axisbelow(True)
+#         ax.set_facecolor('#FAFAFA')
+        
+#         # Style spines
+#         ax.spines['top'].set_visible(False)
+#         ax.spines['right'].set_visible(False)
+#         ax.spines['left'].set_color('#7F8C8D')
+#         ax.spines['bottom'].set_color('#7F8C8D')
+#         ax.spines['left'].set_linewidth(1.5)
+#         ax.spines['bottom'].set_linewidth(1.5)
+        
+#     elif n_components == 3:
+#         from mpl_toolkits.mplot3d import Axes3D
+        
+#         fig = plt.figure(figsize=(12, 10))
+#         fig.patch.set_facecolor('white')
+#         ax = fig.add_subplot(111, projection='3d')
+        
+#         # Color by metadata if provided
+#         if metadata is not None and color_by is not None:
+#             groups = metadata.loc[sample_columns, color_by]
+#             unique_groups = groups.unique()
+#             colors = sns.color_palette("husl", len(unique_groups))
+            
+#             for i, group in enumerate(unique_groups):
+#                 mask = groups == group
+#                 ax.scatter(
+#                     pca_result[mask, 0],
+#                     pca_result[mask, 1],
+#                     pca_result[mask, 2],
+#                     c=[colors[i]],
+#                     label=group,
+#                     s=150,
+#                     alpha=0.7,
+#                     edgecolors='white',
+#                     linewidths=1.5
+#                 )
+            
+#             # Enhanced legend
+#             legend = ax.legend(title=color_by, loc='upper left', frameon=True,
+#                               fancybox=True, shadow=True,
+#                               fontsize=11, title_fontsize=12, framealpha=0.95)
+#             legend.get_frame().set_linewidth(1.5)
+#         else:
+#             ax.scatter(
+#                 pca_result[:, 0],
+#                 pca_result[:, 1],
+#                 pca_result[:, 2],
+#                 c='#3498DB',
+#                 s=150,
+#                 alpha=0.7,
+#                 edgecolors='white',
+#                 linewidths=1.5
+#             )
+        
+#         # Add sample labels
+#         for i, sample in enumerate(sample_columns):
+#             ax.text(
+#                 pca_result[i, 0],
+#                 pca_result[i, 1],
+#                 pca_result[i, 2],
+#                 sample,
+#                 fontsize=9,
+#                 fontweight='bold',
+#                 alpha=0.8,
+#                 bbox=dict(boxstyle='round,pad=0.3', 
+#                         facecolor='white', 
+#                         alpha=0.7,
+#                         edgecolor='gray')
+#             )
+        
+#         # Enhanced labels with variance explained
+#         ax.set_xlabel(f'PC1 ({variance_explained[0]:.1f}% variance)', 
+#                      fontsize=12, fontweight='bold', labelpad=10)
+#         ax.set_ylabel(f'PC2 ({variance_explained[1]:.1f}% variance)', 
+#                      fontsize=12, fontweight='bold', labelpad=10)
+#         ax.set_zlabel(f'PC3 ({variance_explained[2]:.1f}% variance)', 
+#                      fontsize=12, fontweight='bold', labelpad=10)
+#         ax.set_title('Principal Component Analysis (3D)', fontsize=16, fontweight='bold', pad=20)
+        
+#         # Style 3D axes
+#         ax.xaxis.pane.fill = False
+#         ax.yaxis.pane.fill = False
+#         ax.zaxis.pane.fill = False
+#         ax.xaxis.pane.set_edgecolor('gray')
+#         ax.yaxis.pane.set_edgecolor('gray')
+#         ax.zaxis.pane.set_edgecolor('gray')
+#         ax.xaxis.pane.set_alpha(0.1)
+#         ax.yaxis.pane.set_alpha(0.1)
+#         ax.zaxis.pane.set_alpha(0.1)
+    
+#     else:
+#         raise ValueError("n_components must be 2 or 3 for visualization")
+    
+#     plt.tight_layout()
+#     plt.savefig(output_file, dpi=300, bbox_inches='tight', 
+#                facecolor='white', edgecolor='none')
+#     plt.close()
+    
+#     return output_file
 
 
 def generate_qc_report(
@@ -397,7 +707,8 @@ def correct_batch_effects(
         Batch labels for each sample. Must have same length as sample_columns.
     covariates : pd.DataFrame, optional
         Biological covariates to preserve (e.g., treatment, disease status).
-        Index must match sample_columns.
+        Index must match sample_columns exactly (same length and same elements).
+        Example: covariates = pd.DataFrame(..., index=sample_columns)
     method : str, optional (default: "combat")
         Batch correction method:
         - "combat": ComBat (parametric, recommended for >2 batches)
@@ -455,6 +766,24 @@ def correct_batch_effects(
     
     if len(batch_array) != len(sample_columns):
         raise ValueError(f"Batch length ({len(batch_array)}) != sample_columns length ({len(sample_columns)})")
+    
+    # Validate sample_columns exist in data
+    missing_samples = set(sample_columns) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All sample_columns must exist in data.columns."
+        )
+    
+    # Validate covariates if provided
+    if covariates is not None:
+        missing_cov_samples = set(sample_columns) - set(covariates.index)
+        if missing_cov_samples:
+            raise ValueError(
+                f"Sample(s) not found in covariates.index: {missing_cov_samples}. "
+                f"covariates.index must match sample_columns exactly. "
+                f"Example: covariates = pd.DataFrame(..., index=sample_columns)"
+            )
     
     # Get data matrix
     data_matrix = data[sample_columns].values.astype(float)
@@ -611,6 +940,7 @@ def assess_technical_replicates(
     replicate_groups : dict
         Dictionary mapping group names to lists of replicate sample names.
         Format: {group_name: [sample1, sample2, sample3]}
+        All samples in replicate_groups must exist in data.columns.
     metrics : list, optional
         Metrics to calculate. Options:
         - "cv": Coefficient of variation
@@ -647,6 +977,19 @@ def assess_technical_replicates(
     [1] Koo & Li. "A Guideline of Selecting and Reporting Intraclass 
         Correlation Coefficients for Reliability Research", J Chiropr Med, 2016.
     """
+    # Validate that all samples exist in data
+    all_replicate_samples = []
+    for sample_list in replicate_groups.values():
+        all_replicate_samples.extend(sample_list)
+    
+    missing_samples = set(all_replicate_samples) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All samples in replicate_groups must exist in data.columns. "
+            f"Available columns: {list(data.columns)[:10]}..."
+        )
+    
     results = []
     
     for group_name, sample_list in replicate_groups.items():
@@ -743,7 +1086,6 @@ def detect_outlier_features(
         Detection method:
         - "iqr": Interquartile range method
         - "zscore": Z-score method
-        - "grubbs": Grubbs' test for outliers
         - "mad": Median absolute deviation
     threshold : float, optional (default: 3.0)
         Threshold for outlier detection (interpretation depends on method)
@@ -766,7 +1108,19 @@ def detect_outlier_features(
     - Z-score: |z| > threshold (typically 3)
     - MAD: More robust to extreme outliers than z-score
     - Review outliers manually before removal
+    - This function DETECTS outlier features (returns list), does not remove them
+    - For filtering LOW expression/detection features (preprocessing), use filter_low_values() from omics module
+    - This is for QC purposes to identify problematic features, not for routine filtering
     """
+    # Validate that all samples exist in data
+    missing_samples = set(sample_columns) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All sample_columns must exist in data.columns. "
+            f"Available columns: {list(data.columns)[:10]}..."
+        )
+    
     data_matrix = data[sample_columns].values
     
     outlier_scores = {}
@@ -849,7 +1203,9 @@ def assess_missing_value_patterns(
     sample_columns : list
         Sample columns to analyze
     groups : pd.Series, optional
-        Group labels for each sample (to test if missingness is group-related)
+        Group labels for each sample (to test if missingness is group-related).
+        Index must match sample_columns exactly.
+        Example: groups = pd.Series(['Group1', 'Group1', 'Group2'], index=sample_columns)
     
     Returns
     -------
@@ -880,6 +1236,24 @@ def assess_missing_value_patterns(
     [1] Lazar et al. "Accounting for the Multiple Natures of Missing Values",
         J Proteome Res, 2016.
     """
+    # Validate inputs
+    missing_samples = set(sample_columns) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All sample_columns must exist in data.columns. "
+            f"Available columns: {list(data.columns)[:10]}..."
+        )
+    
+    if groups is not None:
+        missing_group_samples = set(sample_columns) - set(groups.index)
+        if missing_group_samples:
+            raise ValueError(
+                f"Sample(s) not found in groups.index: {missing_group_samples}. "
+                f"groups.index must match sample_columns exactly. "
+                f"Example: groups = pd.Series(['Group1', 'Group1', 'Group2'], index=sample_columns)"
+            )
+    
     data_matrix = data[sample_columns].values
     
     # Calculate missing percentages
@@ -968,7 +1342,7 @@ def test_normality(
     data : pd.DataFrame
         Data with features as rows and samples as columns
     sample_columns : list
-        Sample columns to test
+        Sample columns to test. All must exist in data.columns.
     test : str, optional (default: "shapiro")
         Normality test:
         - "shapiro": Shapiro-Wilk test (recommended for n<50)
@@ -999,6 +1373,15 @@ def test_normality(
     - Many omics features are NOT normally distributed
     - Consider log transformation if non-normal
     """
+    # Validate inputs
+    missing_samples = set(sample_columns) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All sample_columns must exist in data.columns. "
+            f"Available columns: {list(data.columns)[:10]}..."
+        )
+    
     # Sample features if too many
     if len(data) > sample_size:
         sampled_features = np.random.choice(data.index, sample_size, replace=False)

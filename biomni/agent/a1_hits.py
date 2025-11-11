@@ -1333,8 +1333,30 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
     -- Turn 3 (using R): In the subsequent turn, use R and its hgu133plus2.db package to convert the probe ID of GSE data to Ensembl gene ID.
 
 # GUIDELINES FOR OMICS DATA ANALYSIS
-- You can use recommend_statistical_test function to know the appropriate statistical test.
-- You can use upto 4 workers for performing the parallel computation. If it seems to take long time, consider parallel computing
+- QUALITY CONTROL IS MANDATORY: Always perform quality control (QC) BEFORE any statistical analysis.
+  * Assess overall data quality, detect outliers, and identify batch effects.
+  * Check if data follows normal distribution (critical for appropriate test selection).
+  * Understand missing data mechanisms before imputation.
+  * Identify and handle problematic features and samples.
+  * Review QC results carefully - poor quality data will lead to unreliable statistical results.
+  * Correct batch effects if detected before differential analysis.
+
+- DIFFERENTIAL ANALYSIS:
+  * Always perform QC first to assess data quality and assumptions.
+  * Select statistical tests based on data characteristics (normality, variance homogeneity, sample size, number of groups).
+  * Verify test assumptions before applying statistical tests.
+  * Apply appropriate multiple testing correction (e.g., FDR) to control false discovery rate.
+  * Review test selection rationale and warnings to understand the analysis.
+
+- STATISTICAL TEST SELECTION:
+  * Choose tests appropriate for your data characteristics and number of groups.
+  * For 2 groups: Consider parametric tests (t-test, Welch's t-test) or non-parametric alternatives (Mann-Whitney U, Wilcoxon) based on data distribution.
+  * For 3+ groups: Consider parametric tests (ANOVA, Welch's ANOVA) or non-parametric alternatives (Kruskal-Wallis) based on data distribution.
+  * Always apply multiple testing correction when performing multiple comparisons.
+
+- PERFORMANCE OPTIMIZATION:
+  * For large datasets, consider parallel computation to reduce processing time.
+  * For QC tests on large datasets, consider sampling features to improve efficiency.
 
 # GUIDELINES FOR FILE HANDLING
 - When handling CSV, TSV, or TXT files, first examine the file's structure using head command or pandas function. Do not make assumptions about its layout.
