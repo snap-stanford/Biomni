@@ -90,7 +90,8 @@ dependencies:
   - markdown
   - openpyxl
   - docstring_parser # <-- pip에서 이동
-  
+  - pypdf2
+
   # Cloud/Infrastructure
   - boto3
   - botocore
