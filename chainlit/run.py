@@ -435,7 +435,7 @@ def _extract_text_from_content(content):
 async def _process_agent_response(agent_input: list, message_history: list):
     """Process agent response and handle streaming."""
 
-    with open(f"conversion_history.txt", "a") as f:
+    with open(f"conversation_history.txt", "a") as f:
         user_content_text = _extract_text_from_content(agent_input[-1].content)
         f.write(user_content_text + "\n")
 
@@ -459,7 +459,7 @@ async def _process_agent_response(agent_input: list, message_history: list):
         print(os.getcwd())
         print(final_message)
 
-        with open(f"conversion_history.txt", "a") as f:
+        with open(f"conversation_history.txt", "a") as f:
             f.write(raw_full_message + "\n")
         message_history.append({"role": "assistant", "content": raw_full_message})
 
