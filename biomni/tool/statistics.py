@@ -8,11 +8,12 @@ multi-omics data including ANOVA, survival analysis, and clinical statistics.
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from scipy import stats
 from typing import Optional, List, Dict, Tuple, Union
 
 
-def perform_anova(
+def perform_multi_group_test(
     data: pd.DataFrame,
     sample_columns: list,
     groups: pd.Series,
@@ -22,11 +23,11 @@ def perform_anova(
     alpha: float = 0.05,
 ) -> pd.DataFrame:
     """
-    Perform ANOVA (Analysis of Variance) with post-hoc testing.
+    Perform multi-group comparison test (ANOVA or Kruskal-Wallis) with post-hoc testing.
     
-    Essential for comparing expression levels across multiple groups
-    (e.g., control, treatment1, treatment2). More powerful than multiple
-    t-tests and controls family-wise error rate.
+    Essential for comparing expression levels across multiple groups (3+ groups).
+    Supports both parametric (ANOVA) and non-parametric (Kruskal-Wallis) approaches.
+    More powerful than multiple pairwise tests and controls family-wise error rate.
     
     Parameters
     ----------
@@ -35,26 +36,28 @@ def perform_anova(
     sample_columns : list
         List of column names containing sample values
     groups : pd.Series
-        Group labels for each sample. Index must match sample_columns.
+        Group labels for each sample. Index must match sample_columns exactly.
+        Example: groups = pd.Series(['Control', 'Control', 'Treatment'], index=sample_columns)
     method : str, optional (default: "one_way")
-        ANOVA method. Options:
-        - "one_way": One-way ANOVA (one grouping factor)
-        - "kruskal": Kruskal-Wallis test (non-parametric alternative)
+        Statistical test method. Options:
+        - "one_way": One-way ANOVA (parametric, assumes normality and equal variances)
+        - "kruskal": Kruskal-Wallis test (non-parametric, no distribution assumptions)
     post_hoc : str, optional (default: "tukey")
         Post-hoc test for pairwise comparisons. Options:
-        - "tukey": Tukey's HSD test
-        - "bonferroni": Bonferroni correction
+        - "tukey": Tukey's HSD test (requires statsmodels package, parametric)
+        - "bonferroni": Bonferroni correction (works for both parametric and non-parametric)
         - "none": No post-hoc testing
     adjust_pvalues : bool, optional (default: True)
-        Whether to adjust p-values for multiple testing (FDR)
+        Whether to adjust p-values for multiple testing (FDR correction)
     alpha : float, optional (default: 0.05)
         Significance level
     
     Returns
     -------
     pd.DataFrame
-        DataFrame with ANOVA results including:
-        - F_statistic: F-statistic value
+        DataFrame with test results including:
+        - F_statistic or H_statistic: Test statistic value
+          (F-statistic for ANOVA, H-statistic for Kruskal-Wallis)
         - p_value: Raw p-value
         - p_value_adj: FDR-adjusted p-value (if adjust_pvalues=True)
         - significant: Boolean indicating significance
@@ -83,13 +86,22 @@ def perform_anova(
     ...     index=data.columns
     ... )
     >>> 
-    >>> # Perform ANOVA
-    >>> results = perform_anova(
+    >>> # Perform ANOVA (parametric)
+    >>> results = perform_multi_group_test(
     ...     data,
     ...     data.columns.tolist(),
     ...     groups,
     ...     method="one_way",
     ...     post_hoc="tukey"
+    ... )
+    >>> 
+    >>> # Perform Kruskal-Wallis (non-parametric)
+    >>> results = perform_multi_group_test(
+    ...     data,
+    ...     data.columns.tolist(),
+    ...     groups,
+    ...     method="kruskal",
+    ...     post_hoc="bonferroni"
     ... )
     >>> 
     >>> # Filter significant features
@@ -98,17 +110,46 @@ def perform_anova(
     
     Notes
     -----
-    - One-way ANOVA assumes normal distribution and equal variances
-    - Kruskal-Wallis is non-parametric alternative for non-normal data
+    - Use "one_way" (ANOVA) when data is normally distributed and variances are equal
+    - Use "kruskal" (Kruskal-Wallis) when data is non-normal or variances are unequal
+    - Kruskal-Wallis is more robust but less powerful than ANOVA when assumptions are met
     - Post-hoc tests control for multiple comparisons
-    - Data should be normalized before ANOVA
-    - For two groups, use t-test instead
+    - Data should be normalized before analysis
+    - For two groups, use t-test or Mann-Whitney U instead
+    - If post_hoc="tukey" and statsmodels is not available, falls back to Bonferroni
+    - groups.index must exactly match sample_columns (same length and same elements)
+    
+    See Also
+    --------
+    perform_nonparametric_test : For 2-group non-parametric tests
+    t_test_FDR : For 2-group parametric tests
+    smart_differential_analysis : Automatic test selection based on data characteristics
     """
     from scipy.stats import f_oneway, kruskal
     
     # Validate inputs
     if len(groups.unique()) < 2:
         raise ValueError("Need at least 2 groups for ANOVA")
+    
+    # Validate groups index matches sample_columns
+    groups_set = set(groups.index)
+    sample_columns_set = set(sample_columns)
+    
+    if not groups_set.issubset(sample_columns_set):
+        missing_samples = groups_set - sample_columns_set
+        raise ValueError(
+            f"Groups Series contains samples not in sample_columns: {missing_samples}. "
+            f"All group indices must match sample_columns. "
+            f"Example: groups = pd.Series(['Group1', 'Group1', 'Group2'], index=sample_columns)"
+        )
+    
+    if len(groups_set) != len(sample_columns_set):
+        extra_samples = sample_columns_set - groups_set
+        raise ValueError(
+            f"sample_columns contains samples not in groups: {extra_samples}. "
+            f"All sample_columns must have corresponding group labels. "
+            f"Example: groups = pd.Series(['Group1', 'Group1', 'Group2'], index=sample_columns)"
+        )
     
     # Prepare results dataframe
     results = pd.DataFrame(index=data.index)
@@ -246,6 +287,10 @@ def perform_anova(
             results['post_hoc'] = results.index.map(lambda x: post_hoc_results.get(x, ""))
     
     return results
+
+
+# Backward compatibility alias
+perform_anova = perform_multi_group_test
 
 
 def perform_survival_analysis(
@@ -553,7 +598,8 @@ def plot_kaplan_meier(
     -----
     - Censored patients are marked with vertical tick marks
     - Confidence intervals show uncertainty in survival estimates
-    - Log-rank test p-value is shown when comparing groups
+    - Log-rank test p-value is automatically shown only when comparing exactly 2 groups
+    - For 3+ groups, p-value is not automatically displayed (use multivariate log-rank test separately)
     - Risk table shows number of patients at risk at each timepoint
     - Requires lifelines package
     """
@@ -565,25 +611,33 @@ def plot_kaplan_meier(
             "lifelines package required. Install with: pip install lifelines"
         )
     
-    # Create figure
+    # Set style
+    plt.style.use('seaborn-v0_8-whitegrid')
+    sns.set_palette("husl")
+    
+    # Create figure with enhanced styling
     if risk_table:
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), 
-                                        gridspec_kw={'height_ratios': [3, 1]})
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), 
+                                        gridspec_kw={'height_ratios': [3, 1]},
+                                        facecolor='white')
     else:
-        fig, ax1 = plt.subplots(figsize=(10, 8))
+        fig, ax1 = plt.subplots(figsize=(12, 8), facecolor='white')
         ax2 = None
+    
+    fig.patch.set_facecolor('white')
     
     kmf = KaplanMeierFitter()
     
     if groups is None:
         # Single survival curve
         kmf.fit(survival_time, event, label='All patients')
-        kmf.plot_survival_function(ax=ax1, ci_show=confidence_interval)
+        kmf.plot_survival_function(ax=ax1, ci_show=confidence_interval, 
+                                  color='#3498DB', linewidth=2.5)
         
     else:
         # Multiple curves for different groups
         unique_groups = groups.unique()
-        colors = plt.cm.Set1(np.linspace(0, 1, len(unique_groups)))
+        colors = sns.color_palette("husl", len(unique_groups))
         
         # Store risk table data
         risk_table_data = {}
@@ -598,7 +652,8 @@ def plot_kaplan_meier(
             kmf.plot_survival_function(
                 ax=ax1,
                 ci_show=confidence_interval,
-                color=colors[i]
+                color=colors[i],
+                linewidth=2.5
             )
             
             # Collect risk table data
@@ -623,20 +678,26 @@ def plot_kaplan_meier(
                 event[group2_mask]
             )
             
+            # Enhanced p-value annotation
             ax1.text(
                 0.02, 0.02,
                 f'Log-rank test p-value: {result.p_value:.4f}',
                 transform=ax1.transAxes,
                 fontsize=12,
+                fontweight='bold',
                 verticalalignment='bottom',
-                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+                bbox=dict(boxstyle='round,pad=0.5', 
+                         facecolor='white', 
+                         alpha=0.9,
+                         edgecolor='#2C3E50',
+                         linewidth=2)
             )
         
         # Add risk table
         if risk_table and ax2 is not None:
             timepoints = np.percentile(survival_time, [0, 25, 50, 75, 100])
             
-            # Create risk table
+            # Create risk table with enhanced styling
             ax2.axis('off')
             table_data = []
             row_labels = []
@@ -654,20 +715,49 @@ def plot_kaplan_meier(
                 bbox=[0, 0, 1, 1]
             )
             table.auto_set_font_size(False)
-            table.set_fontsize(10)
-            table.scale(1, 2)
+            table.set_fontsize(11)
+            table.scale(1, 2.5)
             
-            ax2.set_title('Number at Risk', fontsize=12, pad=10)
+            # Style table
+            for i in range(len(row_labels)):
+                table[(i+1, -1)].set_facecolor('#ECF0F1')
+                table[(i+1, -1)].set_text_props(weight='bold')
+            
+            for j in range(len(timepoints)):
+                table[(0, j)].set_facecolor('#34495E')
+                table[(0, j)].set_text_props(weight='bold', color='white')
+            
+            ax2.set_title('Number at Risk', fontsize=13, fontweight='bold', pad=15)
     
-    # Formatting
-    ax1.set_xlabel('Time', fontsize=12)
-    ax1.set_ylabel('Survival Probability', fontsize=12)
-    ax1.set_title('Kaplan-Meier Survival Curves', fontsize=14, fontweight='bold')
-    ax1.grid(True, alpha=0.3)
-    ax1.legend(loc='best')
+    # Enhanced formatting
+    ax1.set_xlabel('Time', fontsize=14, fontweight='bold', color='#2C3E50')
+    ax1.set_ylabel('Survival Probability', fontsize=14, fontweight='bold', color='#2C3E50')
+    ax1.set_title('Kaplan-Meier Survival Curves', fontsize=16, fontweight='bold', 
+                 color='#2C3E50', pad=15)
+    
+    # Enhanced grid
+    ax1.grid(True, alpha=0.3, linestyle='-', linewidth=0.5, color='gray')
+    ax1.set_axisbelow(True)
+    ax1.set_facecolor('#FAFAFA')
+    
+    # Style spines
+    ax1.spines['top'].set_visible(False)
+    ax1.spines['right'].set_visible(False)
+    ax1.spines['left'].set_color('#7F8C8D')
+    ax1.spines['bottom'].set_color('#7F8C8D')
+    ax1.spines['left'].set_linewidth(1.5)
+    ax1.spines['bottom'].set_linewidth(1.5)
+    
+    # Enhanced legend
+    legend = ax1.legend(loc='best', frameon=True,
+                       fancybox=True, shadow=True,
+                       fontsize=11, framealpha=0.95,
+                       edgecolor='gray', facecolor='white')
+    legend.get_frame().set_linewidth(1.5)
     
     plt.tight_layout()
-    plt.savefig(output_file, dpi=300, bbox_inches='tight')
+    plt.savefig(output_file, dpi=300, bbox_inches='tight', 
+               facecolor='white', edgecolor='none')
     plt.close()
     
     return output_file
@@ -943,7 +1033,7 @@ def calculate_correlation(
         - "pearson": Pearson correlation (linear relationships)
         - "spearman": Spearman rank correlation (monotonic relationships)
         - "kendall": Kendall tau (ordinal relationships)
-    adjust_pvalues : bool, optional (default: True)
+    adjust_p : bool, optional (default: True)
         Apply FDR correction to p-values
     min_overlap : int, optional (default: 3)
         Minimum number of overlapping non-NaN values required
@@ -956,7 +1046,7 @@ def calculate_correlation(
         - feature2: Feature from data2 (or data1)
         - correlation: Correlation coefficient
         - p_value: Raw p-value
-        - p_value_adj: FDR-adjusted p-value (if adjust_pvalues=True)
+        - p_value_adj: FDR-adjusted p-value (if adjust_p=True)
         - n_samples: Number of overlapping samples used
     
     Examples
@@ -1083,7 +1173,7 @@ def perform_enrichment_test(
         Statistical test:
         - "hypergeometric": Hypergeometric test (recommended)
         - "fisher": Fisher's exact test
-    adjust_pvalues : bool, optional (default: True)
+    adjust_p : bool, optional (default: True)
         Apply FDR correction
     min_overlap : int, optional (default: 2)
         Minimum overlap required for testing
@@ -1276,7 +1366,9 @@ def perform_permutation_test(
     - No distributional assumptions required
     - Computationally intensive for large datasets
     - P-value resolution limited by n_permutations
-    - min p-value = 1/(n_permutations + 1)
+    - Minimum p-value = 1/(n_permutations + 1)
+    - Uses two-tailed test: counts how often |null| >= |observed|
+    - For statistic="tstat", uses absolute t-statistic (no variance assumption)
     
     References
     ----------
@@ -1369,9 +1461,13 @@ def perform_nonparametric_test(
         Sample names for group 2. If None, performs one-sample test.
     test : str, optional (default: "mannwhitney")
         Statistical test:
-        - "mannwhitney": Mann-Whitney U test (independent samples)
+        - "mannwhitney": Mann-Whitney U test (independent two-sample)
         - "wilcoxon": Wilcoxon signed-rank test (paired samples)
-        - "kruskal": Kruskal-Wallis H test (>2 independent groups)
+        
+        Note:
+        - For 3 or more groups, DO NOT use this function. Use `perform_multi_group_test`
+          with `method="kruskal"` instead, e.g.:
+          `perform_multi_group_test(data, all_samples, groups_series, method="kruskal", ...)`
     adjust_pvalues : bool, optional (default: True)
         Apply FDR correction
     paired : bool, optional (default: False)
@@ -1410,14 +1506,17 @@ def perform_nonparametric_test(
     -----
     - Mann-Whitney: Independent two-group comparison (alternative to t-test)
     - Wilcoxon: Paired two-group comparison (alternative to paired t-test)
-    - Kruskal-Wallis: Multi-group comparison (alternative to ANOVA)
+    - For Kruskal-Wallis with 3+ groups, use `perform_multi_group_test(method="kruskal")`
     - More robust to outliers and non-normality than parametric tests
     - Less powerful than t-test when normality holds
-    
-    References
-    ----------
-    [1] Hollander & Wolfe. "Nonparametric Statistical Methods", Wiley, 1999.
     """
+    # Guardrail: Disallow Kruskal-Wallis here to prevent misuse for 3+ groups
+    if test.lower() == "kruskal":
+        raise ValueError(
+            'Kruskal-Wallis for 3+ groups must be run via perform_multi_group_test with method="kruskal". '
+            'Example: perform_multi_group_test(data, all_samples, groups_series, method="kruskal", ...). '
+            'This function supports only two-group tests: "mannwhitney" and "wilcoxon".'
+        )
     group1_data = data[group1_samples].values
     
     test_stats = []
@@ -1479,30 +1578,6 @@ def perform_nonparametric_test(
                 else:
                     test_stats.append(np.nan)
                     p_values.append(np.nan)
-    
-    elif test == "kruskal":
-        # Kruskal-Wallis test requires groups
-        if group2_samples is None:
-            raise ValueError("Multiple groups required for Kruskal-Wallis test")
-        
-        # Assume group2_samples contains additional group labels
-        # This is simplified - in practice you'd pass multiple group lists
-        group2_data = data[group2_samples].values
-        
-        for i in range(len(data)):
-            x = group1_data[i, :]
-            y = group2_data[i, :]
-            
-            x_clean = x[~np.isnan(x)]
-            y_clean = y[~np.isnan(y)]
-            
-            if len(x_clean) > 0 and len(y_clean) > 0:
-                stat, pval = stats.kruskal(x_clean, y_clean)
-                test_stats.append(stat)
-                p_values.append(pval)
-            else:
-                test_stats.append(np.nan)
-                p_values.append(np.nan)
     
     else:
         raise ValueError(f"Unknown test: {test}")
@@ -1578,6 +1653,19 @@ def test_variance_homogeneity(
     ----------
     [1] Levene, H. "Robust tests for equality of variances", 1960.
     """
+    # Validate that all samples exist in data
+    all_samples = []
+    for sample_list in sample_groups.values():
+        all_samples.extend(sample_list)
+    
+    missing_samples = set(all_samples) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All samples in sample_groups must exist in data.columns. "
+            f"Available columns: {list(data.columns)[:10]}..."
+        )
+    
     group_data = []
     for group_name, sample_list in sample_groups.items():
         group_data.append(data[sample_list].values.flatten())
@@ -1654,6 +1742,8 @@ def check_test_assumptions(
     - Checks normality, variance homogeneity, sample size
     - Provides recommendations based on violations
     - Warnings indicate which assumptions are violated
+    - If biomni.tool.qc module is not available, normality testing will be skipped
+      and normality_pct will be None. This reduces confidence in recommendations.
     """
     # Import QC functions
     import sys
@@ -2092,6 +2182,33 @@ def smart_differential_analysis(
     else:
         if force_test is None:
             raise ValueError("Must specify force_test if auto_select_test=False")
+        
+        # Validate force_test value
+        valid_force_tests_2groups = ["ttest", "welch", "mannwhitney", "wilcoxon", "permutation"]
+        valid_force_tests_multigroups = ["anova", "kruskal"]
+        all_valid_tests = valid_force_tests_2groups + valid_force_tests_multigroups
+        
+        force_test_lower = force_test.lower()
+        if force_test_lower not in all_valid_tests:
+            raise ValueError(
+                f"Invalid force_test value: '{force_test}'. "
+                f"Valid options for {n_groups} groups: "
+                f"{valid_force_tests_2groups if n_groups == 2 else valid_force_tests_multigroups}. "
+                f"Received: {force_test}"
+            )
+        
+        # Check if test is appropriate for number of groups
+        if n_groups == 2 and force_test_lower in valid_force_tests_multigroups:
+            raise ValueError(
+                f"Test '{force_test}' is for multiple groups (>=3), but only {n_groups} groups provided. "
+                f"Use one of: {valid_force_tests_2groups}"
+            )
+        elif n_groups > 2 and force_test_lower in valid_force_tests_2groups:
+            raise ValueError(
+                f"Test '{force_test}' is for 2 groups, but {n_groups} groups provided. "
+                f"Use one of: {valid_force_tests_multigroups}"
+            )
+        
         selected_test = force_test
         confidence = 1.0
         rationale = f"User-specified test: {force_test}"
@@ -2182,29 +2299,29 @@ def smart_differential_analysis(
                 all_samples.extend(samples)
             
             if selected_test in ["One-way ANOVA", "anova", "Welch's ANOVA"]:
-                results = perform_anova(
+                results = perform_multi_group_test(
                     data, all_samples, groups_series,
                     method='one_way', post_hoc='tukey',
                     adjust_pvalues=adjust_pvalues, alpha=alpha
                 )
-                test_function = "perform_anova(method='one_way')"
+                test_function = "perform_multi_group_test(method='one_way')"
                 
             elif selected_test in ["Kruskal-Wallis test", "kruskal"]:
-                results = perform_anova(
+                results = perform_multi_group_test(
                     data, all_samples, groups_series,
                     method='kruskal', post_hoc='bonferroni',
                     adjust_pvalues=adjust_pvalues, alpha=alpha
                 )
-                test_function = "perform_anova(method='kruskal')"
+                test_function = "perform_multi_group_test(method='kruskal')"
             
             else:
                 # Default to Kruskal-Wallis for safety
-                results = perform_anova(
+                results = perform_multi_group_test(
                     data, all_samples, groups_series,
                     method='kruskal', post_hoc='bonferroni',
                     adjust_pvalues=adjust_pvalues, alpha=alpha
                 )
-                test_function = "perform_anova(method='kruskal') [default]"
+                test_function = "perform_multi_group_test(method='kruskal') [default]"
         
         success = True
         error_message = None

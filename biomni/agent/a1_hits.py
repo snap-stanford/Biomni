@@ -1318,8 +1318,40 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
     -- Turn 3 (using R): In the subsequent turn, use R and its hgu133plus2.db package to convert the probe ID of GSE data to Ensembl gene ID.
 
 # GUIDELINES FOR OMICS DATA ANALYSIS
-- You can use recommend_statistical_test function to know the appropriate statistical test.
-- You can use upto 4 workers for performing the parallel computation. If it seems to take long time, consider parallel computing
+- QUALITY CONTROL IS MANDATORY: Always perform quality control (QC) BEFORE any statistical analysis.
+  * Use calculate_qc_metrics() to assess overall data quality, detect outliers, and identify batch effects.
+  * Use test_normality() to check if data follows normal distribution (critical for test selection).
+  * Use assess_missing_value_patterns() to understand missing data mechanisms before imputation.
+  * Use detect_outlier_features() and check outlier_samples from QC results to identify problematic features/samples.
+  * Review QC results carefully - poor quality data will lead to unreliable statistical results.
+  * If batch effects are detected, use correct_batch_effects() before differential analysis.
+
+- RECOMMENDED WORKFLOW FOR DIFFERENTIAL ANALYSIS:
+  Step 1: Perform QC using calculate_qc_metrics() to assess data quality, detect outliers, and check for batch effects.
+  Step 2: Use smart_differential_analysis(data, sample_groups) - This is the RECOMMENDED function for most cases.
+    * smart_differential_analysis automatically:
+      - Checks data assumptions (normality, variance homogeneity, sample size)
+      - Selects the most appropriate statistical test based on data characteristics
+      - Executes the selected test with proper FDR correction
+      - Returns results with detailed metadata explaining why the test was chosen
+    * Example: results, metadata = smart_differential_analysis(data, {{'Control': [...], 'Treatment': [...]}})
+    * Review metadata['selection_rationale'] and metadata['warnings'] to understand the analysis.
+  
+- WHEN TO USE OTHER FUNCTIONS:
+  * Use recommend_statistical_test() ONLY if you want a recommendation WITHOUT running the test (e.g., for planning).
+  * Use individual test functions (t_test_FDR, perform_multi_group_test, etc.) ONLY if you need specific control over the test.
+  * For most cases, smart_differential_analysis() is sufficient and recommended.
+
+- IMPORTANT NOTES ON STATISTICAL TESTS:
+  * smart_differential_analysis handles test selection automatically, but be aware:
+    - For 2 groups: May select t-test, Welch's t-test, Mann-Whitney U, Wilcoxon, or permutation test.
+    - For 3+ groups: May select ANOVA, Welch's ANOVA, or Kruskal-Wallis test.
+  * smart_differential_analysis automatically applies FDR correction (adjust_pvalues=True by default).
+  * If you need to force a specific test, use: smart_differential_analysis(..., auto_select_test=False, force_test='mannwhitney')
+
+- PERFORMANCE OPTIMIZATION:
+  * You can use up to 4 workers for performing parallel computation. If analysis seems to take long time, consider parallel computing.
+  * For large datasets, consider sampling features for QC tests (e.g., test_normality with sample_size parameter).
 
 # GUIDELINES FOR FILE HANDLING
 - When handling CSV, TSV, or TXT files, first examine the file's structure using head command or pandas function. Do not make assumptions about its layout.
