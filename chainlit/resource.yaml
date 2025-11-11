@@ -24,8 +24,8 @@ allowed_resources:
   tools:
     # Example: Allow specific tools by name
     # Uncomment and add tool names you want to allow:
-    - query_uniprot
-    - liftover_coordinates
+    #- query_uniprot
+    #- liftover_coordinates
     
     # Example: Allow all tools from a specific Python file
     # - file: biomni/tool/genetics.py
@@ -50,8 +50,3 @@ allowed_resources:
   # Libraries: list of allowed library/software names
   # Uncomment and add library names you want to allow:
   libraries:
-    - pandas
-    - numpy
-    - scipy
-    - matplotlib
-
