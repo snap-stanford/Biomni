@@ -926,6 +926,9 @@ def read_module2api():
         "support_tools",
         "database",
         "lab_automation",
+        "omics",
+        "qc",
+        "statistics",
     ]
 
     module2api = {}

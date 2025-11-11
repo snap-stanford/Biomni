@@ -232,6 +232,10 @@ data/ddinter_raw/
 chainlit/.chainlit/
 chainlit/README.md
 chainlit/chainlit.md
+chainlit/public/*
+chainlit/chainlit.db*
+chainlit/chainlit_logs
+chainlit/.files
 
 streamlit_workspace
 biomni_data

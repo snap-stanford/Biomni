@@ -1,0 +1,54 @@
+name: biomni_e1
+channels:
+  - conda-forge  # 1. 가장 우선순위가 높은 채널
+  - bioconda     # 2. 
+  - defaults     # 3.
+dependencies:
+  # --- Conda Core ---
+  - python=3.11
+  - pip
+
+  # --- Data Science & ML ---
+  # numpy==2.1 버전은 없는 것으로 보여, 호환성을 위해 버전 핀을 제거했습니다.
+  # Conda가 python 3.11에 맞는 최신 numpy 버전을 설치합니다.
+  - numpy        
+  - pandas
+  - matplotlib
+  - scipy
+  - statsmodels
+  - scikit-learn
+  - seaborn
+  - networkx
+  
+  # --- LLM & LangChain ---
+  - langchain
+  - langgraph
+  - langchain-openai
+  - langchain-aws
+  - langchain-community
+  - langchain-classic
+  - openai
+  - transformers
+  - sentencepiece
+  
+  # --- Web & Utilities ---
+  - beautifulsoup4
+  - lxml
+  - requests
+  - pyyaml
+  - tqdm
+  - python-dotenv
+
+  # --- Jupyter & Dev ---
+  - gradio
+  - jupyter
+  - notebook
+  - ipykernel
+  - pytest
+
+  # --- Pip-only packages ---
+  # 아래 패키지들은 conda-forge에 없어 pip로 설치를 유지합니다.
+  - pip:
+      - mcp
+      - tooluniverse
+      - aiosqlite

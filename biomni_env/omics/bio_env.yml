@@ -1,0 +1,107 @@
+name: hits_omics # 새 이름 추천
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  # Bioinformatics tools (conda)
+  #- blast
+  #- samtools
+  #- bowtie2
+  #- bwa
+  #- bedtools
+  #- fastqc
+  #- trimmomatic
+  #- mafft
+  - gseapy
+  #- mageck
+  #- plannotate
+  #- macs2
+  #- fanc
+  #- pysam         # <-- pip에서 이동 (필수)
+  #- pyfaidx       # <-- pip에서 이동
+  #- pyranges      # <-- pip에서 이동
+  #- pybedtools    # <-- pip에서 이동
+  #- cooler        # <-- pip에서 이동
+  #- viennarna     # <-- pip에서 이동
+  #- python-libsbml # <-- pip에서 이동
+  #- cobra         # <-- pip에서 이동
+  #- msprime       # <-- pip에서 이동
+  #- tskit         # <-- pip에서 이동
+  #- cyvcf2        # <-- pip에서 이동
+  #- hmmlearn      # <-- pip에서 이동
+
+  # Omics analysis packages (conda)
+  - scanpy
+  - anndata
+  - igraph
+  - leidenalg
+  - louvain
+  - hdbscan
+  - biopython
+  - biopandas
+  #- gget
+  #- cellxgene-census # <-- pip에서 이동
+  - scikit-bio     # <-- pip에서 이동
+  - umap-learn     # <-- pip에서 이동
+  #- scrublet       # <-- pip에서 이동
+  #- scvelo         # <-- pip에서 이동
+  #- scvi-tools     # <-- pip에서 이동
+  #- harmony-pytorch  # <-- pip에서 이동
+  #- pyliftover     # <-- pip에서 이동
+  #- pyscenic       # <-- pip에서 이동
+  #- pytdc          # <-- pip에서 이동 (0.4.0 버전이 conda-forge에 있음)
+  
+  # Data science core libraries
+  - numpy          # <-- =1.26.4 버전 고정 해제 (매우 중요)
+  - pandas
+  - matplotlib
+  - scipy
+  - statsmodels
+  - scikit-learn
+  
+  # NLP/LLM tools
+  - transformers
+  - sentencepiece
+  
+  # LangChain ecosystem
+  #- langchain
+  #- langgraph
+  #- langchain-community
+  #- langchain-openai
+  #- langchain_aws  # <-- pip에서 이동
+  
+  # UI frameworks
+  - streamlit
+  
+  # Utilities
+  - tqdm
+  - seaborn
+  - networkx
+  - requests
+  - pyyaml
+  - jupyter
+  - notebook
+  - ipykernel
+  - pytest
+  - python-dotenv
+  - pytz
+  - markdown
+  - openpyxl
+  - docstring_parser # <-- pip에서 이동
+  
+  # Cloud/Infrastructure
+  - boto3
+  - botocore
+  
+  # Other analysis tools
+  - faiss-cpu
+  - lifelines
+  
+  # --- Pip ---
+  # Conda에 정말 없거나, 특정 버전이 꼭 필요한 것들만 남김
+  - pip:
+    - chainlit  # Conda에 없음
+    #- PyMassSpec     # Conda에 있지만 복잡할 수 있으니 pip 유지 (선택)
+    - ddgs           # Conda에 없음

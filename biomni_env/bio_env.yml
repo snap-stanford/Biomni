@@ -16,6 +16,8 @@ dependencies:
   - mageck
   - plannotate
   - fpocket
+  - macs2
+  - fanc
   - pip:
     - scanpy
     - biopython
@@ -23,7 +25,6 @@ dependencies:
     - biotite
     - opencv-python
     - rdkit
-    - macs2
     - pymc3
     - cryosparc-tools
     - lifelines
@@ -68,4 +69,3 @@ dependencies:
     - cyvcf2
     - pykalman
     - community
-    - fanc

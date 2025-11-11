@@ -1,6 +1,6 @@
 env_name="biomni_hits2"
 
-conda create -n $env_name -f bio_env.yml
+conda env create -n $env_name -f bio_env.yml
 conda activate $env_name
 pip install -r requirements.txt
 pip install -r requirements_langchain.txt

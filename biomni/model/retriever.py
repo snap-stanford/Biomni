@@ -203,7 +203,9 @@ IMPORTANT GUIDELINES:
 9. If some library is useful for completing the only some part of the task, include it.
 """
 
-        embeddings = BedrockEmbeddings(normalize=True)
+        embeddings = BedrockEmbeddings(
+            normalize=True, region_name=os.getenv("AWS_REGION", "us-east-1")
+        )
         rag_db_path = os.path.dirname(os.path.abspath(__file__))
         rag_db_path = os.path.join(rag_db_path, "../rag_db/system_prompt/")
         databases = {

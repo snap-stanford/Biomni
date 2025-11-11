@@ -3,25 +3,19 @@ from biomni.agent import A1_HITS
 from langchain_core.messages import (
     AIMessage,
     AIMessageChunk,
-    BaseMessage,
     HumanMessage,
     SystemMessage,
 )
 import os
 import re
-from datetime import datetime
-import pytz
 import shutil
 import random
 import string
 import base64
-import mimetypes
-from typing import Any
 from biomni.config import default_config
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
-import time
-from sqlalchemy import create_engine, event, text
-from sqlalchemy.pool import StaticPool, QueuePool
+from chainlit.data.storage_clients.base import BaseStorageClient
+from sqlalchemy import create_engine, event
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     AsyncEngine,
@@ -30,58 +24,17 @@ from sqlalchemy.ext.asyncio import (
 )
 import asyncio
 import logging
-import sqlite3
-from dotenv import load_dotenv
-from pathlib import Path
-
-# Get current file's directory and project root
-CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
-try:
-    REPO_ROOT = Path(__file__).resolve().parent.parent
-except Exception:
-    REPO_ROOT = Path(CURRENT_ABS_DIR).parent
-
-# Load environment variables from .env file
-env_path = REPO_ROOT / ".env"
-if env_path.exists():
-    load_dotenv(str(env_path), override=False)
-    print(f"Loaded environment variables from {env_path}")
-elif os.path.exists(".env"):
-    load_dotenv(".env", override=False)
-    print("Loaded environment variables from .env")
-
-# Load BIOMNI_DATA_PATH from config.yaml or use default
-def _load_biomni_data_path() -> str:
-    """Load BIOMNI_DATA_PATH from config.yaml or use default."""
-    config_path = REPO_ROOT / "config.yaml"
-    if config_path.exists():
-        try:
-            import yaml
-            with config_path.open("r", encoding="utf-8") as f:
-                cfg = yaml.safe_load(f) or {}
-            if "BIOMNI_DATA_PATH" in cfg:
-                return cfg["BIOMNI_DATA_PATH"]
-        except Exception:
-            pass
-    
-    # Check environment variable
-    env_path = os.getenv("BIOMNI_DATA_PATH") or os.getenv("BIOMNI_PATH")
-    if env_path:
-        return env_path
-    
-    # Default: use repo_root/biomni_data
-    return str(REPO_ROOT / "biomni_data")
-
-# from chainlit.data.base import BaseStorageClient
+import concurrent.futures
 
 # Configuration
 LLM_MODEL = "gemini-2.5-pro"
-
 # LLM_MODEL = "grok-4-fast"
-BIOMNI_DATA_PATH = _load_biomni_data_path()
-PUBLIC_DIR = os.path.join(CURRENT_ABS_DIR, "public")
-CHAINLIT_DB_PATH = os.path.join(CURRENT_ABS_DIR, "chainlit.db")
-LOG_DIR = os.path.join(CURRENT_ABS_DIR, "chainlit_logs")
+BIOMNI_DATA_PATH = "/workdir_efs/jhjeon/Biomni/biomni_data"
+BIOMNI_DATA_PATH = "./"
+CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
+PUBLIC_DIR = f"{CURRENT_ABS_DIR}/public"
+CHAINLIT_DB_PATH = "chainlit.db"
+STREAMING_MAX_TIMEOUT = 3600  # Maximum streaming timeout in seconds (1 hour)
 
 default_config.llm = LLM_MODEL
 default_config.commercial_mode = True
@@ -90,19 +43,77 @@ agent = A1_HITS(
     path=BIOMNI_DATA_PATH,
     llm=LLM_MODEL,
     use_tool_retriever=True,
+    resource_filter_config_path=f"{CURRENT_ABS_DIR}/resource.yaml",
 )
 
 # 로깅 설정
-log_file_path = os.path.join(CURRENT_ABS_DIR, "chainlit_db.log")
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(log_file_path, mode="a"),
+        logging.FileHandler("chainlit_stream.log", mode="a"),
     ],
 )
 logger = logging.getLogger(__name__)
+
+
+class LocalStorageClient(BaseStorageClient):
+    """로컬 파일 시스템에 파일을 저장하는 스토리지 클라이언트"""
+
+    def __init__(self, storage_dir: str = None):
+        """
+        Args:
+            storage_dir: 파일을 저장할 디렉토리 경로 (기본값: PUBLIC_DIR)
+        """
+        if storage_dir is None:
+            storage_dir = PUBLIC_DIR
+        self.storage_dir = os.path.abspath(storage_dir)
+        os.makedirs(self.storage_dir, exist_ok=True)
+
+    async def upload_file(
+        self,
+        object_key: str,
+        data: bytes | str,
+        mime: str = "application/octet-stream",
+        overwrite: bool = True,
+        content_disposition: str | None = None,
+    ) -> dict:
+        """파일을 로컬 파일 시스템에 업로드"""
+        file_path = os.path.join(self.storage_dir, object_key)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        if isinstance(data, str):
+            data = data.encode("utf-8")
+
+        with open(file_path, "wb") as f:
+            f.write(data)
+
+        return {
+            "object_key": object_key,
+            "path": file_path,
+            "url": f"/public/{object_key}",
+        }
+
+    async def delete_file(self, object_key: str) -> bool:
+        """파일 삭제"""
+        file_path = os.path.join(self.storage_dir, object_key)
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Failed to delete file {object_key}: {e}")
+            return False
+
+    async def get_read_url(self, object_key: str) -> str:
+        """파일 읽기 URL 반환"""
+        return f"/public/{object_key}"
+
+    async def close(self) -> None:
+        """리소스 정리 (로컬 파일 시스템에서는 필요 없음)"""
+        pass
 
 
 class CustomSQLAlchemyDataLayer(SQLAlchemyDataLayer):
@@ -164,153 +175,19 @@ class CustomSQLAlchemyDataLayer(SQLAlchemyDataLayer):
         return await super().__aenter__()
 
 
-def _initialize_database(db_path: str):
-    """Initialize SQLite database with required tables if they don't exist."""
-    if not os.path.exists(db_path):
-        # Create database file
-        conn = sqlite3.connect(db_path)
-        conn.close()
-    
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    
-    try:
-        # Check if users table exists
-        cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='users';"
-        )
-        if not cursor.fetchone():
-            print(f"Initializing database tables in {db_path}...")
-            
-            # Enable foreign key constraints
-            cursor.execute("PRAGMA foreign_keys = ON;")
-            
-            # Create users table
-            cursor.execute(
-                """
-                CREATE TABLE users (
-                    "id" TEXT PRIMARY KEY,
-                    "identifier" TEXT NOT NULL UNIQUE,
-                    "metadata" TEXT NOT NULL,
-                    "createdAt" TEXT
-                );
-            """
-            )
-            
-            # Create threads table
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS threads (
-                    "id" TEXT PRIMARY KEY,
-                    "createdAt" TEXT,
-                    "name" TEXT,
-                    "userId" TEXT,
-                    "userIdentifier" TEXT,
-                    "tags" TEXT,
-                    "metadata" TEXT,
-                    FOREIGN KEY ("userId") REFERENCES users("id") ON DELETE CASCADE
-                );
-            """
-            )
-            
-            # Create steps table
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS steps (
-                    "id" TEXT PRIMARY KEY,
-                    "name" TEXT NOT NULL,
-                    "type" TEXT NOT NULL,
-                    "threadId" TEXT NOT NULL,
-                    "parentId" TEXT,
-                    "streaming" BOOLEAN NOT NULL,
-                    "waitForAnswer" BOOLEAN,
-                    "isError" BOOLEAN,
-                    "metadata" TEXT,
-                    "tags" TEXT,
-                    "input" TEXT,
-                    "output" TEXT,
-                    "createdAt" TEXT,
-                    "command" TEXT,
-                    "start" TEXT,
-                    "end" TEXT,
-                    "generation" TEXT,
-                    "showInput" TEXT,
-                    "language" TEXT,
-                    "indent" INTEGER,
-                    "defaultOpen" BOOLEAN,
-                    FOREIGN KEY ("threadId") REFERENCES threads("id") ON DELETE CASCADE
-                );
-            """
-            )
-            
-            # Create elements table
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS elements (
-                    "id" TEXT PRIMARY KEY,
-                    "threadId" TEXT,
-                    "type" TEXT,
-                    "url" TEXT,
-                    "chainlitKey" TEXT,
-                    "name" TEXT NOT NULL,
-                    "display" TEXT,
-                    "objectKey" TEXT,
-                    "size" TEXT,
-                    "page" INTEGER,
-                    "language" TEXT,
-                    "forId" TEXT,
-                    "mime" TEXT,
-                    "props" TEXT,
-                    FOREIGN KEY ("threadId") REFERENCES threads("id") ON DELETE CASCADE
-                );
-            """
-            )
-            
-            # Create feedbacks table
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS feedbacks (
-                    "id" TEXT PRIMARY KEY,
-                    "forId" TEXT NOT NULL,
-                    "threadId" TEXT NOT NULL,
-                    "value" INTEGER NOT NULL,
-                    "comment" TEXT,
-                    FOREIGN KEY ("threadId") REFERENCES threads("id") ON DELETE CASCADE
-                );
-            """
-            )
-            
-            # Create indexes
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_identifier ON users("identifier");')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_threads_userId ON threads("userId");')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_steps_threadId ON steps("threadId");')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_steps_parentId ON steps("parentId");')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_elements_threadId ON elements("threadId");')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_elements_forId ON elements("forId");')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_feedbacks_threadId ON feedbacks("threadId");')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_feedbacks_forId ON feedbacks("forId");')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_threads_createdAt ON threads("createdAt");')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_steps_createdAt ON steps("createdAt");')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_steps_type ON steps("type");')
-            
-            conn.commit()
-            print("Database tables initialized successfully.")
-    except sqlite3.Error as e:
-        print(f"Error initializing database: {e}")
-    finally:
-        conn.close()
-
-
 @cl.data_layer
 def get_data_layer():
-    # CHAINLIT_DB_PATH is already an absolute path
-    conninfo = f"sqlite+aiosqlite:///{CHAINLIT_DB_PATH}"
-    print(f"Chainlit database path: {CHAINLIT_DB_PATH}")
-    
-    # Initialize database tables if needed
-    _initialize_database(CHAINLIT_DB_PATH)
+    # 절대 경로로 변환하여 데이터베이스 경로 설정
+    db_path = os.path.abspath(CHAINLIT_DB_PATH)
+    conninfo = f"sqlite+aiosqlite:///{db_path}"
+    print(f"Chainlit database path: {db_path}")
 
-    return CustomSQLAlchemyDataLayer(conninfo=conninfo, show_logger=False)
+    # 스토리지 클라이언트 초기화 (파일 저장용)
+    storage_provider = LocalStorageClient()
+
+    return CustomSQLAlchemyDataLayer(
+        conninfo=conninfo, storage_provider=storage_provider, show_logger=False
+    )
 
 
 @cl.password_auth_callback
@@ -323,7 +200,7 @@ def auth_callback(username: str, password: str):
         ("admin@example.com", "admin"),  # Email format
         ("admin@biomni.com", "admin"),  # Another email format
     ]
-    
+
     if (username, password) in valid_logins:
         return cl.User(
             identifier="admin", metadata={"role": "admin", "provider": "credentials"}
@@ -337,29 +214,11 @@ async def start_chat():
     """Initialize chat session and set up working directory."""
     os.chdir(CURRENT_ABS_DIR)
     dir_name = cl.context.session.thread_id
-    log_dir = os.path.join(LOG_DIR, dir_name)
-    
-    # Create log directory with proper error handling
-    try:
-        os.makedirs(log_dir, exist_ok=True)
-        # Test write permissions
-        test_file = os.path.join(log_dir, ".test_write")
-        with open(test_file, "w") as f:
-            f.write("test")
-        os.remove(test_file)
-    except (OSError, PermissionError) as e:
-        logger.error(f"Failed to create or access log directory {log_dir}: {e}")
-        # Fallback to a temporary directory
-        import tempfile
-        log_dir = tempfile.mkdtemp(prefix="chainlit_logs_")
-        logger.warning(f"Using temporary directory: {log_dir}")
-    
+    log_dir = f"chainlit_logs/{dir_name}"
+    os.makedirs(log_dir, exist_ok=True)
     os.chdir(log_dir)
     print("current dir", os.getcwd())
-    if cl.user_session.get("agent_message_history") is None:
-        cl.user_session.set("agent_message_history", [])
     cl.user_session.set("message_history", [])
-    cl.user_session.set("agent_message_history", [])
 
     files = None
 
@@ -401,23 +260,8 @@ async def resume_chat():
     os.chdir(CURRENT_ABS_DIR)
     thread_id = cl.context.session.thread_id
     dir_name = thread_id
-    log_dir = os.path.join(LOG_DIR, dir_name)
-    
-    # Create log directory with proper error handling
-    try:
-        os.makedirs(log_dir, exist_ok=True)
-        # Test write permissions
-        test_file = os.path.join(log_dir, ".test_write")
-        with open(test_file, "w") as f:
-            f.write("test")
-        os.remove(test_file)
-    except (OSError, PermissionError) as e:
-        logger.error(f"Failed to create or access log directory {log_dir}: {e}")
-        # Fallback to a temporary directory
-        import tempfile
-        log_dir = tempfile.mkdtemp(prefix="chainlit_logs_")
-        logger.warning(f"Using temporary directory: {log_dir}")
-    
+    log_dir = f"chainlit_logs/{dir_name}"
+    os.makedirs(log_dir, exist_ok=True)
     os.chdir(log_dir)
     print("current dir", os.getcwd())
 
@@ -431,206 +275,420 @@ async def main(user_message: cl.Message):
         user_message: The user's message from Chainlit UI.
     """
     print("current dir:", os.getcwd())
-    user_prompt, agent_human_message = await _process_user_message(user_message)
-    message_history = _update_message_history(user_prompt)
-    agent_input = _update_agent_message_history(agent_human_message)
+    user_data = await _process_user_message(user_message)
+    message_history = _update_message_history(user_data)
+    agent_input = _convert_to_agent_format(message_history)
 
     await _process_agent_response(agent_input, message_history)
 
 
-async def _process_user_message(user_message: cl.Message) -> tuple[str, HumanMessage]:
-    """Process user message and handle file uploads."""
-    user_prompt = user_message.content.strip()
-    content_blocks: list[dict] = []
+async def _process_user_message(user_message: cl.Message) -> dict:
+    """Process user message and handle file uploads.
 
-    if user_prompt:
-        content_blocks.append({"type": "text", "text": user_prompt})
+    Returns:
+        dict with 'text' and optional 'images' keys
+    """
+    user_prompt = user_message.content.strip()
+    images = []
+
+    # Image file extensions
+    image_extensions = {
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".bmp",
+        ".webp",
+        ".tiff",
+        ".tif",
+    }
 
     # Process uploaded files
-    step_message = ""
-    for file in user_message.elements or []:
-        file_path = getattr(file, "path", None)
-        async with cl.Step(name=f"Processing {file.name}...") as step:
-            step.output = step_message + f"Copying file..."
-            if file_path and os.path.exists(file_path):
-                os.system(f"cp {file_path} '{file.name}'")
-                step.output = step_message + f"✅ File copied successfully!\n"
-            else:
-                logger.warning(f"File path not found for uploaded file {file.name}")
-                step.output = step_message + f"⚠️ Failed to locate file path.\n"
-            step_message = step.output
-        user_prompt += f"\n - user uploaded data file: {file.name}\n"
+    for file in user_message.elements:
+        os.system(f"cp {file.path} '{file.name}'")
 
-        if not file_path:
-            logger.warning(f"Uploaded file {file.name} has no accessible path; skipping.")
-            continue
+        # Check if it's an image file
+        file_ext = os.path.splitext(file.name)[1].lower()
+        if file_ext in image_extensions:
+            try:
+                # Read image and encode to base64
+                with open(file.path, "rb") as f:
+                    image_data = base64.b64encode(f.read()).decode("utf-8")
 
-        mime_type = getattr(file, "mime", None)
-        if not mime_type:
-            guessed_mime, _ = mimetypes.guess_type(file_path or file.name)
-            mime_type = guessed_mime or "application/octet-stream"
+                # Determine MIME type
+                mime_type_map = {
+                    ".png": "image/png",
+                    ".jpg": "image/jpeg",
+                    ".jpeg": "image/jpeg",
+                    ".gif": "image/gif",
+                    ".bmp": "image/bmp",
+                    ".webp": "image/webp",
+                    ".tiff": "image/tiff",
+                    ".tif": "image/tiff",
+                }
+                mime_type = mime_type_map.get(file_ext, "image/jpeg")
 
-        try:
-            with open(file_path, "rb") as f:
-                file_bytes = f.read()
-        except OSError as exc:
-            logger.error(f"Failed to read uploaded file {file.name}: {exc}")
-            continue
-
-        if mime_type.startswith("image/"):
-            b64_data = base64.b64encode(file_bytes).decode("utf-8")
-            content_blocks.extend(
-                [
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:{mime_type};base64,{b64_data}"},
-                    },
-                    {"type": "text", "text": f"{file.name} uploaded"},
-                ]
-            )
+                images.append(
+                    {"name": file.name, "data": f"data:{mime_type};base64,{image_data}"}
+                )
+                user_prompt += f"\n - user uploaded image file: {file.name}\n"
+            except Exception as e:
+                print(f"Error processing image {file.name}: {e}")
+                user_prompt += f"\n - user uploaded data file: {file.name}\n"
         else:
-            content_blocks.append({"type": "text", "text": f"{file.name} uploaded"})
+            user_prompt += f"\n - user uploaded data file: {file.name}\n"
 
     user_prompt += "\n" + cl.user_session.get("user_uploaded_system_file", "")
 
-    if len(content_blocks) == 1 and content_blocks[0]["type"] == "text":
-        agent_message = HumanMessage(content=content_blocks[0]["text"])
-    elif content_blocks:
-        agent_message = HumanMessage(content=content_blocks)
-    else:
-        agent_message = HumanMessage(content="")
-
-    return user_prompt, agent_message
+    return {"text": user_prompt, "images": images}
 
 
-def _update_message_history(user_prompt: str) -> list:
-    """Update and return message history."""
+def _update_message_history(user_data: dict) -> list:
+    """Update and return message history.
+
+    Args:
+        user_data: dict with 'text' and optional 'images' keys
+    """
     message_history = cl.user_session.get("message_history", [])
-    message_history.append({"role": "user", "content": user_prompt})
-    cl.user_session.set("message_history", message_history)
+    message_history.append(
+        {
+            "role": "user",
+            "content": user_data["text"],
+            "images": user_data.get("images", []),
+        }
+    )
     return message_history
 
 
-def _update_agent_message_history(message: BaseMessage) -> list[BaseMessage]:
-    """Append a message to the agent-specific history and return it."""
-    agent_history = cl.user_session.get("agent_message_history", [])
-    agent_history.append(message)
-    cl.user_session.set("agent_message_history", agent_history)
-    return agent_history
+def _convert_to_agent_format(message_history: list) -> list:
+    """Convert message history to agent input format."""
+    agent_input = []
+    for message in message_history:
+        if message["role"] == "user":
+            # Check if there are images to include
+            images = message.get("images", [])
+            if images:
+                # Create content as a list with text and images
+                content = [{"type": "text", "text": message["content"]}]
+                for img in images:
+                    content.append(
+                        {"type": "image_url", "image_url": {"url": img["data"]}}
+                    )
+                agent_input.append(HumanMessage(content=content))
+            else:
+                # Text only
+                agent_input.append(HumanMessage(content=message["content"]))
+        elif message["role"] == "assistant":
+            agent_input.append(AIMessage(content=message["content"]))
+    return agent_input
+
+
+async def _sync_generator_to_async(sync_gen):
+    """Convert a sync generator to async generator.
+
+    This allows us to use async for loop which automatically checks
+    for CancelledError at each iteration.
+    """
+    loop = asyncio.get_running_loop()
+
+    def get_next_item():
+        try:
+            return next(sync_gen)
+        except StopIteration:
+            return None
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        while True:
+            # Run next() in executor to avoid blocking
+            item = await loop.run_in_executor(executor, get_next_item)
+            if item is None:
+                break
+            yield item
+
+
+def _extract_text_from_content(content):
+    """Extract text from message content (handles both string and list formats).
+
+    Args:
+        content: Either a string or a list with text and image_url dicts
+
+    Returns:
+        str: The text content
+    """
+    if isinstance(content, str):
+        return content
+    elif isinstance(content, list):
+        # Extract text from list format
+        text_parts = []
+        for item in content:
+            if isinstance(item, dict) and item.get("type") == "text":
+                text_parts.append(item.get("text", ""))
+        return "".join(text_parts)
+    else:
+        return str(content)
 
 
 async def _process_agent_response(agent_input: list, message_history: list):
     """Process agent response and handle streaming."""
 
     with open(f"conversion_history.txt", "a") as f:
-        f.write(_message_content_to_text(agent_input[-1].content) + "\n")
+        user_content_text = _extract_text_from_content(agent_input[-1].content)
+        f.write(user_content_text + "\n")
 
-    async with cl.Step(name="Plan and execute") as chainlit_step:
-        await chainlit_step.update()
-        message_stream = agent.go_stream(agent_input)
-        full_message, step_message, raw_full_message = await _handle_message_stream(
-            message_stream, chainlit_step
+    logger.info("[RESPONSE] Starting agent response processing")
+
+    try:
+        async with cl.Step(name="Plan and execute") as chainlit_step:
+            await chainlit_step.update()
+            sync_message_stream = agent.go_stream(agent_input)
+            # Convert sync generator to async
+            message_stream = _sync_generator_to_async(sync_message_stream)
+            full_message, step_message, raw_full_message = await _handle_message_stream(
+                message_stream, chainlit_step, sync_message_stream
+            )
+
+        final_message = _extract_final_message(raw_full_message)
+        final_message = _detect_image_name_and_move_to_public(final_message)
+
+        await cl.Message(content=final_message).send()
+
+        print(os.getcwd())
+        print(final_message)
+
+        with open(f"conversion_history.txt", "a") as f:
+            f.write(raw_full_message + "\n")
+        message_history.append({"role": "assistant", "content": raw_full_message})
+
+    except asyncio.CancelledError:
+        # Handle stop button click
+        logger.info("User requested to stop the execution")
+        # await cl.Message(
+        #     content="⏹️ **실행 중지됨**: 사용자가 실행을 중지했습니다."
+        # ).send()
+        message_history.append(
+            {"role": "assistant", "content": "실행이 사용자에 의해 중지되었습니다."}
+        )
+        raise  # Re-raise to properly propagate cancellation
+    except TimeoutError as e:
+        error_message = str(e)
+        logger.error(f"Streaming timeout: {error_message}")
+        await cl.Message(
+            content=f"⚠️ **타임아웃 발생**: {error_message}\n\n"
+            f"최대 대기 시간({STREAMING_MAX_TIMEOUT}초)이 초과되었습니다. "
+            "더 작은 작업으로 나누어 다시 시도해주세요."
+        ).send()
+        message_history.append(
+            {"role": "assistant", "content": f"타임아웃 발생: {error_message}"}
+        )
+    except Exception as e:
+        error_message = f"스트리밍 처리 중 오류 발생: {str(e)}"
+        logger.error(error_message, exc_info=True)
+        error_message = _replace_biomni(error_message)
+        await cl.Message(content=f"❌ **오류**: {error_message}").send()
+        message_history.append({"role": "assistant", "content": error_message})
+
+
+async def _handle_message_stream(message_stream, chainlit_step, sync_generator):
+    """Handle streaming messages from the agent using async for loop.
+
+    This approach is much simpler and automatically handles CancelledError
+    at each await point in the async for loop.
+
+    Args:
+        message_stream: Async generator (converted from sync)
+        chainlit_step: Chainlit Step object
+        sync_generator: Original sync generator for cleanup
+    """
+    raw_full_message = ""
+    step_message = ""
+    current_step = 1
+    last_formatted_text = ""
+    image_cache = {}
+    last_chunk_time = [
+        asyncio.get_event_loop().time()
+    ]  # Mutable to share with heartbeat
+    stream_done = [False]  # Mutable flag to stop heartbeat
+    last_heartbeat_msg = [""]  # Mutable to share with main loop
+
+    logger.info("[STREAM] Starting message stream processing")
+
+    async def heartbeat():
+        """Send periodic 'working...' messages if no chunks received for a while."""
+        heartbeat_count = 0
+
+        while not stream_done[0]:
+            try:
+                await asyncio.sleep(2)  # Check every 2 seconds
+            except asyncio.CancelledError:
+                break
+
+            if stream_done[0]:
+                break
+
+            elapsed = asyncio.get_event_loop().time() - last_chunk_time[0]
+
+            # Only show message if waiting > 5 seconds
+            if elapsed >= 5:
+                heartbeat_count += 1
+                elapsed_int = int(elapsed)
+
+                logger.info(
+                    f"[HEARTBEAT #{heartbeat_count}] Showing working message (elapsed: {elapsed_int}s)"
+                )
+
+                # Create new heartbeat message
+                new_msg = f"\n\n_⏳ Still working... ({elapsed_int} seconds elapsed)_"
+
+                try:
+                    # Get current output and append heartbeat
+                    current_output = chainlit_step.output or last_formatted_text
+
+                    # Remove old heartbeat if present
+                    if last_heartbeat_msg[0] and current_output.endswith(
+                        last_heartbeat_msg[0]
+                    ):
+                        current_output = current_output[: -len(last_heartbeat_msg[0])]
+
+                    # Set new output with heartbeat
+                    chainlit_step.output = current_output + new_msg
+                    await chainlit_step.update()  # UI 업데이트 필수!
+                    last_heartbeat_msg[0] = new_msg
+                    logger.debug(f"[HEARTBEAT] Updated output with message")
+                except Exception as e:
+                    logger.warning(f"[HEARTBEAT] Failed to update: {e}")
+            else:
+                # Silent heartbeat for debugging
+                logger.debug(
+                    f"[HEARTBEAT] Check (elapsed: {elapsed:.1f}s, waiting for 5s)"
+                )
+
+    # Start heartbeat task
+    heartbeat_task = asyncio.create_task(heartbeat())
+
+    try:
+        # async for automatically checks for CancelledError at each iteration!
+        async for chunk in message_stream:
+            # Update last chunk time
+            last_chunk_time[0] = asyncio.get_event_loop().time()
+            # At this await point, CancelledError is automatically raised
+            # if the task is cancelled (page refresh or stop button)
+
+            this_step = chunk[1][1]["langgraph_step"]
+            if this_step != current_step:
+                step_message = ""
+                current_step = this_step
+
+            chunk_content = _extract_chunk_content(chunk)
+            if chunk_content is None:
+                continue
+
+            if isinstance(chunk_content, str):
+                raw_full_message += chunk_content
+                step_message += chunk_content
+
+                # Remove heartbeat message if present (new chunk arrived!)
+                if last_heartbeat_msg[0]:
+                    logger.debug(
+                        "[STREAM] Removing heartbeat message (new chunk arrived)"
+                    )
+                    current_output = chainlit_step.output or ""
+                    if current_output.endswith(last_heartbeat_msg[0]):
+                        chainlit_step.output = current_output[
+                            : -len(last_heartbeat_msg[0])
+                        ]
+                    last_heartbeat_msg[0] = ""  # Clear heartbeat message
+
+                # Format and detect images
+                formatted_text = _modify_chunk(raw_full_message)
+                formatted_text = _detect_image_name_and_move_to_public(
+                    formatted_text, image_cache
+                )
+
+                # Only stream if changed
+                if formatted_text != last_formatted_text:
+                    prev_output = last_formatted_text
+
+                    if prev_output and formatted_text.startswith(prev_output):
+                        delta = formatted_text[len(prev_output) :]
+                    else:
+                        delta = formatted_text
+
+                    if delta:
+                        # This await also checks for CancelledError
+                        await chainlit_step.stream_token(delta)
+                        chainlit_step.output = formatted_text
+                        last_formatted_text = formatted_text
+
+        logger.info("[STREAM] Stream completed successfully")
+
+        # Stop heartbeat
+        stream_done[0] = True
+
+        # Remove any remaining heartbeat message
+        if last_heartbeat_msg[0]:
+            logger.debug("[STREAM] Removing heartbeat message at completion")
+            current_output = chainlit_step.output or ""
+            if current_output.endswith(last_heartbeat_msg[0]):
+                chainlit_step.output = current_output[: -len(last_heartbeat_msg[0])]
+            last_heartbeat_msg[0] = ""
+
+        # Final formatting
+        full_formatted = _modify_chunk(raw_full_message)
+        full_formatted = _detect_image_name_and_move_to_public(
+            full_formatted, image_cache
         )
 
-    final_message = _extract_final_message(raw_full_message)
-    final_message = _detect_image_name_and_move_to_public(final_message)
+        # Final update if needed
+        if full_formatted != last_formatted_text:
+            remaining_delta = (
+                full_formatted[len(last_formatted_text) :]
+                if last_formatted_text
+                and full_formatted.startswith(last_formatted_text)
+                else full_formatted
+            )
+            if remaining_delta:
+                await chainlit_step.stream_token(remaining_delta)
+                chainlit_step.output = full_formatted
 
-    await cl.Message(content=final_message).send()
+        step_message = _modify_chunk(step_message)
+        step_message = _detect_image_name_and_move_to_public(step_message, image_cache)
 
-    print(os.getcwd())
-    print(final_message)
+        return full_formatted, step_message, raw_full_message
 
-    with open(f"conversion_history.txt", "a") as f:
-        f.write(raw_full_message + "\n")
-    message_history.append({"role": "assistant", "content": raw_full_message})
-    cl.user_session.set("message_history", message_history)
+    except asyncio.CancelledError:
+        logger.info("[STREAM] CancelledError - closing generator and stopping")
+        stream_done[0] = True
 
-    agent_history = cl.user_session.get("agent_message_history", [])
-    agent_history.append(AIMessage(content=raw_full_message))
-    cl.user_session.set("agent_message_history", agent_history)
+        # Close the sync generator explicitly to clean up resources
+        if sync_generator and hasattr(sync_generator, "close"):
+            try:
+                sync_generator.close()
+                logger.info("[STREAM] Sync generator closed successfully")
+            except Exception as e:
+                logger.warning(f"[STREAM] Failed to close generator: {e}")
+        raise  # Re-raise to propagate cancellation
 
+    except Exception as e:
+        logger.error(f"[STREAM] Error during streaming: {e}", exc_info=True)
+        stream_done[0] = True
 
-def _message_content_to_text(content: Any) -> str:
-    """Convert message content (string or structured) into plain text for logging."""
-    if isinstance(content, str):
-        return content
-    if isinstance(content, list):
-        parts = []
-        for block in content:
-            if isinstance(block, dict):
-                block_type = block.get("type")
-                if block_type == "text":
-                    parts.append(block.get("text", ""))
-                elif block_type == "image_url":
-                    url = block.get("image_url", {}).get("url")
-                    if url:
-                        parts.append(f"[image] {url}")
-                elif block_type == "media":
-                    mime_type = block.get("mime_type", "application/octet-stream")
-                    parts.append(f"[media] {mime_type}")
-                else:
-                    parts.append(str(block))
-            else:
-                parts.append(str(block))
-        return "\n".join(part for part in parts if part)
-    return str(content)
+        # Also close generator on error
+        if sync_generator and hasattr(sync_generator, "close"):
+            try:
+                sync_generator.close()
+            except:
+                pass
+        raise
 
-
-async def _handle_message_stream(message_stream, chainlit_step):
-    """Handle streaming messages from the agent."""
-    full_message = ""
-    step_message = ""
-    raw_full_message = ""
-    current_step = 1
-    update_counter = 0
-    last_update = time.time()
-    update_pending = False
-    stream_index = 0
-    for chunk in message_stream:
-        this_step = chunk[1][1]["langgraph_step"]
-        if this_step != current_step:
-            step_message = ""
-            current_step = this_step
-            if full_message.count("```") % 2 == 1:
-                full_message += "```\n"
-                raw_full_message += "```\n"
-            await chainlit_step.stream_token(full_message[stream_index:])
-            stream_index = max(len(full_message) - 1, 0)
-        chunk_content = _extract_chunk_content(chunk)
-        if chunk_content is None:
-            continue
-
-        if isinstance(chunk_content, str):
-            raw_full_message += chunk_content
-            full_message += chunk_content
-            step_message += chunk_content
-
-        tmp_full_message = full_message
-        a = len(tmp_full_message)
-        full_message = _modify_chunk(full_message)
-        b = len(full_message)
-        full_message = _detect_image_name_and_move_to_public(full_message)
-        c = len(full_message)
-
-        print(f"{a}\t{b}\t{c}\t{stream_index}")
-        if tmp_full_message[:stream_index] != full_message[:stream_index]:
-            print(tmp_full_message[:stream_index])
-            print("--------------------------------")
-            print(full_message[:stream_index])
-            print("--------------------------------")
-
-        chainlit_step.output = full_message
-        stream_chunk = full_message[stream_index:]
-        if len(stream_chunk) > 100:
-            await chainlit_step.stream_token(stream_chunk)
-            stream_index = len(full_message) - 1
-
-    await chainlit_step.stream_token(full_message[stream_index:])
-
-    step_message = _detect_image_name_and_move_to_public(step_message)
-    step_message = _modify_chunk(step_message)
-
-    return full_message, step_message, raw_full_message
+    finally:
+        # Always stop and cleanup heartbeat task
+        stream_done[0] = True
+        if heartbeat_task and not heartbeat_task.done():
+            heartbeat_task.cancel()
+            try:
+                await heartbeat_task
+            except asyncio.CancelledError:
+                pass
 
 
 def _extract_chunk_content(chunk):
@@ -728,24 +786,129 @@ def _detect_code_type(code: str) -> str:
 def _modify_chunk(chunk: str) -> str:
     """Modify chunk content by replacing tags."""
     retval = chunk
+
+    # First, handle observation tags with proper formatting
+    # This prevents backticks and other special characters from being misinterpreted as markdown
+    observation_pattern = r"<observation>(.*?)</observation>"
+
+    def format_observation(match):
+        observation_content = match.group(1).strip()
+
+        # Check if it's an error message
+        is_error = any(
+            keyword in observation_content
+            for keyword in [
+                "Error",
+                "error",
+                "Exception",
+                "Traceback",
+                "Failed",
+                "Execution halted",
+            ]
+        )
+
+        if is_error:
+            return f"\n\n**❌ Execution Error:**\n```\n{observation_content}\n```\n"
+
+        # Check if observation contains file listings (CSV or other files)
+        has_file_listings = (
+            "**Newly created files:**" in observation_content
+            or "**Other files:**" in observation_content
+        )
+
+        if has_file_listings:
+            # Split into text before files and file section
+            lines = observation_content.split("\n")
+            text_before_files = []
+            file_section_start = -1
+
+            # Find where file section starts
+            for i, line in enumerate(lines):
+                if "**Newly created files:**" in line or "**Other files:**" in line:
+                    file_section_start = i
+                    break
+                text_before_files.append(line)
+
+            # Format text before files (regular text, not in code block)
+            formatted_text = "\n".join(text_before_files).strip()
+
+            # Format file section
+            if file_section_start >= 0:
+                file_section = "\n".join(lines[file_section_start:])
+
+                # Detect CSV content in file section (lines with many commas)
+                file_lines = file_section.split("\n")
+                formatted_file_lines = []
+                csv_block_lines = []
+                in_csv_block = False
+
+                for line in file_lines:
+                    # Check if line looks like CSV data (starts with comma or has many commas)
+                    is_csv_line = line.strip().startswith(",") or (
+                        "," in line and line.count(",") >= 3
+                    )
+
+                    if is_csv_line:
+                        if not in_csv_block:
+                            # Start new CSV block
+                            in_csv_block = True
+                        csv_block_lines.append(line)
+                    else:
+                        if in_csv_block:
+                            # End CSV block - format and add it
+                            if csv_block_lines:
+                                csv_lines = csv_block_lines[:10]
+                                if len(csv_block_lines) > 10:
+                                    csv_lines.append("... (truncated: more lines)")
+                                csv_content = "\n".join(csv_lines)
+                                formatted_file_lines.append(
+                                    f"```csv\n{csv_content}\n```"
+                                )
+                                csv_block_lines = []
+                            in_csv_block = False
+                        formatted_file_lines.append(line)
+
+                # Handle remaining CSV block
+                if csv_block_lines:
+                    csv_lines = csv_block_lines[:10]
+                    if len(csv_block_lines) > 10:
+                        csv_lines.append("... (truncated: more lines)")
+                    csv_content = "\n".join(csv_lines)
+                    formatted_file_lines.append(f"```csv\n{csv_content}\n```")
+
+                formatted_file_section = "\n".join(formatted_file_lines)
+
+                # Combine formatted text and file section
+                if formatted_text:
+                    return f"\n\n**✅ Execution Result:**\n\n{formatted_text}\n\n{formatted_file_section}\n"
+                else:
+                    return f"\n\n**✅ Execution Result:**\n\n{formatted_file_section}\n"
+            else:
+                # No file section found, format as regular text
+                return f"\n\n**✅ Execution Result:**\n\n{formatted_text}\n"
+        else:
+            # No file listings, format as regular code block
+            return f"\n\n**✅ Execution Result:**\n```\n{observation_content}\n```\n"
+
+    retval = re.sub(observation_pattern, format_observation, retval, flags=re.DOTALL)
+
+    # Then handle other tags
     tag_replacements = [
         ("<execute>", "\n```CODE_TYPE\n"),
         ("</execute>", "```\n"),
         ("<solution>", ""),
         ("</solution>", ""),
-        ("<observation>", "```\n#Execute result\n"),
-        ("</observation>", "\n```\n"),
     ]
 
     for tag1, tag2 in tag_replacements:
         if tag1 in retval:
             retval = retval.replace(tag1, tag2)
 
-    # # Handle existing CODE_TYPE placeholders in already generated code blocks
+    # Handle existing CODE_TYPE placeholders in already generated code blocks
     retval = _replace_code_type_placeholders(retval)
 
-    # # Replace biomni imports with hits imports in code blocks
-    retval = _replace_biomni_imports(retval)
+    # Replace biomni imports with hits imports in code blocks
+    retval = _replace_biomni(retval)
 
     return retval
 
@@ -778,8 +941,8 @@ def _replace_code_type_placeholders(content: str) -> str:
     return content
 
 
-def _replace_biomni_imports(content: str) -> str:
-    """Replace 'from biomni.' with 'from hits.' in code blocks."""
+def _replace_biomni(content: str) -> str:
+    """Replace all occurrences of 'biomni' and 'Biomni' with 'hits' in code blocks and text."""
     # Pattern to find code blocks (both with specific language and generic)
     code_block_pattern = r"```(\w+)?\n(.*?)```"
 
@@ -787,8 +950,10 @@ def _replace_biomni_imports(content: str) -> str:
         language = match.group(1) if match.group(1) else ""
         code_content = match.group(2)
 
-        # Replace biomni imports with hits imports
-        modified_code = code_content.replace("from biomni.", "from hits.")
+        # Replace ALL occurrences, case-insensitive for biomni
+        modified_code = re.sub(r"\bbiomni\b", "hits", code_content, flags=re.IGNORECASE)
+        # Also handle lowercase/uppercase word-boundary safe (edge: Biomni in class names etc.)
+        # But above regex with IGNORECASE handles both "biomni" and "Biomni"
 
         if language:
             return f"```{language}\n{modified_code}```"
@@ -800,24 +965,40 @@ def _replace_biomni_imports(content: str) -> str:
         code_block_pattern, replace_imports_in_code, content, flags=re.DOTALL
     )
 
+    # Additional replacements for text outside code blocks:
+    # 1. Replace 'biomni.' pattern (e.g., biomni.tool.omics -> hits.tool.omics)
+    content = re.sub(r"\bbiomni\.", "hits.", content, flags=re.IGNORECASE)
+
+    # 2. Replace biomni/Biomni in paths and general text with 'hits'
+    # This handles cases like /home/ec2-user/Biomni_HITS/... -> /home/ec2-user/hits_HITS/...
+    content = re.sub(r"\bbiomni\b", "hits", content, flags=re.IGNORECASE)
+
     return content
 
 
-def _detect_image_name_and_move_to_public(content: str) -> str:
+def _detect_image_name_and_move_to_public(
+    content: str, image_cache: dict = None
+) -> str:
     """
     Detect images in markdown text, move them to public folder with random prefix.
 
     Args:
         content: Markdown text content
+        image_cache: Dictionary to cache already moved images {original_path: public_path}
 
     Returns:
         Modified markdown text with updated image paths
     """
+    if image_cache is None:
+        image_cache = {}
+
     public_dir = PUBLIC_DIR
     os.makedirs(public_dir, exist_ok=True)
 
     # Pattern to find markdown images, excluding those already with download functionality
-    image_pattern = r'(?<!\[)!\[([^\]]*)\]\(([^)]+?)(?:\s+"[^"]*")?\)(?!\[Download\])'
+    image_pattern = (
+        r'(?<!\[)!\[([^\]]*)\]\(([^)]+?)(?:\s+"[^"]*")?\)(?!\]\([^\)]*\)<br>)'
+    )
 
     def replace_image(match):
         alt_text = match.group(1)
@@ -831,14 +1012,27 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
         if image_path.startswith(("./public/", "public/", "/public/")):
             # Normalize to absolute path
             if not image_path.startswith("/public/"):
-                image_path = "/public/" + image_path.replace("./public/", "").replace("public/", "")
+                image_path = "/public/" + image_path.replace("./public/", "").replace(
+                    "public/", ""
+                )
+            file_name = os.path.basename(image_path)
             return (
-                f"[![{alt_text}]({image_path})]({image_path})[Download]({image_path})"
+                f"[![{alt_text}]({image_path})]({image_path})<br>"
+                f'<a href="{image_path}" download="{file_name}">Download</a>'
             )
 
         # Check if file exists
         if not os.path.exists(image_path):
             return match.group(0)
+
+        # Check cache first to avoid duplicate copies
+        if image_path in image_cache:
+            public_path = image_cache[image_path]
+            file_name = os.path.basename(public_path)
+            return (
+                f"[![{alt_text}]({public_path})]({public_path})<br>"
+                f'<a href="{public_path}" download="{file_name}">Download</a>'
+            )
 
         # Generate random prefix and new filename
         random_prefix = "".join(
@@ -850,8 +1044,13 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
 
         try:
             shutil.copy2(image_path, new_file_path)
+            public_path = f"/public/{new_file_name}"
+            image_cache[image_path] = public_path  # Cache the result
             print("copied image to", new_file_path)
-            return f"[![{alt_text}](/public/{new_file_name})](/public/{new_file_name})[Download](/public/{new_file_name})"
+            return (
+                f"[![{alt_text}]({public_path})]({public_path})<br>"
+                f'<a href="{public_path}" download="{new_file_name}">Download</a>'
+            )
         except Exception as e:
             print(f"Error moving image {image_path}: {e}")
             return match.group(0)

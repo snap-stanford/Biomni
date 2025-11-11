@@ -2,16 +2,6 @@ import os
 from typing import TYPE_CHECKING, Literal, Optional
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_ollama import ChatOllama
-from langchain_openai import AzureChatOpenAI, ChatOpenAI
-from langchain_mistralai import ChatMistralAI
-from langchain_aws import ChatBedrock
-from langchain_upstage import ChatUpstage
-from langchain_xai import ChatXAI
-from langchain_anthropic import ChatAnthropic
-from langchain_fireworks import ChatFireworks
-
-# from langchain_google_genai import ChatGoogleGenerativeAI
 
 if TYPE_CHECKING:
     from biomni.config import BiomniConfig
@@ -89,8 +79,6 @@ def get_llm(
                 source = "Gemini"
             elif "groq" in model.lower():
                 source = "Groq"
-            elif "grok" in model.lower():
-                source = "XAI"
             elif base_url is not None:
                 source = "Custom"
             elif "/" in model or any(
@@ -133,9 +121,42 @@ def get_llm(
             raise ImportError(  # noqa: B904
                 "langchain-openai package is required for OpenAI models. Install with: pip install langchain-openai"
             )
-        return ChatOpenAI(
-            model=model, temperature=temperature, stop_sequences=stop_sequences
-        )
+        # Newer OpenAI models (e.g., gpt-5-*) require the Responses API and may reject
+        # legacy Chat Completions parameters like `stop`. Force Responses API when
+        # using gpt-5 models to avoid 400 errors such as: "Unsupported parameter: 'stop'".
+        use_responses = model.startswith("gpt-5")
+
+        if use_responses:
+            # Define a minimal subclass that drops the `stop` field when using the
+            # Responses API, since certain models (gpt-5-*) reject it entirely.
+            class _ChatOpenAIResponsesNoStop(ChatOpenAI):
+                def _get_request_payload(self, input_, *, stop=None, **kwargs):  # type: ignore[override]
+                    payload = super()._get_request_payload(input_, stop=stop, **kwargs)
+                    try:
+                        # If this call will use the Responses API, drop `stop` to avoid 400s.
+                        if hasattr(self, "_use_responses_api") and self._use_responses_api(payload):  # type: ignore[attr-defined]
+                            payload.pop("stop", None)
+                            # Also drop temperature for gpt-5 models as they only support default value
+                            payload.pop("temperature", None)
+                    except Exception:
+                        # Be conservative: if anything goes wrong, still remove `stop` and `temperature`.
+                        payload.pop("stop", None)
+                        payload.pop("temperature", None)
+                    return payload
+
+            return _ChatOpenAIResponsesNoStop(
+                model=model,
+                temperature=1,  # Set to default value for gpt-5, will be removed in payload
+                stop_sequences=stop_sequences,
+                use_responses_api=True,
+                output_version="v0",
+            )
+        else:
+            return ChatOpenAI(
+                model=model,
+                temperature=temperature,
+                stop_sequences=stop_sequences,
+            )
 
     elif source == "AzureOpenAI":
         try:
@@ -161,6 +182,28 @@ def get_llm(
             raise ImportError(  # noqa: B904
                 "langchain-anthropic package is required for Anthropic models. Install with: pip install langchain-anthropic"
             )
+
+        # Ensure ANTHROPIC_API_KEY is loaded from bash_profile if not in environment
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            try:
+                import subprocess
+
+                result = subprocess.run(
+                    [
+                        "bash",
+                        "-c",
+                        "source ~/.bash_profile 2>/dev/null && echo $ANTHROPIC_API_KEY",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if result.stdout.strip():
+                    os.environ["ANTHROPIC_API_KEY"] = result.stdout.strip()
+                    print("✓ Loaded ANTHROPIC_API_KEY from ~/.bash_profile")
+            except Exception as e:
+                print(f"Note: Could not load ANTHROPIC_API_KEY from bash_profile: {e}")
+
         return ChatAnthropic(
             model=model,
             temperature=temperature,
@@ -187,9 +230,6 @@ def get_llm(
             api_key=os.getenv("GEMINI_API_KEY"),
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             stop_sequences=stop_sequences,
-            # model_kwargs={
-            #     "google": {"thinking_config": {"thinking_budget": 32768}}
-            # },  # Maximum thinking budget
         )
 
     elif source == "Groq":
@@ -217,25 +257,6 @@ def get_llm(
         return ChatOllama(
             model=model,
             temperature=temperature,
-        )
-    elif source == "MISTRAL":
-        return ChatMistralAI(
-            model=model,
-            temperature=temperature,
-            # model_kwargs={"stop_sequences": stop_sequences, "max_tokens": 8192 * 4},
-        )
-    elif source == "Upstage":
-        # return ChatUpstage(
-        #     model=model,
-        #     temperature=temperature,
-        #     stop_sequences=stop_sequences,
-        # )
-        return ChatOpenAI(
-            model=model,
-            temperature=temperature,
-            api_key=os.getenv("UPSTAGE_API_KEY"),
-            base_url="https://api.upstage.ai/v1",
-            stop_sequences=stop_sequences,
         )
 
     elif source == "Bedrock":
@@ -272,28 +293,7 @@ def get_llm(
             api_key=api_key,
         )
         return llm
-    elif source == "XAI":
-        print("XAI is selected")
-        return ChatXAI(
-            model=model,
-            temperature=temperature,
-            # stop_sequences=stop_sequences,
-            # model_kwargs={"stop_sequences": stop_sequences},
-        )
-    elif source == "Fireworks":
-        # return ChatFireworks(
-        #     model=model,
-        #     temperature=temperature,
-        #     stop_sequences=stop_sequences,
-        # )
-        return ChatOpenAI(
-            model=model,
-            temperature=temperature,
-            api_key=os.getenv("FIREWORKS_API_KEY"),
-            base_url="https://api.fireworks.ai/inference/v1/",
-            stop_sequences=stop_sequences,
-            max_tokens=8192,
-        )
+
     else:
         raise ValueError(
             f"Invalid source: {source}. Valid options are 'OpenAI', 'AzureOpenAI', 'Anthropic', 'Gemini', 'Groq', 'Bedrock', or 'Ollama'"

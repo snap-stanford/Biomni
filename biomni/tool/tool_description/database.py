@@ -1053,7 +1053,7 @@ description = [
     },
 ]
 
-from biomni.tool.tool_description.proteomics import get_description
+from biomni.tool.tool_description.statistics import get_description
 import os
 
 description = get_description(

@@ -1,0 +1,7 @@
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - r-essentials
+  - r-base>=4.4
+  - xz # required for clusterProfiler
