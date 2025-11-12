@@ -1335,7 +1335,6 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
 # GUIDELINES FOR OMICS DATA ANALYSIS
 - QUALITY CONTROL IS MANDATORY: Always perform quality control (QC) BEFORE any statistical analysis.
   * Assess overall data quality, detect outliers, and identify batch effects.
-  * Check if data follows normal distribution (critical for appropriate test selection).
   * Understand missing data mechanisms before imputation.
   * Identify and handle problematic features and samples.
   * Review QC results carefully - poor quality data will lead to unreliable statistical results.
@@ -1343,16 +1342,11 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
 
 - DIFFERENTIAL ANALYSIS:
   * Always perform QC first to assess data quality and assumptions.
-  * Select statistical tests based on data characteristics (normality, variance homogeneity, sample size, number of groups).
-  * Verify test assumptions before applying statistical tests.
-  * Apply appropriate multiple testing correction (e.g., FDR) to control false discovery rate.
-  * Review test selection rationale and warnings to understand the analysis.
-
-- STATISTICAL TEST SELECTION:
-  * Choose tests appropriate for your data characteristics and number of groups.
-  * For 2 groups: Consider parametric tests (t-test, Welch's t-test) or non-parametric alternatives (Mann-Whitney U, Wilcoxon) based on data distribution.
-  * For 3+ groups: Consider parametric tests (ANOVA, Welch's ANOVA) or non-parametric alternatives (Kruskal-Wallis) based on data distribution.
-  * Always apply multiple testing correction when performing multiple comparisons.
+  * Use smart_differential_analysis() function for differential analysis - it automatically selects the most appropriate statistical test based on data characteristics.
+  * smart_differential_analysis handles test selection, assumption checking, and multiple testing correction automatically.
+  * The function returns both results (DataFrame) and metadata (dict) - review metadata['selection_rationale'] and metadata['warnings'] to understand the analysis.
+  * Verify test assumptions before interpreting results.
+  * Always apply appropriate multiple testing correction (e.g., FDR) to control false discovery rate.
 
 - PERFORMANCE OPTIMIZATION:
   * For large datasets, consider parallel computation to reduce processing time.

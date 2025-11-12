@@ -994,10 +994,6 @@ def impute_missing_values(
 #     - Good for detecting batch effects and outliers
 #     - Requires umap-learn package
     
-#     References
-#     ----------
-#     [1] McInnes et al. "UMAP: Uniform Manifold Approximation and Projection",
-#         Journal of Open Source Software, 2018.
 #     """
 #     try:
 #         import umap
