@@ -59,9 +59,13 @@ class A1_HITS(A1):
         resource_config = load_resource_filter_config(resource_filter_config_path)
         allowed_data_lake_items = resource_config.get("data_lake", None)
 
-        # Only apply filtering if resource.yaml has data_lake items defined
+        # Only apply filtering if resource.yaml has data_lake items defined (non-empty list)
         # and user didn't explicitly set expected_data_lake_files
-        if allowed_data_lake_items and "expected_data_lake_files" not in kwargs:
+        if (
+            allowed_data_lake_items
+            and len(allowed_data_lake_items) > 0
+            and "expected_data_lake_files" not in kwargs
+        ):
             # Determine commercial_mode to load correct data_lake_dict
             commercial_mode = kwargs.get("commercial_mode", None)
             if commercial_mode is None:
