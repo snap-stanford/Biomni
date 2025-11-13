@@ -26,14 +26,48 @@ import asyncio
 import logging
 import concurrent.futures
 
+CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def _resolve_biomni_data_path() -> str:
+    """Determine the local biomni data path, preferring existing directories."""
+    candidates = []
+    for env_key in ("BIOMNI_DATA_PATH", "BIOMNI_PATH"):
+        env_value = os.getenv(env_key)
+        if env_value:
+            candidates.append(env_value)
+
+    # Known shared locations and repo-relative defaults
+    candidates.extend(
+        [
+            "/workdir_efs/jhjeon/Biomni/biomni_data",
+            os.path.join(CURRENT_ABS_DIR, "..", "biomni_data"),
+            os.path.join(CURRENT_ABS_DIR, "biomni_data"),
+        ]
+    )
+
+    seen = set()
+    for candidate in candidates:
+        if not candidate:
+            continue
+        abs_candidate = os.path.abspath(candidate)
+        if abs_candidate in seen:
+            continue
+        seen.add(abs_candidate)
+        if os.path.isdir(abs_candidate):
+            return abs_candidate
+
+    fallback = os.path.abspath(os.path.join(CURRENT_ABS_DIR, "..", "biomni_data"))
+    os.makedirs(fallback, exist_ok=True)
+    return fallback
+
+
 # Configuration
 LLM_MODEL = "gemini-2.5-pro"
 # LLM_MODEL = "grok-4-fast"
-BIOMNI_DATA_PATH = "/workdir_efs/jhjeon/Biomni/biomni_data"
-BIOMNI_DATA_PATH = "./"
-CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
-PUBLIC_DIR = f"{CURRENT_ABS_DIR}/public"
-CHAINLIT_DB_PATH = "chainlit.db"
+BIOMNI_DATA_PATH = _resolve_biomni_data_path()
+PUBLIC_DIR = os.path.join(CURRENT_ABS_DIR, "public")
+CHAINLIT_DB_PATH = os.path.join(CURRENT_ABS_DIR, "chainlit.db")
 STREAMING_MAX_TIMEOUT = 3600  # Maximum streaming timeout in seconds (1 hour)
 
 default_config.llm = LLM_MODEL

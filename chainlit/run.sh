@@ -19,4 +19,4 @@ export CHAINLIT_REQUEST_TIMEOUT=7200
 
 # Chainlit 서버 실행
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-chainlit run "${SCRIPT_DIR}/run.py" -h --host 0.0.0.0 --port 8001
+chainlit run "${SCRIPT_DIR}/run.py" -h --host 0.0.0.0 --port 8004

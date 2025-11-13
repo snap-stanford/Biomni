@@ -8,21 +8,104 @@ from docstring_parser import DocstringParam, parse
 
 
 MANUAL_OVERRIDES: Dict[str, Dict[str, Any]] = {
+    "analyze_pixel_distribution": {
+        "description": "Summarise pixel intensity characteristics for gel or blot images.",
+        "long_description": (
+            "Loads a grayscale image, computes percentiles, histogram-derived brightness "
+            "bucket counts, and aggregates statistics such as min/max, mean, and standard "
+            "deviation of pixel intensities. Useful for quickly assessing exposure levels "
+            "or spotting saturation across the image."
+        ),
+        "return": (
+            "Dictionary containing: 'shape' (image dimensions), 'min_intensity', 'max_intensity', "
+            "'mean_intensity', 'std_intensity' (individual stats), 'intensity_stats' (dict with "
+            "keys 'min', 'max', 'mean', 'std'), 'percentiles_label', 'percentiles_values', and "
+            "'pixel_brightness_distribution' (list of formatted brightness range strings)."
+        ),
+        "parameters": {
+            "image_path": {
+                "description": (
+                    "Absolute or relative path to the grayscale image. Automatically "
+                    "appends `.png` when no extension is provided."
+                ),
+                "type": "str",
+            }
+        },
+    },
     "find_roi_from_image": {
         "description": "Detect regions of interest (ROI) in gel or blot images.",
         "long_description": (
             "Automatically detects blot bands or colonies by combining blob detection, "
             "adaptive thresholding, and contour analysis. Annotated ROIs and their indices "
-            "are saved as an image that mirrors the input path."
+            "are saved as an image that mirrors the input path. A binary mask used for "
+            "detection is generated with the provided intensity thresholds and saved next to "
+            "the source image."
         ),
-        "return": "Absolute path to the annotated image highlighting detected ROIs.",
+        "return": (
+            "Tuple containing the absolute path to the annotated image and a list "
+            "of ROI coordinates in `(x, y, width, height)` format."
+        ),
         "parameters": {
             "image_path": {
-                "description": "Path to the grayscale image to analyse for ROI detection.",
+                "description": "Path to the grayscale image to analyze for ROI detection.",
                 "type": "str",
-            }
+            },
+            "lower_threshold": {
+                "description": "Lower bound of the intensity window used to build the binary mask.",
+                "type": "int",
+            },
+            "upper_threshold": {
+                "description": "Upper bound of the intensity window used to build the binary mask.",
+                "type": "int",
+            },
         },
-    }
+    },
+    "quantify_bands": {
+        "description": "Compute band intensities for provided western blot or DNA electrophoresis image and detected ROIs.",
+        "long_description": (
+            "Loads the target grayscale image and, for each ROI, "
+            "measures the average pixel intensity, samples the surrounding background "
+            "according to the chosen strategy, and reports the positive signal after "
+            "background subtraction."
+        ),
+        "return": (
+            "List of floating-point intensities aligned with the input ROIs. Invalid ROIs "
+            "yield NaN and empty/background-free ROIs resolve to zero."
+        ),
+        "parameters": {
+            "image_path": {
+                "description": "Absolute or relative path to the grayscale image file.",
+                "type": "str",
+            },
+            "rois": {
+                "description": (
+                    "Sequence of ROI tuples in `(x, y, width, height)` format defining band locations."
+                ),
+                "type": "Sequence[Sequence[float]]",
+            },
+            "background_width": {
+                "description": (
+                    "Number of pixels to expand around each ROI when gathering background samples."
+                ),
+                "type": "int",
+                "default": 3,
+            },
+            "back_pos": {
+                "description": (
+                    "Background sampling strategy. Choose among `all`, `top/bottom`, or `sides`."
+                ),
+                "type": "str",
+                "default": "all",
+            },
+            "back_type": {
+                "description": (
+                    "Aggregation method for background pixels. Either `mean` or `median`."
+                ),
+                "type": "str",
+                "default": "median",
+            },
+        },
+    },
 }
 
 
@@ -177,6 +260,8 @@ def get_description(filepath: str) -> List[Dict[str, Any]]:
     return description
 
 
-MODULE_PATH = (Path(__file__).resolve().parent.parent / "bio.py").resolve()
+MODULE_PATH = (
+    Path(__file__).resolve().parent.parent / "bio_image_processing.py"
+).resolve()
 description = get_description(str(MODULE_PATH))
 

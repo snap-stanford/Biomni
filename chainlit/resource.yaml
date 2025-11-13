@@ -26,10 +26,12 @@ allowed_resources:
     # Uncomment and add tool names you want to allow:
     - query_uniprot
     - liftover_coordinates
+    # bio_image_processing
     
     # Example: Allow all tools from a specific Python file
     # - file: biomni/tool/genetics.py
     
+    - module: biomni.tool.bio_image_processing
     # Example: Allow all tools from genetics module
     # - module: biomni.tool.genetics
     

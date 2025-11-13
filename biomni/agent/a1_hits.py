@@ -601,13 +601,20 @@ Output:
             # msg = str(response.content)
 
             msg = ""
-            for chunk in self.llm.stream(messages):
-                chunk_msg = chunk.content
-                msg += chunk_msg
-                # if "chunk_messages" not in state:
-                #     state["chunk_messages"] = []
-                # state["chunk_messages"].append(chunk_msg)
-                # yield {"messages": [AIMessage(content=chunk_msg)]}
+            try:
+                for chunk in self.llm.stream(messages):
+                    chunk_msg = chunk.content
+                    msg += chunk_msg
+                    # if "chunk_messages" not in state:
+                    #     state["chunk_messages"] = []
+                    # state["chunk_messages"].append(chunk_msg)
+                    # yield {"messages": [AIMessage(content=chunk_msg)]}
+            except ValueError as err:
+                if "No generation chunks were returned" in str(err):
+                    response = self.llm.invoke(messages)
+                    msg = getattr(response, "content", str(response))
+                else:
+                    raise
 
             # Parse the response
 
@@ -1320,6 +1327,16 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
 # GUIDELINES FOR OMICS DATA ANALYSIS
 - You can use recommend_statistical_test function to know the appropriate statistical test.
 - You can use upto 4 workers for performing the parallel computation. If it seems to take long time, consider parallel computing
+
+# GUIDELINES WHEN IMAGE GIVEN
+- If the image is given, you MUST first see the image and understand the image.
+- Then, compare the image with yout final answer.
+
+# GUIDELINES FOR WESTERN BLOT DENSITOMETRY
+- 1. Use analyze_pixel_distribution function to inspect intensity statistics and select suitable thresholds.
+- 2. Apply the chosen lower and upper thresholds when calling find_roi_from_image.
+- 3. **IMPORTANT**: Then, you MUST examine the result image if some bands are still not detected. If so, you MUST iterate through the detected ROIs and scan along the x-axis and y-axis to detect the remaining bands' ROIs.
+- 4. You can use quantify_bands function to quantify the bands' intensities. This intensities result MUST be given as a bar plot AND the image with all the ROIs used in the quantify_bands function.
 
 # GUIDELINES FOR FILE HANDLING
 - When handling CSV, TSV, or TXT files, first examine the file's structure using head command or pandas function. Do not make assumptions about its layout.
