@@ -1,0 +1,93 @@
+PROTOCOL: BrdU Labeling & Detection Protocol
+SOURCE: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/protocols/brdu-labeling-and-detection-protocol.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+BrdU (5-bromo-2'-deoxyuridine) is a thymidine analog used in DNA synthesis–based cell proliferation assays. The BrdU assay principle involves the incorporation of BrdU into newly synthesized DNA during cell division. BrdU labeling and detection are achieved by using an anti-BrdU antibody, which binds to the incorporated BrdU, allowing for the imaging and quantification of proliferating cells. This process, often referred to as BrdU staining/labeling, is a critical component of the BrdU cell proliferation assay protocol and is detailed here.
+
+APPLICATIONS
+================================================================================
+
+This protocol can be used for:
+• Detecting DNA synthesis using a fluorescence microscope
+
+This protocol should not be used for:
+• Flow cytometry (see BrdU Staining Kit Protocol for Flow Cytometry)
+
+MATERIALS REQUIRED
+================================================================================
+
+You will need the following for this protocol:
+
+• Proliferating adherent cells in an appropriate vessel for imaging
+• BrdU (5-Bromo-2´-Deoxyuridine)
+• Invitrogen Anti-BrdU monoclonal antibody (find additional anti-brdu antibody options)
+• Invitrogen Alexa Fluor–labeled secondary antibody, such as Goat anti-Mouse IgG (H+L) Cross-Adsorbed Secondary Antibody, Alexa Fluor 488
+• Complete tissue culture medium, such as DMEM
+• DPBS or similar wash solution
+• Fixative (i.e., 3.7% formaldehyde in PBS)
+• Permeabilization buffer, such as 0.1% Invitrogen Triton X-100 in PBS
+• 12 N HCl
+• Phosphate/citric acid buffer, pH 7.4 (182 mL of 0.2 M Na₂HPO₄ + 18 mL 0.1 M citric acid)
+• Antibody stain solution (PBS/0.1% Triton/5% normal goat serum)
+• Ice bucket
+• Fluorescence microscope
+
+PROTOCOL
+================================================================================
+
+Prepare stock solutions
+
+1. Dissolve 100 mg BrdU in 32.5 mL anhydrous DMSO (10 mM stock solution).
+2. Dilute 10 µL of this stock solution in 10 mL of 37°C tissue culture medium to make a 10 µM labeling solution.
+
+Label cells with BrdU
+
+1. Culture cells in appropriate vessel for microscopy.
+2. Remove culture medium from cells and replace with BrdU labeling solution.
+3. Incubate cells at 37°C for 2 hours.
+4. Remove labeling solution and wash two times with PBS.
+5. Wash with PBS (3 times, 2 minutes each).
+
+Fix, permeabilize, and acid-wash
+
+1. Remove PBS and add 1 mL of 3.7% formaldehyde in PBS to each well.
+2. Incubate for 15 minutes at room temperature.
+3. Wash with PBS (3 times, 2 minutes each).
+4. Remove PBS and add 1 mL of Triton X-100 permeabilization buffer to each well.
+5. Incubate for 20 minutes at room temperature.
+6. Remove permeabilization buffer and add 1 mL of 1 N HCl.
+7. Incubate 10 minutes on ice.
+8. Remove this solution and add 1 mL of 2 N HCl.
+9. Incubate 10 minutes at room temperature.
+10. Add 1 mL phosphate/citric acid buffer, pH 7.4.
+11. Incubate 10 minutes at room temperature.
+12. Wash with Triton X-100 permeabilization buffer (3 times, 2 minutes each).
+
+Detect incorporated BrdU
+
+1. Remove this solution and add 1 mL of antibody staining buffer.
+2. Add anti-BrdU primary antibody.
+3. Incubate overnight at room temperature.
+4. Wash with Triton X-100 permeabilization buffer (3 times, 2 minutes each).
+5. Add fluorescently labeled secondary antibody.
+6. Incubate one hour at room temperature.
+
+Imaging
+
+1. Add PBS to each well.
+2. Image cells with appropriate filters.
+
+PROTOCOL TIPS
+================================================================================
+
+• Leftover BrdU stock solution can be stored frozen for up to one year.
+• Use short incubation time for rapidly proliferating cells, and longer incubation for slow-growing cells.
+• Acid treatment separates DNA into single strands so the primary antibody can access the incorporated BrdU.
+
+PRODUCT CATALOG NUMBERS
+================================================================================
+
+B23151, B35130, A11001, 14040141, HFH10

@@ -1,0 +1,105 @@
+PROTOCOL: Cell Freezing Protocols
+SOURCE: https://www.thermofisher.com/us/en/home/references/gibco-cell-culture-basics/cell-culture-protocols/freezing-cells.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+After subculturing your adherent or suspension cells, you may need to freeze any cells not required for immediate experiments. This cell freezing protocol outlines the necessary preparations and materials to order before beginning the freezing process. It also provides step-by-step instructions that you can follow during the procedure or refer to for future use.
+
+Cryopreservation of cells, or the freezing of cells, is a technique used to store living cells and tissues at extremely low temperatures to preserve their structure over an indefinite period. By lowering the temperature to below –130°C, extracellular ice forms, decreasing kinetic and molecular activity within the cells and slowing biological aging.
+
+Why freeze your cells?
+
+• Freezing cells is crucial for maintaining an adequate cell stock
+• Cell lines are valuable resources whose replacement is both expensive and time-consuming
+• Cryopreservation of finite cell lines prevents aging and transformation
+• Freezing cells in continuous culture can prevent:
+  - genetic drift
+  - senescence
+  - microbial contamination
+  - equipment failure
+
+When a small surplus of cells becomes available from subculturing, a highly effective method is to freeze them as a seed stock, keeping them protected and not available for general laboratory use. Working stocks can be prepared and replenished from these frozen seed stocks. If the seed stocks become depleted, cryopreserved working stocks can serve as a source for preparing fresh seed stock with minimal generation increase from the initial freezing.
+
+MATERIALS REQUIRED
+================================================================================
+
+We suggest using the following materials for the cell freezing protocol:
+
+• Log-phase cultured cells
+• Complete growth medium: basal medium, serum, and supplements pre-warmed to 37°C
+• Cryoprotective agent such as DMSO (use a bottle set aside for cell culture; open only in a laminar flow hood) or a freezing medium such as Synth-a-Freeze Cryopreservation Medium or Recovery Cell Culture Freezing Medium
+• Disposable, sterile 15 mL or 50 mL conical tubes
+• Reagents and equipment to determine viable and total cell counts (e.g., Countess Automated Cell Counter, or hemocytometer, cell counter, and Trypan Blue)
+• Sterile cryogenic storage vials (i.e., cryovials)
+• Controlled rate freezing apparatus or isopropanol chamber
+• Liquid nitrogen storage container
+
+For freezing adherent cells, in addition to the above materials, you will need:
+
+• Balanced salt solution such as Gibco Dulbecco's Phosphate Buffered Saline (DPBS), containing no calcium, magnesium, or phenol red
+• Dissociation reagent such as trypsin or Gibco TrypLE Express, without phenol red
+
+Catalog numbers: J66650.AK, 339650, 5000-0020, 5100-0050, 14190250, 25200072, 12604039, 15250061, 12648010, R00550, A49862
+
+MEDIUM FOR FREEZING CELLS
+================================================================================
+
+Cryoprotective agents reduce the freezing point of the medium and slow the cooling rate, greatly reducing the risk of ice crystal formation, which can damage cells and cause cell death. Media for cryopreservation typically includes a base medium, a cryopreservative, and a protein source, but we recommend that you closely follow your cell line and product-specific instructions to determine the best cryopreservation media for your experiment. When included, the cryopreservative and protein protect the cells from the stress of the freeze-thaw process. The cells are then frozen in liquid nitrogen for preservation.
+
+For media with serum, the constituents may be:
+
+• complete medium containing 10% glycerol
+• complete medium containing 10% DMSO (dimethyl sulfoxide)
+• 50% cell-conditioned medium with 50% fresh medium with 10% glycerol or 10% DMSO
+
+Safety Note: DMSO solutions are known to facilitate the entry process of organic molecules into tissues. You should always handle reagents containing DMSO using equipment and practices appropriate for the hazards posed by such materials and dispose of the reagents in compliance with local regulations.
+
+A serum-free medium has generally low or no protein; but you can still use it as a base for a cryopreservative medium in the following formulations:
+
+• 50% cell-conditioned serum-free medium with 50% fresh serum-free medium containing 7.5% DMSO
+• fresh serum-free medium containing 7.5% DMSO and 10% cell culture–grade BSA
+
+You may also use a specially formulated complete cryopreservation medium such as:
+
+• Gibco Recovery Cell Culture Freezing is a ready-to-use complete cryopreservation medium for mammalian cell cultures with an optimized ratio of fetal bovine serum to bovine serum for improved cell viability and cell recovery after thawing.
+• Gibco Synth-a-Freeze Cryopreservation Medium is a chemically defined, protein-free, sterile cryopreservation medium with 10% DMSO that is suitable for the cryopreservation of many stem and primary cell types apart from melanocytes.
+
+PROTOCOL
+================================================================================
+
+The proper way to freeze cells and cryopreserve your cell lines for future use requires diligent attention to passaging procedures and storage requirements. Remember to always wear personal protective equipment and use proper sterile technique when freezing cells.
+
+The general freezing method is the same for adherent and suspension cells, except that adherent cells need to be removed from the culture plates before starting the freezing procedure. The following cell freezing protocol is a general procedure for cryopreserving cultured cells. Optimal freezing conditions depend on the cell line in use—for detailed protocols, always refer to the cell-specific product insert.
+
+Prior to cryopreservation, cells should be characterized and checked for contamination. Freeze cells in log phase, at a high concentration of at least 90% viability, and at as low a passage number as possible, as this will lead to the best outcomes when your stock is thawed.
+
+1. Prepare freezing medium and store at 2° to 8°C until use.
+
+2. For adherent cells, gently detach cells from the tissue culture vessel following the procedure used during subculture. Detach as gently as possible to minimize damage to the cells.
+
+3. Resuspend the detached cells in the complete growth medium.
+
+4. Find the total number of cells and percent viability using a hemocytometer or the Countess Automated Cell Counter and Trypan Blue exclusion.
+
+5. According to the desired viable cell density, calculate the required volume of freezing medium.
+
+6. Centrifuge the cell suspension at approximately 100–400 × g for 5 to 10 minutes (centrifugation speed and duration varies depending on the cell type). Using a pipette, aseptically withdraw the supernatant to the smallest volume without disturbing the cell pellet and discard.
+
+7. Resuspend the cell pellet in cold freezing medium at the recommended viable cell density for the specific cell type.
+
+8. Dispense aliquots of the cell suspension into sterile cryogenic storage vials. As you aliquot them, gently and often mix the cells to maintain a homogeneous cell suspension.
+
+9. Freeze the cells slowly by reducing the temperature at approximately 1°C per minute using a controlled rate cryo-freezer or a cryo-freezing container such as "Mr. Frosty," available from Thermo Scientific Nalgene labware (Nalgene Nunc). Alternatively, place the cryovials containing the cells in an isopropanol chamber and store them at –80°C overnight.
+
+10. Transfer frozen cells to liquid nitrogen and store them in the gas phase above the liquid nitrogen below –135°C.
+
+Safety Note: Biohazardous materials must be stored in the gas phase above the liquid nitrogen. Storing the sealed cryovials in the gas phase reduces the risk of explosion. If you are using liquid-phase storage, be aware of the explosion hazard with both glass and plastic cryovials and always wear a face shield or goggles.
+
+REFERENCES
+================================================================================
+
+Freshney, R. (1987) Culture of Animal Cells: A Manual of Basic Technique, p. 220, Alan R. Liss, Inc., New York.
+
+Mohamed, H. M., Sundar, P., Ridwan, N. A. A., Cheong, A. J., Mohamad Salleh, N. A., Sulaiman, N., Mh Busra, F., & Maarof, M. (2024). Optimisation of cryopreservation conditions, including storage duration and revival methods, for the viability of human primary cells. BMC Molecular & Cell Biology, 25(1), 1–14. https://doi.org/10.1186/s12860-024-00516-6.

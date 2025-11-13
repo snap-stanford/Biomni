@@ -1,0 +1,88 @@
+PROTOCOL: How to Purify DNA from an Agarose Gel
+SOURCE: https://www.addgene.org/protocols/gel-purification/
+================================================================================
+
+BACKGROUND INFORMATION
+================================================================================
+
+Gel purification allows you to isolate and purify DNA fragments based on size. The
+procedure starts with standard agarose gel electrophoresis, which separates DNA by
+their length in base pairs. Following electrophoresis, you can cut DNA bands out of
+the agarose gel and purify the DNA samples. This is a commonly used technique for
+molecular cloning, such as PCR- or restriction enzyme-based cloning.
+
+
+PROTOCOL: GEL PURIFICATION
+================================================================================
+
+Follow the Agarose Gel Electrophoresis Protocol with the following amendments:
+
+Notes:
+• Gel purification is most efficient with lower % agarose gels, so you will want to
+  stay in the 0.7-0.8% range if possible.
+
+• You will want nice crisp bands. This can be achieved by using a wider gel comb
+  and running the gel at a lower voltage.
+
+• You will want to have enough space around each band to cut without having DNA in
+  other lanes contaminating your sample. To accomplish this, it is best to skip
+  lanes between samples and between the ladder and nearest sample.
+
+• To minimize the risk of DNA damage, it is best to limit the UV exposure of the
+  DNA. Therefore, it is a bad idea to use a gel imager to take a picture of the
+  gel before cutting out the bands and you will want to use long-wavelength UV for
+  as short a time as possible to get the bands cut out.
+
+1. Once you have run your gel, move it to an open UV box (be sure to wear proper
+   UV protection - especially for your eyes!), remove it from any gel tray as
+   plastic will block much of the UV and with a clean, sterile razor blade, slice
+   the desired DNA fragment from the gel.
+
+   Notes:
+   • To protect the UV box, it is a good idea to place the gel on a glass plate if
+     available. Unlike the plastic tray, this will not significantly reduce the
+     UV, but will protect the UV box from being cut by the razor blade.
+   • Try to get as little excess gel around the band as possible. To do so, it is
+     often important to take the excised band, lay it down on the UV box and trim
+     the top, bottom and sides with the razor blade. This is especially important
+     during the DNA purification step, as many kits cannot handle more than a
+     certain total volume of gel per reaction.
+
+2. Place the gel in a labeled microfuge tube.
+
+3. Using a scale, weigh the tube with the gel fragment after zeroing the scale with
+   an empty tube. Alternatively, you can just subtract the weight of the empty tube
+   from the weight of the tube with the gel fragment. The weight of the gel is
+   directly proportional to its liquid volume and this is used to determine how
+   much of each buffer to add during the DNA isolation step.
+
+4. Finally, you will want to isolate the DNA from the gel. This is most commonly
+   done with a commercial gel purification kit, such as the QIAquick Gel Extraction
+   Kit. Always follow the manufacturer's instructions.
+
+   Note: It is usually important to determine the concentration of the DNA that you
+   isolated before proceeding to your next intended step with the now gel purified
+   DNA. Find more information about DNA quantification here.
+
+
+TIPS AND FAQ
+================================================================================
+
+How do you get better resolution of bands?
+
+A couple simple ways to increase the resolution (crispness) of your DNA bands
+include: a) running the gel at a lower voltage for a longer period of time; b)
+using a wider gel comb; or c) loading less DNA in the well.
+
+How do you get better separation of bands?
+
+If you have similarly sized bands that are running too close together you can
+adjust the gel percentage to get better separation. A higher percentage agarose
+gel will help resolve smaller bands from each other, and a lower percentage gel
+will help separate larger bands.
+
+10% Rule
+
+For each sample you want to load on a gel, make 10% more volume than needed because
+several microliters can be lost in pipetting. For example, if you want to load 1.0
+μg in 10μL, make 1.1μg in 11μL.

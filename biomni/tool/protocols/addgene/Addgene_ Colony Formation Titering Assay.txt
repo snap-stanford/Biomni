@@ -1,0 +1,221 @@
+PROTOCOL: Colony Formation Titering Assay
+SOURCE: https://www.addgene.org/protocols/colony-formation-titering-assay/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+This protocol can be used to titer lentivirus preparations that confer antibiotic
+resistance. Determining the titer of your lentiviral preparation allows you to
+control the multiplicity of infection (MOI) in downstream studies. This protocol
+was developed for A549 cells but can be adapted to a variety of target cell lines
+and selection markers. Note this assay requires staining resistant colonies with
+crystal violet solution and, therefore, the cells cannot be used for later
+experiments.
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+Day 0: Seed and transduce cells
+
+Day 2: Replace media with fresh media containing selection reagent
+
+Days 3–14: Change media as needed
+
+Days 14–18: Stain cells and count resistant colonies
+
+
+EQUIPMENT
+================================================================================
+
+• Class II, Type A2 Biological Safety Cabinet
+• 0.5–10 µL single channel pipette
+• 2–20 µL single channel pipette
+• 20–200 µL single channel pipette
+• 200–1000 µL single channel pipette
+• Ice bucket
+• CO₂ incubator
+• Pipet controller
+• Hazardous waste container
+
+
+REAGENTS
+================================================================================
+
+• DMEM high glucose, Corning 10-013-CV
+• L-alanyl-L-glutamine (or alternative stable glutamine such as glutaGRO,
+  Corning 25-015-CI)
+• Heat-inactivated FBS
+• Polybrene (10 mg/mL), Millipore TR-1003-G
+• 1X PBS pH 7.4 without calcium or magnesium, Corning 21-040-CV (cations can
+  affect the attachment of adherent cells)
+• 0.1% Crystal Violet, Ward's Scientific CC0456-500ML
+• 0.22 µm luer-lock filter, Corning 431229
+• 10 mL luer-lock syringe, BD BD300912
+• 0.45 μm polyethersulfone filter, Nalgene, 565-0010 (for viral preps, if prep
+  was not previously filtered)
+• Microcentrifuge tubes, Neptune 3745.X
+• 6-well tissue culture treated dish, Corning 3516
+• 15 mL conical tubes, VWR 21008-216
+• Lentivirus preparation
+
+
+REAGENT PREPARATION
+================================================================================
+
+DMEM Complete: 10% v/v FBS and 4 mM L-alanyl-L-glutamine (or stable alternative,
+such as glutaGRO)
+
+To a 500 mL bottle of DMEM high glucose, add 55 mL of heat inactivated FBS and 5
+mL of 100X glutaGRO. Store at 4 °C.
+
+💡 PRO TIP: Different brands and lots of FBS can promote or inhibit
+transfection. Test a variety of brands and lots of FBS to find one suitable with
+your protocols. FBS can be purchased already heat-inactivated, or it can be
+inactivated in the lab by heating to 56 °C for 30 min.
+
+
+CONSIDERATIONS BEFORE YOU START
+================================================================================
+
+• The health of the target cell line is critical for obtaining accurate titers.
+
+• Check the cells for mycoplasma regularly.
+
+• Do not over or under-grow your cells.
+
+• Thaw a new vial of cells after 20–30 passages.
+
+• Do not add penicillin/streptomycin to the media, as it can affect viability and
+  transduction efficiency.
+
+• Titer will vary between cell lines.
+
+• It is not recommended that lentiviral supernatants be subjected to multiple
+  freeze-thaw cycles.
+
+• This protocol outlines the seeding of the cells at the same time as the
+  virus-mediated transduction. For some cell lines, transduction is optimized if
+  the cells are seeded the day before transduction. Note that in that case,
+  polybrene should only be added at the time of viral transduction, and not during
+  the cell seeding step.
+
+
+PROCEDURE
+================================================================================
+
+1. Before beginning a colony formation assay, the dose of antibiotic required to
+   kill your target cell line needs to be empirically determined. Treat the
+   target cells with a range of doses of antibiotic. Determine the minimum
+   concentration required to kill all of the cells. Use this dose for the colony
+   formation assay.
+
+2. Prepare a batch of DMEM complete containing 10 μg/mL polybrene by diluting 20
+   μL of 10 mg/mL polybrene into 20 mL of media.
+
+3. If using freshly collected virus, filter through a 0.45 μm polyethersulfone
+   filter to remove cells and debris.
+
+4. Lentiviral titer can decrease during cycles of freeze-thaw. If you are
+   freezing and aliquoting virus, it is recommended that you titer from the
+   frozen stock to account for any loss in titer associated with freeze-thaw.
+
+5. If using frozen virus, thaw the lentiviral aliquot on ice prior to use.
+
+6. Prepare 10-fold serial dilutions of the lentivirus into DMEM complete
+   containing 10 μg/mL polybrene:
+
+   Dilution      | Volume of Virus/Previous | Volume of DMEM Complete | Volume of Virus | Volume of Cells | Final Viral
+                 | Dilution (μL)            | + Polybrene (μL)       | Added (μL)     | Added (μL)     | Dilution
+   --------------|--------------------------|-------------------------|-----------------|----------------|------------
+   1:10          | 100 of Stock Virus       | 900                     | 150             | 1,350          | 1:100
+   1:100         | 100 of 1:10              | 900                     | 150             | 1,350          | 1:1,000
+   1:1,000       | 100 of 1:100             | 900                     | 150             | 1,350          | 1:10,000
+   1:10,000      | 100 of 1:1,000          | 900                     | 150             | 1,350          | 1:100,000
+   1:100,000     | 100 of 1:10,000         | 900                     | 150             | 1,350          | 1:1,000,000
+
+   Mix the dilutions well.
+
+   Note: the 1:10 dilution can usually be omitted because this dilution typically
+   produces a lawn of cells, which cannot be accurately quantified.
+
+7. Add 150 μL of a viral dilution to each well (each well gets one dilution).
+
+8. Also include an untransduced well by using 150 μL of media in place of virus.
+
+9. Seed 1,000 cells into each well of a 6-well dish.
+
+   Prepare a batch of cells as follows: Dilute 7,000 cells into 9.45 mL of DMEM
+   complete containing 10 μg/mL polybrene.
+
+10. Mix well by pipetting or inverting.
+
+11. Aliquot 1.35 mL of the cell suspension into each well of the 6-well dish
+    directly on top of the virus. Swirl gently to mix and place the dish in the
+    incubator.
+
+12. Incubate for 48–72 h.
+
+    💡 PRO TIP: Different cells may be more sensitive to lentivirus or to
+    polybrene, in which case this incubation step can be reduced to 8 h and the
+    media can be replaced with DMEM complete. However, antibiotic-containing media
+    should not be added until 48–72 h after transduction.
+
+13. Gently aspirate the media from the cells.
+
+14. Add 1.5 mL of DMEM complete containing the appropriate antibiotic.
+
+15. Incubate the cells for ~2 weeks. All of the cells in the untransduced
+    (negative) control well should be killed and no colonies should be visible.
+
+16. Every 3–4 days, gently aspirate the media and replace it with fresh DMEM
+    complete containing the appropriate antibiotic.
+
+17. When the untransduced (negative control) cells have died and colonies are
+    visible in the transduced wells, aspirate the media from the wells.
+
+18. Gently wash the cells with 1 mL of PBS and aspirate wash.
+
+19. Filter 0.1% crystal violet solution through a 0.22 μm filter to remove any
+    precipitates.
+
+20. Stain each well with 1 mL of 0.1% crystal violet for 10 min at RT.
+
+21. Gently remove the stain.
+
+22. Wash cells 3x with 1 mL of PBS, being careful not to disturb the colonies.
+
+23. Count the colonies for at least 2 of the dilutions.
+
+    💡 PRO TIP: The higher dilution wells tend to provide more accurate titers as
+    the likelihood of multiple integration events decreases as the dilution
+    increases.
+
+24. Calculate the transduction units per mL (TU/mL) as follows:
+
+    TU/mL = number of colonies / total volume in the well (mL) × dilution factor
+
+    e.g., If the 1:100,000 well has 75 colonies, then there are 75 colonies /
+    1.5 mL × 1,000,000 or 50,000,000 TU/mL
+
+    For a more accurate titer, take the average of multiple dilutions.
+
+
+SAMPLE DATA
+================================================================================
+
+A549 cells were transduced with the indicated serial dilutions of the lentiviral
+vector pRosetta. The following day, cells were treated with puromycin. Colonies
+were allowed to grow in the presence of selective reagent for 12 days with media
+exchanges every 3–4 days. Colonies were then stained with 0.1% crystal violet
+and counted.
+
+A549 cells were transduced with the indicated serial dilutions of the lentiviral
+vector pHAGE EF1α dCas9-KRAB. The following day, cells were treated with
+puromycin. Colonies were allowed to grow in the presence of selective reagent
+for 12 days with media exchanges every 3–4 days. After 12 days of selection, no
+cells have survived in the untransduced well, while lawns of cells are present in
+the lower dilutions, and single colonies are visible in the higher dilutions.
+
+Last reviewed on: August 31, 2023

@@ -1,0 +1,420 @@
+PROTOCOL: Lentivirus ddPCR Titration
+SOURCE: https://www.addgene.org/protocols/lentivirus-ddpcr-titration/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+This protocol describes how to use droplet digital PCR (ddPCR) to titer lentivirus
+vectors. This protocol specifically uses primers and probes targeting integrated
+copies of the Rev response element (RRE) in the target cells but can be modified
+for other targets. Primers and a probe against the cellular ribonuclease P/MRP 30
+kDa subunit (RPP30) are used as a control for normalization. The dilution series
+outlined in this protocol is based on an LV titer range of 1E+05–1E+09 TU/mL,
+where TU is transducing units and generally represents the number of infectious
+viral particles. Users may need to run lower or higher dilutions depending on
+their particular sample.
+
+This protocol was modified from the publication Wang et al. (2018).
+
+
+BEFORE STARTING
+================================================================================
+
+• Thaw the master mix, primers/probe mixes and samples on ice before use.
+
+• Wipe down all pipettes and surfaces with 10% bleach.
+
+
+SAFETY WARNINGS
+================================================================================
+
+Lentivirus is generally considered biosafety level 2+. Please ensure that you are
+in compliance with your institution's biosafety regulations.
+
+Last Update: July 7, 2023
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+Day 1: Seed and transduce cells
+
+Day 4: Treat cells with Benzonase and harvest cells
+
+Day 4+: ddPCR and analysis
+
+
+EQUIPMENT
+================================================================================
+
+• Class II, Type A2 Biological Safety Cabinet
+• Aspirating unit
+• Microcentrifuge, Eppendorf, 5425R
+• Droplet digital PCR System, Bio-Rad, DX200
+• Thermal Cycler, Bio-Rad, T100
+• PCR Plate Sealer, Bio-Rad, PX1
+• 1–10 µL single channel pipette
+• 20–200 µL single channel pipette
+• 200–1000 µL single channel pipette
+• 2–50 µL multichannel pipette
+• 20–200 µL multichannel pipette
+• Ice bucket
+• 96-well freezer blocks
+• Vortex, VWR, 10153-688
+• Mini Centrifuge, Thermo Scientific, 10199-452
+
+
+REAGENTS
+================================================================================
+
+• GeneJet Genomic DNA Purification Kit, Thermo Fisher, K0721
+• 6-well tissue culture treated dish, VWR, 29442-042
+• DMEM, high glucose, pyruvate, Corning, 10-013-CV
+• Heat-inactivated FBS
+• L-alanyl-L-glutamine (or alternative stable glutamine such as glutaGRO,
+  Corning 25-015-CI)
+• 1X PBS pH 7.4 without calcium or magnesium, Corning 21-040-CV (cations can
+  affect the attachment of adherent cells)
+• Trypsin EDTA (TrypLE, Thermo Fisher, 12605010)
+• Ethanol, VWR, EX0276-1
+• Benzonase 250 U/µl, Millipore #71205-3
+• Polybrene 10 mg/mL, Millipore, TR-1003-G
+• Molecular Biology Grade Water, Hyclone, SH30538.02
+• ddPCR Supermix for Probes no dUTP, Bio-Rad,1863023
+• Droplet generation oil, Bio-Rad, 1863005
+• DG8 cartridge, Bio-Rad, 1864008
+• DG8 gasket, Bio-Rad, 1863009
+• DG8 cartridge holder, Bio-Rad, 1863051
+• 8-strip PCR tubes, Axygen, PCR-02-FCP-C
+• ddPCR 96-well PCR plates, Bio-Rad, 12001925
+• Pierceable foil heat seal, Bio-Rad, 1814040
+• Polystyrene reservoirs, VWR, 89094-662
+• Microcentrifuge tubes, VWR, 87003-294
+
+Primers/probe targeting RRE:
+• forward primer: tgtgccttggaatgctagt
+• probe (FAM): tttggaatcacacgacct
+• reverse primer: aatttctctgtcccactccatc
+
+• PrimePCR ddPCR Copy Number Assay: RPP30, Human, Bio-Rad, 10031244
+
+
+REAGENT PREPARATION
+================================================================================
+
+DMEM Complete:
+• 500 mL DMEM, high glucose, pyruvate
+• 55 mL heat inactivated premium grade, fetal bovine serum
+• 5 mL glutaGRO
+
+50 U/mL benzonase:
+• 15 mL DMEM Complete
+• 3 µL of 250 U/µL benzonase
+
+
+PROCEDURE
+================================================================================
+
+Transducing Cells
+
+1. Thaw the virus on ice.
+
+2. Prepare the following dilution series of virus in DMEM complete:
+   • Prepare 7 microcentrifuge tubes with the appropriate amount of media volume
+     listed in the chart below.
+   • For the first virus dilution, add 160 µL of viral stock to 240 µL of media.
+   • When adding the virus to the diluent, pipette 10 times, to remove virus from
+     pipette tip.
+   • To mix the dilution, set the P200 pipette to 200 µL and pipette 10–20 times.
+   • Use a new pipette tip to transfer 200 µL of the first dilution into the next
+     dilution.
+   • Repeat for all dilutions as indicated in the chart below.
+
+   Dilution Factor | Virus Volume to Dilute | Media Volume | Total Volume
+   ----------------|------------------------|--------------|-------------
+   2.5             | 160 µL viral stock     | 240 µL       | 400 µL
+   5               | 200 µL of 2.5-fold    | 200 µL       | 400 µL
+                   | dilution               |              |
+   10              | 200 µL of 5-fold       | 200 µL       | 400 µL
+                   | dilution               |              |
+   20              | 200 µL of 10-fold      | 200 µL       | 400 µL
+                   | dilution               |              |
+   40              | 200 µL of 20-fold      | 200 µL       | 400 µL
+                   | dilution               |              |
+   80              | 200 µL of 40-fold      | 200 µL       | 400 µL
+                   | dilution               |              |
+   160             | 200 µL of 80-fold      | 200 µL       | 400 µL
+                   | dilution               |              |
+
+3. Add 150 µL of each viral dilution to a well of a 6-well plate (1 dilution per
+   well). Leave one well untransduced (add 150 µL of DMEM complete instead of a
+   viral dilution).
+
+   Remember, this is an additional 10-fold dilution of the virus stock! Don't
+   forget to factor this into your calculations later (see calculation example
+   below).
+
+4. Seed 300,000 cells/well in 1350 µL media and 11.1 µg/mL Polybrene into the
+   wells containing the virus and the untransduced control.
+
+   💡 PRO TIP: For even seeding, prepare a batch for 10 wells with 3,000,000
+   cells in 13.5 mL of media and 11.1 µg/mL Polybrene. Mix the cell suspension
+   well before seeding.
+
+5. Mix each well with a 1 mL pipette 5–10 times.
+
+6. The final volume in the well is 1.5 mL, and the final Polybrene concentration
+   is 10 µg/mL.
+
+7. Mix well and incubate 72 h.
+
+Benzonase Digestion and Cell Harvest
+
+1. Gently aspirate media from the 6-well plates. Be sure to use a new aspirating
+   pipette for each well as to not contaminate cell conditions with others.
+
+2. Gently add 1.5 mL of 50 U/mL Benzonase in DMEM complete to each well.
+
+3. Incubate at 37 °C for 30 min.
+
+4. Gently aspirate media from wells, using a new aspirating pipette for each well.
+
+5. Wash wells with 1 mL of 1X PBS and aspirate, using a new aspirating pipette
+   for each well.
+
+6. Detach cells by incubating with 200 µL TrypLE for 1–2 min.
+
+7. Resuspend cells in 500 µL DMEM complete and transfer to a microcentrifuge tube.
+
+8. Centrifuge for 5 min at 100 x g.
+
+9. Gently aspirate supernatant.
+
+10. Wash cell pellets in 500 µL PBS.
+
+11. Centrifuge for 5 min at 100 x g.
+
+12. Gently aspirate supernatant.
+
+13. Extract genomic DNA according to the GeneJet Genomic DNA Purification Kit
+    instructions.
+
+14. Determine the concentration of each sample on a spectrophotometer.
+
+15. Prepare 25 ng/µL stocks of each sample. Samples can be used for ddPCR
+    immediately or stored at -20 °C until ready to use.
+
+Preparing for ddPCR
+
+1. Thaw samples, primers/probe mixes, and master mix on ice.
+
+2. Before handling any virus dilutions, get materials ready.
+
+3. Vortex primers/probe mixes and master mix for 15 sec then spin 10 sec in a
+   mini centrifuge and place on ice.
+
+4. Wipe down a DG8 cartridge holder with bleach and place it in the Biological
+   Safety Cabinet (BSC).
+
+5. Make sure that the BSC is supplied with sufficient pipette tips.
+
+6. Pre-warm the 96-well plate sealer by gently touching the screen.
+
+Preparation of the Master Mix
+
+1. Place a ddPCR plate onto a chilled 96-well freezer block and set aside in the
+   BSC to cool.
+
+2. Prepare the RRE/RPP30 master mix in a microcentrifuge tube as shown below. For
+   8 samples prepare enough master mix for 9 samples.
+
+   RRE/RPP30 Master Mix:
+
+   Component                        | Volume | 9X Volume | Final Concentrations
+   ---------------------------------|--------|-----------|---------------------
+   2X ddPCR Supermix for Probes,     | 10 µL  | 90 µL     | 1X
+   no dUTP                           |        |           |
+   20X RRE target primers/probe      | 1 µL   | 9 µL      | 900 nM, 250 nM
+   (FAM)                             |        |           |
+   20X RPP30 primers/probe           | 1 µL   | 9 µL      | 900 nM, 250 nM
+   (HEX/VIC)                         |        |           |
+   Nuclease-free water                | 4 µL   | 36 µL     |
+   Total Volume                      | 16 µL  | 144 µL    |
+
+3. Vortex the master mix for 15 sec and spin in a mini centrifuge for 10 sec
+   before use.
+
+4. Place an 8-well PCR tube strip into a chilled 96-well freezer block.
+
+5. Add 16 µL of the master mix to each PCR tube. Be careful to dispense to the
+   bottom of the tube without collecting drops along the side of the tube.
+
+6. Add 4 µL of the 25 ng/µL samples to the appropriate PCR tubes. Pipette back
+   and forth 10 times to mix.
+
+Generating the Droplets
+
+1. Place a DG8 cartridge into the cartridge holder.
+
+2. Using a 2–50 µL multichannel pipet, load 20 µL of the reaction mixtures into
+   the middle wells of the cartridge.
+
+3. Add 800 µL of droplet generation oil to a polystyrene reagent reservoir.
+
+4. Using the 20–200 µL multichannel pipet, load 70 µL of droplet generation oil
+   into the bottom row of wells.
+
+5. Cover the cartridge with the DG8 gasket, making sure that it is secure.
+
+6. Transfer the cartridge holder to the droplet generator. Close the lid and wait
+   for the droplets to be generated.
+
+7. Once the droplets have been generated, use a 20–200 µL multichannel pipette to
+   collect 40 µL of droplets.
+
+   💡 PRO TIP: To ensure that the droplets are not disrupted, insert the pipette
+   tips directly in the center of the well and tilt to a 45° angle. Count to 20
+   while slowly and gently pipetting the droplets.
+
+8. Transfer the droplets to a prechilled PCR plate.
+
+   💡 PRO TIP: To ensure that the droplets are not disrupted, insert the pipette
+   tips and gently touch the bottom of the well. Lift the tips ~1mm. Touch the
+   side of the well and tilt the pipette tips at a 45° angle. Count to 20 while
+   slowly and gently dispensing the droplets down the side of the tube.
+
+9. Place a Pierceable Foil Heat Seal on the PCR plate with the red line facing up.
+   If the plate sealer is not at temperature, touch the screen on the plate sealer
+   to allow it to get to temperature. Once the temperature is reached, place the
+   PCR plate with the foil onto the metal support block. Place the block in the
+   plate sealer and press the 'Seal' button.
+
+10. After the plate has been sealed, proceed to thermocycling.
+
+Thermal Cycling
+
+Run the following PCR parameters:
+
+Cycling Step        | Temperature (°C) | Time (min) | Ramp Rate (°C/sec) | # Cycles
+--------------------|------------------|------------|-------------------|----------
+Enzyme Activation   | 95               | 10         | 2                 | 1
+Denaturation        | 94               | 0.5        | 2                 | 40
+Annealing/Extension | 60               | 1          | 2                 | 40
+Enzyme Deactivation | 98               | 10         | 2                 | 1
+Hold                | 4                | ∞          | 2                 | 1
+
+After PCR is complete, transfer the plate to the Droplet Reader.
+
+1. Open the QuantaSoft software to set up a new plate layout. Designate the
+   sample name, experiment type, supermix type (ddPCR Supermix for Probes), the
+   target names and target types.
+
+2. When the plate layout is complete, select 'Run' to begin the droplet reading.
+
+3. When the droplet reading is complete, export the data from all wells as a CSV
+   file which will be used to calculate the titer.
+
+
+CALCULATIONS
+================================================================================
+
+In the experimental setup above, the following virus dilutions were used to
+transduce cells:
+
+Initial dilution factor | Dilution factor after additional 10-fold dilution into
+of virus stock          | 6-well plate
+------------------------|-------------------------------------------------------
+2.5                     | 25
+5                       | 50
+10                      | 100
+20                      | 200
+40                      | 400
+80                      | 800
+160                     | 1600
+
+To calculate the titers, first calculate the number of viruses per cellular
+genome:
+
+V = 2 × (copies RRE / copies RPP30)
+
+Since the cellular gene RPP30 is used as a reference to the cellular genome, it
+is assumed that there are two copies of RPP30 in diploid cells, thus the reason
+for multiplying by 2.
+
+Use the viruses/genome to calculate the infectious titer:
+
+T = (V × C × D) / v
+
+Where:
+• T = Infectious titer, TU/mL
+• V = Viruses per genome
+• C = # Cells per well
+• D = Dilution factor
+• v = Virus volume, mL
+
+*In the experimental setup above, the cells per well is 300,000 and the virus
+volume refers to the total volume the cells were transduced, which is 1.5 mL per
+well.
+
+Take the average infectious titer obtained from the appropriate dilutions to
+calculate the final infectious titer.
+
+
+TIPS AND TROUBLESHOOTING
+================================================================================
+
+• We recommend wiping down all pipettes and equipment with 10% bleach prior to
+  use and keeping all reagents and samples on ice or pre-chilled 96-well freezer
+  blocks during use.
+
+• To reduce the risk of contaminating reagents we recommend making small aliquots
+  of master mixes, and primers/probe mixes prior to use.
+
+
+SAMPLE DATA
+================================================================================
+
+When analyzing data there should be a clear distinction between negative droplets
+(black) and positive droplets (blue/green).
+
+The concentration of RRE positive droplets in the untransduced control should be
+close to zero (A01).
+
+In this protocol, the lentiviral particles are serially diluted and used to
+transduce HEK293T cells. Genomic DNA is extracted from the target cells and
+assayed for integrated copies of RRE. Since the samples that are assayed are
+diluted 2-fold serially, the concentration of RRE positive droplets should
+decrease by a factor of 2 across the dilutions. RPP30 copies should be relatively
+constant across samples.
+
+In the RRE example below, 2-fold serial dilutions of a sample were loaded in wells
+B01-H01. As shown in the image (Figure 1) and table below, the concentration of
+RRE positive droplets increases by a factor of ~2 as you progress from the higher
+dilutions to the lower dilutions (blue).
+
+As shown in the image (Figure 2) below, the concentration of RPP30 positive
+droplets stays relatively even across samples (green).
+
+To increase the accuracy of the titer, calculate an average of several dilutions.
+
+Example dilutions and titrations:
+
+Sample ID | Dilution | Copies/20 µL RRE | Copies/20 µL RPP30 | Viruses/genome | Infectious titer (TU/mL) | Average
+----------|----------|------------------|---------------------|----------------|--------------------------|--------
+1         | 800      | 428              | 22020               | 0.03887375114  | 6.22E+06                 |
+2         | 400      | 768              | 18360               | 0.08366013072  | 6.69E+06                 |
+3         | 200      | 1620             | 15840               | 0.2045454545   | 8.18E+06                 |
+4         | 100      | 3180             | 20540               | 0.3096397274   | 6.19E+06                 |
+5         | 50       | 8960             | 17080               | 1.049180328    | 1.05E+07                 |
+6         | 25       | 14440            | 24260               | 1.190436933    | 5.95E+06                 |
+          |          |                  |                     |                |                          | 7.29E+06
+7         | Untransduced | 1             | 6.4                 | 17940          | 0.0007134894091         | 1.43E+02
+
+
+REFERENCES
+================================================================================
+
+Wang Y, Bergelson S, Feschenko M. Determination of Lentiviral Infectious Titer by
+a Novel Droplet Digital PCR Method. Hum Gene Ther Methods. 2018 Apr;29(2):96-103.
+doi: 10.1089/hgtb.2017.198. PMID: 29378428

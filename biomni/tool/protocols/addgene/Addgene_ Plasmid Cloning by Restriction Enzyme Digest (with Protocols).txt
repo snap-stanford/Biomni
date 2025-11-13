@@ -1,0 +1,168 @@
+PROTOCOL: Plasmid Cloning by Restriction Enzyme Digest (with Protocols)
+SOURCE: https://www.addgene.org/protocols/subcloning/
+================================================================================
+
+SUMMARY
+================================================================================
+
+The following technique can be used to easily move any piece of DNA from one
+vector to another as long as it is already bounded by restriction sites that are
+also present in the same orientation on your target vector. If you are not sure
+what vector to use, you can check out our Empty Backbone Reference.
+
+
+BACKGROUND
+================================================================================
+
+Subcloning by restriction digest is a commonly used lab technique. For the
+purposes of this tutorial we will discuss how to move a cDNA from one plasmid to
+another. However, the same technique can be used to move promoters, selectable
+markers, or any other DNA element between plasmids.
+
+Let's assume that you are beginning a new project on your gene of interest (YGOI
+for short). You might need to express YGOI in cultured mammalian cells. The
+problem is that the only version of full-length cDNA you can find for YGOI is in a
+bacterial expression vector. Using subcloning, you can easily move YGOI into a
+mammalian expression vector.
+
+
+DESIGN (CHOOSING ENZYMES)
+================================================================================
+
+Many DNA analysis tools, including Addgene's Sequence Analyzer, allow you to
+identify which restriction sites are present in a given sequence. When selecting
+restriction enzymes, you want to choose enzymes that:
+
+• Flank your insert, but do not cut within your insert
+
+• Are in the desired location in your recipient plasmid (usually in the Multiple
+  Cloning Site (MCS)), but do not cut elsewhere on the plasmid
+
+• Will result in your insert being in the correct orientation in the recipient
+  plasmid. (You don't want to express the antisense version of your gene!)
+
+• Are in frame with tags or fusion proteins in the recipient plasmid (if you are
+  creating a fusion protein)
+
+Ideally, you will find two different restriction enzymes for your subcloning. It
+is also possible to use a single enzyme, but this will require phosphatase
+treatment of your recipient plasmid as well as a specifically designed test digest
+later to verify that the insert was cloned in the correct orientation.
+
+If you cannot find enzymes that meet these criteria, do not fear. You have other
+options, such as:
+
+Adding desired restriction sites to flank your insert: You can use PCR Based
+Cloning and add restriction sites to the ends of your oligos. This will allow
+you to produce a version of your insert flanked by restriction sites compatible
+with the recipient plasmid's MCS. However, you still need to avoid restriction
+enzymes that cut within your insert.
+
+Adding desired restriction sites to your recipient plasmid: You can modify the
+MCS of your recipient plasmid using Annealed-oligo Cloning.
+
+If you are lucky enough to have multiple options for enzymes that flank your
+insert and will result in correct orientation in the recipient plasmid, it is
+useful to see if one set of enzymes will work in the same restriction enzyme
+buffer (see New England Biolabs for more information about restriction enzyme
+buffers). If you select enzymes that can function in the same buffer, it will
+save you time in future steps.
+
+
+EXPERIMENTAL PROCEDURE
+================================================================================
+
+1. Digest your DNA
+
+   Set up restriction digests for your donor and recipient plasmids. Because you
+   lose some DNA during the gel purification step, it is important to digest plenty
+   of starting material. We recommend 1.5-2μg of donor plasmid and 1μg of
+   recipient plasmid. It is also critical that as much of the recipient plasmid as
+   possible be cut with both enzymes, and therefore it is important that the
+   digest go at least 4 hours and as long as overnight.
+
+   If you are going to use only one restriction enzyme, or enzymes that have
+   compatible overhangs or no overhangs after digestion, you will need to use a
+   phosphatase to prevent re-circularization of the recipient plasmid. You should
+   treat your digested recipient plasmid with a phosphatase prior to the ligation
+   step or prior to the gel purification step, depending on the phosphatase you
+   choose. CIP (calf alkaline phosphatase) or SAP (shrimp alkaline phosphatase) are
+   commonly used. Follow the manufacturer's instructions.
+
+2. Isolate your insert and vector by gel purification
+
+   Run your digested DNA on an agarose gel and conduct a gel purification to
+   isolate the DNA. When running a gel for purification purposes it is important
+   to have nice crisp bands and to have space to cut out the bands. Because of
+   this we recommend that you use a wide gel comb, run the gel on the slower side,
+   and skip lanes between samples. In addition to a DNA ladder standard, it is
+   also a good idea to run an uncut sample of each plasmid to help with
+   troubleshooting if your digests don't look as you expected.
+
+   Once you have cut out and purified your insert and recipient plasmid backbone
+   bands away from the gel via your favorite gel purification method, it is
+   important to determine the concentration of recovered DNA.
+
+3. Ligate your insert into your vector
+
+   Conduct a DNA Ligation to fuse your insert to your recipient plasmid.
+
+   We recommend around 100ng of total DNA in a standard ligation reaction. You
+   ideally want a recipient plasmid to insert ratio of approximately 1:3. Since
+   the number of base pairs for each varies, it is difficult to calculate this
+   based on DNA concentration alone. One method is to conduct 2 ligations for each
+   plasmid you are trying to create, with varying ratios of recipient plasmid to
+   insert.
+
+   It is also important to set up negative controls in parallel. For instance, a
+   ligation of the recipient plasmid DNA without any insert will tell you how much
+   background you have of uncut or self-ligating recipient plasmid backbone.
+
+4. Transformation
+
+   Transform your ligation reaction into your bacterial strain of choice. Follow
+   the manufacturer's instructions for your competent cells.
+
+   For most standard cloning, you can transform 1-2μl of your ligation reaction
+   into competent cells such as DH5alpha or TOP10. If using much less total DNA
+   (<1ng) or if you are having trouble getting colonies, you might want to use
+   higher competency cells. Additionally, if your final product is going to be very
+   large (>10kb) you might want to use electro-competent cells instead of the
+   more common chemically-competent cells.
+
+   The number of bacterial colonies resulting from your transformation will give
+   you the first indication as to whether your transformation worked. Your recipient
+   plasmid + insert plate should have significantly more colonies than the
+   recipient plasmid alone plate. The recipient plasmid alone control will tell
+   you your "background" level or more specifically it will tell you how many
+   colonies you can expect on your recipient plasmid + insert plate that are not
+   correct.
+
+   If you have a high number of colonies on your recipient plasmid alone plate, you
+   can try ligating the recipient plasmid alone in the presence and absence of
+   ligase. If the colonies are a result of uncut empty plasmid, you will still have
+   colonies when you do not add ligase. If the colonies are a result of recipient
+   plasmid self-ligation, you will see significantly more colonies when you add
+   ligase.
+
+   If you do not see any colonies, you should conduct a positive control to ensure
+   that your transformation worked. You should also verify that you are plating on
+   the appropriate antibiotic and try varying the amount of recipient plasmid to
+   insert in the ligation reaction.
+
+5. Isolate the Finished Plasmid
+
+   Finally, you will need to pick individual bacterial colonies and check them for
+   successful ligations. Pick 3-10 colonies depending on the number of background
+   colonies on your control plate (the more background, the more colonies you will
+   need to pick) and grow overnight cultures for DNA purification.
+
+   After purifying the DNA, conduct a diagnostic restriction digest of 100-300ng
+   of your purified DNA with the enzymes you used for the cloning. Run your digest
+   on an agarose gel. You should see two bands, one the size of your vector and
+   one the size of your new insert. If you used only one enzyme or used enzymes
+   with compatible overhangs you will need to verify the orientation of your
+   insert, so you may want to design a diagnostic digest for this purpose.
+
+Congratulations, you now have YGOI in a mammalian expression vector and can
+begin your studies.

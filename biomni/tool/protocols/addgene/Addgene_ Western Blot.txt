@@ -1,0 +1,308 @@
+PROTOCOL: Western Blot
+SOURCE: https://www.addgene.org/protocols/western-blot/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+Western blot is a technique used to separate proteins by size followed by
+detection using antibodies specific to the protein of interest. This protocol
+describes the basic steps for lysing cells, determining total protein
+concentration in the lysate, running a precast SDS-PAGE gel, and immunoblotting.
+
+General Guidelines
+
+• Acrylamide percentage varies in SDS-PAGE gels. Use lower percentage acrylamide
+  when immunoblotting high molecular weight proteins and higher percentage
+  acrylamide when immunoblotting low molecular weight proteins.
+
+• This protocol uses a dry transfer device but can be adapted for wet and
+  semi-dry transfer approaches.
+
+Last Update: January 24, 2022
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+Day 1: Prepare lysates, run SDS-PAGE, transfer, block, incubate with primary
+       antibody
+
+Day 2: Incubate with secondary antibody
+
+
+EQUIPMENT
+================================================================================
+
+• Microcentrifuge
+• 0.5–10 µL single channel pipette
+• 2–20 µL single channel pipette
+• 20–200 µL single channel pipette
+• 200–1000 µL single channel pipette
+• Pipette controller
+• Pipette tips and pipettes
+• Spectrophotometer
+• Heat block
+• Mini gel tank chamber
+• Power supply
+• iBlot 2 Gel Transfer Device
+• Roller
+• Spatula
+• Platform shaker
+• Cold room
+• Gel imager
+• -80 °C freezer
+
+
+REAGENTS
+================================================================================
+
+• 1X PBS
+• Lysis buffer e.g., RIPA lysis buffer
+• Microcentrifuge tubes
+• BCA Assay, Thermo Fisher 23227
+• β-mercaptoethanol
+• 4X protein loading buffer
+• Precast SDS-PAGE gel
+• SDS-PAGE running buffer
+• Prestained protein ladder
+• Ethanol
+• iBlot 2 PVDF Mini Stack, Thermo Fisher IB24002
+• 20X TBS
+• Tween-20
+• Nonfat milk powder
+• 96-well microtiter plate
+• Chemiluminescence substrate
+• Plastic wrap
+• Primary antibody
+• Secondary antibody
+• Deionized water
+
+
+BEFORE STARTING
+================================================================================
+
+• Refer to the manufacturer's instructions for additional information specific to
+  your antibody, such as ideal blocking buffer and optimal antibody
+  concentrations. Consider titrating your antibody to determine the optimal dose.
+
+• Secondary antibodies must match the host species of the primary antibody. For
+  example, use an anti-mouse secondary antibody for primary antibodies raised in
+  a mouse.
+
+
+PROCEDURE
+================================================================================
+
+Section 1: Lyse cells
+
+1. Centrifuge 5 x 10⁶ cells for 5 min at 100 x g.
+
+2. Gently remove supernatant.
+
+3. Resuspend cell pellet in 1 mL of 1X PBS and transfer to a microcentrifuge
+   tube.
+
+4. Centrifuge for 5 min at 100 x g.
+
+5. Carefully remove supernatant.
+
+6. Resuspend cell pellet in appropriate volume of cold lysis buffer.
+
+   💡 PRO TIP: The volume of lysis buffer will vary depending on the size of your
+   cell pellet but will generally be between 250–1000 µL.
+
+   💡 PRO TIP: The ideal lysis buffer will vary depending on the cellular location
+   of the protein of interest. RIPA buffer is suitable for most proteins but more
+   stringent buffers and a sonication step may be required for hard to extract
+   proteins such as those in the nucleus.
+
+7. Incubate on ice for 30 min.
+
+8. Centrifuge lysate for 15 min at 14,000 x g at 4 °C.
+
+9. Transfer supernatant to a clean microcentrifuge tube.
+
+10. Use the lysate immediately or store at -80 °C until ready to use.
+
+Section 2: Determine the total protein concentration and prepare the lysate for
+SDS-PAGE
+
+1. Determine the protein concentration using a Pierce BCA Assay Kit or other
+   preferred method for protein determination.
+
+2. Prepare a 50:1 Reagent A to Reagent B dilution of the BCA assay.
+
+3. Prepare serial dilutions of the BSA standard that range from 0–2000 µg/mL.
+
+4. In duplicate, dilute 10 µL of standard, blank, and lysate samples into 200 µL
+   of BCA reagent in a 96-well microtiter plate.
+
+5. Incubate for 30 min at 37 °C.
+
+6. Determine the absorbance at 590 nm.
+
+7. Calculate the average absorbance of the duplicate samples on the plate.
+
+8. Subtract the average absorbance of the blank from all of the samples.
+
+9. Plot a standard curve of BSA standard concentration versus absorbance.
+
+10. Extrapolate the total protein concentration of the sample from the standard
+    curve.
+
+11. Determine the volume of sample required to load an equivalent amount of total
+    protein for each sample.
+
+    💡 PRO TIP: The ideal total protein loaded will vary between samples and
+    target proteins but is typically between 10–50 µg. If the protein is in low
+    abundance in the sample you will need to load a greater amount of total
+    protein.
+
+12. Prepare sample for loading as follows:
+    • Add 10% v/v β-mercaptoethanol to the 4X protein loading buffer.
+    • Dilute 4X protein loading buffer in the sample to 1X.
+    • Boil the samples for 10 min at 100 °C.
+
+Section 3: SDS-PAGE
+
+1. Prepare the precast gel as follows:
+   • Remove the gel from the plastic packaging.
+   • Remove tape and plastic comb.
+   • Rinse the wells with deionized water 3x.
+   • Shake the gel gently between washes to remove residual water.
+
+2. Load the gel into the chamber of the SDS-PAGE gel tank.
+
+   💡 PRO TIP: Different SDS-PAGE gel tanks will have different gel orientations.
+   Refer to the instructions for your specific tank.
+
+3. Close the clamp.
+
+4. Prepare 1X running buffer as follows:
+   • Dilute 25 mL of 20X running buffer to 500 mL with deionized water. Mix well.
+
+5. Fill the chamber of the SDS-PAGE gel tank with the 1X running buffer.
+
+6. Load the samples into the gel.
+
+7. Load 5–10 µL of the prestained protein ladder.
+
+8. Place the lid on the tank and plug the electrode cords into the power supply.
+
+9. Run the gel at 100 V for 10–15 min or until the samples have moved out of the
+   wells and into the gel.
+
+10. Increase the voltage to 150 V and continue running the gel until you have
+    obtained the desired separation.
+
+11. Gently open the gel with the spatula.
+
+Section 4: Dry transfer
+
+1. Soak the gel for 15 min in 20% ethanol in deionized water.
+
+   To prepare 20% ethanol, dilute 2 mL of ethanol into 8 mL of deionized water
+   and mix well.
+
+2. Assemble the transfer sandwich as follows:
+   • Unseal the iBlot 2 PVDF Mini transfer stack.
+   • Set the Top Stack to one side and discard the white separator.
+   • Keep the Bottom Stack in the plastic tray.
+   • Place the Bottom Stack on the blotting surface.
+   • Align the electrical contacts on the blotting surface of the iBlot 2 Gel
+     Transfer Device.
+   • Wet the pre-run gel in deionized water and place it on the transfer membrane
+     of the bottom stack.
+   • Soak a piece of iBlot Filter Paper in deionized water.
+   • Place the pre-soaked iBlot Filter Paper on the gel and remove the air bubbles
+     with the roller.
+   • Place the Top Stack over the pre-soaked filter paper.
+   • Remove air bubbles using the roller.
+   • Place the Absorbent Pad on top of the Top Stack such that the electrical
+     contacts are aligned with the corresponding electrical contacts on the
+     blotting surface of the iBlot 2 Gel Transfer Device.
+
+3. Close the lid of the device.
+
+4. Select the desired method and make sure the parameters are correct.
+
+5. Transfer for 5–6 min for proteins <30 kDa.
+
+6. Transfer for 8–10 min for proteins >150 kDa.
+
+7. Select Start Run.
+
+8. When the run is complete, select Done.
+
+Section 5: Blocking
+
+1. Prepare 1X TBST as follows:
+   • 25 mL of 20X TBS
+   • 2.5 mL of Tween-20
+   • 472.5 mL of deionized water
+   • Mix well
+
+2. Prepare blocking buffer as follows:
+   • Dilute 5% w/v non-fat milk into 1X TBST
+   • Example: 5 g of non-fat milk into 100 mL of 1X TBST.
+
+   💡 PRO TIP: The ideal blocking buffer will vary between antibodies. Refer to
+   the manufacturer's information before running your experiment.
+
+3. Remove the membrane from the transfer device and place it in a container with
+   1X TBST, protein side up.
+
+4. Block the membrane in blocking buffer for 1 h at RT on a shaking platform.
+
+5. Wash the membrane 3x for 5 min in 1X TBST at RT on a shaking platform.
+
+Section 6: Antibody incubation
+
+1. Dilute the primary antibody to the desired concentration in blocking buffer.
+
+   💡 PRO TIP: The optimal concentration will vary between antibodies but is
+   typically between 1–10 μg/mL.
+
+2. Incubate the membrane overnight in primary antibody at 4 °C on a rocking
+   platform.
+
+   💡 PRO TIP: Primary antibody incubation can be reduced to 2 h at RT but may
+   result in more non-specific binding.
+
+3. Wash the membrane 3x for 5 min in 1X TBST at RT on a shaking platform.
+
+4. Dilute the horseradish peroxidase-conjugated secondary antibody to the desired
+   concentration in blocking buffer.
+
+   💡 PRO TIP: The optimal concentration will vary between antibodies but is
+   typically between 1–10 μg/mL.
+
+5. Incubate the membrane with secondary antibody for 60 min at RT on a shaking
+   platform.
+
+6. Wash the membrane 3x for 5 min in 1X TBST at RT on a shaking platform.
+
+7. Prepare the chemiluminescence substrate by mixing 1:1 reagent A to reagent B.
+
+8. Gently incubate the membrane in the chemiluminescence reagent for 5 min at RT.
+
+9. Cover the membrane with clear plastic and use a gel imager with
+   chemiluminescence detection or a dark room to detect the bands.
+
+
+TIPS AND TROUBLESHOOTING
+================================================================================
+
+• The optimal lysis buffer will vary depending on the sample type and cellular
+  location of the protein of interest. You may need to try a variety of lysis
+  buffers to find the best for your target.
+
+• The optimal concentration and blocking buffer will vary between antibodies.
+  Review the instructions before starting your experiment and consider titrating
+  your antibody to determine the optimal dose.
+
+• To ensure that your antibody is both functioning as expected and is specific,
+  include a positive control sample that you know expresses the protein, such as
+  cells transfected with the protein of interest, and a negative control sample
+  that does not express the protein of interest.

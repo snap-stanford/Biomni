@@ -1,0 +1,58 @@
+PROTOCOL: DNA Quantification
+SOURCE: https://www.addgene.org/protocols/dna-quantification/
+================================================================================
+
+BACKGROUND INFORMATION
+================================================================================
+
+During several different stages of molecular cloning, it is important to get a
+quick and accurate reading of DNA concentration and purity. This can be done with a
+spectrophotometer. A spectrophotometer uses the absorbance/transmission of light
+through a liquid to determine the concentration of a particular substance in that
+liquid. Molecules absorb different wavelengths of light to varying degrees and most
+have a specific wavelength that they maximally absorb. By measuring the absorbance
+of a liquid you can accurately estimate the concentration of a substance in that
+liquid.
+
+In order to accurately measure the concentration of a substance based on its
+absorbance, you need to know the wavelength of light that your substance maximally
+absorbs. In the case of nucleic acid (DNA and RNA), the maximal absorbance is at
+260nm. Protein maximally absorbs at 280nm and the ratio of nucleic acid to protein
+(260/280) is generally used as an indicator of the purity of DNA samples.
+
+These days, many labs have a NanoDrop, which is a very small spectrophotometer that
+can accurately read DNA concentration and purity in as little as 1μl. Regardless of
+whether you have a NanoDrop, follow the manufacturer's instructions for the
+spectrophotometer specific to your lab.
+
+
+SPECTROPHOTOMETER TIPS
+================================================================================
+
+1. Before measuring any samples, be sure to 'blank' the spectrophotometer using
+   the solution the DNA is resuspended in, but with no DNA added. 'Blanking'
+   measures the background inherent to the machine and your solvent.
+
+2. If using a NanoDrop to measure your samples, place 1-2µL of mini-prepped DNA
+   onto the pedestal.
+
+3. Close the lid and click measure, be sure to record the concentration and purity.
+
+   Note: Purity is measured under the 260/280 column (A good purity ranges from
+   1.80-2.00).
+
+4. Repeat for each sample.
+
+
+NOTES
+================================================================================
+
+• Keep in mind that despite the accuracy of the NanoDrop, if two consecutive
+  samples have significantly different concentrations, it is possible that the
+  difference between them has affected the accuracy of the NanoDrop. It is a good
+  idea to re-zero any spectrophotometer between samples if they are expected to
+  vary significantly in concentration.
+
+• DNA dissolved in water is going to have a greater variance in concentration
+  readings than a DNA sample dissolved in buffer (such as TE). You will get much
+  more accurate and consistent readings from DNA in a buffered solution.

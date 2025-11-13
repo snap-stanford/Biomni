@@ -1,0 +1,98 @@
+PROTOCOL: Basic Sandwich ELISA Protocol
+SOURCE: Thermo Fisher Scientific - US
+URL: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/elisa-protocol/general-elisa-protocol.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+The sandwich ELISA (enzyme-linked immunosorbent assay) is a highly sensitive immunoassay technique used to detect and quantify specific proteins or antigens in samples. This method uses two antibodies: a capture antibody that binds to the target antigen, and a detection antibody that recognizes a different epitope on the same antigen. The detection antibody is conjugated to an enzyme (such as horseradish peroxidase or alkaline phosphatase) that produces a measurable signal.
+
+MATERIALS REQUIRED
+================================================================================
+
+• 96-well microplate (pre-coated with capture antibody or uncoated for manual coating)
+• Capture antibody (specific to target antigen)
+• Detection antibody (conjugated to HRP or AP, specific to target antigen)
+• Blocking buffer (e.g., 1% BSA or 5% non-fat dry milk in PBS)
+• Wash buffer (PBS with 0.05% Tween-20, PBST)
+• Sample diluent (PBS or assay buffer)
+• Standard/reference antigen (for standard curve)
+• Substrate solution (TMB for HRP, or pNPP for AP)
+• Stop solution (2N H2SO4 for TMB, or 3N NaOH for pNPP)
+• Plate reader (capable of reading absorbance at appropriate wavelength)
+
+PROTOCOL
+================================================================================
+
+Day 1: Plate Coating (if using uncoated plates)
+
+1. Dilute capture antibody in coating buffer (typically 0.1 M carbonate-bicarbonate buffer, pH 9.6, or PBS) to the recommended concentration (usually 1-10 µg/mL).
+
+2. Add 100 µL of diluted capture antibody to each well of a 96-well microplate.
+
+3. Cover plate and incubate overnight at 4°C, or for 2 hours at room temperature.
+
+4. Remove the coating solution and wash plate 3 times with wash buffer (200-300 µL per well). Invert plate and tap on paper towels to remove excess liquid.
+
+Day 2: Blocking and Assay
+
+5. Add 200-300 µL of blocking buffer to each well.
+
+6. Incubate for 1-2 hours at room temperature, or overnight at 4°C.
+
+7. Wash plate 3 times with wash buffer as described in step 4.
+
+8. Prepare samples and standards:
+   - Dilute samples in sample diluent to appropriate concentration
+   - Prepare standard curve by serial dilution of reference antigen in sample diluent
+   - Include blank wells with sample diluent only
+
+9. Add 100 µL of samples and standards to appropriate wells in duplicate or triplicate.
+
+10. Cover plate and incubate for 1-2 hours at room temperature, or overnight at 4°C.
+
+11. Wash plate 3-5 times with wash buffer as described in step 4.
+
+12. Dilute detection antibody in blocking buffer or antibody diluent to recommended concentration (typically 0.5-2 µg/mL).
+
+13. Add 100 µL of diluted detection antibody to each well.
+
+14. Cover plate and incubate for 1-2 hours at room temperature.
+
+15. Wash plate 3-5 times with wash buffer as described in step 4.
+
+16. Prepare substrate solution according to manufacturer's instructions.
+
+17. Add 100 µL of substrate solution to each well.
+
+18. Incubate at room temperature, protected from light, for 5-30 minutes (or until desired color development).
+
+19. Add 50-100 µL of stop solution to each well (if using TMB or other substrates requiring stopping).
+
+20. Read plate immediately using a microplate reader at the appropriate wavelength:
+    - TMB: 450 nm (with 570 nm or 630 nm reference)
+    - pNPP: 405 nm
+    - OPD: 492 nm
+
+DATA ANALYSIS
+================================================================================
+
+1. Subtract the average absorbance of blank wells from all sample and standard values.
+
+2. Plot standard curve: absorbance (y-axis) vs. concentration (x-axis) using standard values.
+
+3. Use the standard curve to determine the concentration of unknown samples.
+
+4. For accurate results, ensure sample values fall within the linear range of the standard curve.
+
+PROTOCOL TIPS
+================================================================================
+
+• Always include negative controls (no antigen) and positive controls (known concentration of antigen)
+• Use fresh substrate solutions and prepare just before use
+• Avoid bubbles when adding solutions to wells
+• Ensure consistent incubation times and temperatures
+• Wash thoroughly between steps to reduce background signal
+• Optimize antibody concentrations and incubation times for your specific assay
+• For best results, use high-quality, validated antibody pairs

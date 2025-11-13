@@ -1,0 +1,76 @@
+PROTOCOL: DAPI Protocol for Fluorescence Imaging
+SOURCE: Thermo Fisher Scientific - US
+URL: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/protocols/dapi-protocol-fluorescence-imaging.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+DAPI (4',6-diamidino-2-phenylindole) is a blue-fluorescent DNA stain that binds strongly to A-T rich regions in DNA. It is widely used for nuclear staining in fluorescence microscopy applications. DAPI is cell-impermeant and is typically used to stain fixed cells, though it can also be used to stain live cells at higher concentrations.
+
+APPLICATIONS
+================================================================================
+
+This protocol can be used for:
+• Nuclear staining in fixed cells for fluorescence microscopy
+• Cell counting and nuclear morphology analysis
+• Counterstaining in multicolor immunofluorescence experiments
+
+This protocol should not be used for:
+• Flow cytometry (use DAPI Protocol for HCA Instruments instead)
+• Live cell imaging (unless using higher concentrations and short exposure times)
+
+MATERIALS REQUIRED
+================================================================================
+
+• Fixed cells (on coverslips, slides, or in multiwell plates)
+• DAPI stain (e.g., DAPI, dihydrochloride, Cat. No. D1306, or DAPI solution)
+• Phosphate-buffered saline (PBS)
+• Mounting medium (e.g., ProLong Gold Antifade Mountant with DAPI, or add DAPI to mounting medium)
+• Fluorescence microscope with DAPI/UV filter set (excitation ~358 nm, emission ~461 nm)
+
+PROTOCOL
+================================================================================
+
+For fixed cells
+
+1. Fix and permeabilize cells according to your standard protocol.
+
+2. Wash cells 2-3 times with PBS.
+
+3. Prepare DAPI staining solution:
+   - For DAPI powder: Dissolve in water or PBS to make a 1-5 mg/mL stock solution. Store at 2-8°C, protected from light.
+   - Working solution: Dilute stock to 1-5 µg/mL in PBS or mounting medium.
+
+4. Option A: Staining before mounting
+   - Remove PBS from cells.
+   - Add DAPI working solution (1-5 µg/mL in PBS) to cover cells.
+   - Incubate for 5-10 minutes at room temperature, protected from light.
+   - Wash 2-3 times with PBS.
+   - Proceed to mounting.
+
+5. Option B: Staining in mounting medium (recommended)
+   - Remove PBS from cells.
+   - Add mounting medium containing DAPI (e.g., ProLong Gold Antifade Mountant with DAPI, or add DAPI to mounting medium at 1-5 µg/mL final concentration).
+   - Cover with coverslip and proceed to imaging.
+
+6. Image cells using a fluorescence microscope with DAPI/UV filter set.
+
+SPECTRAL INFORMATION
+================================================================================
+
+DAPI:
+• Excitation maximum: ~358 nm (UV)
+• Emission maximum: ~461 nm (blue)
+• Standard filter set: DAPI/UV
+• Compatible with: FITC, TRITC, Texas Red, Alexa Fluor dyes
+
+PROTOCOL TIPS
+================================================================================
+
+• DAPI is light-sensitive; protect from light during staining and storage
+• Optimal concentration may vary; start with 1 µg/mL and adjust as needed
+• Higher concentrations (5-10 µg/mL) may be needed for some tissue sections
+• DAPI can be used in combination with other fluorescent stains (use appropriate filter sets)
+• For live cells, use higher concentrations (5-10 µg/mL) and minimize exposure time
+• DAPI-stained samples can be stored at 2-8°C, protected from light, for several weeks

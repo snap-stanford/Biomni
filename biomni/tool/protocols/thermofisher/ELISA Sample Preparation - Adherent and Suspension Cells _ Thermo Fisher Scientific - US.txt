@@ -1,0 +1,106 @@
+PROTOCOL: ELISA Sample Preparation - Adherent and Suspension Cells
+SOURCE: Thermo Fisher Scientific - US
+URL: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/elisa-protocol/elisa-sample-preparation-protocols.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Proper sample preparation is critical for successful ELISA experiments. This protocol describes methods for preparing samples from adherent and suspension cell cultures in a 96-well format. The prepared samples can be used directly in ELISA assays or stored for later analysis.
+
+MATERIALS REQUIRED
+================================================================================
+
+• Cells in culture (adherent or suspension)
+• Cell culture medium
+• Phosphate-buffered saline (PBS), ice-cold
+• Cell lysis buffer (e.g., RIPA buffer, NP-40 lysis buffer, or commercial cell lysis buffer)
+• Protease inhibitors (optional but recommended)
+• Phosphatase inhibitors (if analyzing phosphoproteins)
+• 96-well cell culture plate
+• Cell scraper (for adherent cells)
+• Centrifuge and microcentrifuge tubes
+• BCA or other protein quantification assay kit
+
+PROTOCOL
+================================================================================
+
+For adherent cells
+
+1. Seed cells in a 96-well plate and culture until they reach the desired confluency or treatment endpoint.
+
+2. Remove cell culture medium and wash cells once with ice-cold PBS.
+
+3. Remove PBS completely.
+
+4. Add 50-100 µL of ice-cold cell lysis buffer containing protease inhibitors (and phosphatase inhibitors if needed) to each well.
+
+5. Incubate on ice for 10-30 minutes with gentle shaking or rocking.
+
+6. Scrape cells from the bottom of wells using a cell scraper or pipette tip.
+
+7. Transfer lysate to microcentrifuge tubes.
+
+8. Centrifuge at 10,000-14,000 x g for 10-15 minutes at 4°C to pellet cell debris.
+
+9. Transfer supernatant (containing soluble proteins) to new tubes.
+
+10. Quantify protein concentration using BCA assay or similar method.
+
+11. Dilute samples to appropriate concentration in sample diluent (typically PBS or assay buffer) for ELISA.
+
+12. Store samples at -80°C if not using immediately.
+
+For suspension cells
+
+1. Culture cells in appropriate vessel until they reach desired density or treatment endpoint.
+
+2. Transfer cell suspension to centrifuge tubes.
+
+3. Centrifuge at 300-500 x g for 5 minutes at 4°C to pellet cells.
+
+4. Remove supernatant and wash cell pellet once with ice-cold PBS.
+
+5. Centrifuge again and remove PBS completely.
+
+6. Resuspend cell pellet in ice-cold cell lysis buffer containing protease inhibitors (and phosphatase inhibitors if needed).
+
+7. Use 50-100 µL lysis buffer per 10⁶ cells, or adjust volume based on cell density.
+
+8. Incubate on ice for 10-30 minutes with occasional vortexing or pipetting.
+
+9. Centrifuge at 10,000-14,000 x g for 10-15 minutes at 4°C to pellet cell debris.
+
+10. Transfer supernatant (containing soluble proteins) to new tubes.
+
+11. Quantify protein concentration using BCA assay or similar method.
+
+12. Dilute samples to appropriate concentration in sample diluent for ELISA.
+
+13. Store samples at -80°C if not using immediately.
+
+For cell culture supernatant
+
+1. Culture cells in 96-well plate until treatment endpoint.
+
+2. Collect cell culture supernatant without disturbing cells.
+
+3. Centrifuge supernatant at 300-500 x g for 5 minutes at 4°C to remove any cells or debris.
+
+4. Transfer clarified supernatant to new tubes.
+
+5. Use supernatant directly in ELISA or store at -80°C.
+
+6. Note: Supernatant samples typically do not require lysis buffer, as secreted proteins are already in solution.
+
+PROTOCOL TIPS
+================================================================================
+
+• Always work on ice to minimize protein degradation
+• Include protease inhibitors in lysis buffer to prevent protein degradation
+• For phosphoprotein analysis, include phosphatase inhibitors
+• Optimize lysis buffer volume based on cell number and protein concentration
+• Avoid excessive pipetting or vortexing, which can cause protein denaturation
+• Keep samples cold throughout the preparation process
+• Aliquot samples to avoid repeated freeze-thaw cycles
+• Include appropriate controls (untreated cells, positive controls if available)

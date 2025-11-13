@@ -1,0 +1,43 @@
+PROTOCOL: Functional Mitochondrial Staining
+SOURCE: https://www.thermofisher.com/us/en/home/life-science/cell-analysis/cell-analysis-learning-center/molecular-probes-school-of-fluorescence/imaging-basics/protocols-troubleshooting/protocols/functional-mitochondrial-staining.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+This protocol provides basic instructions to perform a fluorescence-based assay to detect functional mitochondria. Healthy mitochondrial membranes maintain a difference in electrical potential between the interior and exterior of the organelle, referred to as a membrane potential. Tetramethylrhodamine, methyl ester (TMRM) is a cell-permeant dye that accumulates in active mitochondria with intact membrane potentials. If the cells are healthy and have functioning mitochondria, the signal will be bright. Upon loss of the mitochondrial membrane potential, TMRM accumulation will cease and the signal will dim or disappear.
+
+Reminder: This assay is for live cells.
+
+MATERIALS REQUIRED
+================================================================================
+
+• Live cells
+• Complete medium (whatever you are growing your cells in)
+• Tetramethylrhodamine, methyl ester (TMRM)
+• Phosphate-buffered saline (PBS), or any other saline-based buffer
+• TRITC filter set for your fluorescence microscope
+
+PROTOCOL
+================================================================================
+
+Functional mitochondrial staining—basic labeling protocol
+
+Protocol tip: TMRM is often supplied as a powder. It's useful to make a stock solution in DMSO and store it at –20°C (for example, add 5 mL DMSO to 25 mg of TMRM to make a 10 mM stock solution). Once you're ready to use your stock, because TMRM is used at a low working concentration, you will need to make intermediate dilutions.
+
+• To make 50 µM intermediate dilution of TMRM → 1 µL 10 mM TMRM + 200 µL complete medium
+• To make 250 nM staining solution of TMRM → 5 µL 50 µM TMRM + 1 mL complete medium
+
+The volumes given in this protocol are good for a single well in a 6-well vessel or a single 35 mm vessel.
+
+1. Prepare 1 mL of 250 nM TMRM staining solution in complete medium. If you are optimizing for dye concentration, you will need to prepare a staining solution for each concentration you want to test.
+
+2. Remove media from live cells.
+
+3. Add the TMRM staining solution.
+
+4. Incubate for 30 minutes at 37°C.
+
+5. Wash 3 times with PBS (or other clear buffer).
+
+6. Image using TRITC filter.

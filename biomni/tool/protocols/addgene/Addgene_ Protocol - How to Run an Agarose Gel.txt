@@ -1,0 +1,104 @@
+Title: Addgene: Protocol - How to Run an Agarose Gel
+URL: https://www.addgene.org/protocols/gel-electrophoresis/
+================================================================================
+
+Protocols
+Agarose Gel Electrophoresis
+Agarose Gel Electrophoresis
+You may also like...
+Restriction Digest of Plasmid DNA
+Purifying DNA from an Agarose Gel
+DNA Ligation
+Introduction
+Gel electrophoresis is the standard lab procedure for separating DNA by size (e.g., length in base pairs) for visualization and purification. Electrophoresis uses an electrical field to move the negatively charged DNA through an agarose gel matrix toward a positive electrode. Shorter DNA fragments migrate through the gel more quickly than longer ones. Thus, you can determine the approximate length of a DNA fragment by running it on an agarose gel alongside a DNA ladder (a collection of DNA fragments of known lengths).
+Last Update: Feb. 20, 2018
+Protocol Video
+Watch the protocol video below to learn how to perform gel electrophoresis.
+Equipment
+Casting tray
+Well combs
+Voltage source
+Gel box
+UV light source
+Microwave
+Reagents
+TAE (
+recipe here
+)
+Agarose
+Ethidum bromide (stock concentration of 10 mg/mL)
+Gel loading buffer, New England Biolabs B7022S
+Procedure
+Pouring a Standard 1% Agarose Gel:
+Measure 1 g of agarose.
+Pro-Tip
+Agarose gels are commonly used in concentrations of 0.7% to 2% depending on the size of bands needed to be separated -
+see FAQs below
+. Simply adjust the mass of agarose in a given volume to make gels of other agarose concentrations (e.g., 2 g of agarose in 100 mL of TAE will make a 2% gel).
+Mix agarose powder with 100 mL 1xTAE in a microwavable flask. See
+TAE Recipe
+.
+Pro-Tip
+TBE can be used instead of TAE, labs usually use one or the other, but there is very little difference between the two.
+Note:
+Make sure to use the same buffer as the one in the gel box (do not mix different buffers and do not use water).
+Microwave for 1-3 min until the agarose is completely dissolved (but do not overboil the solution, as some of the buffer will evaporate and thus alter the final percentage of agarose in the gel. Many people prefer to microwave in pulses, swirling the flask occasionally as the solution heats up.).
+Caution
+HOT! Be careful stirring, eruptive boiling can occur.
+Pro-Tip
+It is a good idea to microwave for 30-45 sec, stop and swirl, and then continue towards a boil. Keep an eye on it the solution has a tendancy to boil over. Placing saran wrap over the top of the flask can help with this, but is not necessary if you pay close attention.
+Let agarose solution cool down to about 50 °C (about when you can comfortably keep your hand on the flask), about 5 mins.
+Optional
+: Add ethidium bromide (EtBr) to a final concentration of approximately 0.2-0.5 μg/mL (usually about 2-3 μl of lab stock solution per 100 mL gel). EtBr binds to the DNA and allows you to visualize the DNA under ultraviolet (UV) light.
+Caution
+EtBr is a known mutagen. Wear a lab coat, eye protection and gloves when working with this chemical.
+Note:
+If you add EtBr to your gel, you will also want to add it to the running buffer when you run the gel. If you do not add EtBr to the gel and running buffer, you will need to soak the gel in EtBr solution and then rinse it in water before you can image the gel.
+Pour the agarose into a gel tray with the well comb in place.
+Pro-Tip
+Pour slowly to avoid bubbles which will disrupt the gel. Any bubbles can be pushed away from the well comb or towards the sides/edges of the gel with a pipette tip.
+Place newly poured gel at 4 °C for 10-15 mins OR let sit at room temperature for 20-30 mins, until it has completely solidified.
+Pro-Tip
+If you are in a hurry, the gel will set more quickly if you place the gel tray at 4 °C earlier so that it is already cold when the gel is poured into it.
+Loading Samples and Running an Agarose Gel:
+Add loading buffer to each of your DNA samples and mix well. Use 5 µl of loading buffer per 25 µl of sample.
+Note:
+Loading buffer serves two purposes: 1) it provides a visible dye that helps with gel loading and allows you to gauge how far the DNA has migrated; 2) it contains a high percentage of glycerol that increases the density of your DNA sample causing it settle to the bottom of the gel well, instead of diffusing in the buffer.
+Once solidified, place the agarose gel into the gel box (electrophoresis unit).
+Fill gel box with 1xTAE (or TBE) until the gel is covered.
+Pro-Tip
+Remember, if you added EtBr to your gel, add some to the buffer as well. EtBr is positively charged and will run the opposite direction from the DNA. So if you run the gel without EtBr in the buffer you will reach a point where the DNA will be in the bottom portion of the gel, but all of the EtBr will be in the top portion and your bands will be differentially intense. If this happens, you can just soak the gel in EtBr solution and rinse with water to even out the staining after the gel has been run, just as you would if you had not added EtBr to the gel in the first place.
+Carefully load a molecular weight ladder into the first lane of the gel.
+Note:
+When loading the sample in the well, maintain positive pressure on the sample to prevent bubbles or buffer from entering the tip. Place the very top of the tip of the pipette into the buffer just above the well. Very slowly and steadily, push the sample out and watch as the sample fills the well. After all of the sample is unloaded, push the pipettor to the second stop and carefully raise the pipette straight out of the buffer.
+Carefully load your samples into the additional wells of the gel.
+Run the gel at 80-150 V until the dye line is approximately 75-80% of the way down the gel. A typical run time is about 1-1.5 hours, depending on the gel concentration and voltage.
+Note:
+Black is negative, red is positive. The DNA is negatively charged and will run towards the positive electrode.
+Always Run to Red.
+Turn OFF power, disconnect the electrodes from the power source, and then carefully remove the gel from the gel box.
+Optional:
+If you did not add EtBr to the gel and buffer, place the gel into a container filled with 100 mL of TAE running buffer and 5 μL of EtBr, place on a rocker for 20-30 mins, replace EtBr solution with water and destain for 5 mins.
+Using any device that has UV light, visualize your DNA fragments. The fragments of DNA are usually referred to as ‘bands’ due to their appearance on the gel.
+Pro-Tip
+If you will be purifying the DNA for later use, use long-wavelength UV and expose for as little time as possible to minimize damage to the DNA.
+Note:
+When using UV light, protect your skin by wearing safety goggles or a face shield, gloves and a lab coat.
+Analyzing Your Gel:
+Using the DNA ladder in the first lane as a guide (the manufacturer's instruction will tell you the size of each band), you can infer the size of the DNA in your sample lanes. For more details on doing diagnostic digests and how to interpret them please see the
+Diagnostic Digest
+page.
+Purifying DNA from Your Gel:
+If you are conducting certain procedures, such as molecular cloning, you will need to purify the DNA away from the agarose gel. For instructions on how to do this, visit the
+Gel Purification
+page.
+Tips and FAQ
+How do you get better resolution of bands?
+A few simple ways to increase the resolution (crispness) of your DNA bands include: a) running the gel at a lower voltage for a longer period of time; b) using a wider/thinner gel comb; or c) loading less DNA into the well. Another method for visualizing very short DNA fragments is polyacrylamide gel electrophoresis (PAGE), which is typically used to separate 5 - 500 bp fragments.
+How do you get better separation of bands?
+If you have similarly sized bands that are running too close together, you can adjust the agarose percentage of the gel to get better separation. A higher percentage agarose gel will help resolve smaller bands from each other, and a lower percentage gel will help separate larger bands.
+10% Rule
+For each sample you want to load on a gel, make 10% more volume than needed because several microliters can be lost in pipetting. For example, if you want to load 1.0 μg in 10 μL, make 1.1 μg in 11 μL.
+Reference Page
+Top
+Index

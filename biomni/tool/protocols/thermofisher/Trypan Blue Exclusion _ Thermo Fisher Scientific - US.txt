@@ -1,0 +1,34 @@
+PROTOCOL: Trypan Blue Exclusion
+SOURCE: https://www.thermofisher.com/us/en/home/references/gibco-cell-culture-basics/cell-culture-protocols/trypan-blue-exclusion.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Trypan blue is regularly used to perform dye exclusion tests to assess cell viability. Trypan blue stains dead cells, while live cells are left unaffected. Trypan blue is excluded from intact cells because the dye is only absorbed by cells with a compromised cell membrane. Therefore, a live cell with a healthy cell membrane will remain unstained. This test is often performed while counting cells with the hemocytometer during routine subculturing but can be performed any time cell viability needs to be determined quickly and accurately.
+
+The following trypan blue protocol will enable you to accurately determine cell viability in your cultures. Cell viability is calculated as the number of viable cells divided by the total number of cells within the grids on the hemacytometer. If cells take up trypan blue, they are considered non-viable.
+
+MATERIALS REQUIRED
+================================================================================
+
+In addition to the materials below, hemocytometers may be obtained from Fisher Scientific.
+
+Catalog number: 15250061
+
+PROTOCOL
+================================================================================
+
+The protocol for trypan blue staining is as follows:
+
+1. Determine the cell density of your cell line suspension using a hemacytometer.
+
+2. Add 10 μL of trypan blue solution, 0.4%, to 10 μL of cells. The ratio for trypan blue staining should remain 1:1—one part trypan blue solution to one part cell suspension.
+
+3. Load a hemacytometer with 10 μL of the cells and trypan blue solution and examine immediately under a microscope at low magnification.
+
+4. Count the number of blue stained cells and the number of total cells. Cell viability should be at least 95% for healthy log-phase cultures.
+
+5. To find the % viable cells = [1.00 – (Number of blue cells ÷ Number of total cells)] × 100
+
+6. To calculate the number of viable cells per mL of culture, use the formula: Number of viable cells × 10⁴ = cells/mL culture. Remember to correct for the dilution factor.

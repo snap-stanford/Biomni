@@ -1,0 +1,202 @@
+PROTOCOL: Fluorescence Titering Assay
+SOURCE: https://www.addgene.org/protocols/fluorescence-titering-assay/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+This protocol can be used to titer lentiviral preparations that carry a
+fluorescence marker. Determining the titer of your lentiviral vector allows you to
+control the multiplicity of infection (MOI) in downstream studies. This protocol
+was developed for 293T cells but can be adapted to a variety of target cell lines
+and selection markers. Note, because this protocol uses microscopy to determine
+the percentage of fluorescent cells, these cells can still be used in downstream
+applications.
+
+
+SAFETY WARNINGS
+================================================================================
+
+Lentivirus is generally considered biosafety level 2+. Please ensure that you are
+in compliance with your institution's biosafety regulations.
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+Day 0: Seed 293T cells
+
+Day 1: Transduce cells
+
+Day 2 (am): Remove media, replace with fresh media
+
+Day 4–5: Count fluorescent cells
+
+
+EQUIPMENT
+================================================================================
+
+• Class II, Type A2 Biological Safety Cabinet
+• 0.5–10 µL single channel pipette
+• 2–20 µL single channel pipette
+• 20–200 µL single channel pipette
+• 200–1000 µL single channel pipette
+• Ice bucket
+• CO₂ incubator
+• Pipet controller
+• Hazardous waste container
+• Inverted fluorescence microscope
+
+
+REAGENTS
+================================================================================
+
+• DMEM high glucose, Corning 10-013-CV
+• L-alanyl-L-glutamine (or alternative stable glutamine such as glutaGRO,
+  Corning 25-015-CI)
+• Heat-inactivated FBS
+• Polybrene (10mg/mL), Millipore TR-1003-G
+• 1X PBS pH 7.4 without calcium or magnesium, Corning 21-040-CV (cations can
+  affect the attachment of adherent cells)
+• 0.45 μm polyethersulfone filter, Nalgene, 565-0010 (for viral preps, if prep
+  was not previously filtered)
+• Microcentrifuge tubes, Neptune 3745.X
+• 6-well tissue culture treated dish, Corning 3516
+• 15 mL conical tubes, VWR 21008-216
+• Lentivirus preparation
+
+
+REAGENT PREPARATION
+================================================================================
+
+DMEM Complete: 10% v/v FBS and 4 mM L-alanyl-L-glutamine (or stable alternative,
+such as glutaGRO)
+
+To a 500 mL bottle of DMEM high glucose, add 55 mL of heat-inactivated FBS and 5
+mL of 100X glutaGRO. Store at 4 °C.
+
+💡 PRO TIP: Different brands and lots of FBS can promote or inhibit
+transfection. Test a variety of brands and lots of FBS to find one suitable with
+your protocols. FBS can be purchased already heat-inactivated, or it can be
+inactivated in the lab by heating to 56 °C for 30 min.
+
+
+CONSIDERATIONS BEFORE YOU START
+================================================================================
+
+• The health of the target cell line is critical for obtaining accurate titers.
+
+• Check the cells for mycoplasma regularly.
+
+• Do not over- or under-grow your cells.
+
+• Thaw a new vial of cells after 20–30 passages.
+
+• Do not add penicillin/streptomycin to the media, as it can affect viability and
+  transduction efficiency.
+
+• Titer will vary between cell lines.
+
+• It is not recommended to subject lentiviral supernatants to multiple
+  freeze-thaw cycles.
+
+
+PROCEDURE
+================================================================================
+
+1. Seed 75,000 cells into each well of a 6-well dish.
+
+   Prepare a batch of cells as follows: Dilute 525,000 cells into 14 mL of DMEM
+   complete.
+
+2. Mix well by pipetting or inverting.
+
+3. Aliquot 2 mL of cell suspension into each well of the 6-well dish.
+
+4. Incubate the cells overnight.
+
+5. If using freshly collected virus, filter through a 0.45 μm polyethersulfone
+   filter to remove cells and debris.
+
+6. Lentiviral titer can decrease during cycles of freeze-thaw. If you are
+   freezing and aliquoting virus, it is recommended that you titer from the
+   frozen stock to account for any loss in titer associated with freeze-thaw.
+
+7. If using frozen virus, rapidly thaw the lentiviral aliquot on ice prior to
+   use.
+
+8. Prepare dilutions of the lentivirus into DMEM complete containing 10 μg/mL
+   polybrene. Note, this protocol was developed using low titer lentiviral vectors
+   (10⁵ TU/mL). If you anticipate that your viral stock will be higher titer,
+   consider additional dilutions.
+
+   Dilution    | Volume of Lentivirus | Volume of DMEM | Volume of 10mg/mL
+              | Stock (μL)           | complete (μL)  | polybrene (μL)
+   ------------|----------------------|----------------|------------------
+   1:10        | 150                  | 1348.5         | 1.5
+   1:25        | 60                   | 1438.5         | 1.5
+   1:50        | 30                   | 1468.5         | 1.5
+   1:75        | 20                   | 1478.5         | 1.5
+   1:100       | 15                   | 1483.5         | 1.5
+   Untransduced| 0                    | 1498.5         | 1.5
+
+9. Mix the dilutions well.
+
+10. Gently aspirate media from the cells.
+
+11. Add 1.5 mL of a viral dilution to each well (each well gets one dilution with
+    one well remaining as the untransduced control).
+
+12. Count the cells in the remaining well, a cell count is required for
+    calculating the titer.
+
+13. Incubate for 48–72 h.
+
+14. Gently aspirate media and replace with 1 mL of PBS.
+
+15. Calculate the fraction of fluorescent-positive cells in each well.
+
+    When calculating titer, only consider wells with less than 40% fluorescent
+    cells. Titering methods assume one integration event per cell. When the
+    percentage exceeds 40% you risk counting cells with multiple integration
+    events leading to underestimation of the true titer.
+
+16. Calculate the transduction units per mL (TU/mL) using either the dilution
+    factors (method 1) or the volume of virus (method 2):
+
+    Method 1: T = (N × F × D) / V_T
+
+    Where:
+    • T = Titer, TU/mL
+    • N = Number of cells transduced
+    • F = Fraction of cells with fluorescence
+    • D = Dilution Factor
+    • V_T = Transduction Volume, mL
+
+    For example: If 150,000 cells were transduced in the 1:100 well, resulting in
+    25% fluorescent cells, then the titer is:
+    (150,000 cells × 0.25 fluorescent × 100) / (1.5 mL) = 2.5×10⁶ TU/mL
+
+    Method 2: T = (N × F) / V_V
+
+    Where:
+    • T = Titer, TU/mL
+    • N = Number of cells transduced
+    • F = Fraction of cells with fluorescence
+    • V_V = Virus Volume, mL
+
+    For example: If 15 µL of virus added to 150,000 cells resulted in 25%
+    fluorescent cells, then the titer is:
+    (150,000 cells × 0.25 fluorescent) / (0.015 mL) = 2.5×10⁶ TU/mL
+
+    For a more accurate titer, take the average of multiple dilutions.
+
+
+SAMPLE DATA
+================================================================================
+
+293T cells were transduced with a range of dilutions of pHAGE-TO-dCas9-3XmCherry.
+72 h post transduction, cells were assayed for mCherry expression using
+fluorescence microscopy.
+
+Last reviewed on: September 9, 2023

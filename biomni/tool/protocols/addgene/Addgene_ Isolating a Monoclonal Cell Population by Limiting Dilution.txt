@@ -1,0 +1,239 @@
+PROTOCOL: Isolating a Monoclonal Cell Population by Limiting Dilution
+SOURCE: https://www.addgene.org/protocols/limiting-dilution/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+This protocol describes how to generate a monoclonal cell line from a polyclonal
+pool of stable cells.
+
+Transducing cells with lentivirus results in a heterogenous polyclonal population
+that varies in the number of integration events and the site(s) of proviral
+integration across cells. Selective pressure on this heterogeneous cell pool
+could lead to reduced transgene expression over time, as the lower expressing
+clones take over the polyclonal cell pool. Generating a monoclonal cell line by
+limiting dilution results in cell populations that are more likely to retain
+stable transgene expression. Other methods of generating a monoclonal cell line
+include single-cell sorting or isolating individual cells with cloning cylinders.
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+This protocol begins with a stable cell pool. For details, see our protocol for
+generating stable cell lines with lentivirus.
+
+Day 0: (optional) Seed cells for the generation of conditioned medium (see below
+       for more details)
+
+Day 1: Seed individual cells in a 96-well plate
+
+Day 2–14: Monitor cells for growth and expand cells
+
+Day 14–30: Analyze and expand monoclonal lines of interest
+
+
+EQUIPMENT
+================================================================================
+
+• Class II, Type A2 Biological Safety Cabinet
+• 0.5–10 µL single channel pipette
+• 2–20 µL single channel pipette
+• 20–200 µL single channel pipette
+• 200–1000 µL single channel pipette
+• CO₂ incubator
+• Pipet controller
+• Hazardous waste container
+• Microscope
+• Hemocytometer or other cell counter
+
+
+REAGENTS
+================================================================================
+
+• Polyclonal stable cell pool
+• DMEM high glucose, Corning 10-013-CV
+• L-alanyl-L-glutamine (or alternative stable glutamine such as glutaGRO,
+  Corning 25-015-CI)
+• Heat-inactivated FBS
+• 1X PBS pH 7.4 without calcium or magnesium, Corning 21-040-CV (cations can
+  affect the attachment of adherent cells)
+• Trypsin EDTA (TrypLE, Thermo Fisher 12605-010)
+• 6-well tissue culture treated dish, Corning 3516
+• 96-well plate, Corning 3596
+• 0.45 μm polyethersulfone filter, Nalgene, 565-0010 (optional)
+• 40 µm cell strainer mesh (optional)
+• 10 cm tissue culture dish, Corning 430167 (optional)
+
+
+REAGENT PREPARATION
+================================================================================
+
+DMEM Complete: 10% v/v FBS and 4 mM L-alanyl-L-glutamine (or stable alternative,
+such as glutaGRO)
+
+To a 500 mL bottle of DMEM high glucose, add 55 mL of heat-inactivated FBS and 5
+mL of 100X glutaGRO. Store at 4 °C.
+
+Polyclonal stable cell pool: see our protocol for generating stable cell lines
+with lentivirus.
+
+💡 PRO TIP: Because the polyclonal cell pool is always undergoing selection, it's
+best to generate monoclonal cell lines from the polyclonal pool as early as
+possible, though in theory a monoclonal line could be generated at any time.
+
+
+CONSIDERATIONS BEFORE YOU START
+================================================================================
+
+• Some cell lines tend not to grow well in sparse/individual cultures due to
+  lack of secreted growth factors, so not every cell type will be able to grow
+  under the conditions described in this protocol.
+
+• Conditioned medium (details below) can be used to enhance the growth of cells
+  in individual cultures. Other methods for enhancing single cell growth, such
+  as using culture medium with increased serum concentrations, may be optimal for
+  different cell types.
+
+• Before starting this procedure, be sure that the cell pool has been
+  sufficiently selected with the appropriate antibiotic so that every cell in
+  the culture has, in theory, been transduced. There are various schools of
+  thought on using selective medium throughout subsequent experiments. When
+  selective medium is used, it may have additional biological effects on the cell
+  line. In the absence of selective medium, there is a chance that the integrated
+  transgene could be lost through recombination. Some researchers choose to
+  maintain cells in selective medium at a reduced antibiotic concentration (e.g.,
+  half the concentration that was used for the initial selection). Addgene
+  recommends that the use of selective medium throughout experiments be determined
+  empirically, and that the cell population be monitored regularly for transgene
+  expression.
+
+• This protocol has been optimized for adherent cells but can be modified for
+  suspension cells.
+
+• The number of monoclonal lines generated using this protocol will vary based
+  on several factors, including the growth properties of the cell lines, the
+  effects of the transgene, and the specific conditions used. Each 96-well plate
+  described in this protocol could, in theory, give rise to a maximum of 48
+  monoclonal cell lines. When this protocol was performed at Addgene on the A549
+  cells described in our sample data, each 96-well plate gave rise to 15–20
+  monoclonal lines.
+
+
+PROCEDURE
+================================================================================
+
+Generating Conditioned Medium (optional)
+
+1. Seed stable cells such that the next day they will be approximately 50–60%
+   confluent. For 293T cells this is about 2 × 10⁶ cells in a 10 cm dish. Each
+   10 cm dish should be seeded in 10 mL DMEM complete, which will generate enough
+   conditioned medium for one 96-well plate.
+
+2. Allow the cells to grow overnight.
+
+3. Replace the medium on the cells and collect the used (conditioned) media.
+
+4. Remove any cells from the conditioned medium by filtration through a 0.45 µm
+   PES filter or centrifugation at >500 x g for 5 minutes. Do not use the medium
+   if the cells are overly confluent or the medium is acidified (i.e., the medium
+   appears orange/yellow if using a standard phenol red pH indicator) because the
+   buildup of waste products could be suboptimal for cell growth. This conditioned
+   medium will be used to make a cell solution later in this protocol.
+
+Isolating a Monoclonal Cell Population by Limiting Dilution
+
+1. Isolate cells from the stable cell pool by trypsinization and break up any
+   cell clumps into individual cells by passing several times through a
+   serological pipet or by passing through a 40 µm cell strainer mesh. Count the
+   cell concentration in this homogenized cell solution using a hemocytometer or
+   other cell counter.
+
+   💡 PRO TIP: Prepare a relatively dilute cell solution (<10⁶ cells/mL) before
+   counting the cells. When you ultimately transfer approximately 50–100 cells to
+   the conditioned medium, it will be more accurate if a higher volume of
+   homogenized cell solution is transferred.
+
+2. Transfer cells from the homogenized cell solution into the conditioned medium
+   prepared above to make a new cell solution at a concentration of 5 cells/mL.
+   Prepare approximately 10 mL of this cell solution for each 96-well plate you
+   plan to seed. If you choose not to use conditioned medium, prepare this cell
+   solution in fresh complete medium. This 5 cells/mL solution will be used to
+   seed the 96-well plate.
+
+   Sample Calculation:
+   • First, use a hemocytometer to quantitate the homogenized cell solution.
+   • Homogenized cell solution concentration: 4 × 10⁵ cells/mL
+   • To seed one 96-well plate, make 10 mL of a 5 cell/mL solution. Calculate
+     the total cells needed: 10 mL × 5 cells/mL = 50 cells
+   • Determine the volume of homogenized cell solution that corresponds to 50
+     cells: (50 cells)/(4 × 10⁵ cells/mL) = 0.125 µL
+   • Because this is such a small volume, first make 1 mL of a 1:100 dilution of
+     the homogenized cell solution by adding 10 µL homogenized cell solution to
+     990 µL complete medium. Instead of transferring 0.125 µL, now transfer 100
+     times that volume, which is 12.5 µL.
+   • To make the final 5 cell/mL solution, transfer 12.5 µL of the 1:100 dilution
+     to 10 mL of conditioned medium.
+
+3. Transfer 100 µL of the 5 cells/mL solution into each well of a 96-well plate.
+   By doing this, you are seeding the plate at an average density of 0.5
+   cells/well. Seeding an average of 0.5 cells/well ensures that some wells
+   receive a single cell, while minimizing the likelihood that any well receives
+   more than one cell.
+
+   💡 PRO TIP: In each 96-well plate, seed one of the corner wells with ~1000
+   cells. This will help you focus the microscope later when scanning the plate
+   for individual cells, which can be difficult to find.
+
+4. Leave the cells undisturbed in an incubator for 7–14 days. After ~7 days, scan
+   the plate for cell growth. If you do not observe any colonies, continue
+   incubating the cells.
+
+   💡 PRO TIP: Use the well with 1000 cells to focus the microscope, then you can
+   easily scan the plate for individual cells, which should be on the same focal
+   plane.
+
+5. Scan the entire plate and make note of each well in which you see growth. At
+   this time, the cells will appear as colonies in the well (Figure 1). You will
+   be able to tell if there was more than a single cell seeded in a well because
+   you will observe more than one colony. Wells with more than a single colony do
+   not contain a monoclonal population and should be discarded.
+
+   💡 PRO TIP: When scanning the plate, be sure to look thoroughly within each
+   well, especially in the corner of the well as cells tend to settle there.
+
+6. Once the cells have expanded but before they become over-confluent, trypsinize
+   the cells and expand them to larger culture dishes, being sure not to cross
+   contaminate the independent monoclonal lines.
+
+   💡 PRO TIP: When trypsinizing cells from the 96-well plate, use a microscope
+   to ensure that the cells have detached from the plate and can be isolated.
+   When trypsinized, detached cells will exhibit a rounded morphology.
+
+7. After the monoclonal lines have been sufficiently expanded, screen the lines
+   for transgene expression and/or other phenotypes. For example, perform Western
+   blotting to screen for lines with the highest or lowest transgene expression
+   (Figure 2).
+
+
+SAMPLE DATA
+================================================================================
+
+Generation of monoclonal cell lines from expansion of individual A549 cells
+stably expressing Cas9. A549 cells were transduced with lentiCas9-Blast and then
+selected with 1 μg/mL blasticidin for 9 days. Single cells were then plated in
+individual wells of a 96-well plate and left undisturbed for 13 days. Colonies
+formed in individual wells of a 96-well plate after expansion of single cells for
+13 days. Note that growth rate differences can be inferred by the differences in
+colony size.
+
+Cas9 expression in monoclonal cell lines generated from A549 cells transduced with
+lentiCas9-Blast. A549 cells were transduced (MOI = 37) and selected with 1 μg/mL
+blasticidin for 9 days. Single cells from a stable cell pool were then expanded
+for an additional 3 weeks under blasticidin selection. Anti-Cas9 Western blotting
+was performed on whole-cell extracts from the initial stable cell pool (pool) and
+from individual cell expansions (monoclonal, 1-5). Wild-type A549 cells do not
+express Cas9 and are included as a control (WT). Vinculin is a loading control.
+
+Last reviewed on: September 9, 2023

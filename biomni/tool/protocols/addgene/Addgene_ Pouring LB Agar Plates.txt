@@ -1,0 +1,249 @@
+PROTOCOL: Pouring LB Agar Plates
+SOURCE: https://www.addgene.org/protocols/pouring-lb-agar-plates/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+Plasmids can carry one or more antibiotic resistance genes, which confer resistance
+to a specific antibiotic to the bacteria carrying them. The presence of an
+antibiotic resistance gene on a plasmid allows researchers to easily isolate
+bacteria containing that plasmid from bacteria that do not contain it by
+artificial selection (i.e. growing the bacteria in the presence of the antibiotic).
+
+Luria broth (LB) is a nutrient-rich media commonly used to culture bacteria in
+the lab. The addition of agar to LB results in the formation of a gel that
+bacteria can grow on, as they are unable to digest the agar but can gather
+nutrition from the LB within. The addition of an antibiotic to this gel allows
+for the selection of only those bacteria with resistance to that antibiotic -
+usually conferred by a plasmid carrying the antibiotic resistance gene. The
+following protocol will allow you to make your own LB/agar plates with your
+antibiotic of interest.
+
+Last Upload: September 14, 2016
+
+
+EQUIPMENT
+================================================================================
+
+• Autoclave
+• Water bath
+• Pipetman
+
+
+REAGENTS
+================================================================================
+
+• 37 g pre-mixed powder consisting of:
+  - 5.0 g yeast extract
+  - 10.0 g peptone from casein
+  - 10.0 g sodium chloride
+  - 12.0 g agar-agar
+• 1 L Sterile H₂O
+• Sterile plates of your desired size - we usually use 60 mm x 15 mm plates which
+  can hold 5-10 mL of agar and on which you can individually distinguish a maximum
+  of ~100 colonies
+
+  💡 PRO TIP: If you will be screening a large number of colonies, we recommend
+  using larger plates. Many labs use 100 mm x 15 mm plates which can hold 10 - 15
+  mL of agar.
+
+• Autoclavable flasks
+• Sterile pipettes
+• Ice bucket to hold antibiotic
+• Antibiotic at 1000 x concentration dissolved in the appropriate liquid solvent.
+  See table below for appropriate antibiotic concentrations.
+
+Antibiotic Concentrations:
+
+Antibiotic      | Recommended Stock Concentration | Recommended Working Concentration
+----------------|--------------------------------|-----------------------------------
+Ampicillin      | 100 mg/mL                      | 100 µg/mL
+Bleocin          | 5 mg/mL                        | 5 µg/mL
+Carbenicillin*  | 100 mg/mL                      | 100 µg/mL
+Chloramphenicol | 25 mg/mL (dissolve in EtOH)    | 25 µg/mL
+Coumermycin     | 25 mg/mL (dissolve in DMSO)    | 25 µg/mL
+Gentamycin      | 10 mg/mL                       | 10 µg/mL
+Kanamycin       | 50 mg/mL                       | 50 µg/mL
+Spectinomycin   | 50 mg/mL                       | 50 µg/mL
+Tetracycline    | 10 mg/mL                       | 10 µg/mL
+
+Notes:
+• Unless otherwise indicated, the antibiotic powder can be dissolved in dH₂O.
+• *Carbenicillin can be used in place of ampicillin. Carbenicillin is more stable,
+  so it is potentially more effective at selecting only bacteria containing the
+  plasmids of interest (for example, fewer satellite colonies will grow). However,
+  it is also more expensive.
+
+
+PROCEDURE
+================================================================================
+
+1. Measure 37g of pre-mixed LB-agar powder per L of molten agar you'd like to
+   make. The precise mass you measure out will be based on the number of plates
+   you'd like to pour.
+
+   For example:
+   • Because we'd like to make 20 plates, and our plates can hold a maximum of
+     10 mL, we'll want 200 mL of media total.
+   • Importantly, we'll actually make a bit more than 200 mL (~220 mL) just in
+     case we spill anything or have small errors in measurement. You should also
+     always make a bit more gel-agar mix than you think you'll need.
+   • So for 220 mL of LB-agar, we'll need: (37 g pre-mixed LB-agar powder/L) ×
+     (0.220 L) = 8.14 g pre-mixed LB-agar powder.
+
+2. Transfer the LB-agar powder you've measured out into an appropriately sized
+   bottle for autoclaving. We make 400 mL of agar in 1 L bottles and 200 mL of
+   agar in 500 mL bottles. The extra empty volume is necessary to prevent your
+   molten agar from boiling over in the autoclave.
+
+3. Transfer the sterile water (in our case 220 mL) to the same bottle and swirl to
+   form a medium/agar colloid.
+
+4. Cover the opening of the bottle with its cap or aluminum foil (but do not make
+   an air-tight seal!) and tape the bottle with autoclave tape. The autoclave tape
+   will darken during the autoclave process if your sample has spent at least 10
+   min at 121 ℃. Use lab tape to label the bottle with your initials, the date,
+   and the bottle contents. This will clear up any confusion later if you forget
+   your bottle in the autoclave.
+
+5. Place the gel mix in the autoclave and run on a setting that gets the sample to
+   at least 121 ℃ under 20 psi for at least 30 min. The high pressure will prevent
+   your gel mix from boiling over at high temperature.
+
+   💡 PRO TIP: Although our recommended temperature should kill most potential
+   contaminants, certain types of spores will stubbornly survive even under the
+   harsh conditions in the autoclave. Be sure to check the literature for an
+   appropriate sterilization technique if you are working with any weird and
+   wonderful organisms.
+
+6. While your samples are sterilizing in the autoclave, you should prepare your
+   plate pouring station:
+   • Find an empty section of lab bench with a working flame.
+   • Spray down the bench with a 70% ethanol solution and wipe down with a paper
+     towel.
+   • Count out the appropriate number of plates and stack them on your lab bench.
+   • Label the plates with the date and the medium they will contain including the
+     identity of the antibiotic.
+
+     💡 PRO TIP: We batch label our plates with colored marker - particular colors
+     correspond to particular antibiotics.
+
+   • Position the flame just to the side of where you'll be pouring your plates -
+     be sure to leave room for your bottle of molten gel mix, a tube rack
+     containing the appropriate antibiotics, and a section for active pouring.
+
+7. Prepare your antibiotics. Prior to adding your antibiotic to the molten gel
+   mix, you should create a 1000x stock solution.
+
+   For example:
+   • If you'll be preparing plates with a final concentration of 100 ug/mL
+     ampicillin, you should make a stock solution of 100,000 ug/mL (100 mg/mL).
+     Simply measure out 100 mg of ampicillin powder, add it to 1 mL of water,
+     dissolve by vortexing, and filter sterilize.
+
+8. Prepare a water bath at 60 ℃ with sufficient water to submerge ~75% of the
+   bottle containing your molten gel mixture.
+
+   💡 PRO TIP: You will cool the molten agar in the water bath prior to adding
+   the antibiotic. 60 ℃ is a good temperature because the molten agar will remain
+   liquid at this temperature but most antibiotics will not break down at this
+   temperature. Check with your antibiotic's manufacturer to make sure this is
+   true in your case.
+
+9. Retrieve your molten agar mix from the autoclave.
+
+   💡 PRO TIP: Once your autoclave cycle is complete, we recommend opening the door
+   to the autoclave just a crack and leaving it open that way for ~10 min. This
+   will allow any steam to escape from the autoclave and will cool your gel-mix
+   slightly. Even so, you should always use thermally insulated gloves when
+   removing anything from the autoclave.
+
+10. Partially submerge your molten gel-mix in the 60 ℃ water bath.
+
+    💡 PRO TIP: You should leave the molten gel-mix in the water bath for at least
+    5 min. Do not let any of the water bath water touch the neck or top of the
+    bottle as this water is not likely to be sterile. Cooled agar should be warm
+    to the touch; as a rule of thumb, if you cannot take the molten agar out of the
+    water bath wearing only lab gloves, it's not likely cool enough to add
+    antibiotic to. To be certain your agar is at the right temperature, we
+    recommend using a laser thermometer.
+
+11. Light the flame at the plate pouring station and dilute your antibiotic into
+    your ~60 ℃ molten gel mix using sterile technique.
+
+12. Swirl the agar bottle to ensure even distribution of the antibiotic throughout
+    the agar.
+
+13. Open one plate at a time next to the flame and begin pouring. Measure your
+    desired amount of agar with a pipette for the first plate to get a good idea
+    of what that volume looks like in your particular plate.
+
+14. For the remainder of the plates, pour directly from the bottle.
+
+    💡 PRO TIPS:
+    • Be sure to swirl your plates after pouring to remove bubbles and ensure an
+      even distribution of agar over the bottom of the plate. Cap each plate after
+      pouring and stack as you pour.
+    • If your agar partially solidifies in the bottle while you're pouring, you
+      should stop pouring and re-make the gel-mix. If you're making plates without
+      any antibiotic you can alternatively re-liquefy the agar by running it
+      through the autoclave again or by microwaving (if you microwave, beware of
+      over-boiling!).
+
+15. Leave your plates out on the bench to solidify.
+
+    💡 PRO TIP: It takes roughly 30 min for our plates to solidify at room
+    temperature, however we leave them out at room temperature overnight to allow
+    them to dry. After overnight drying, we place the plates in a plastic bag with
+    an absorbent material to reduce condensation. The plates are then stored at 4 ℃
+    until use.
+
+16. Once your plates have solidified and dried, you should test them to make sure
+    the antibiotic functions properly:
+    • Take out two plates.
+    • On the first plate, streak out a strain that you know to be resistant to
+      the antibiotic.
+    • On the second plate, streak out a strain that's not resistant to the
+      antibiotic.
+    • Incubate both plates overnight at the appropriate growth temperature and
+      check for growth. See our sample data section below for positive and negative
+      test results.
+
+
+SAMPLE DATA
+================================================================================
+
+In all cases below (-) indicates that the tested strain is not supposed to be
+resistant to the antibiotic, (+) indicates that the tested strain is supposed to
+be resistant to the antibiotic.
+
+Positive Result: Only the Resistant Strain Grows
+
+If everything was prepared properly, you should see growth of only the resistant
+strain. If you get this final result, your plates are ready for use or storage at
+4 ℃. You should not store your plates for longer than 1 month at any temperature
+and should always check for contamination prior to use.
+
+Negative Result 1: Both Strains Grow
+
+Assuming the appropriate strains were streaked on the appropriate plates, then if
+both strains grow, it's possible that:
+• The antibiotic broke down.
+• You forgot to add the antibiotic.
+• You added the antibiotic at too low a concentration for selection.
+
+Negative Result 2: Neither Strain Grows
+
+If neither strain grows, it's possible that:
+• You used the wrong antibiotic.
+• Your antibiotic is at too high a concentration.
+• One or both of your strains are no longer viable.
+
+You can check for this possibility by streaking out both strains on plates without
+any antibiotic.
+
+Negative Result 3: Only the Non-resistant Strain Grows
+
+If only the non-resistant strain grows, it's likely that you've used the wrong
+antibiotic, or confused your strains.

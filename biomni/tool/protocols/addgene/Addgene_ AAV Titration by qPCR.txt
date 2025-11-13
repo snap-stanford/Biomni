@@ -1,0 +1,264 @@
+PROTOCOL: AAV Titration by qPCR
+SOURCE: https://www.addgene.org/protocols/aav-titration-qpcr-using-sybr-green-technology/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+The AAV Titration protocol can be used to determine the number of
+genome-containing particles of an AAV prep using SYBR green technology.
+
+This protocol was validated using an internal reference AAV of known titer,
+100837-AAV1, and by measuring the titer of samples obtained from academic viral
+vector cores. Our titers were similar to those reported by these institutions.
+
+This protocol is for a 96-well plate with 20 μL reaction volume.
+
+Last Update: February 13, 2019
+
+Estimate of time required: ~3 h
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+Plate set-up: 2 h
+
+qPCR run: 1.5 h
+
+Data analysis: 30 min
+
+
+EQUIPMENT
+================================================================================
+
+• qPCR instrument
+• Heating plate
+• Pipettors
+• 1–10 µL single channel pipette
+• 20–200 µL single channel pipette
+• 200–1000 µL single channel pipette
+• 1–10 µL multichannel pipette
+• 2–50 µL multichannel pipette
+• 20–200 µL multichannel pipette
+
+
+REAGENTS
+================================================================================
+
+• Universal SYBR Master Mix 2X
+• Primer pair targeting AAV2 ITR (Aurnhammer et al., 2012)
+  - fwd ITR primer, 5'-GGAACCCCTAGTGATGGAGTT
+  - rev ITR primer, 5'-CGGCCTCAGTGAGCGA
+• ITR-containing plasmid for standard curve
+• RNase-free DNase
+• 10X DNase buffer
+• Nuclease-free water
+• Microcentrifuge tubes
+• 96-well optical plate
+• Pipette tips
+
+
+GENERAL CONSIDERATIONS
+================================================================================
+
+• Always run standards and samples in duplicate at least
+
+• If possible, include an AAV reference sample of known titer. The reference
+  material should have a titer within 1-log of the expected titer of the samples
+  being tested.
+
+• Always include a No Template Control (NTC), i.e master mix + water
+
+• Whenever possible use a multichannel pipet to minimize pipetting error and
+  variability
+
+• Mix samples very well by pipetting back and forth multiple times at each step
+
+
+REAGENT PREPARATION
+================================================================================
+
+Master Mix:
+
+Count the number of samples (n) and prepare master mix for an additional 10
+samples (n+10 – the additional amount will ensure that there is enough master mix
+for all samples). Each sample requires 15 μL of master mix.
+
+💡 PRO TIPS:
+
+• Use a "Universal" SYBR master mix which contains a high-quality DNA polymerase
+  and a blend of dTTP/dUTP to minimize carryover contamination. The master mix
+  should also contain an internal passive reference (typically ROX dye), to
+  normalize non-PCR–related fluorescence fluctuations and to minimize well-to-well
+  variability that result from a variety of causes, such as pipetting error and
+  sample evaporation.
+
+• Make the master mix after all the samples have been added to the qPCR plate.
+  Start by adding water, then SYBR master mix, then the forward and reverse
+  primers. Vortex briefly, immediately before use.
+
+• Use a reservoir and a multichannel pipette to dispense the master mix into the
+  wells.
+
+Master Mix Recipe:
+
+Reagent                    | Amount for ONE Reaction | Amount for 100 reactions
+---------------------------|------------------------|--------------------------
+Universal SYBR Master Mix  | 10 μL                  | 1,000 μL
+2X                         |                        |
+100 μM Forward Primer      | 0.15 μL                | 15 μL
+100 μM Reverse Primer      | 0.15 μL                | 15 μL
+Nuclease Free Water        | 4.7 μL                 | 470 μL
+
+
+PROCEDURE
+================================================================================
+
+1. Prepare a plasmid stock of 2 x 10⁹ molecules/μL to generate a standard curve:
+
+   One option is to use plasmid #59462 from Addgene. The values highlighted below
+   in red were calculated using this plasmid, but will change if you use a
+   different plasmid.
+
+   Sample Calculation:
+   • Size in bp of Addgene plasmid #59462: 6208 bp
+   • Concentration of Addgene plasmid #59462: 1.07 μg/μL
+   • Molecular Weight: 6208 bp × 650 dalton/bp = 4.03 × 10⁶ g/mole
+   • Moles/μl: 1.07 μg/μL × 1 g/10⁶ μg × 1 / 4.03 × 10⁶ g/mole = 2.65 × 10⁻¹³
+     moles/μL
+   • Molecules/μl: 2.65 × 10⁻¹³ moles/μL × 6.022145 × 10²³ molecules/mole = 1.59
+     × 10¹¹ molecules/μL
+   • To obtain a solution at 2 × 10⁹ molecules/μL: 1.59 × 10¹¹ / 2 × 10⁹ = 79.8X
+     dilution
+   • Therefore we need to dilute 1.25 μL stock into 98.74 μL H₂O
+
+   💡 PRO TIP: Once a validated standard curve is obtained, make a small aliquot
+   of each standard (enough for 1 or 2 plates) and store at -20 °C. Once a
+   standard is thawed do not freeze it again but store at 4 °C and use within 1
+   week.
+
+   Keep track of the Ct value for each standard over time. They should remain
+   within 0.5 Ct of their initial value. If the Ct value of the standard starts
+   to drift, it's time to make a new one.
+
+   When developing the assay multiple plasmids containing ITR were tested.
+   Plasmid #59462 is one plasmid that gave reliable and consistent results. Use
+   the recommended plasmid, or test multiple plasmids to find a suitable one.
+
+   Some labs have reported better results when the plasmid is linearized.
+
+2. Treat the purified AAV samples with DNase I to eliminate any contaminating
+   plasmid DNA carried over from the production process (DNase does not penetrate
+   the virion).
+
+   • 5 μL sample + 39 μL H₂O + 5 μL 10X DNase buffer + 1 μL DNase
+   • Gently mix sample (do not vortex)
+   • Incubate 30 min at 37 °C
+   • Transfer to ice
+
+   ** Critical: do NOT treat your plasmid standard with DNase **
+
+3. Make 6 serial dilutions, in duplicate, of your standard curve plasmid (2 ×
+   10⁹ stock made in step #1):
+
+   Volume of 2 × 10⁹ stock | Volume of nuclease-free | Molecules per μL
+   or previous dilution   | water (uL)              |
+   (μL)                    |                         |
+   ------------------------|-------------------------|------------------
+   10                      | 90                      | 2 × 10⁸
+   10 of 2 × 10⁸ dilution  | 90                      | 2 × 10⁷
+   10 of 2 × 10⁷ dilution  | 90                      | 2 × 10⁶
+   10 of 2 × 10⁶ dilution  | 90                      | 2 × 10⁵
+   10 of 2 × 10⁵ dilution  | 90                      | 2 × 10⁴
+   10 of 2 × 10⁴ dilution  | 90                      | 2 × 10³
+
+   💡 PRO TIP: To help stabilize the standards add carrier DNA to a final
+   concentration of 4 ug/mL to each standard dilution.
+
+4. Dilute DNase-treated and AAV reference samples according to the dilution
+   scheme in the table below:
+
+   Dilution Series | Volume of sample | Volume of nuclease | Dilution | Total
+                   | (uL)             | free water (uL)    | factor   | dilution
+   ----------------|------------------|--------------------|----------|----------
+   Dilution 1      | 5 uL AAV stock   | 45 uL              | 10X      | 10X
+   (DNase step)    |                  |                    |          |
+   Dilution 2      | 5 uL Dil. 1     | 95 uL              | 20X      | 200X
+   Dilution 3      | 20 uL Dil. 2    | 80 uL              | 5X       | 1000X
+   Dilution 4      | 20 uL Dil. 3    | 80 uL              | 5X       | 5000X
+   Dilution 5      | 20 uL Dil. 4    | 80 uL              | 5X       | 25000X
+   Dilution 6      | 20 uL Dil. 5    | 80 uL              | 5X       | 125000X
+   Dilution 7      | 20 uL Dil. 6    | 80 uL              | 5X       | 625000X
+   Dilution 8      | 20 uL Dil. 7    | 80 uL              | 5X       | 3125000X
+
+   Dilutions highlighted in green are the ones loaded onto the qPCR plate for
+   most samples.
+
+   • If sample is expected to have a titer <1 × 10¹² GC/mL, use dilutions 3–6
+   • If sample is expected to have a titer >3 × 10¹³ GC/mL, use dilutions 5–8
+
+   Note: at Addgene, samples typically range from 1 × 10¹² GC/mL to >2 × 10¹³
+   GC/mL and we use an internal reference virus that is 1 × 10¹³ GC/mL. We
+   recommend always using a reference within 1-log of the expected titer.
+
+   💡 PRO TIPS:
+   • The quality of the sample dilution series is critical. Make sure to pipet
+     each dilution up and down at least 10 times, and use at least half of the
+     final volume (mix with >50 uL if your well contains 100 uL)
+   • Use a multichannel pipette to load the standards and samples onto the qPCR
+     plate
+
+5. Set up and load the 96-well plate:
+   • Load 5 μL of each standard in duplicate
+   • Load 5 μL of each sample in duplicate. Do not forget to include a no
+     template control (NTC = master mix + water).
+   • Add 15 μL of Master Mix per well and mix well by pipetting back and forth
+     at least 5 times.
+   • Seal plate with transparent film.
+   • Centrifuge at 3,000 rpm for 2 min to bring the sample to the bottom of the
+     tube.
+
+6. Run the following protocol in your qPCR instrument using SYBR detection:
+
+   98 °C 3 min / 98 °C 15 sec / 58 °C 30 sec / read plate/ repeat 39x from step
+   3 / melt curve
+
+7. Perform data analysis using the instrument's software. Determine the physical
+   titer of samples (viral genomes (vg)/mL) based on the standard curve and the
+   sample dilutions.
+
+   💡 PRO TIP: Make sure that the qPCR is valid by checking to the following:
+   • Standard curve: R² (coefficient of correlation) ~ 1.0, E (efficiency of PCR)
+     ~100% (90%–110% range is acceptable)
+   • Baseline removal: all samples will have some small amount of background
+     signal that is most evident during initial PCR cycles. This background
+     signal must be removed to accurately determine differences between samples.
+   • Melt curve analysis: a single peak should be seen. The presence of a second
+     peak at a temperature of ~70–75 °C usually indicates the presence of primer
+     dimers which can increase background signal and alter the Ct values of your
+     samples.
+   • Quality of your standard curve: you should observe differences in Ct values
+     that make sense for your dilutions (~3.3 difference Ct for a 10-fold dilution
+     is appropriate).
+   • Quality of duplicates: Exclude duplicates from analyses if there is more than
+     a 0.5 Ct difference between them.
+
+
+SAMPLE DATA
+================================================================================
+
+Example of a valid 8-point standard curve.
+
+Example of the amplification plots obtained from an AAV sample. Each curve
+represents a dilution.
+
+
+REFERENCES
+================================================================================
+
+Aurnhammer C, Haase M, Muether N, Hausl M, Rauschhuber C, Huber I, Nitschko H,
+Busch U, Sing A, Ehrhardt A, Baiker A. Universal real-time PCR for the detection
+and quantification of adeno-associated virus serotype 2-derived inverted
+terminal repeat sequences. Hum Gene Ther Methods. 2012 Feb;23(1):18-28. PMID:
+22428977

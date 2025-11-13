@@ -168,3 +168,138 @@ def get_protocol_details(protocol_id: int, timeout: int = 30) -> dict[str, Any]:
 
     except requests.exceptions.RequestException as e:
         raise requests.RequestException(f"Failed to get protocol details: {str(e)}") from e
+
+
+def _get_protocols_directory():
+    """Get the path to the local protocols directory."""
+    import biomni
+
+    return os.path.join(os.path.dirname(biomni.__file__), "tool", "protocols")
+
+
+def list_local_protocols(source: str | None = None) -> dict[str, Any]:
+    """
+    List available protocol files in the local biomni/tool/protocols/ directory.
+
+    Args:
+        source: Optional filter by source directory (e.g., 'addgene' or 'thermofisher').
+               If None, lists all protocols from all sources.
+
+    Returns:
+        Dictionary containing:
+            - protocols: List of protocol file information with name, source, and path
+            - total_count: Total number of protocols found
+            - sources: List of available source directories
+
+    Example:
+        >>> results = list_local_protocols()
+        >>> results = list_local_protocols(source="addgene")
+    """
+    protocols_dir = _get_protocols_directory()
+
+    if not os.path.exists(protocols_dir):
+        return {
+            "protocols": [],
+            "total_count": 0,
+            "sources": [],
+            "error": f"Protocols directory not found: {protocols_dir}",
+        }
+
+    protocols = []
+    sources = []
+
+    # Get all source directories
+    for item in os.listdir(protocols_dir):
+        item_path = os.path.join(protocols_dir, item)
+        if os.path.isdir(item_path):
+            sources.append(item)
+
+    # Filter by source if specified
+    search_dirs = [source] if source and source in sources else sources
+
+    # List all protocol files
+    for source_dir in search_dirs:
+        source_path = os.path.join(protocols_dir, source_dir)
+        if os.path.isdir(source_path):
+            for filename in os.listdir(source_path):
+                if filename.endswith(".txt"):
+                    file_path = os.path.join(source_path, filename)
+                    protocols.append(
+                        {
+                            "name": filename,
+                            "source": source_dir,
+                            "path": file_path,
+                            "relative_path": os.path.join(source_dir, filename),
+                        }
+                    )
+
+    return {
+        "protocols": sorted(protocols, key=lambda x: (x["source"], x["name"])),
+        "total_count": len(protocols),
+        "sources": sorted(sources),
+    }
+
+
+def read_local_protocol(filename: str, source: str | None = None) -> dict[str, Any]:
+    """
+    Read the contents of a local protocol file from biomni/tool/protocols/.
+
+    Args:
+        filename: Name of the protocol file (e.g., 'Addgene_ Protocol - How to Run an Agarose Gel.txt')
+        source: Optional source directory (e.g., 'addgene' or 'thermofisher').
+               If None, searches all source directories.
+
+    Returns:
+        Dictionary containing:
+            - content: Full text content of the protocol file
+            - filename: Name of the file
+            - source: Source directory where the file was found
+            - path: Full path to the file
+
+    Raises:
+        FileNotFoundError: If the protocol file is not found
+        ValueError: If filename is empty
+
+    Example:
+        >>> protocol = read_local_protocol("Addgene_ Protocol - How to Run an Agarose Gel.txt", source="addgene")
+        >>> print(protocol["content"])
+    """
+    if not filename or not filename.strip():
+        raise ValueError("Filename cannot be empty")
+
+    filename = filename.strip()
+    protocols_dir = _get_protocols_directory()
+
+    if not os.path.exists(protocols_dir):
+        raise FileNotFoundError(f"Protocols directory not found: {protocols_dir}")
+
+    # If source is specified, only search that directory
+    if source:
+        file_path = os.path.join(protocols_dir, source, filename)
+        if os.path.exists(file_path):
+            with open(file_path, encoding="utf-8") as f:
+                content = f.read()
+            return {
+                "content": content,
+                "filename": filename,
+                "source": source,
+                "path": file_path,
+            }
+        raise FileNotFoundError(f"Protocol file not found: {source}/{filename}")
+
+    # Otherwise, search all source directories
+    for source_dir in os.listdir(protocols_dir):
+        source_path = os.path.join(protocols_dir, source_dir)
+        if os.path.isdir(source_path):
+            file_path = os.path.join(source_path, filename)
+            if os.path.exists(file_path):
+                with open(file_path, encoding="utf-8") as f:
+                    content = f.read()
+                return {
+                    "content": content,
+                    "filename": filename,
+                    "source": source_dir,
+                    "path": file_path,
+                }
+
+    raise FileNotFoundError(f"Protocol file not found in any source directory: {filename}")

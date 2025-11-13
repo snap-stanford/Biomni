@@ -1,0 +1,229 @@
+PROTOCOL: Actin Staining Protocol
+SOURCE: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/microscopy-protocol/actin-staining-protocol.html
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+We offer several fluorescent and biotinylated phalloidin and phallacidin derivatives
+for labeling F-actin. These phallotoxins, isolated from the deadly Amanita phalloides
+mushroom, are bicyclic peptides that differ by two amino acid residues. They can be
+used interchangeably in most applications and bind competitively to the same sites in
+F-actin. Phalloidin and phallacidin contain an unusual thioether bridge between a
+cysteine and tryptophan residue that forms an inner ring structure. At elevated pH,
+this thioether is cleaved and the toxin loses its affinity for actin.
+
+Fluorescent and biotinylated phallotoxins stain F-actin at nanomolar concentrations
+and are extremely water soluble, thus providing convenient probes for labeling,
+identifying, and quantitating F-actin in tissue sections, cell cultures, or cell-free
+experiments. Labeled phallotoxins have similar affinity for both large and small
+filaments, binding in a stoichiometric ratio of about one phallotoxin molecule per
+actin subunit in muscle and nonmuscle cells from many different species of plants and
+animals. Unlike antibodies, the binding affinity does not change appreciably with
+actin from different species or sources. Nonspecific staining is negligible, and the
+contrast between stained and unstained areas is extremely large. It has been reported
+that phallotoxins are unable to bind to monomeric G-actin.
+
+Phallotoxins shift the monomer/polymer equilibrium toward the polymer, lowering the
+critical concentration for polymerization up to 30-fold. Phallotoxins also stabilize
+F-actin, inhibiting depolymerization by cytochalasins, potassium iodide, and elevated
+temperatures.
+
+Because the phallotoxin conjugates are small, with an approximate diameter of 12–15 Å
+and molecular weight of <2000 daltons, a variety of actin-binding proteins—including
+myosin, tropomyosin, troponin, and DNase I—can still bind to actin after treatment
+with phallotoxins. Even more significantly, phallotoxin-labeled actin filaments
+remain functional; labeled glycerinated muscle fibers still contract, and labeled
+actin filaments still move on solid-phase myosin substrates.
+
+Fluorescent phallotoxins can also be used to quantitate the amount of F-actin in
+cells. The unlabeled phallotoxins may be used as controls in blocking F-actin
+staining or in promoting actin polymerization. Our biotin-XX phalloidin allows
+researchers to visualize actin filaments by electron microscopy using standard
+enzyme-mediated avidin/streptavidin techniques. Eosin phalloidin can potentially be
+used for correlated fluorescence and electron microscopic studies. Deerinck and
+co-workers reported that when eosin conjugates are excited in the presence of
+diaminobenzidine (DAB), an insoluble, electron-dense DAB oxidation product is formed
+that is easily visualized with either light or electron microscopy.
+
+Even though phallotoxins have an LD50 of approximately 2 mg/kg when injected into
+the mouse, the toxins of A. phalloides that are responsible for most of the symptoms
+and fatalities associated with poisoning by this mushroom are the structurally related
+amatoxins. The major in vivo lesions produced by injected phallotoxin occur in the
+liver and are associated with stabilization of polymeric actin. Phallotoxins, however,
+tend not to be absorbed by the gastrointestinal tract even though they are stable
+between pH 3 and pH 9.
+
+
+MATERIALS
+================================================================================
+
+Storage and Safety
+
+Once reconstituted in methanol, the stock solutions are stable for at least one year
+when stored frozen at –20°C, desiccated, and protected from light. It appears that
+NBD phallacidin, and possibly all of these toxins, exhibit a small loss of activity
+when stored in aqueous solution at 2–6°C for over three weeks.
+
+While the amount of toxin present in a vial could be lethal only to a mosquito (LD50
+of phalloidin = 2 mg/kg), it should be handled with care.
+
+Materials Required but Not Provided
+
+• Methanol
+• PBS
+• Methanol-free formaldehyde
+• Acetone or Triton X-100
+• Fluorescent or enzyme-conjugated streptavidin, as prepared in step 1.9, for use
+  with biotin-XX phalloidin only
+• BSA, optional
+• Image-iT FX Signal Enhancer (I36933), optional
+• lysopalmitoylphosphatidylcholine, optional
+
+Preparing the Stock Solution
+
+Fluorescent Phallotoxins
+
+The vial contents should be dissolved in 1.5 mL methanol to yield a final
+concentration of 200 units/mL, which is equivalent to approximately 6.6 µM. One unit
+of phallotoxin is defined as the amount of material used to stain one microscope
+slide of fixed cells, according to the following protocol (see step 1.6), and is
+equivalent to 5 µL of methanolic stock solution for the fluorescent phallotoxins.
+
+Biotin-XX Phalloidin
+
+Staining cells with biotin-XX phalloidin (B7474) requires 1) the use of a higher
+concentration of the phallotoxin conjugate than when staining with fluorescent
+phallotoxins and 2) the addition of a fluorescent or enzyme-conjugated avidin or
+streptavidin detection reagent (see step 1.9). The vial contents should be dissolved
+in 0.5 mL methanol to yield a final concentration of 100 units/mL, which is
+equivalent to approximately 20 µM. For biotin-XX phalloidin, 10 µL of the
+methanolic stock solution is equivalent to one unit of phallotoxin, which is defined
+as the amount of material used to stain one microscope slide of fixed cells
+according to the following protocol (see step 1.6).
+
+Unlabeled Phalloidin
+
+Solutions of this product should be prepared just like the fluorescent phallotoxins
+described in Fluorescent Phallotoxins, taking into account the larger quantity of
+material provided.
+
+
+PROTOCOL
+================================================================================
+
+The procedure below was originally developed for use with NBD phallacidin. It has
+been successfully used with all of Invitrogen Molecular Probes phallotoxin
+conjugates. This procedure may not be optimum for a particular experimental system,
+but has yielded consistent results in most instances. The following protocol
+describes the staining procedure for adherent cells grown on glass coverslips.
+
+1. Formaldehyde-Fixed Cells
+
+   1.1. Wash cells twice with prewarmed phosphate-buffered saline, pH 7.4 (PBS).
+
+   1.2. Fix the sample in 3.7% formaldehyde solution in PBS for 10 minutes at room
+        temperature.
+
+        Note: Methanol can disrupt actin during the fixation process. Therefore,
+        it is best to avoid any methanol containing fixatives. The preferred
+        fixative is methanol-free formaldehyde.
+
+   1.3. Wash two or more times with PBS.
+
+   1.4. Place each coverslip in a glass petri dish and extract it with a solution
+        of acetone at –20°C or 0.1% Triton X-100 in PBS for 3 to 5 minutes.
+
+   1.5. Wash two or more times with PBS.
+
+   1.6. When staining with any of the fluorescent phallotoxins, dilute 5 µL
+        methanolic stock solution into 200 µL PBS for each coverslip to be
+        stained. To reduce nonspecific background staining with these conjugates,
+        add 1% bovine serum albumin (BSA) to the staining solution. It may also be
+        useful to pre-incubate fixed cells with PBS containing 1% BSA or with the
+        Image-iT FX signal enhancer (I36933) for 20–30 minutes prior to adding
+        the phallotoxin staining solution. When staining with biotin-XX phalloidin
+        (B7474), dilute 10 µL of the methanolic stock solution into 200 µL PBS
+        for each coverslip to be stained. When staining more than one coverslip,
+        adjust volumes accordingly. For a stronger signal, use 2 or 3 units per
+        coverslip.
+
+   1.7. Place the staining solution on the coverslip for 20 minutes at room
+        temperature (generally, any temperature between 4°C and 37°C is suitable).
+        To avoid evaporation, keep the coverslips inside a covered container
+        during the incubation.
+
+   1.8. Wash two or more times with PBS.
+
+   1.9. When using biotin-XX phalloidin, incubate for 30 minutes with 100 µL of a
+        10 µg/mL solution of fluorescent or enzyme-conjugated streptavidin
+        dissolved in 100 mM Tris-HCl, pH 7.5, 150 mM NaCl, 0.3% Triton X-100 and
+        1% BSA. Incubate for 15 minutes at room temperature. After incubation,
+        wash the coverslip with PBS. To develop enzyme activity, follow a
+        procedure recommended for the specific enzyme.
+
+   1.10. For long-term storage, the cells should be air dried and then mounted in a
+         permanent mountant such as ProLong Gold reagent or Cytoseal. Specimens
+         prepared in this manner retain actin staining for at least six months
+         when stored in the dark at 2–6°C.
+
+2. Simultaneous Fixation, Permeabilization, and Fluorescent Phallotoxin Staining
+
+   The phallotoxins appear to be stable for short periods in 4% formaldehyde
+   fixation buffers. This permits a rapid one-step fixation, permeabilization,
+   and labeling procedure as follows.
+
+   2.1. Prepare a 1 mL solution containing 50 to 100 µg/mL
+        lysopalmitoylphosphatidylcholine and 3.7% formaldehyde and then add 5–10
+        units of fluorescent phallotoxin (approximately 25 to 50 µL of methanolic
+        stock solution).
+
+   2.2. Place this staining solution on cells and incubate for 20 minutes at 4°C.
+
+   2.3. Rapidly wash three times with buffer.
+
+   2.4. Mount coverslips and view.
+
+
+TIPS FOR FLUORESCENCE MICROSCOPY
+================================================================================
+
+Photostability or resistance to photobleaching is a primary concern when making
+fluorescence measurements. Invitrogen brand product lines such as Alexa Fluor,
+Oregon Green, BODIPY, and rhodamine fluorophores (including Texas Red™-X) are
+significantly more photostable than NBD and fluorescein and will therefore enable
+more accurate photographic measurements.
+
+To further reduce photobleaching, minimize the exposure of fluorescently labeled
+specimens to light with neutral density filters and expose samples only when
+observing or recording a signal. Maximize collection of fluorescence by using a
+minimum of optics, high–numerical aperture objectives, relatively low magnification,
+high-quality optical filters, and high-speed film or high-efficiency detectors.
+
+Invitrogen Antifade reagents, including Molecular Probes SlowFade Gold and ProLong
+Gold antifade reagents, can extend the useful lives of many fluorescent probes.
+These reagents are also available in a formulation with DAPI. They can be used on
+fixed cell preparations but are not compatible with living cells. Cytoseal also
+appears to protect BODIPY fluorophores from photobleaching.
+
+
+REFERENCES
+================================================================================
+
+1. Wieland, T. in Phallotoxins, Springer-Verlag, New York (1986).
+2. J Muscle Res Cell Motil 9, 370 (1988).
+3. Methods Enzymol 85, 514 (1982).
+4. Eur J Biochem 165, 125 (1987).
+5. J Cell Biol 105, 1473 (1987).
+6. Nature 326, 805 (1987).
+7. Proc Natl Acad Sci USA 83, 6272 (1986).
+8. Blood 69, 945 (1987).
+9. Anal Biochem 200, 199 (1992).
+10. J Cell Biol 126, 901 (1994).
+11. Proc Natl Acad Sci USA 77, 980 (1980).
+12. Nature 284, 405 (1980).
+13. CRC Crit Rev Biochem 5, 185 (1978).
+14. J Cell Biol 106, 1229 (1988).
+15. J Cell Biol 103, 265a (1986).
+16. Eur J Cell Biol 24, 176 (1981).
+17. Proc Natl Acad Sci USA 74, 5613 (1977).

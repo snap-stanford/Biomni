@@ -1,0 +1,280 @@
+PROTOCOL: Antibody Validation Using the Indirect ELISA Method
+SOURCE: https://www.addgene.org/protocols/ab-validation-indirect-elisa/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+This protocol describes how to run an indirect Enzyme-Linked ImmunoSorbent Assay
+(ELISA) against a purified antigen to validate an antibody. This protocol will
+describe how to create a standard curve using known concentrations of the antigen
+and how to probe with an antibody against the target to show a dose response.
+
+
+GENERAL CONSIDERATIONS
+================================================================================
+
+The ELISA can be completed in a single day or broken up over several days by
+incubating certain steps at 4 °C instead of room temperature or 37 °C. The
+protocol notes when there are different incubation options available.
+
+Caution: Use the Stop Solution in a well ventilated area and avoid breathing in
+the vapors.
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+Day 1: Antigen Coating
+
+Day 2: Blocking
+
+Day 3: Primary antibody incubation
+
+Day 4: Secondary antibody incubation and plate read
+
+
+EQUIPMENT
+================================================================================
+
+• Spectrophotometer compatible with 96-well plates
+• 1–10 µL single channel pipette
+• 2–20 µL single channel pipette
+• 20–200 µL single channel pipette
+• 200–1000 µL single channel pipette
+• 20–200 µL multichannel pipette
+• Multichannel pipette reagent reservoirs
+• Pipette controller
+• Microcentrifuge
+• Microplate shaker
+• ELISA plate washer (optional)
+• Scale
+• Microsoft Excel or similar software
+
+
+REAGENTS
+================================================================================
+
+• Purified antigen
+• Purified recombinant antibody
+• Isotype control antibody
+• HRP-conjugated isotype-specific secondary antibody
+• ELISA 96-well microplate, Corning 9018
+• Bovine serum albumin (BSA), VWR 10273-264
+• 50 mL conical tubes, VWR 89039-656
+• 96-well polyester (clear) microplate seal, Thermo Scientific 5701
+• Microcentrifuge tubes, Neptune 3745.X
+• Pipette tips, 1000 µL, VWR 76322-154
+• Pipette tips, 10 µL, VWR 76322-132
+• Pipette tips, 200 µL, VWR 76322-150
+• Pipette tips, 20 µL, VWR 76322-134
+• Pipettes, 10 mL, VWR 89130-898
+• 1 L polystyrene bottle, Corning 430518
+• PBS, 1X pH 7.4, VWR 45000-446
+• TMB (3,3',5,5'-tetramethyl-[1,1'-biphenyl]-4,4'-diamine) substrate kit, Pierce
+  34021
+• Tween-20, VWR 0777-1L
+• Foil
+
+
+BEFORE STARTING
+================================================================================
+
+Warm reagents to room temperature.
+
+
+PROCEDURE
+================================================================================
+
+Section 1: Prepare the Antigen Standard and coat the plate
+
+1. Dilute purified antigen to 20 ng/µL in a microfuge tube and vortex.
+
+   💡 PRO TIP: You may need to try a few different concentrations of antigen to
+   determine the ideal concentration.
+
+2. Prepare serial dilutions of the purified antigen as follows:
+   • 2 ng/µL: Add 100 µL of 20 ng/µL stock into 900 µL PBS in a microfuge tube
+     and vortex.
+   • 1 ng/µL: Add 450 µL of 2 ng/µL stock into 450 uL PBS in a microfuge tube and
+     vortex.
+   • 0.5 ng/µL: Add 450 µL of 1 ng/µL stock into 450 µL PBS in a microfuge tube
+     and vortex.
+   • 0.25 ng/µL: Add 450 µL of 0.5 ng/µL stock into 450 µL PBS in a microfuge tube
+     and vortex.
+   • 0.125 ng/µL: Add 450 µL of 0.25 ng/µL stock into 450 µL PBS in a microfuge
+     tube and vortex.
+   • 0 ng/µL: 450 µL PBS only.
+
+3. Pipette 50 µL into the first three wells of each row, using a different
+   standard solution for each row of a 96-well ELISA microplate.
+
+4. Cover the plate with a 96-well plate seal and incubate at 37 °C for 30 min,
+   or overnight at 4 °C.
+
+Section 2: Block the plate
+
+1. Prepare the wash buffer (0.05% Tween-20 in PBS) as follows:
+   • Pipette 0.5 mL of Tween-20 to into 999.5 mL 1X PBS
+   • Cap the bottle and invert several times to mix.
+
+2. Carefully remove the plate seal from the 96-well plate and set aside.
+
+3. Aspirate the wells and use a multichannel pipette to add 200 µL wash buffer to
+   each well. Washing can be done by hand but if available, use an automated ELISA
+   plate washer.
+
+4. Seal the plate.
+
+5. Place the plate on a microplate shaker set at 400 rpm and shake for 1 min.
+
+6. Repeat steps 3–5 twice for a total of three washes.
+
+7. After the final wash, aspirate the wash buffer from the wells.
+
+8. Prepare the blocking buffer (1% BSA in PBS) as follows:
+   • Add 250 mg of BSA to 25 mL of PBS.
+   • Cap the tube and invert several times to mix.
+
+9. Using a multichannel pipette, add 200 µL of blocking buffer to each well.
+
+10. Cover the plate with a plate seal and incubate on a microplate shaker set to
+    400 rpm for 2 h at room temperature or overnight at 4 °C.
+
+Section 3: Primary antibody incubation
+
+1. Carefully remove the plate seal from the 96-well plate and set aside.
+
+2. Aspirate the wells and use a multichannel pipette to add 200 µL wash buffer to
+   each well. Washing can be done by hand but if available, use an automated ELISA
+   plate washer.
+
+3. Seal the plate.
+
+4. Place the plate on a microplate shaker set at 400 rpm and shake for 1 min.
+
+5. Repeat steps 2–4 twice for a total of three washes.
+
+6. After the final wash, aspirate the wash buffer from the wells.
+
+7. Prepare antibody dilution buffer (0.1% BSA in PBS) as follows:
+   • Dilute 50 mg BSA into 50 mL PBS.
+   • Cap the tube and invert several times to mix.
+
+8. Dilute the primary antibody and an isotype control antibody to the desired
+   concentrations in the antibody dilution buffer.
+
+   💡 PRO TIP: The ideal antibody concentration will vary and needs to be
+   empirically determined. We suggest starting with three concentrations between
+   1–10 µg/mL.
+
+9. Cap and invert the tubes several times to mix.
+
+10. Using a multichannel pipette, add 100 µL of primary antibody solution to the
+    appropriate wells.
+
+11. Cover the plate with a plate seal and incubate on a microplate shaker set to
+    400 rpm for 2 h at room temperature or overnight at 4 °C.
+
+Section 4: Secondary antibody incubation
+
+1. Carefully remove the plate seal from the 96-well plate and set aside.
+
+2. Aspirate the wells and use a multichannel pipette to add 200 µL wash buffer to
+   each well. Washing can be done by hand but if available, use an automated ELISA
+   plate washer.
+
+3. Seal the plate.
+
+4. Place the plate on a microplate shaker set at 400 rpm and shake for 1 min.
+
+5. Repeat steps 2–4 twice for a total of three washes.
+
+6. After the final wash, aspirate the wash buffer from the wells.
+
+7. Dilute the HRP-conjugated isotype-specific secondary antibody to the desired
+   concentrations in the antibody dilution buffer.
+
+8. Cap and invert the tube several times to mix.
+
+9. Using a multichannel pipette, add 100 µL of secondary antibody to each well.
+
+10. Cover the plate with a plate seal and incubate on a microplate shaker set to
+    400 rpm for 2 h at room temperature or overnight at 4 °C.
+
+Section 5: TMB reaction
+
+1. Carefully remove the plate seal from the 96-well plate and set aside.
+
+2. Aspirate the wells and use a multichannel pipette to add 200 µL wash buffer to
+   each well. Washing can be done by hand but if available, use an automated ELISA
+   plate washer.
+
+3. Seal the plate.
+
+4. Place the plate on a microplate shaker set at 400 rpm and shake for 1 min.
+
+5. Repeat steps 2–4 twice for a total of three washes.
+
+6. After the final wash, aspirate the wash buffer from the wells.
+
+7. Immediately before use, mix 5 mL TMB Solution and 5 mL Peroxide Solution from
+   the TMB substrate kit.
+
+8. Cap the tube and invert several times to mix.
+
+9. Using a multichannel pipette, add 100 µL of the TMB/Peroxide mix to each well.
+
+10. Cover the plate with a plate seal and wrap in foil.
+
+11. Incubate plate at room temperature on a microplate shaker set at 400 rpm for
+    15–30 min.
+
+    💡 PRO TIP: Check the plate periodically to determine when the desired color
+    change has occurred. The color will change from yellow to blue and generally
+    takes between 15 to 30 min. High concentrations of HRP yield a greenish
+    solution. Stop the reaction before any wells display a green product. A
+    precipitated product indicates the presence of too much HRP and the need to
+    optimize experimental conditions.
+
+12. When the desired color change has occurred, gently remove the plate seal.
+
+13. Using a multichannel pipette, add 100 µL of TMB Stop Solution directly to the
+    wells to stop the reaction.
+
+14. Measure the absorbance of each well at 450 nm on the spectrophotometer. Use the
+    spectrophotometer to generate a standard curve. If you don't see any color
+    change or dose response, your antibody concentration may have been too low. In
+    this case, use higher antibody concentrations. If the reaction is saturated and
+    you don't see any dose response, your antibody concentration may have been too
+    high. In this case, use lower antibody concentrations. The ideal range of the
+    standard curve will vary between targets and needs to be empirically determined.
+    The dilution series created in section 1, step 2 is a suggested starting point.
+    If your unknown sample's absorbance falls above the range of the standard curve
+    you will need to either include higher concentrations in the standard curve or
+    dilute the unknown sample (don't forget to factor in that dilution when
+    calculating the original sample concentration!).
+
+
+TIPS AND TROUBLESHOOTING
+================================================================================
+
+• The optimal concentration of primary antibody to use will vary and needs to be
+  empirically determined. If possible, run an initial test with serially diluted
+  primary antibody and determine the best concentration for your assay.
+
+• Washing steps can be done by hand but if available, use an automated ELISA plate
+  washer.
+
+
+SAMPLE DATA
+================================================================================
+
+The plate was coated with serial dilutions of human recombinant purified Desmin
+(blue) or a negative control protein, Apolipoprotein L3 (red) overnight,
+blocked, and incubated overnight with Anti-Desmin [D7]. Plates were incubated with
+HRP-linked anti-Human IgG secondary antibody for 2 hours, reacted with TMB
+substrate and the reaction stopped after 15 minutes. Absorbance was read at 450 nm
+and plotted against the micrograms of antigen loaded.
+
+Last reviewed on: October 8, 2024

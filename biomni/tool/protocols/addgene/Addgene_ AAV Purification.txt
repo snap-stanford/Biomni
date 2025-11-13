@@ -1,0 +1,244 @@
+PROTOCOL: AAV Purification
+SOURCE: https://www.addgene.org/protocols/aav-purification-iodixanol-gradient-ultracentrifugation/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+This protocol can be used to purify AAV of any serotype.
+
+In medicine, iodixanol can be used as an intravenous isomolar contrast agent. In
+research, iodixanol is used as an isomolar density gradient medium suitable for
+virus purification and isolation of cells, organelles, lipoproteins, and
+macromolecules. Importantly, iodixanol is inert and non-toxic to mammalian cells.
+Therefore, and unlike other density gradient media, it is reportedly not
+necessary to remove iodixanol prior to use of your purified virus. Nonetheless,
+we recommend performing a buffer exchange before using the purified AAV in vivo.
+
+The iodixanol gradient in this protocol is composed of steps that separate out
+contaminants from an impure AAV preparation. The 15% iodixanol step has 1M NaCl to
+destabilize ionic interactions between macromolecules. The 40% and 25% steps are
+used to remove contaminants with lower densities, including empty capsids. The 60%
+step serves as a cushion for genome-containing virions. Phenol red is added to
+clearly distinguish the steps. This method will help enrich the prep with full
+(genome containing) particles. On average, iodixanol-purified AAV preparations
+contain ~20% empty particles.
+
+60% iodixanol solution is available under the name OptiPrep from Sigma-Aldrich.
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+Day 1: Purify
+
+Day 2: Buffer exchange and concentration
+
+Note: Both steps could be completed in one (long) day.
+
+
+EQUIPMENT
+================================================================================
+
+• Ultracentrifuge
+• T70i rotor or equivalent
+
+
+REAGENTS
+================================================================================
+
+• Opti-Prep (60% Iodixanol)
+• QuickSeal tubes
+• QuickSeal tube spacers
+• 16 ga needle
+• 18 ga needle
+• 10 mL syringe
+• 18 ga blunt edge needles, Hamilton
+• 1X PBS pH 7.4
+• 1X PBS-MK buffer
+• 100X Poloxamer 188
+• NaCl
+• MgCl₂
+• KCl
+• Centrifugal filter units (MWCO 100 kDa)
+
+
+REAGENT PREPARATION
+================================================================================
+
+1 M NaCl/PBS-MK buffer:
+
+Dissolve 5.84 g of NaCl, 26.3 mg of MgCl₂ and 14.91 mg of KCl in 1× PBS in a
+final volume of 100 mL. Sterilize by passing through a 0.22 μm filter and store
+at 4 °C.
+
+1X PBS-MK buffer:
+
+Dissolve 26.3 mg of MgCl₂, and 14.91 mg of KCl in 1× PBS in a final volume of
+100 mL. Sterilize by passing through a 0.22 μm filter and store at 4 °C.
+
+0.1% Poloxamer 188 in PBS (A):
+
+Add 500 µL of 10% Poloxamer 188 to 49.5 mL PBS
+
+0.01% Poloxamer 188 in PBS (B):
+
+Add 5 mL of Buffer A to 45 mL PBS
+
+0.001% Poloxamer 188 in PBS + 200 mM NaCl (C) (formulation buffer):
+
+Add 5 mL of Buffer B and 2 mL of 5 M NaCl to 43 mL PBS
+
+
+PROCEDURE
+================================================================================
+
+Preparation and loading of the iodixanol gradient:
+
+1. Prepare the gradient steps:
+   • 15% iodixanol step: mix 4.5 mL of 60% iodixanol and 13.5 mL of 1 M
+     NaCl/PBS-MK buffer
+   • 25% iodixanol step: mix 5 mL of 60% iodixanol and 7 mL of 1X PBS-MK buffer
+     and 30 μL of phenol red
+   • 40% iodixanol step: mix 6.7 mL of 60% iodixanol and 3.3 mL of 1X PBS-MK
+     buffer
+   • 60% iodixanol step: mix 10 mL of 60% iodixanol and 45 μL of phenol red
+
+2. Underlay each solution into a QuickSeal tube in the order below using a 10 mL
+   syringe and a blunt edge 18 ga Hamilton needle, taking care to avoid bubbles:
+   • 8 mL of 15% iodixanol step
+   • 5 mL of 25% iodixanol step
+   • 5 mL of 40% iodixanol step
+   • 3 mL of 60% iodixanol step
+
+3. Carefully add up to 5 mL of clarified supernatant on top of the gradient. Use
+   1X PBS (or formulation buffer) to top off the tube.
+
+4. Seal the QuickSeal tubes.
+
+5. Centrifuge at 350,000 x g for 90 min in a T70i rotor at 10 °C.
+
+   💡 PRO TIP: If you need more time, you can alternatively centrifuge for 2 h at
+   200,000 x g at 18 °C.
+
+6. Carefully take the QuickSeal tubes out of the rotor and place them in a stable
+   rack.
+
+   **Make sure not to disturb the gradient!**
+
+Collect Fractions
+
+Option #1:
+
+1. Prepare a row of roughly 20 open 1.5 mL microcentrifuge tubes in a rack.
+   These will be used to collect fractions from the gradient. You can collect fewer
+   fractions once you have a good idea when the virus elutes from the gradients.
+
+2. In a biosafety cabinet, carefully puncture the QuickSeal tube at the interface
+   of the 60% and 40% gradient (see Figure 2) with an 18 ga needle.
+
+3. Place the first microcentrifuge tube under the needle's opening to collect the
+   fractions.
+
+4. Puncture the top of the QuickSeal tube with a 16 ga needle and start
+   collecting 0.5 mL to 1 mL fractions per tube.
+
+5. Avoid the proteinaceous material near the 40–25% interface.
+
+   💡 PRO TIP: As soon as the top of the tube is punctured, AAV-containing
+   Iodixanol solution will flow from the needle set at the 40–60% interface.
+   Make sure that the microcentrifuge tubes are well positioned to collect the
+   solution, or you will lose a significant amount of your virus. When the first
+   fraction is collected, move the rack to the next empty tube to collect the next
+   fraction. The flow will be rapid at first and will progressively slow down.
+
+Option #2:
+
+1. Puncture the QuickSeal tube at the bottom using an 18 ga needle.
+
+2. Immediately start collecting 0.5 to 1 mL fractions in microcentrifuge tubes.
+
+3. Repeat for each QuickSeal tube.
+
+4. The first 3 mL collected corresponds to the 60% phase and can be discarded.
+
+5. The fractions obtained from the 40% phase contain the purified AAV.
+
+Option #3:
+
+1. Puncture the QuickSeal tube slightly below the 60–40% interface with an 18 ga
+   needle attached to a 10 mL syringe.
+
+2. The bevel of the needle should be up, facing the 40% step.
+
+3. Collect up to 5 mL per tube, taking care to avoid collecting the
+   proteinaceous material at the 40–25% interface.
+
+4. Repeat for each QuickSeal tube.
+
+5. (Optional) For first time users, it is a good idea to assay each fraction by
+   silver stain or SYPRO Ruby stain to determine purity. Only the cleanest
+   fractions should be kept and pooled for dialysis.
+
+6. Pool clean fractions.
+
+Concentration and buffer exchange:
+
+Stocks of Poloxamer 188:
+• Poloxamer 188, 10% solution
+• A: 0.1% in PBS: 49.5 mL PBS + 500 µl Poloxamer 188
+• B: 0.01% in PBS: 45 mL PBS + 5 ml A
+• C: 0.001% in PBS: 45 mL PBS + 5 ml B + 200 mM NaCl
+
+Procedure:
+
+1. Cover the filter membrane with 15 mL of 0.1% Poloxamer 188 PBS and incubate
+   for 10 min at RT
+
+2. Spin at 3000 rpm for 5 min at 4 °C and discard the flow through.
+
+3. Add 15 mL of 0.01% Poloxamer 188 PBS and incubate for 10 min at RT.
+
+4. Spin at 3000 rpm for 5 min at 4 °C and discard the flow through.
+
+5. Add 15 mL of 0.001% Poloxamer 188 + 200mM NaCl PBS.
+
+6. Spin at 3000 rpm for 5 min at 4 °C and discard the flow through.
+
+7. Add your sample.
+
+8. Spin at 3500 rpm for 5–8 min at 4 °C, discard the flow through.
+
+9. Add more sample and spin 3500 rpm for 2–5 min at 4 °C, discard the flow
+   through.
+
+10. Repeat this step as needed.
+
+    Please note that iodixanol is not easily removed. After each spin, add more
+    formulation buffer and sample and make sure to pipet back and forth a few
+    times to mix the iodixanol that has settled at the bottom of the column.
+
+11. We recommend concentrating to a minimum of 500 µL. If the concentrate volume
+    is less than 500 µL, bring up the volume with formulation buffer.
+
+12. Use a P1000 to the bottom of the filter and pipette up/down and wash off the
+    walls of the filter to recover as much virus as possible.
+
+13. Store at 4 °C for short term (2 weeks), or aliquot and store at -80 °C for
+    long term.
+
+
+SAMPLE DATA
+================================================================================
+
+Iodixanol gradient before ultracentrifugation. The steps are clearly
+distinguishable thanks to the use of phenol red.
+
+Iodixanol gradient after ultracentrifugation. The arrow indicates the 60–40%
+interface. The vertical black line indicates the location of the purified AAV.
+
+Example of an SDS-PAGE gel of 10 consecutive gradient fractions followed by
+silver stain. Note the increased number of contaminants in each fraction. * AAV
+capsid proteins VP1, VP2, VP3; M protein marker.
+
+Last reviewed on: November 7, 2023

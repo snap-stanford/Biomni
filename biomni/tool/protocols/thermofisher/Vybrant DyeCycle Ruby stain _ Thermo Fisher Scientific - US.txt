@@ -1,0 +1,88 @@
+PROTOCOL: Vybrant DyeCycle Ruby stain
+SOURCE: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/flow-cytometry-protocol/cell-cycle-analysis/vybrant-dyecycle-ruby-stain.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Live cell studies of cellular DNA content and cell cycle distribution are useful to detect variations of growth patterns due to a variety of physical, chemical, or biological means, to monitor apoptosis, and study tumor behavior and suppressor gene mechanisms. In a given population, cells are distributed among three major phases of cell cycle: G0/G1 phase (one set of paired chromosomes per cell), S phase (DNA synthesis with variable amount of DNA), and G2/M phase (two sets of paired chromosomes per cell, prior to cell division).
+
+DNA content can be measured using fluorescent, DNA-selective stains that exhibit emission signals proportional to DNA mass. Flow cytometric analysis of these stained cell populations is then used to produce a frequency histogram that reveals various phases of the cell cycle. This analysis is typically performed on permeabilized or fixed cells using a cell-impermeant nucleic acid stain, but is also possible using live cells and a cell-permeant nucleic acid stain. While the choices for fixed cell staining are varied, there are only a few examples of useful cell-permeant nucleic acid stains.
+
+The Vybrant™ DyeCycle™ Ruby stain from Invitrogen offers near-infrared emission for DNA content analysis in living cells. The Vybrant DyeCycle Ruby stain is cell membrane permeant, DNA-selective, and essentially nonfluorescent until bound to double-stranded DNA. This stain takes advantage of the commonly available 488 nm and 633/5 nm excitation sources with emission >670 nm, placing cell cycle studies within reach of all flow cytometrists. Vybrant DyeCycle Ruby stain may also be used with any excitation source from 488 nm through to 690 nm wavelengths. Staining protocol is simple; the suspended cells are incubated in the presence of Vybrant DyeCycle Ruby stain and fluorescence is measured directly—no additional treatment or centrifugation is required. The Vybrant DyeCycle Ruby stain allows simultaneous co-staining of the cell population for other parameters and offers the possibility of cell sorting based on DNA content.
+
+SPECTRAL CHARACTERISTICS
+================================================================================
+
+The Vybrant DyeCycle Ruby stain/DNA complex has fluorescence excitation and emission maxima of 638 nm and 686 nm, respectively.
+
+MATERIALS PROVIDED
+================================================================================
+
+Table 1. Contents and storage information.
+
+Material                    | Amount | Concentration              | Storage* | Stability
+----------------------------|--------|----------------------------|----------|----------
+Vybrant DyeCycle Ruby stain | 400 μL (V10273) or 100 μL (V10309) | 2.5 mM solution in DMSO | ≤–20°C Desiccate Protect from light | When stored as directed, this kit is stable for at least 1 year.
+
+Number of assays: Sufficient material is supplied for 400 assays (Cat. no. V10273) or 100 assays (Cat. no. V10309) based on the protocol below.
+
+Approximate fluorescence excitation/emission maxima: Vybrant DyeCycle Ruby stain: 638/686 in nm, bound to DNA.
+
+MATERIALS REQUIRED BUT NOT PROVIDED
+================================================================================
+
+• Cells and culture medium or Hanks' Balanced Salt Solution (HBSS)
+• Flow cytometry tubes
+
+CAUTION
+================================================================================
+
+No data are available addressing the mutagenicity or toxicity of Vybrant DyeCycle Ruby stain. Since Vybrant DyeCycle Ruby stain binds to nucleic acids, treat the stain as a potential mutagen and use with appropriate care. Handle the DMSO dye solution with particular caution as DMSO is known to facilitate the entry of organic molecules into tissues. Always wear suitable protective clothing, gloves, and eye/face protection when handling this reagent. Dispose of the reagent in compliance with all pertaining local regulations.
+
+PROTOCOL
+================================================================================
+
+The following staining protocol was optimized using Jurkat cells, a human T-cell leukemia line, in complete RPMI medium containing 10% fetal bovine serum with staining at 37°C, but can be adapted to most cell types. Growth medium or buffer used, cell density, cell type variations, and other factors may influence staining. In initial experiments, try a range of stain concentrations to determine the optimal stain concentration for the given cell type, buffer, and experimental conditions. For a given experiment, each flow cytometry sample should contain the same number of cells, as sample-to-sample variation in cell number leads to significant differences in fluorescence signal. If Vybrant DyeCycle Ruby stain is used in combination with other dyes for multicolor applications, apply other dyes to the sample first following manufacturers' instructions, including washes. Apply the Vybrant DyeCycle Ruby stain as the last stain to the sample, and do not wash or fix samples prior to flow cytometric analysis.
+
+General Guidelines
+
+For optimal DNA content cell cycle analysis, follow these guidelines:
+
+• Eliminate cell clumps and aggregates from the cell suspension before staining, and eliminate or correct for cell aggregates during analysis using gating or modeling software
+• Staining with Vybrant DyeCycle Ruby stain may be performed at room temperature with the staining time about twice as long
+• Hanks' Balanced Salt Solution (HBSS) is recommended if media is not used, do not use phosphate buffers
+• Do not use glass containers with Vybrant DyeCycle Ruby stain
+• Do not wash or fix cells after staining with Vybrant DyeCycle Ruby stain
+• Eliminate dead cells from the DNA content analysis of living cells by using a dead cell discriminating stain such as SYTOX™ Green, SYTOX™ Blue, SYTOX™ Red, or SYTOX™ AADvanced™ dead cell stains, or LIVE/DEAD™ Fixable Dead cell stains such as Blue, Violet, Aqua, Green, Red, or Far Red kits
+• Validate flow cytometry instrument performance on the day of use
+• Use linear amplification for DNA content
+• Use low flow rate for acquisition
+• Collect adequate numbers of events for intended application
+
+Vybrant DyeCycle Ruby Cell Staining Protocol
+
+This staining protocol is optimized using Jurkat cells suspended in complete medium (RPMI/10% fetal bovine serum) and stained with Vybrant DyeCycle Ruby stain at 37°C.
+
+1. Remove the Vybrant DyeCycle Ruby stain from the freezer and allow the stain to equilibrate to room temperature.
+
+2. Prepare flow cytometry tubes each containing 0.5 mL of cell suspension in complete media at a concentration of 5 × 10⁵ cells/mL.
+
+3. To each tube, add 1 μL of Vybrant DyeCycle Ruby stain and mix well. Final stain concentration is 5 μM.
+
+4. Incubate at 37°C for 15–30 minutes, protected from light.
+
+5. Analyze without washing cells on a flow cytometer using 488 nm or 633/5 nm excitation and >670 nm emission. The Vybrant DyeCycle Ruby stain may be excited with any excitation source from 488 nm through 690 nm wavelengths.
+
+PRODUCT CATALOG NUMBERS
+================================================================================
+
+V10273, V10309, S10349, S7020, S34859, S11348, L23105, L34955, L34957, L34959, L23101, L23102, L10120, L10119, L34960
+
+REFERENCES
+================================================================================
+
+1. Current Protocols in Cytometry, 7.0.1–7.27.7 (2004)
+2. Practical Flow Cytometry, 4th Ed., Shapiro H. M., Ed. (2003)
+3. Methods Mol Biol 281, 301 (2004)
+4. Cytometry A 58, 21 (2004)

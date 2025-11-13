@@ -1,0 +1,630 @@
+PROTOCOL: pLKO.1 – TRC Cloning Vector
+SOURCE: https://www.addgene.org/protocols/plko/
+================================================================================
+
+Addgene Plasmid 10878. Protocol Version 1.0. December 2006.
+
+Copyright Addgene 2006, All Rights Reserved. This protocol is provided for your
+convenience. See "warranty information" in appendix.
+
+
+A. pLKO.1-TRC CLONING VECTOR
+================================================================================
+
+A.1 The RNAi Consortium
+
+The pLKO.1 cloning vector is the backbone upon which The RNAi Consortium has built
+a library of shRNAs directed against 15,000 human and 15,000 mouse genes. Addgene
+is working with the TRC to make this shRNA cloning vector available to the
+scientific community. Please cite Moffat et al., Cell 2006 Mar; 124(6):1283-98
+(PubMed PMID 16564017) in all publications arising from the use of this vector.
+
+A.2 Map of pLKO.1
+
+pLKO.1 is a replication-incompetent lentiviral vector chosen by the TRC for
+expression of shRNAs. pLKO.1 can be introduced into cells via direct transfection,
+or can be converted into lentiviral particles for subsequent infection of a target
+cell line. Once introduced, the puromycin resistance marker encoded in pLKO.1
+allows for convenient stable selection.
+
+pLKO.1 contains an shRNA insert. The original pLKO.1-TRC cloning vector has a 1.9kb
+stuffer that is released by digestion with AgeI and EcoRI. shRNA oligos are cloned
+into the AgeI and EcoRI sites in place of the stuffer. The AgeI site is destroyed
+in most cases (depending on the target sequence), while the EcoRI site is preserved.
+For a complete map of pLKO.1 containing the 1.9kb stuffer, visit
+www.addgene.org/10878/.
+
+Vector Elements:
+
+• U6: Human U6 promoter drives RNA Polymerase III transcription for generation of
+  shRNA transcripts.
+
+• cPPT: Central polypurine tract, cPPT, improves transduction efficiency by
+  facilitating nuclear import of the vector's preintegration complex in the
+  transduced cells.
+
+• hPGK: Human phosphoglycerate kinase promoter drives expression of puromycin.
+
+• Puro R: Puromycin resistance gene for selection of pLKO.1 plasmid in mammalian
+  cells.
+
+• sin 3'LTR: 3' Self-inactivating long terminal repeat.
+
+• f1 ori: f1 bacterial origin of replication.
+
+• Amp R: Ampicillin resistance gene for selection of pLKO.1 plasmid in bacterial
+  cells
+
+• pUC ori: pUC bacterial origin of replication.
+
+• 5'LTR: 5' long terminal repeat.
+
+• RRE: Rev response element.
+
+A.3 Related Products
+
+The following plasmids available from Addgene are recommended for use in conjunction
+with the pLKO.1 TRC-cloning vector:
+
+• pLKO.1 – TRC control: Negative control vector containing non-hairpin insert.
+
+• pLKO.1 – scramble shRNA: Negative control vector containing scrambled shRNA.
+
+• psPAX2: Packaging plasmid for producing viral particles.
+
+• pMD2.G: Envelope plasmid for producing viral particles.
+
+Note: pLKO.1 can also be used with packaging plasmid pCMV-dR8.2 dvpr and envelope
+plasmid pCMV-VSVG from Robert Weinberg's lab. For more information, visit Addgene's
+Mammalian RNAi Tools page.
+
+Several other laboratories have deposited pLKO derived vectors that may also be
+useful for your experiment. To see these vectors, visit Addgene's website and
+"search for "pLKO"".
+
+
+B. DESIGNING shRNA OLIGOS FOR pLKO.1
+================================================================================
+
+B.1 Determining the Optimal 21-mer Targets in your Gene
+
+Selection of suitable 21-mer targets in your gene is the first step toward
+efficient gene silencing. Methods for target selection are continuously being
+improved. Below are suggestions for target selection.
+
+1. Use an siRNA selection tool to determine a set of top-scoring targets for your
+   gene. For example, the Whitehead Institute for Biomedical Research hosts an
+   siRNA Selection Program that can be accessed after a free registration.
+
+2. Guidelines for designing siRNAs with effective gene silencing:
+   • Starting at 25nt downstream of the start codon (ATG), search for 21nt sequences
+     that match the pattern AA(N₁₉). If no suitable match is found, search for
+     NAR(N₁₇)YNN, where N is any nucleotide, R is a purine (A,G), and Y is a
+     pyrimidine (C,U).
+   • G-C content should be 36-52%.
+   • Sense 3' end should have low stability – at least one A or T between position
+     15-19.
+   • Avoid targeting introns.
+   • Avoid stretches of 4 or more nucleotide repeats, especially repeated Ts because
+     polyT is a termination signal for RNA polymerase III.
+
+   Note that these were the prevailing guidelines when the pLKO.1 vector was
+   created.
+
+   Additional design rules can be found at the Broad Institute's TRC shRNA Design
+   Process.
+
+3. To minimize degradation of off-target mRNAs, use NCBI's BLAST program. Select
+   sequences that have at least 3 nucleotide mismatches to all unrelated genes.
+
+   TIP: Addgene recommends that you select multiple target sequences for each gene.
+   Some sequences will be more effective than others. In addition, demonstrating
+   that two different shRNAs that target the same gene can produce the same
+   phenotype will alleviate concerns about off-target effects.
+
+B.2 Ordering Oligos Compatible with pLKO.1
+
+To generate oligos for cloning into pLKO.1, insert your sense and antisense
+sequences from step B.1 into the oligos below. Do not change the ends; these bases
+are important for cloning the oligos into the pLKO.1 TRC-cloning vector.
+
+Forward oligo: 5' CCGG—21bp sense—CTCGAG—21bp antisense—TTTTTG 3'
+
+Reverse oligo: 5' AATTCAAAAA—21bp sense—CTCGAG—21bp antisense 3'
+
+For example, if the target sequence is (AA)TGCCTACGTTAAGCTATAC, the oligos would
+be:
+
+Forward oligo: 5' CCGG AATGCCTACGTTAAGCTATAC CTCGAG GTATAGCTTAACGTAGGCATT TTTTTG 3'
+
+Reverse oligo: 5' AATTCAAAAA AATGCCTACGTTAAGCTATAC CTCGAG GTATAGCTTAACGTAGGCATT 3'
+
+
+C. CLONING OLIGOS INTO pLKO.1
+================================================================================
+
+The pLKO.1-TRC cloning vector contains a 1.9kb stuffer that is released upon
+digestion with EcoRI and AgeI. The oligos from section B contain the shRNA sequence
+flanked by sequences that are compatible with the sticky ends of EcoRI and AgeI.
+Forward and reverse oligos are annealed and ligated into the pLKO.1 vector,
+producing a final plasmid that expresses the shRNA of interest.
+
+C.1 Recommended Materials
+
+• AgeI, New England Biolabs (NEB) #R0552S
+• EcoRI, NEB #R0101S
+• NEB buffer 1, NEB #B7001S
+• NEB buffer 2, NEB #B7002S
+• T4 DNA ligase, NEB #M0202S
+• T4 DNA ligase buffer, NEB #B0202S
+• DH5 alpha competent cells, Invitrogen #18258-012
+• Qiaquick gel extraction kit, Qiagen #28704
+• Low melting point agarose, Sigma #A9414
+• Luria Broth Agar (LB agar), American Bioanalytical: #AB01200-02000
+• Ampicillin, VWR: #7177-48-2. Use at 100 μg/mL.
+• Carbenicillin, VWR: #80030-956. Use at 100 μg/mL.
+
+C.2 Annealing Oligos
+
+1. Resuspend oligos in ddH₂O to a concentration of 20 μM, then mix:
+   • 5 μL Forward oligo
+   • 5 μL Reverse oligo
+   • 5 μL 10x NEB buffer 2
+   • 35 μL ddH₂O
+
+2. Incubate for 4 minutes at 95°C in a PCR machine or in a beaker of boiling water.
+
+3. If using a PCR machine, incubate the sample at 70°C for 10 minutes then slowly
+   cool to room temperature over the period of several hours. If using a beaker of
+   water, remove the beaker from the flame, and allow the water to cool to room
+   temperature. This will take a few hours, but it is important for the cooling to
+   occur slowly for the oligos to anneal.
+
+C.3 Digesting pLKO.1 TRC Cloning Vector
+
+The following steps were the prevailing guidelines when the pLKO.1 vector was
+created. For alternative options, please refer to the enzyme manufacturer's
+resources, such as NEB's online tool NEBcloner, to help guide your reaction buffer
+selection when setting up double digests.
+
+1. Digest pLKO.1 TRC-cloning vector with AgeI. Mix:
+   • 6 μg pLKO.1 TRC-cloning vector (maxiprep or miniprep DNA)
+   • 5 μL 10x NEB buffer 1
+   • 1 μL AgeI
+   • add ddH₂O to bring to 50 μL final volume
+
+2. Incubate at 37°C for 2 hours.
+
+3. Purify with Qiaquick gel extraction kit. Elute in 30 μL of ddH₂O.
+
+4. Digest eluate with EcoRI. Mix:
+   • 30 μL pLKO.1 TRC-cloning vector digested with AgeI
+   • 5 μL 10x NEB buffer for EcoRI
+   • 1 μL EcoRI
+   • 14 μL ddH₂O
+
+5. Incubate at 37°C for 2 hours.
+
+6. Run digested DNA on 0.8% low melting point agarose gel until you can distinctly
+   see 2 bands, one 7kb and one 1.9kb. Cut out the 7kb band and place in a sterile
+   microcentrifuge tube.
+
+   TIP: When visualizing DNA fragments to be used for ligation, use only
+   long-wavelength UV light. Short wavelength UV light will increase the chance of
+   damaging the DNA.
+
+7. Purify the DNA using a Qiaquick gel extraction kit. Elute in 30 μL of ddH₂O.
+
+8. Measure the DNA concentration.
+
+C.4 Ligating and Transforming into Bacteria
+
+1. Use your ligation method of choice. For a standard T4 ligation, mix:
+   • 2 μL annealed oligo from step C.2
+   • 20 ng digested pLKO.1 TRC-cloning vector from step C.3 (If you were unable to
+     measure the DNA concentration, use 1 μL)
+   • 2 μL 10x NEB T4 DNA ligase buffer
+   • 1 μL NEB T4 DNA ligase
+   • add ddH₂O to bring to 20 μL final volume
+
+2. Incubate at 16°C for 4-20 hours.
+
+3. Transform 2 μL of ligation mix into 25 μL competent DH5 alpha cells, following
+   manufacturer's protocol. Plate on LB agar plates containing 100 μg/mL ampicillin
+   or carbenicillin (an ampicillin analog).
+
+   Due to the long terminal repeats found in lentiviral plasmids, Addgene
+   currently recommends using a strain that reduces the frequency of homologous
+   recombination of unstable regions, such as Invitrogen Stbl3™ or NEB Stable
+   cells. This will ensure that the repeats will be maintained and often results in
+   a greater yield of DNA.
+
+
+D. SCREENING FOR INSERTS
+================================================================================
+
+You may screen for plasmids that were successfully ligated by restriction enzyme
+digestion. However, once you have identified the positive clones, it is important
+to verify the insert by conducting a sequencing reaction.
+
+D.1 Recommended Materials
+
+• DNA Miniprep Kit, Qiagen #27104
+• EcoRI, NEB #R0101S
+• NcoI, NEB #R0193S
+• Agarose, Sigma #A9539
+
+D.2 Screening for Inserts
+
+Day 1:
+
+1. Inoculate 5 colonies from each ligation into LB + 100 μg/mL ampicillin or
+   carbenicillin.
+
+Day 2:
+
+2. Spin down the cultures and use a miniprep kit to obtain DNA.
+
+3. Conduct a restriction digest with EcoRI and NcoI:
+   • 1 μg miniprep DNA
+   • 2 μL 10x NEB buffer for EcoRI
+   • 0.8 μL EcoRI
+   • 0.8 μL NcoI
+   • add ddH₂O to bring to 20 μL final volume
+
+4. Incubate at 37°C for 1-2 hours.
+
+5. Run the digestion products on a 1% agarose gel. You should see two fragments, a
+   2kb fragment and a 5kb fragment.
+
+6. Sequence positive clones with pLKO.1 sequencing primer (5' CAA GGC TGT TAG AGA
+   GAT AAT TGG A 3').
+
+   TIP: You may need to adjust the sequencing conditions if the DNA polymerase has
+   difficulty reading through the secondary structure of the hairpin sequence.
+
+
+E. PRODUCING LENTIVIRAL PARTICLES
+================================================================================
+
+Before this step, you must contact your institution's Bio-Safety office to receive
+permission and institution-specific instructions. You must follow safety procedures
+and work in an environment (e.g. BL2+) suitable for handling HIV-derivative
+viruses.
+
+For transient knockdown of protein expression, you may transfect plasmid DNA
+directly into the target cells. The shRNA will be expressed, but the DNA is
+unlikely to be integrated into the host genome.
+
+For stable loss-of-function experiments, Addgene recommends that you generate
+lentiviral particles and infect the target cells. Addition of puromycin will allow
+you to select for cells that stably express your shRNA of interest.
+
+E.1 Recommended Materials
+
+• psPAX2, Addgene #12260
+• pMD2.G, Addgene #12259
+• HEK-293T cells, GenHunter: #Q401
+• FuGENE® 6 Transfection Reagent, Roche Applied Biosciences: #11814443001
+• OPTI-MEM® serum-free media, Invitrogen: #31985
+• Dulbecco's Modified Eagle Medium (DMEM), Invitrogen: #11995
+• Fetal Bovine Serum (FBS), Invitrogen: #16000
+• Penicillin/Streptomycin, Invitrogen: #15140-122
+• Polypropylene tubes, VWR: #87003-290
+
+Note: pLKO.1 could also be packaged using pCMV-dR8.2 dvpr and pCMV-VSVG from the
+Robert Weinberg lab. For more information, visit Addgene's Mammalian RNAi Tools
+page.
+
+E.2 Protocol for Producing Lentiviral Particles
+
+This protocol is for transfection in a 6 cm plate. The protocol can be scaled to
+produce different amounts of virus as needed.
+
+Day 1:
+
+a. For each plasmid to be transfected, plate 7×10⁵ HEK-293T cells in 5 mL of media
+   in a 6 cm tissue culture plate. Incubate cells at 37°C, 5% CO₂ overnight.
+
+   Although cells should regularly be passaged in DMEM + 10% FBS with
+   penicillin/streptomycin, cells should be plated at this step in DMEM + 10% FBS
+   without antibiotics (no penicillin or streptomycin).
+
+Day 2:
+
+b. Perform the transfection in the late afternoon because the transfection mix
+   should only be incubated with the cells for 12-15 hours.
+
+c. In polypropylene microfuge tubes (do NOT use polystyrene tubes), make a cocktail
+   for each transfection:
+   • 1 μg pLKO.1 shRNA plasmid
+   • 750 ng psPAX2 packaging plasmid
+   • 250 ng pMD2.G envelope plasmid
+   • to 20 μl serum-free OPTI-MEM
+
+   TIP: You may want to vary the ratio of shRNA plasmid, packaging plasmid, and
+   envelope plasmid to obtain the ratio that gives you the optimal viral production.
+
+d. Create a master mix of FuGENE® 6 transfection reagent in serum-free OPTI-MEM.
+   Calculate the amount of Fugene® and OPTI-MEM necessary given that each reaction
+   will require 6 μL FuGENE® + 74 μL OPTI-MEM. For example:
+   • 1x master mix: 6 μL FuGENE® + 74 μL OPTI-MEM
+   • 5x master mix: 30 μL FuGENE® + 370 μL OPTI-MEM
+   • 10x master mix: 60 μL FuGENE® + 740 μL OPTI-MEM
+
+   In a polypropylene tube, add OPTI-MEM first. Pipette FuGENE® directly into the
+   OPTI-MEM – do not allow FuGENE® to come in contact with the walls of the tube
+   before it has been diluted. Mix by swirling or gently flicking the tube.
+   Incubate for 5 minutes at room temperature.
+
+e. Add 80 μL of FuGENE® master mix to each tube from step c for a total volume of
+   100 μL. Pipette master mix directly into the liquid and not onto the walls of
+   the tube. Mix by swirling or gently flicking the tube.
+
+f. Incubate for 20-30 minutes at room temperature.
+
+g. Retrieve HEK-293T cells from incubator. The cells should be 50-80% confluent and
+   in DMEM that does not contain antibiotics.
+
+h. Without touching the sides of the dish, gently add DNA:FuGENE® mix dropwise to
+   cells. Swirl to disperse mixture evenly. Do not pipette or swirl too vigorously,
+   as you do not want to dislodge the cells from the plate.
+
+i. Incubate cells at 37°C, 5% CO₂ for 12-15 hours.
+
+Day 3:
+
+j. In the morning, change the media to remove the transfection reagent. Replace with
+   5 mL fresh DMEM + 10% FBS + penicillin/streptomycin. Pipette the media onto the
+   side of the plate so as not to disturb the transfected cells.
+
+k. Incubate cells at 37°C, 5% CO₂ for 24 hours.
+
+Day 4:
+
+l. Harvest media from cells and transfer to a polypropylene storage tube. The media
+   contains your lentiviral particles. Store at 4°C.
+
+m. Add 5 mL of fresh media containing antibiotics to the cells and incubate at 37°C,
+   5% CO₂ for 24 hours.
+
+Day 5:
+
+n. Harvest media from cells and pool with media from Day 4. Spin media at 1,250 rpm
+   for 5 minutes to pellet any HEK-293T cells that were inadvertently collected
+   during harvesting.
+
+   TIP: In lieu of centrifugation, you may filter the media through a 0.45 μm
+   filter to remove the cells. Do not use a 0.2 μm filter, as this is likely to
+   shear the envelope of your virus.
+
+o. Virus may be stored at 4°C for a few days, but should be frozen at -20°C or
+   -80°C for long-term storage.
+
+   TIP: Freeze/thaw cycles decrease the efficiency of the virus, so Addgene
+   recommends that you use the virus immediately or aliquot the media into smaller
+   tubes to prevent multiple freeze/thaw cycles.
+
+
+F. INFECTING TARGET CELLS
+================================================================================
+
+Lentiviral particles can efficiently infect a broad range of cell types, including
+both dividing and non-dividing cells. Addition of puromycin will allow you to
+select for cells that are stably expressing your shRNA of interest.
+
+F.1. Recommended Materials
+
+• Hexadimethrine bromide (polybrene)*, Sigma-Aldrich: #H9268
+• Protamine Sulfate*, MP Biomedicals: #194729
+• Puromycin*, Sigma-Aldrich: #P8833
+• Target cells (varies based on your experiment)
+• Culture media for target cells (varies based on your experiment)
+• Materials for assay (varies based on your experiment)
+
+Detailed protocols for preparing polybrene, protamine sulfate, and puromycin are
+located in the "Appendix".
+
+F.2. Determining the Optimal Puromycin Concentration
+
+Each cell line responds differently to puromycin selection. Addgene strongly
+recommends that you determine the optimal puromycin concentration for your cell
+line before initiating your experiment.
+
+Day 1:
+
+a. Plate target cells in ten 6 cm plates and grow at 37°C, 5% CO₂ overnight.
+
+Day 2:
+
+b. The target cells should be approximately 80-90% confluent.
+
+c. Dilute puromycin in the preferred culture media for your target cells. The final
+   concentration of puromycin should be from 1-10 μg/mL in 1 μg/mL increments.
+
+d. Label plates from 1-10 and add appropriate puromycin-containing media to cells.
+
+Days 3+:
+
+e. Examine cells each day and change to fresh puromycin-containing media every
+   other day.
+
+f. The minimum concentration of puromycin that results in complete cell death after
+   3-5 days is the concentration that should be used for selection in your
+   experiments. (You may wish to repeat this titration with finer increments of
+   puromycin to determine a more precise optimal puromycin concentration.)
+
+F.3. Protocol for Lentiviral Infection and Selection
+
+Day 1:
+
+a. Plate target cells and incubate at 37°C, 5% CO₂ overnight.
+
+Day 2:
+
+b. Target cells should be approximately 70% confluent. Change to fresh culture
+   media containing 8 μg/mL polybrene.
+
+   TIP: Polybrene increases the efficiency of viral infection. However, polybrene
+   is toxic to some cell lines. In these cell lines, substitute protamine sulfate
+   for polybrene.
+
+c. Add lentiviral particle solution from step E. For a 6 cm target plate, add
+   between 0.5–1 mL virus (add 0.5 mL for a high MOI, and 0.1 mL for a low MOI).
+   Scale the amount of virus added depending on the size of your target plate.
+
+   TIP: MOI (multiplicity of infection) refers to the number of infecting viral
+   particles per cell. Addgene recommends that you test a range of MOIs to
+   determine the optimal MOI for infection and gene silencing in your target cell
+   line.
+
+d. Incubate cells at 37°C, 5% CO₂ overnight.
+
+Day 3:
+
+e. Change to fresh media 24 hours after infection.
+
+   TIP: If viral toxicity is observed in your cell line, you may decrease the
+   infection time to between 4 – 20 hours. Remove the virus-containing media and
+   replace with fresh media. Do not add puromycin until at least 24 hours after
+   infection to allow for sufficient expression of the puromycin resistance gene.
+
+f. To select for infected cells, add puromycin to the media at the concentration
+   determined in step F.2.
+
+   Addgene recommends that you maintain one uninfected plate of cells in parallel.
+   This plate will serve as a positive control for the puromycin selection.
+
+Days 4+:
+
+g. Change to fresh puromycin-containing media as needed every few days.
+
+h. Assay infected cells. The following recommendations are guidelines for the
+   number of days you should wait until harvesting your cells. However, you should
+   optimize the time based on your cell line and assay:
+
+   Assay                    | Days post-infection
+   ------------------------|--------------------
+   mRNA knockdown          | ≥3 days
+   (quantitative PCR)      |
+   Protein knockdown      | ≥4 days
+   (western blot)         |
+   Phenotypic assay       | ≥4 days
+
+
+G. SAFETY
+================================================================================
+
+BL2 safety practices should be followed when preparing and handling lentiviral
+particles. Personal protective clothing should be worn at all times. Use plastic
+pipettes in place of glass pipettes or needles. Liquid waste should be
+decontaminated with at least 10% bleach. Laboratory materials that come in contact
+with viral particles should be treated as biohazardous waste and autoclaved.
+Please follow all safety guidelines from your institution and from the CDC and NIH
+for work in a BL2 facility.
+
+If you have any questions about what safety practice to follow, please contact your
+institution's safety office.
+
+For more information, please see Addgene's Biosafety Guide.
+
+
+H. REFERENCES
+================================================================================
+
+H.1. Published Articles
+
+• Functional siRNAs and miRNAs exhibit strand bias. Khvorova A et. al. Cell. 2003.
+  115:209-216.
+
+• A lentiviral RNAi library for human and mouse genes applied to an arrayed viral
+  high-content screen. Moffat J et. al. Cell. 2006. 124:1283-1298.
+
+• In vivo gene delivery and stable transduction of nondividing cells by a lentiviral
+  vector. Naldini L et. al. Science. 1996 272:263-267.
+
+• Asymmetry in the assembly of the RNAi enzyme complex. Schwarz DS et. al. Cell.
+  2003. 115:199-208.
+
+• Lentivirus-delivered stable gene silencing by RNAi in primary cells. Stewart SA
+  et. al. RNA. 2003. 9(4):493-501.
+
+• Multiply attenuated lentiviral vector achieves efficient gene delivery in vivo.
+  Zufferey R et. al. Nat Biotechnol. 1997. 15(9):871-5.
+
+• Self-inactivating lentivirus vector for safe and efficient in vivo gene delivery.
+  Zufferey R et. al. J Virol. 1998. 72(12):9873-80.
+
+H.2. Web resources
+
+• Addgene's mammalian RNAi website: www.addgene.org/mammalianrnai
+
+• The RNAi Consortium (TRC): www.broad.mit.edu/genome_bio/trc/rnai.html
+
+• Background on RNAi mechanism: RNAi animation
+
+• Whitehead siRNA Selection Program: http://sirna.wi.mit.edu/
+
+
+I. APPENDIX
+================================================================================
+
+I.1. Sequence of pLKO.1 TRC-Cloning Vector
+
+Click here to see the sequence of pLKO.1 TRC-cloning vector. The vector is 8901
+base pairs total, and the stuffer insert is shown in all capital letters.
+
+I.2. Recipes
+
+Luria Broth Agar (LB agar) + antibiotic
+
+Per 40 grams of powder from American Bioanalytical catalog # AB01200-02000, LB
+contains:
+• 10g tryptone
+• 5g yeast extract
+• 10g sodium chloride
+• 15g agar
+
+Prepare LB agar solution by dissolving 40g of LB powder in 1L of distilled water.
+Autoclave and cool to 55°C. Add 1mL of 100mg/mL ampicillin or carbenicillin to
+obtain a final concentration of 100 μg/mL antibiotic. Pour plates and store at
+4°C.
+
+Hexadimethrine Bromide (Polybrene)
+
+Prepare a 1mg/mL solution of polybrene (Sigma-Aldrich catalog #H9268) in 0.9%
+NaCl. Autoclave to sterilize. Stock solution is stable at 4°C for up to one year.
+The powder form of polybrene is stable at 4°C for several years.
+
+Protamine Sulfate
+
+Store protamine sulfate (MP Biomedicals catalog #194729) at 4°C. Freely soluble
+in hot water and slightly soluble in cold water.
+
+Puromycin
+
+Prepare a 50mg/mL stock solution of puromycin (Sigma-Aldrich catalog #P8833) in
+distilled water. Sterilize by passing through a 0.22 μm filter. Store aliquots at
+-20°C.
+
+I.3. Warranty Information
+
+Addgene is committed to providing scientists with high-quality goods and services.
+Addgene makes every effort to ensure the accuracy of its literature, but realizes
+that typographical or other errors may occur. Addgene makes no warranty of any kind
+regarding the contents of any literature. Literature are provided to you as a guide
+and on an "AS IS" "AS AVAILABLE" basis without warranty of any kind either
+expressed or implied, including but not limited to the implied warranties of
+fitness for a particular purpose, non-infringement, typicality, safety and
+accuracy.
+
+The distribution of any literature by Addgene is not meant to carry with it, and
+does not grant any license or rights of access or use to the materials described in
+the literature.
+
+The distribution of materials by Addgene is not meant to carry with it, and does
+not grant any license, express or implied, under any patent. All transfers of
+materials from Addgene to any party are governed by Addgene's Terms of Use,
+Addgene's Terms of Purchase, and applicable Material Transfer Agreements between
+the party that deposited the material at Addgene and the party receiving the
+material.

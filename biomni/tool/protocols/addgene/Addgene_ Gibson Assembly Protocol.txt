@@ -1,0 +1,136 @@
+PROTOCOL: Gibson Assembly Protocol
+SOURCE: https://www.addgene.org/protocols/gibson-assembly/
+================================================================================
+
+SUMMARY
+================================================================================
+
+In 2009 Dr. Daniel Gibson and colleagues at the J. Craig Venter Institute
+developed a novel method for the easy assembly of multiple linear DNA fragments
+(Gibson et al., 2009). Regardless of fragment length or end compatibility,
+multiple overlapping DNA fragments can be joined in a single isothermal reaction.
+With the activities of three different enzymes, the product of a Gibson Assembly is
+a fully ligated double-stranded DNA molecule. This has proven to be an efficient
+and effective method for the assembly of plasmids, and molecular biologists now use
+this method extensively.
+
+Why Gibson Cloning?
+
+• No need for specific restriction sites. Join almost any two fragments regardless
+  of sequence.
+• No scar between joined fragments.
+• Fewer steps. One tube reaction.
+• Can combine many DNA fragments at once.
+
+
+PROCEDURE
+================================================================================
+
+1. Design your plasmid and order primers (see figure to the right).
+
+   When designing your plasmid, think about what DNA segments you will need to
+   join to create your final plasmid. Adjacent segments should have identical
+   sequences on the ends (sequences A and B in the figures). These identical
+   sequences can be created via PCR with primers that contain a 5′ end that is
+   identical to an adjacent segment and a 3′ end that anneals to the target
+   sequence.
+
+   One strategy is to order primers that are 60 bp long, with 30 bp matching the
+   end of the adjacent fragment and 30 bp annealing to the target sequence.
+
+   Avoid strong secondary structures in the homology region. Hairpins in this
+   region can significantly reduce the efficiency of two homologous ends
+   annealing.
+
+   💡 PRO TIP: Cut down on background and enrich for correctly assembled plasmids
+   by designing primers to split an antibiotic resistance gene to effectively
+   create an extra part, one part has half of the antibiotic gene and the adjacent
+   part has the other half. Any colonies should have at least the correctly
+   assembled antibiotic gene. This trick can also enable replacement of "inverse
+   PCR" reactions with a two-part Gibson reaction if you're only making a small
+   change in a plasmid (such as point mutations).
+
+2. Generate DNA segments by PCR.
+
+3. Run PCR product on an agarose gel to check for size and yield. If there are
+   significant amounts of undesired product, gel-purify DNA segments. Otherwise,
+   PCR purification or even the raw PCR mix can work fine in an assembly if you
+   want to save time.
+
+4. Working on ice, combine segments in the Gibson Assembly Reaction.
+
+   💡 PRO TIP: Yields will be best when the DNA fragments are present in equimolar
+   concentrations.
+
+   The Gibson Assembly master mix (isothermal reaction mix) consists of three
+   different enzymes within a single buffer mixture and an optional SSB protein to
+   improve accuracy and efficiency. Each enzyme has a specific and unique function
+   for the reaction:
+
+   • T5 Exonuclease: creates single-strand DNA 3' overhangs by chewing back from
+     the DNA 5' end. Complementary DNA fragments can subsequently anneal to each
+     other.
+
+   • Phusion High-Fidelity DNA Polymerase: incorporates nucleotides to "fill in"
+     the gaps in the annealed DNA fragments.
+
+   • Taq DNA Ligase: covalently joins the annealed complementary DNA fragments,
+     removing any nicks and creating a contiguous DNA fragment.
+
+   💡 PRO TIP: Add Extreme Thermostable Single-Stranded DNA-Binding protein (ET
+   SSB) to the isothermal reaction mix. ET SSB protects 3' ssDNA ends from the
+   ssDNA-specific endonuclease activity of T5 Exonuclease and furthermore reduces
+   secondary structure of ssDNA. (Rabe & Cepko, 2020).
+
+5. Incubate the mix for 1 hour at 50 °C or follow manufacturer's instructions.
+   You can purchase master mix or make your own.
+
+6. Transform bacteria with the DNA and screen for the correct plasmid product by
+   restriction digest.
+
+7. Sequence the important regions of your final plasmid, particularly the seams
+   between the assembled parts.
+
+
+TIPS AND TROUBLESHOOTING
+================================================================================
+
+"Stitching" fragments together using oligos
+
+When you need intervening sequence between two PCR products, one method is to
+"stitch" together several oligos. This technique is especially useful for
+introducing promoters, terminators, and other short sequences into the assembly
+and is used when the part to be inserted is too long to include on overlapping PCR
+primers (>60 bp) but too short to make its own part (<150 bp).
+
+💡 PRO TIP: Please note that the way to design the "stitching" primers and the
+amounts of primers to include in the Gibson reaction are different than with
+normal PCR primers (Gibson et al., 2010).
+
+Number of fragments assembled simultaneously
+
+Multiple fragments can be assembled in one reaction. However, some labs have
+observed a sharp decrease in success rate when assembling more than five fragments
+at a time.
+
+
+RESOURCES AND REFERENCES
+================================================================================
+
+New England Biolabs (NEB) sells DNA Assembly kits and master mixes, including
+NEBuilder HiFi and Gibson Assembly. They also sell ET SSB. NEB has other resources,
+such as a primer design tool. Gibson Assembly® is licensed to New England Biolabs
+by TelesisBio.
+
+References:
+
+1. Gibson DG, Young L, Chuang RY, Venter JC, Hutchison CA, Smith HO. (2009).
+   Enzymatic assembly of DNA molecules up to several hundred kilobases. Nature
+   Methods, 6(5), 343–345. https://doi.org/10.1038/nmeth.1318
+
+2. Gibson DG, Smith HO, Hutchison CA, Venter JC, Merryman C. (2010). Chemical
+   synthesis of the mouse mitochondrial genome. Nature Methods, 7(11), 901–903.
+   https://doi.org/10.1038/nmeth.1515
+
+3. Rabe BA, Cepko C. (2020). A Simple Enhancement for Gibson Isothermal Assembly.
+   bioRxiv. https://doi.org/10.1101/2020.06.14.150979

@@ -1,0 +1,91 @@
+Title: Addgene: Plasmid Cloning by PCR (with Protocols)
+URL: https://www.addgene.org/protocols/pcr-cloning/
+================================================================================
+
+Protocols
+Plasmid Cloning by PCR
+Plasmid Cloning by PCR
+You may also like...
+Restriction Digest of Plasmid DNA
+DNA Ligation
+Bacterial Transformation
+Summary
+PCR based cloning is incredibly versatile and allows for nearly any piece of DNA to be placed into a backbone vector of choice with minimal limitations.
+Background
+In its simplest form, PCR based cloning is about making a copy of a piece of DNA and at the same time adding restriction sites to the ends of that piece of DNA so that it can be easily cloned into a plasmid of interest.
+For this example, we will describe how to copy a cDNA from one vector into a new vector that is better suited for analyzing the gene’s function. The process is shown graphically in the following cartoon, in which we are adding EcoRI and NotI sites to Your Gene of Interest (YGOI) for ligation into a recipient plasmid.
+Designing Primers for PCR Based Cloning
+The basic PCR primers for molecular cloning consist of:
+Leader Sequence:
+Extra base pairs on the 5' end of the primer assist with restriction enzyme digestion (usually 3-6bp).
+Restriction Site:
+Your chosen restriction site for cloning (usually 6-8bp).
+Hybridization Sequence:
+The region of the primer that binds to the sequence to be amplified (usually 18-21bp).
+When selecting restriction sites, you should use a DNA analysis tool, such as
+Addgene’s Sequence Analyzer
+, to allow you to identify which restriction sites are present in a given sequence. You want to choose enzymes that:
+Do not cut within your insert.
+Are in the desired location in your recipient plasmid (usually in the Multiple Cloning Site (MCS)), but do not cut elsewhere on the plasmid.
+Bonus: It is helpful to choose restriction enzymes that can both function in the same buffer, as this will save time later.
+In our example, we will use EcoRI and NotI to ligate our cDNA into the recipient plasmid. Remember to insert your DNA in the correct orientation in the recipient plasmid by viewing the MCS and fusing the upstream restriction site to the forward primer and the downstream restriction site to the reverse primer.
+Next, we need to examine the DNA sequence that we want to amplify and design primers that will bind to and replicate it. The following image shows the ends of the ORF and how these are used for primer design:
+Because we are cloning an ORF, we want to clone from the start codon (ATG) to the stop codon (TGA, in this example).  Assuming you are amplifying from plasmid DNA (rather than from genomic DNA or a cDNA library), roughly 18-21bp is usually sufficient to give specificity and to also be compatible with a standard PCR reaction.  Therefore, our Forward Primer will use the sequence 5'-ATGTGGCATATCTCGAAGTAC-3' for the region that binds the ORF and we will add the EcoRI restriction site (GAATTC) to the 5’ end of this primer, making our Forward Primer 5'-GAATTCATGTGGCATATCTCGAAGTAC-3'.
+Many restriction enzymes do not cut DNA efficiently at the end of a linear piece (see
+(Link opens in a new window)
+NEB
+for more information). Thus, we recommend that you add 3-6 bases upstream of your restriction site to improve cutting efficiency.  You can generally add any 6 bases, but you should ensure that the bases do not result in the formation of a hairpin structure within your primer. In our case, we will add TAAGCA, resulting in a final Forward Primer sequence of 5'-TAAGCAGAATTCATGTGGCATATCTCGAAGTAC-3'.
+For the Reverse Primer, the design is similar, but we need to use the reverse complement to get PCR amplification.  We can start similarly, taking the final 18bases of the ORF, including the stop codon (5'-TGGCATATCTCGAAGTACTGA-3'), then adding NotI (GCGGCCGC) and then TAAGCA to improve restriction enzyme digestion. This gives us a sequence of 5'-TGGCATATCTCGAAGTACTGAGCGGCCGCTAAGCA-3' (30bp with 18bp of homology to the ORF).  We now need to generate the reverse-complement of this sequence so that we can successfully amplify the ORF. You can generate the reverse-complement using existing software (a quick internet search will lead you to
+(Link opens in a new window)
+here
+and many others). If we put the sequence we chose for our reverse primer (5’-TGGCATATCTCGAAGTACTGAGCGGCCGCTAAGCA-3’) into this calculator we get a final Reverse Primer sequence of 5’-TGCTTAGCGGCCGCTCAGTACTTCGAGATATGCCA-3’.
+Experimental Procedure
+Run PCR and Purify the PCR Product
+Run PCR to amplify your insert DNA. It is important to use a high fidelity taq polymerase to minimize mutations. The fidelity of the polymerase becomes more important the longer the expected PCR product is. You should select an annealing temperature based on the melting temperature (Tm) of the portion of the primer that hybridizes to the sequence to be amplified (the ORF in this case), not the Tm of the entire primer. If you are amplifying from a plasmid or simple template, there is very little chance for mis-priming, so you can use a pretty wide range of annealing temperatures, but you may need to increase your primer length and increase the Tm if you are trying to clone from genomic DNA, a cDNA library, or by RT-PCR.
+Isolate your PCR product from the rest of the PCR reaction using a kit, such as the
+(Link opens in a new window)
+QIAquick PCR Purification Kit
+. The PCR product is now ready for restriction digestion.
+Digest Your DNA
+Set up
+restriction digests
+for your PCR product and recipient plasmid. Because you lose some DNA during the gel purification step, it is important to digest plenty of starting material. We recommend using your entire PCR reaction and 1μg of recipient plasmid. It is also critical that as much of the recipient plasmid as possible be cut with both enzymes, and therefore it is important that the digest goes at least 4 hours and as long as overnight.
+If you are going to use only one restriction enzyme, or enzymes that have compatible overhangs or no overhangs after digestion, you will need to use a phosphatase to prevent re-circularization of the vector. You should treat your digested recipient vector with a phosphatase prior to the ligation step or prior to the gel purification step, depending on the phosphatase you choose. CIP (calf alkaline phosphatase) or SAP (shrimp alkaline phosphatase) are commonly used. Follow the manufacturer’s instructions.
+Isolate Your Insert and Vector by Gel Purification
+Run your digest DNA on an
+agarose gel
+and conduct a
+gel purification
+to isolate the DNA. When running a gel for purification purposes it is important to have nice crisp bands and to have space to cut out the bands. Because of this we recommend that you use a wide gel comb, run the gel on the slower side, and skip lanes between samples. In addition to a DNA ladder standard, it is also a good idea to run an uncut sample of each vector to help with troubleshooting if your digests don’t look as you expected.
+When cloning by PCR, it is especially important to run the product on a gel. This allows you to visualize that your PCR product is the anticipated size and that your band is strong (indicating that the PCR reaction worked and that you have a sufficient amount of DNA).
+Once you have cut out and purified your insert and vector bands away from the gel, it is important to
+determine the concentration of recovered DNA
+.
+Ligate Your Insert Into Your Vector
+Conduct a
+DNA Ligation
+to fuse your insert to your recipient plasmid.
+We recommend around 100ng of total DNA in a standard ligation reaction. You ideally want a recipient plasmid to insert ratio of approximately 1:3. Since the number of base pairs for each varies, it is difficult to calculate this based on DNA concentration alone. One method is to conduct 2 ligations for each plasmid you are trying to create, with varying ratios of recipient plasmid to insert.
+It is also important to set up negative controls in parallel. For instance, a ligation of the recipient plasmid DNA without any insert will tell you how much background you have of uncut or self-ligating recipient plasmid backbone.
+Transformation
+Proceed with the
+transformation
+according to the manufacturer’s instructions for your competent cells.
+For most standard cloning, you can transform 1-2μl of your ligation reaction into competent cells such as DH5alpha or TOP10. If using much less total DNA (<1ng) or if you are having trouble getting colonies, you might want to use higher competency cells. Additionally, if your final product is going to be very large (>10kb) you might want to use electro-competent cells instead of the more common chemically-competent cells.
+The number of bacterial colonies resulting from your transformation will give you the first indication as to whether your transformation worked. Your recipient plasmid + insert plate should have significantly more colonies than the recipient plasmid alone plate. The recipient plasmid alone control will tell you your “background” level or more specifically it will tell you how many colonies you can expect on your recipient plasmid + insert plate that are not correct.
+If you have a high number of colonies on your recipient plasmid alone plate, you can try ligating the recipient plasmid alone in the presence and absence of ligase. If the colonies are a result of uncut empty plasmid, you will still have colonies when you do not add ligase. If the colonies are a result of recipient plasmid self-ligation, you will see significantly more colonies when you add ligase.
+If you do not see any colonies, you should conduct a positive control to ensure that your transformation worked. You could also try varying the amount of recipient plasmid to insert.
+Isolate the Finished Plasmid
+Finally, you will need to pick individual bacterial colonies and check them for successful ligations. Pick 3-10 colonies depending on the number of background colonies on your control plate (the more background, the more colonies you will need to pick) and grow overnight cultures for DNA purification.
+After
+purifying the DNA
+, conduct a
+diagnostic restriction digest
+of 100-300ng of your purified DNA with the enzymes you used for the cloning. Run your digest on an
+agarose gel
+. You should see two bands, one the size of your vector and one the size of your new insert.
+Verify your Plasmid by Sequencing
+PCR based cloning carries a much higher risk for mutation than restriction enzyme based cloning. DNA replication by PCR has error rates that range from roughly 1 per 500bp to roughly 1 per 10 million bp depending on the polymerase used. Because of this, no matter which taq polymerase you use, it is important that you sequence the final product.
+Reference Page
+Top
+Index

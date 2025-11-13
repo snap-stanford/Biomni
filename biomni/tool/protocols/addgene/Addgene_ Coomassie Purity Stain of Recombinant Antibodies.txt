@@ -1,0 +1,307 @@
+PROTOCOL: Coomassie Purity Stain of Recombinant Antibodies
+SOURCE: https://www.addgene.org/protocols/coomassie-purity-stain-recombinant-antibodies/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+This protocol describes how to determine the purity and concentration of
+recombinant antibodies using ready-to-use bio-safe Coomassie G-250 stain
+(Addgene uses SimplyBlue SafeStain) and ImageJ software. The sample is
+separated by denaturing polyacrylamide gel electrophoresis alongside serial
+dilutions of a standard antibody of known concentration. After staining with
+Coomassie blue, protein band intensities are measured using ImageJ software and a
+standard curve is generated. The ratio of the antibody protein content to the
+total protein content of the sample is determined.
+
+Last Update: June 14, 2023
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+Day 1: Run SDS-PAGE and stain gel
+
+Day 1 or later: Image analysis
+
+
+EQUIPMENT
+================================================================================
+
+• Heat block
+• 1–10 µL single channel pipette
+• 2–20 µL single channel pipette
+• 20–200 µL single channel pipette
+• 200–1000 µL single channel pipette
+• Pipette controller
+• Microcentrifuge
+• Electrophoresis chamber
+• Power supply
+• Rocking platform
+• Fume hood
+• Metal spatula
+• Razor blade
+• Plastic tray
+• Gel imaging system
+• ImageJ or similar software
+
+
+REAGENTS
+================================================================================
+
+• Purified recombinant antibody, 0.9–1.1 mg/mL
+• SimplyBlue SafeStain, Thermo Fisher, LC6060
+• 4-12% NuPage Novex bis-tris mini gel, 1mm thick, 10-well, Invitrogen NP0321BOX
+• 20X MOPS SDS running buffer, Invitrogen NP0001
+• 4X NuPage sample buffer, Invitrogen NP0007
+• 10X NuPage sample reducing agent (500 mM dithiothreitol, DTT), Invitrogen
+  NP0009
+• PageRuler Plus Prestained protein ladder, Invitrogen 26619
+• Pipette tips, 10 µL, VWR 76322-132
+• Pipette tips, 20 µL, VWR 76322-134
+• Pipette tips, 200 µL, VWR 76322-150
+• Pipette tips, 1000 µL, VWR 76322-154
+• Pipettes, 5 mL, VWR 89130-896
+• Pipettes, 10 mL, VWR 89130-898
+• Pipettes, 25 mL, VWR 89130-900
+• Pipettes, 50 mL, VWR 89130-902
+• Gel loading tips, Corning 4853
+• Microcentrifuge tubes, Neptune 3745.X
+• PBS, 1X pH 7.4, VWR 45000-446
+• 250 mL sterile bottles, Corning 430281
+• Deionized water
+• IgG isotype standard 2.5 mg/mL - can use commercial standard or validate an
+  in-house standard
+
+
+BEFORE STARTING
+================================================================================
+
+• Warm the hot plate to 100 °C.
+
+• Thaw IgG standard and prestained protein ladder on ice.
+
+
+REAGENT PREPARATION
+================================================================================
+
+Prepare IgG Standard
+
+Dilute the 2.5 mg/mL IgG isotype standard in PBS as follows:
+
+• 1.5 mg/mL: 18 µL of 2.5 mg/mL with 12 µL PBS
+• 1.0 mg/mL: 20 µL of 1.5 mg/mL with 10 µL PBS
+• 0.75 mg/mL: 15 µL of 1.0 mg/mL with 5 µL PBS
+• 0.5 mg/mL: 13.3 µL of 0.75 mg/mL with 6.7 µL PBS
+• 0.25 mg/mL: 10 µL of 0.5 mg/mL with 10 µL PBS
+• 0.125 mg/mL: 10 µL of 0.25 mg/mL with 10 µL PBS
+
+Transfer 5 µL of each standard to a microfuge tube.
+
+Add 8 µL of PBS to a total volume of 13 µL.
+
+Prepare the recombinant antibody
+
+1. Dilute or concentrate purified recombinant antibody to a concentration of
+   0.9–1.1 mg/mL.
+
+2. Transfer 5 µL of recombinant antibody to a microfuge tube.
+
+3. Add 8 µL of PBS to total 13 µL.
+
+Prepare 1X MOPS buffer
+
+Dilute 25 mL of 20X MOPS buffer into 475 mL of deionized water.
+
+Gently invert to mix.
+
+
+PROCEDURE
+================================================================================
+
+Section 1: SDS-PAGE
+
+1. Add 5 µL of 4X sample buffer to each sample.
+
+2. Add 2 µL 10X reducing agent to each sample.
+
+3. Spin the sample briefly in the microcentrifuge.
+
+4. Heat the samples for 10 min at 100 °C in a heat block.
+
+5. Spin the sample briefly in the microcentrifuge.
+
+6. Remove the gel from the plastic wrapper and rinse with deionized water.
+
+7. Gently remove the white sticker on the bottom of the gel.
+
+8. Place the gel in the electrophoresis chamber and secure it.
+
+   Note: Check the manufacturer's instructions if you are unsure of the correct
+   orientation of the gel.
+
+9. Carefully remove the comb from the gel.
+
+10. Rinse each well with 200 µL 1X MOPS running buffer.
+
+11. Fill the chamber with 1X MOPS running buffer.
+
+12. Make sure that the chamber is sealed.
+
+13. Load 5 µL of the prestained protein ladder to the appropriate well.
+
+    💡 PRO TIP: When possible, skip one lane before loading samples.
+
+14. Load 20 µL of each recombinant antibody sample to the appropriate well.
+
+    💡 PRO TIP: Leaving clear lanes between samples will make quantifying the gel
+    easier.
+
+15. Cover the electrophoresis chamber and attach to a power supply.
+
+16. Run the gel at 150 V for 1 h.
+
+    💡 PRO TIP: If the samples are running unevenly and the dye front looks like a
+    "smile", reduce the voltage.
+
+17. Turn off the power supply and unplug the electrophoresis chamber.
+
+18. Remove the gel from the chamber.
+
+19. Use the metal spatula to gently break the gel cast open.
+
+20. Use a razor blade to cut the top of the wells and bottom part of the gel where
+    dye is visible.
+
+Section 2: Staining the Gel
+
+1. Place the gel in a plastic tray with 100 mL of deionized water.
+
+2. Rinse gel with deionized water for 5 min with gentle agitation on a rocking
+   platform.
+
+3. Pour off the water in the sink.
+
+4. Add 20 mL of SimplyBlue SafeStain and incubate for 1 h with gentle agitation on
+   a rocking platform.
+
+5. Pour off the SimplyBlue SafeStain in the sink.
+
+6. Add 100 mL of deionized water and incubate for 1 h with gentle agitation on a
+   rocking platform.
+
+7. Pour off the water in the sink.
+
+8. Add 100 mL of deionized water and incubate for 1 h with gentle agitation on a
+   rocking platform.
+
+9. Pour off the water in the sink.
+
+10. Take a brightfield image of the gel with an appropriate imaging system.
+
+    Recombinant antibody preps should have 2 clear bands at ~50 kDa and ~25 kDa
+    corresponding to the heavy chain (HC) and light chain (LC) proteins,
+    respectively. There should be very little background staining.
+
+    💡 PRO TIP: A large shift in the electrophoretic mobility of the bands
+    (sample AR0016 in Figure 1) indicates that the samples may not have been
+    processed correctly in the cell (e.g., failure to cleave the signal peptide)
+    and may not be functional. This sample would fail Addgene QC and would not be
+    used.
+
+Section 3: Image Analysis
+
+Use ImageJ or a similar photo software to determine the relative intensity of the
+protein bands to the overall lane.
+
+1. Import the gel image into ImageJ.
+   • Select File.
+   • Select Open.
+   • Choose the location of the file to open.
+
+2. Change the image type to 8-bit.
+   • Select Image.
+   • Select Type.
+   • Choose 8-bit.
+
+3. Determine each lane of the gel as follows:
+   • Using the box tool, draw a box around the entire first gel lane.
+   • Select Analyze.
+   • Select Gels.
+   • Select Select First Lane.
+   • Drag the box to the next lane.
+   • Select Analyze.
+   • Select Gels.
+   • Select Select Next Lane.
+   • Repeat for all lanes.
+
+4. Plot the area under the curves for the protein bands as follows:
+   • Select Analyze.
+   • Select Gels.
+   • Select Plot Lanes.
+   • One graph per lane will appear with peaks representing each protein band.
+   • Use the line tool to connect the bottom of each peak.
+   • Select the wand tool.
+   • Fill in each peak by selecting the center of the peak.
+
+5. Export results as a csv file.
+   • In the results table, select File and Save As.
+
+6. Determine the percent purity of the samples:
+
+   P = ((H + L) / A) × 100
+
+   Where:
+   • P = Purity, %
+   • H = Area of HC peak
+   • L = Area of LC peak
+   • A = Total area of all bands in the lane
+
+   Example for AR0018 (lane 2 in Figure 1):
+   • Peak 1 (contaminant): 310.142
+   • Peak 2 (contaminant): 207.971
+   • Peak 3 (HC): 11469.296
+   • Peak 4 (LC): 4655.113
+   • Total Area: 16642.522
+   • HC + LC Area: 16124.409
+   • Purity: 96.887%
+
+   💡 PRO TIP: Addgene only uses recombinant antibody preps that have a purity
+   of ≥90% but some labs use unpurified tissue culture supernatant routinely
+   without any issues.
+
+7. Plot the mg/mL versus the HC + LC Area column for the IgG standards in Google
+   Sheets.
+   • Open exported CSV file.
+   • Select import.
+   • Choose file.
+   • Format as needed.
+   • Select the Insert tab, then Chart. This will add a blank chart to your
+     spreadsheet.
+   • In the Chart Editor, select the Chart Type drop down menu and select Scatter
+     chart.
+   • Change the data range and select the cells where the x-axis is represented.
+   • Add a linear trendline for the standards. Google Sheets can calculate this
+     for you as follows:
+     - In the Chart Editor, select the Customize tab.
+     - Select the Series drop down menu.
+     - Select the Trendline checkbox.
+
+8. Determine the linear equation and the R² of the trendline in Google Sheets as
+   follows:
+   • In the Customize tab, select the Label drop down menu and choose Use
+     Equation.
+   • Select the Show R² checkbox.
+
+   💡 PRO TIP: The R² of the trendline should be between 0.95–1.
+
+9. Use the equation of the trendline to determine the concentration of your
+   samples based on your sample's HC + LC area.
+
+   Example calculation:
+   If the sample HC + LC Area is 18179.442 and the linear equation of the
+   standard curve is y = 14725x + 3748.4, then substitute 18179.442 for y and
+   solve for x.
+   18179.442 = 14725x + 3748.4
+   x = 0.980
+   The concentration of the sample is 0.980 mg/mL

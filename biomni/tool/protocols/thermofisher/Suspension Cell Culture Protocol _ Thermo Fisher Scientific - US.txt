@@ -1,0 +1,82 @@
+PROTOCOL: Suspension Cell Culture Protocol
+SOURCE: https://www.thermofisher.com/us/en/home/references/gibco-cell-culture-basics/cell-culture-protocols/subculturing-suspension-cells.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+A suspension cell culture is characterized by the cell's ability to reproduce in suspended medium or without attachment to a substrate. This makes subculturing suspension cells somewhat less complicated than subculturing adherent cells. Because the cells are already suspended in growth medium, there is no need to treat them enzymatically to detach them from the surface of the culture vessel, and the entire process is faster and less traumatic for the cells.
+
+The suspension cell culture protocols on this page detail how to concentrate and passage cultures in both shaker and spinner flasks. Usually, these cells are maintained by feeding them every 2 to 3 days until they reach confluency. This can be done by directly diluting the cells in the culture flask and continuing to expand them, or by withdrawing a portion of the cells from the culture flask and diluting the remaining cells down to a seeding density appropriate for the cell line. The lag period following the passaging of suspension cell cultures is generally shorter than with adherent cultures.
+
+MATERIALS REQUIRED
+================================================================================
+
+In addition to the vessel that contains your cell culture suspension, you will also need the following materials:
+
+• Complete growth medium: basal medium, serum, and supplements pre-warmed to 37°C
+• 37°C incubator with humidified atmosphere of 5% CO₂
+• Magnetic stir plate (if using spinner flasks), roller rack (if using roller bottles), or shaking platform (if using conventional culture flasks or petri dishes)
+• Pipettes and pipette tips
+• Automated cell counter such as the Countess Automated Cell Counter
+• Trypan blue for counting cells
+
+CULTURE VESSEL OPTIONS
+================================================================================
+
+Suspension cultures can be maintained in sterile culture flasks (i.e., shaker flasks without baffles) that are not tissue-culture treated; or spinner flasks (i.e., stirrer bottles) specifically designed for suspension cell culture allow for superior gas exchange and permit higher volumes of cells to be cultured.
+
+• If using a shaker flask, make sure that it does not have baffles (the indents at the bottom of the flask designed to provide agitation) because they disrupt the shaking rhythm.
+• When using a spinner flask, ensure that the impeller mechanisms rotate freely and do not contact the vessel walls or the base, as cells are sensitive to physical shearing. The top of the paddles should be positioned slightly above the medium to ensure adequate aeration of the culture. Additionally, adjust the spinner mechanism so that the paddles clear the sides and the bottom of the vessel.
+• For proper aeration, the total culture volume in a spinner flask should not exceed half of the flask's indicated volume. For example, a 500 mL spinner should contain no more than 250 mL of culture. It is recommended not to initiate a spinner culture in a flask larger than 500 mL. Instead, scale up from smaller spinners that have already been established.
+
+Table 1. Minimum media volumes for spinner flasks
+
+Size of spinner flask | Minimum media volume
+----------------------|---------------------
+100 mL                | 30 mL
+250 mL                | 80 mL
+500 mL                | 200 mL
+
+PROTOCOL FOR MAMMALIAN SUSPENSION CELL CULTURE
+================================================================================
+
+The following protocols describe general procedures for subculturing mammalian cells in suspension culture. Note that the procedure for passaging insect cells differs from that for mammalian cells on several crucial steps. For more information, refer to "Considerations for passaging insect cells in suspension culture" below.
+
+For passaging your own cell line, we recommend that you closely follow the instructions provided with each product you are using in your experiments, especially regarding formulation of your complete growth medium. The consequences of deviating from the culture conditions required for a particular cell type can range from the expression of aberrant phenotypes to a complete failure of the cell culture. The SDSs for all Thermo Fisher Scientific products can be accessed here.
+
+To promote successful cultures, all solutions and equipment that come in contact with the cells must be sterile. Always use proper sterile technique and work within a laminar flow hood. It is best to subculture cells when they are in log-phase growth before they reach confluency. You can identify suspension cultures that reach confluency, because the cells clump together, and the medium appears turbid when the culture flask is swirled. The maximum recommended cell density before passaging varies with cell lines; refer to the cell-specific product insert or manual for details.
+
+The following protocol describes a general procedure for passaging mammalian cells in suspension culture:
+
+1. Remove the flask from the incubator and take a small sample from the culture flask using a sterile pipette. If cells have settled down before taking the sample, swirl the flask to evenly distribute the cells in the medium.
+
+2. Transfer the cell suspension to a sterile centrifuge tube of appropriate size and centrifuge for 10 minutes at 800 x g. Certain cell lines are sensitive to centrifugal force, refer to your cell's protocols for additional instruction.
+
+3. Carefully remove the supernatant without disturbing the cell pellet.
+
+4. Add the desired volume of fresh complete medium gently to the side of the tube and slowly pipette up and down 2 to 3 times to resuspend the cell pellet.
+
+5. From the sample, determine the total number of cells and percent viability using the Countess Automated Cell Counter or a hemacytometer and trypan blue exclusion.
+
+6. Calculate the volume of media that you need to add to dilute the culture down to the recommended seeding density.
+
+7. Aseptically add the appropriate volume of pre-warmed growth medium into the culture flask. You may split the culture into multiple flasks if needed.
+
+8. The next step will vary based on the type of vessel you are using:
+   a. For shaker flasks: loosen the caps of the culture flasks one full turn to allow for proper gas exchange (or use a gas-permeable cap) and return the flasks to the shaking incubator. The shaking speed depends on the cell line.
+   b. For spinner flasks: loosen the side arm caps of the spinner flasks one full turn to allow for proper gas exchange and return the flasks to the incubator. The spinner speed depends on the cell line and the impeller type. Make sure that the spinner speed is kept within the recommended values to avoid damage to the cells from shear stress.
+
+9. To minimize the accumulation of cell debris and metabolic waste by-products in shaker cultures, gently centrifuge the cell suspension at 100 x g for 5 to 10 minutes and resuspend the cell pellet in fresh growth medium once every three weeks (or as needed).
+
+CONSIDERATIONS FOR PASSAGING INSECT CELLS IN SUSPENSION CULTURE
+================================================================================
+
+While the general procedure for subculturing insect cells follows the same steps as mammalian cells, some key requirements of these culture systems are different. For the best results, always follow the instructions provided with the insect cell lines you are using in your experiments.
+
+• It is recommended that insect cells are subcultured in log phase before confluency is reached.
+• CO₂ exchange is not recommended for insect cell culture.
+• Maintain insect cells at 27°C in a non-humidified environment. Cells can be maintained at room temperature on the bench top or in a drawer, however, a 27°C controlled environment is recommended.
+• Use media specifically formulated for insect cell growth.
+• Use a surfactant to decrease shearing. 0.1% Invitrogen Pluronic F-68 is recommended for spinner insect cultures. Pluronic F-68 (BASF) is a surfactant that decreases cell membrane shearing due to impeller forces. Some media such as Sf-900 II SFM and Gibco Express Five SFM already contain surfactants.
+• Certain insect cell lines may require adaptation to suspension culture. For more information, refer to the cell-line specific product insert or manual.

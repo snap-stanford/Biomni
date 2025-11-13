@@ -1,0 +1,184 @@
+PROTOCOL: Pipetting Protocol
+SOURCE: https://www.addgene.org/protocols/pipetting/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+The pipette is an essential tool for nearly anyone in molecular biology. You'll use
+a pipette in many scenarios to accurately dispense small amounts of liquid (think:
+0.1 µL to 1 mL). When working in a laboratory, properly dispensing liquid ensures
+the accuracy of your experiment and any changes to the amount you are dispensing can
+negatively impact your experimental results. This protocol will guide you in
+selecting the correct pipette and pipette tip and using the pipette.
+
+Last Update: September 2022
+
+
+EQUIPMENT
+================================================================================
+
+• Pipettes
+• Pipette tips
+• Waste container
+• Containers to hold measured liquid (ex: microfuge tube, bottle, etc.)
+• Labels for containers
+
+
+REAGENTS
+================================================================================
+
+• Liquid for pipetting
+
+
+BACKGROUND INFORMATION
+================================================================================
+
+Anatomy of a Pipette
+
+This front view photo of a P1000 pipette shows the plunger at the top, which is
+used to draw and expel liquid into the pipette tip, the volume display which shows
+the set volume for the the pipette, and the tip ejector ring at the bottom which
+pushes the pipette tip off of the pipette.
+
+This side view photo of a P1000 pipette shows the volume adjustment ring right
+below the plunger. This ring changes the pipette volume. Below that is the tip
+ejector button which is used to push the tip ejector down the pipette to remove the
+tip.
+
+Choosing a Pipette and Pipette Tips
+
+Although there are many different types of pipettes that have different mechanisms
+to disperse liquids, this protocol is focused on single channel pipettes. These come
+in standard sizes: P2, P10, P20, P200, and P1000. The table shows the pipette with
+the appropriate dispense volume:
+
+Pipette    | Dispense Volume
+-----------|----------------
+P2         | 0.2 to 2 µL
+P10        | 1 to 10 µL
+P20        | 2 to 20 µL
+P100       | 10 to 100 µL
+P200       | 20 to 200 µL
+P1000     | 100 to 1,000 µL
+
+Each pipette should be used with the appropriate tips, which are made in a number of
+sizes and colors depending on the pipette they are used with and the volume to be
+dispensed. The boxes that the tips come in often indicate a volume range that the
+tip can hold. This should give you an idea of what pipette to use with it.
+
+The purpose of the pipette tip is so that the same pipette can be used for
+measuring different samples without cross contamination as long as the tip is
+changed between samples. Tips can come loose in a bag, or can come preloaded into
+tip boxes. In either case, once assembled into their boxes, pipette tips can be
+sterilized in an autoclave as needed to prevent contamination. When not in use, the
+tip box should be closed to prevent contamination.
+
+Reading the Volume on the Pipette
+
+Although each pipette performs the same function, the numbers are read differently
+on each type of pipette. This section will help you understand how to read each
+display to dispense the correct amount of liquid reagent.
+
+• P1000: The first red digit is thousands of µL, the middle is hundreds, and the
+  third is tens. Therefore, 1000 µL would read as 100 from top to bottom, while
+  650 µL would read as 065.
+
+• P200: The first digit is hundreds of µL, the second is tens, and the third is
+  ones. Therefore 100 µL would read as 100 from top to bottom, while 95 µL would
+  read as 095.
+
+• P20: The first digit is tens of µL, the second is ones, and the third (red)
+  digit is tenths. Therefore, 10 µL would read as 100, while 2.2 µL would read as
+  022.
+
+• P2: The first digit is ones of µL, the second red digit is tenths, and the
+  third (red) digit is hundredths. Therefore, 1 µL would read as 100, while 0.5 µL
+  would read as 050.
+
+Each volume display on these pipettes will also have small tick marks at the bottom.
+For the P1000, this represents the ones. For the P200, this represents the first
+decimal place. For the P20, this represents the second decimal place, and for the
+P2 this represents the third decimal place.
+
+
+PROCEDURE
+================================================================================
+
+How to Pipette
+
+Now that you know the different parts of the pipette, how to select tips, and how to
+read a pipette, you're ready to begin using the pipette. To the right is a photo of
+how you might hold a pipette.
+
+1. Without moving past the maximum possible setting on the pipette, set the desired
+   volume of the liquid on the pipette. Depending on the pipette you're using, you
+   will be rotating dials behind the numerical display or the top of the plunger of
+   the pipette.
+
+2. Select the pipette tip that is designed to fit your pipette. To load a tip onto
+   a pipette, open the tip box and push the end of the pipette onto the tip. Do not
+   touch the tips with your fingers to avoid contaminating the tip or puncturing
+   your glove. Ensure that the tip is properly set on the pipette to ensure
+   pipetting accuracy.
+
+3. Once the pipette is set and you have the liquid you wish to pipette ready, push
+   down the plunger. There will be multiple "stops" on the plunger, where you feel
+   resistance while pressing down on the pipette. Stop at the first "stop." The
+   first stop expels enough air from the pipette for an accurate measurement in the
+   next step. The second stop is meant to expel excess liquid from the tip once
+   you've reached step 8.
+
+4. Continuing to hold down the plunger, gently lower the pipette tip into the
+   liquid. Do not submerge the pipette itself into the liquid and avoid touching
+   the pipette to the inside of the tube. Only the tip should be in the liquid.
+
+   💡 PRO TIP: If pipetting from a relatively large container holding a small volume
+   of liquid, tilt the container holding the liquid so that it's easier for the
+   pipette tip to reach the liquid. Aim to let only the pipette tip into the
+   container in order to avoid contaminating the contents.
+
+5. Once the end of the tip is submerged, slowly release the plunger, allowing it to
+   go back to its resting position.
+
+6. Wait for the liquid to stop flowing into the pipette tip. Liquids of various
+   viscosity have different flow rates. The more viscous a liquid, the lower the
+   flow rate into the pipette tip.
+
+7. Once the liquid has finished drawing into the pipette tip, lift the pipette so
+   that the tip exits the liquid. When you lift the pipette tip out of the liquid,
+   no liquid should drip from the tip. This could indicate that the tip is not on
+   the pipette properly.
+
+8. Place the pipette tip into the container you are using to hold the measured
+   liquid (ex: another microcentrifuge tube, a bottle etc.). If there is already
+   other liquid in the receiving tube, place the pipette tip into the liquid. If
+   this is a new container, place the tip near the bottom of and gently in contact
+   with the container (capillary action between the container and the liquid will
+   help draw the liquid out of the pipette tip). Then, slowly press down on the
+   plunger all the way to the second stop to release the liquid.
+
+   💡 PRO TIP: Dispense until the first stop, wait, and then dispense to the second
+   stop to expel any residual liquid in the tip.
+
+9. Before releasing the plunger, lift the pipette tip out of the liquid. Once you
+   are clear of the liquid you can slowly release the plunger. Remove the entire
+   pipette from the container making sure not to touch the sides of the container
+   with the pipette.
+
+10. Discard the pipette tip by holding the pipette tip over your dedicated waste
+    container and pressing on the tip ejector button. If pipetting biohazardous
+    materials, be sure to discard into a biohazardous waste container.
+
+
+CONCLUSION
+================================================================================
+
+Pipetting accurately and precisely is important since even small changes in the
+volume could affect your experiments. Beyond knowing the proper way to pipette,
+it's important for scientists to calibrate their pipettes to make sure that they
+are properly tuned to dispense the correct amounts of liquid.
+
+If you are pipetting the same amount of liquid into different tubes or into wells
+of a microplate, you may consider using a multichannel pipette. Please watch
+Addgene's protocol on multichannel pipetting to learn more.

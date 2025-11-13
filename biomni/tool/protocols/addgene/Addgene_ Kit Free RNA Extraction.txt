@@ -1,0 +1,266 @@
+PROTOCOL: Kit Free RNA Extraction
+SOURCE: https://www.addgene.org/protocols/kit-free-rna-extraction/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+This protocol describes how to extract RNA from tissues or cells without a kit. The
+general steps of this protocol include homogenization/lysis of cells or tissues,
+extraction of RNA, precipitation, and resuspension. This protocol provides two
+options: using Solution D (see reagent section for recipe) or using an all-in-one
+acid guanidinium thiocyanate-phenol solution such as TRIzol®. For the precipitation
+step, two options are also included: using Isopropanol or Lithium Chloride.
+
+This protocol was adapted from Chomczynski P and Sacchi N, 2006 and TRIzol® User
+Guide from ThermoFisher Scientific.
+
+
+BEFORE STARTING
+================================================================================
+
+RNA is not as stable as DNA and is susceptible to degradation by heat, RNases, and
+other enzymes.
+
+💡 PRO TIPS:
+
+• Always wear gloves, and whenever possible, keep RNA sample and reagents cold and
+  work quickly to reduce RNA degradation.
+
+• Keep work area, equipment, and reagents RNase-free (Use an RNase decontamination
+  solution, such as RNaseZap® or RNase AWAY®, may be used).
+
+• For more tips on working with RNA, read this blog post on RNA extraction without
+  a kit.
+
+Last Update: April 10, 2020
+
+
+EQUIPMENT
+================================================================================
+
+• Refrigerated microcentrifuge
+  (If you only have a non-refrigerated microcentrifuge, see step 4 of either
+  protocol before you start.)
+• Homogenizer
+• Vortexer
+• -20°C freezer
+• -80°C freezer
+
+
+REAGENTS
+================================================================================
+
+• Solution D (for Protocol Option #1):
+  - 4 M Guanidinium Thiocyanate
+  - 25 mM Sodium Citrate, pH 7.0
+  - 0.5% (wt/vol) N-laurosylsarcosine (Sarkosyl)
+  - 0.1 M 2-mercaptoethanol
+
+• TRIzol® or similar product such as TRI Reagent®, RNAzol®, QIAzol® (for Protocol
+  Option #2)
+
+• Water-saturated Phenol
+
+• 2 M Sodium Acetate pH 4
+
+• Chloroform/Isoamyl alcohol (49:1)
+
+• 75% Ethanol
+
+• RNase-free water or TE solution
+
+• RNase free tubes: microcentrifuge tubes, 4 mL polypropylene tubes
+
+• RNase decontamination solution like RNase AWAY® or RNaseZAP®
+
+• Isopropanol (for precipitation step, Option A)
+
+• 7.5 M Lithium Chloride (for precipitation step, Option B)
+
+• Glycogen (Optional)
+
+Caution: Make sure to read the SDS (Safety Data Sheet) for safety warnings and
+hazards for these reagents. Work in a well-ventilated space and under a fume hood
+when working with the volatile reagents in the list above.
+
+
+PROCEDURE
+================================================================================
+
+Option #1 - Solution D Protocol
+
+Before starting this protocol, make sure to prepare solution D (see reagent
+section above for the recipe). If using TRIzol®, jump down to the Option #2 -
+TRIzol® Protocol section below.
+
+1. Homogenize or lyse tissues or cells in Solution D.
+   • For tissues: use 1 mL of Solution D per 100 mg of cells.
+   • For cultured cells: use 1 mL of Solution D per 1 X 10⁷ cells.
+
+2. Allow sample(s) to sit at room temperature for 5 minutes to allow for
+   dissociation of the nucleoprotein complexes.
+
+   The effectiveness of your RNA isolation will depend on how effective your cell
+   lysis protocol is. While simple homogenization is effective for most mammalian
+   tissues; more hardy tissues such as bone, or bacteria/yeast/plant samples will
+   require additional steps to effectively lyse open the cells.
+
+3. Extract RNA from the homogenized sample(s). Transfer tissue/cell lysate to a 4
+   mL tube. Add the following sequentially to 1 mL of lysate:
+   • Add 0.1 mL of 2 M sodium acetate (pH 4.0), mix thoroughly by inversion.
+   • Add 1 mL water-saturated phenol, mix thoroughly by inversion.
+   • Add 0.2 mL of Chloroform/Isoamyl alcohol (49:1) and then shake vigorously by
+     hand for 10 seconds.
+
+4. Incubate sample(s) for 15 minutes on ice and centrifuge the sample(s) for 15
+   minutes at 12,000 × g at 4°C to separate RNA from the rest of the tissue/cell
+   lysate.
+
+   💡 PRO TIP: Having your samples spin at 4°C helps reduce RNA degradation. If
+   you don't have access to a refrigerated centrifuge, you can carefully bring a
+   centrifuge into a cold room for centrifugation. Once you're done using the
+   centrifuge, bring this equipment back to room temperature, as prolonged storage
+   in the cold room may damage it.
+
+5. Using a pipettor, transfer the top, aqueous phase to a new RNAse-free tube.
+
+   The mixture separates into a bottom organic layer, an interphase layer, and a
+   top, aqueous layer. Take care to not disturb or collect the interphase layer
+   with your pipette tip.
+
+   💡 PRO TIP: To collect as much of the top aqueous phase without disturbing the
+   interphase layer, consider using a lower volume pipettor like a p200 to collect
+   a majority of the aqueous phase. You may have to collect twice or more from the
+   same tube, but unlike using a p1000 tip it will give you more control of where
+   you're aiming your tip in the tube.
+
+6. Precipitate your sample(s). You can use either Isopropanol or Lithium Chloride
+   for this step.
+
+   Isopropanol (Option A): Add 1 volume of Isopropanol to the extracted aqueous
+   layer. Incubate at -20°C for 1 hour.
+
+   Lithium Chloride (Option B): LiCl selectively precipitates RNA versus DNA or
+   proteins. Add the correct amount of 7.5 M LiCl solution to bring the
+   concentration of LiCl in the extracted aqueous layer to 2.5 M. Incubate at
+   -20°C for 1 hour.
+
+   💡 PRO TIPS:
+   • If you anticipate your RNA yield to be small, RNase-free Glycogen may be used
+     as a carrier to facilitate RNA precipitation. This does not affect the quality
+     of RNA or downstream applications.
+   • To improve yield of RNA, instead of incubating at -20°C for 1 hour, you can
+     try incubating at -80°C overnight.
+
+7. Centrifuge for 20 minutes at 10,000 x g at 4°C and discard the supernatant.
+   There should be a gel-like white pellet of total RNA in the bottom of the tube.
+
+8. Wash the RNA by resuspending the pellet in 0.5–1 ml of 75% Ethanol and vortex
+   for a few seconds. Centrifuge for 5 minutes at 10,000 x g at 4 °C and remove
+   the supernatant.
+
+9. Remove as much of the ethanol wash as possible without disturbing the pellet.
+   Air-dry the pellet for 5-10 minutes.
+
+   Critical: It is important to not let the pellet get too dry before resuspending,
+   as this affects the solubility of the RNA.
+
+   💡 PRO TIP: To prevent overdrying, watch the pellet and carefully remove any
+   residual ethanol wash and add RNase-free water or TE as soon as the entire tube
+   is dried but while the white pellet is still visible.
+
+10. Resuspend RNA pellet in RNase-free water or TE. Quantify and assess the quality
+    of your RNA sample(s) using a spectrophotometer (such as a Nanodrop), agarose
+    gel, or bioanalyzer. For more information on nucleic acid quantification, see
+    our protocol for DNA quantification, which can be modified for RNA. Store your
+    RNA sample(s) at -80 °C to prevent RNA degradation and avoid multiple
+    freeze-thaw cycles.
+
+    💡 PRO TIP: To avoid multiple freeze-thaw cycles of your entire RNA sample,
+    consider making smaller aliquots of it and storing those in -80°C.
+
+Option #2 - TRIzol® Protocol
+
+1. Homogenize or lyse tissues or cells in TRIzol® or a similar product.
+   • For tissues: use 1 mL of TRIzol® per 100 mg of cells.
+   • For cultured cells: use 1 mL of TRIzol® per 1 X 10⁷ cells.
+
+2. Allow sample(s) to sit at room temperature for 5 minutes to allow for
+   dissociation of the nucleoprotein complexes.
+
+   The effectiveness of your RNA isolation will depend on how effective your cell
+   lysis protocol is. While simple homogenization is effective for most mammalian
+   tissues; more hardy tissues such as bone, or bacteria/yeast/plant samples will
+   require additional steps to effectively lyse open the cells.
+
+3. Extract RNA from the homogenized sample(s). Add 0.2 mL of Chloroform/Isoamyl
+   alcohol (49:1) per 1 mL of TRIzol® used. Shake vigorously by hand for 10
+   seconds.
+
+4. Incubate the sample(s) for 2-3 minutes on ice and centrifuge for 15 minutes at
+   12,000 × g at 4°C to separate RNA from the rest of the tissue/cell lysate.
+
+   💡 PRO TIP: Having your samples spin at 4°C helps reduce RNA degradation. If
+   you don't have access to a refrigerated centrifuge, you can carefully bring a
+   centrifuge into a cold room for centrifugation. Once you're done using the
+   centrifuge, bring this equipment back to room temperature, as prolonged storage
+   in the cold room may damage it.
+
+5. Using a pipettor, transfer the top, aqueous phase to a new RNAse-free tube.
+
+   The mixture separates into a bottom organic layer, an interphase layer, and a
+   top, aqueous layer. If using TRIzol®, the bottom layer will be a red-pink
+   color. Take care to not disturb or collect the interphase layer with your
+   pipette tip.
+
+   💡 PRO TIP: To collect as much of the top aqueous phase without disturbing the
+   interphase layer, consider using a lower volume pipettor like a p200 to collect
+   a majority of the aqueous phase. You may have to collect twice or more from the
+   same tube, but unlike using a p1000 tip it will give you more control of where
+   you're aiming your tip in the tube.
+
+6. Precipitate your sample(s). You can use either Isopropanol or lithium Chloride
+   for this step.
+
+   Isopropanol (Option A): Add 1 volume of Isopropanol to the extracted aqueous
+   layer. Incubate at -20°C for 1 hour.
+
+   Lithium Chloride (Option B): LiCl selectively precipitates RNA versus DNA or
+   proteins. Add the correct amount of 7.5 M LiCl solution to bring the
+   concentration of LiCl in the extracted aqueous layer to 2.5 M. Incubate at
+   -20°C for 1 hour.
+
+   💡 PRO TIPS:
+   • If you anticipate your RNA yield to be small, RNase-free Glycogen may be used
+     as a carrier to facilitate RNA precipitation. This does not affect the quality
+     of RNA or downstream applications.
+   • To improve yield of RNA, instead of incubating at -20°C for 1 hour, you can
+     try incubating at -80°C overnight.
+
+7. Centrifuge for 20 minutes at 10,000 x g at 4°C and discard the supernatant.
+   There should be a gel-like white pellet of total RNA in the bottom of the tube.
+
+8. Wash the RNA by resuspending the pellet in 0.5–1 ml of 75% Ethanol and vortex
+   for a few seconds. Centrifuge for 5 minutes at 10,000 x g at 4 °C and remove
+   the supernatant.
+
+9. Remove as much of the ethanol wash as possible without disturbing the pellet.
+   Air-dry the pellet for 5-10 minutes.
+
+   Critical: It is important to not let the pellet get too dry before resuspending,
+   as this affects the solubility of the RNA.
+
+   💡 PRO TIP: To prevent overdrying, watch the pellet and carefully remove any
+   residual ethanol wash and add RNase-free water or TE as soon as the entire tube
+   is dried but while the white pellet is still visible.
+
+10. Resuspend RNA pellet in RNase-free water or TE. Quantify and assess the quality
+    of your RNA sample(s) using a spectrophotometer (such as a Nanodrop), agarose
+    gel, or bioanalyzer. For more information on nucleic acid quantification, see
+    our protocol for DNA quantification, which can be modified for RNA. Store your
+    RNA sample(s) at -80 °C to prevent RNA degradation and avoid multiple
+    freeze-thaw cycles.
+
+    💡 PRO TIP: To avoid multiple freeze-thaw cycles of your entire RNA sample,
+    consider making smaller aliquots of it and storing those in -80°C.

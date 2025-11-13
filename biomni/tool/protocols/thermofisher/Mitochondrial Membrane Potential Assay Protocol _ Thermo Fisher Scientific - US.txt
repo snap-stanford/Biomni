@@ -1,0 +1,89 @@
+PROTOCOL: Mitochondrial Membrane Potential Assay Protocol
+SOURCE: Thermo Fisher Scientific - US
+URL: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/apoptosis-protocol.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Mitochondrial membrane potential (ΔΨm) is a key indicator of mitochondrial health and cellular viability. Loss of mitochondrial membrane potential is an early event in apoptosis. This protocol describes methods for measuring mitochondrial membrane potential using fluorescent dyes such as JC-1, TMRM, or MitoTracker dyes.
+
+APPLICATIONS
+================================================================================
+
+This protocol can be used for:
+• Detecting early apoptosis
+• Assessing mitochondrial health
+• Screening for mitochondrial toxins
+• Studying mitochondrial function
+
+MATERIALS REQUIRED
+================================================================================
+
+• Cells in culture
+• JC-1 dye, TMRM, or MitoTracker dye
+• Cell culture medium
+• Phosphate-buffered saline (PBS)
+• Fluorescence microscope or flow cytometer
+• Optional: CCCP (carbonyl cyanide m-chlorophenyl hydrazone) as positive control
+
+PROTOCOL
+================================================================================
+
+Using JC-1 dye (ratiometric indicator)
+
+JC-1 exists as a monomer (green fluorescence) at low membrane potential and forms aggregates (red fluorescence) at high membrane potential.
+
+1. Prepare cells in appropriate culture vessel.
+
+2. Prepare JC-1 working solution:
+   - For JC-1 powder: Dissolve in DMSO to make 1-5 mg/mL stock. Store at -20°C.
+   - Working solution: Dilute to 1-10 µg/mL in cell culture medium or PBS.
+
+3. Remove cell culture medium.
+
+4. Add JC-1 working solution to cells.
+
+5. Incubate for 15-30 minutes at 37°C, protected from light.
+
+6. Wash cells 2-3 times with PBS or culture medium.
+
+7. For live cell imaging:
+   - Replace with fresh culture medium or imaging buffer.
+   - Image immediately using fluorescence microscope.
+
+8. For fixed cells:
+   - Fix cells according to standard protocol after JC-1 staining.
+   - Mount and image.
+
+9. Image analysis:
+   - Green fluorescence (monomer): excitation ~485 nm, emission ~530 nm
+   - Red fluorescence (aggregate): excitation ~535 nm, emission ~590 nm
+   - Calculate red/green ratio: higher ratio indicates higher membrane potential
+
+Using TMRM (Tetramethylrhodamine, methyl ester)
+
+1. Prepare TMRM stock solution (1-10 mM in DMSO).
+
+2. Prepare working solution (50-250 nM in cell culture medium).
+
+3. Add TMRM working solution to cells.
+
+4. Incubate for 20-30 minutes at 37°C, protected from light.
+
+5. Wash cells 2-3 times with PBS.
+
+6. Image using TRITC filter set (excitation ~540 nm, emission ~565 nm).
+
+7. Higher fluorescence intensity indicates higher membrane potential.
+
+PROTOCOL TIPS
+================================================================================
+
+• Include positive control (cells treated with CCCP or other mitochondrial uncoupler) to confirm assay is working
+• Optimize dye concentration and incubation time for your cell type
+• Protect from light during staining and imaging
+• For JC-1, use ratiometric analysis (red/green) for more accurate results
+• Some dyes may be toxic to cells at high concentrations; use lowest effective concentration
+• For flow cytometry, use appropriate controls and compensation settings
+• Fixed cells can be used, but live cell imaging provides more dynamic information

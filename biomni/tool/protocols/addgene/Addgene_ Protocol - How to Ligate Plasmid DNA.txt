@@ -1,0 +1,122 @@
+PROTOCOL: How to Ligate Plasmid DNA
+SOURCE: https://www.addgene.org/protocols/dna-ligation/
+================================================================================
+
+BACKGROUND INFORMATION
+================================================================================
+
+The final step in the construction of a recombinant plasmid is connecting the
+insert DNA (gene or fragment of interest) into a compatibly digested vector
+backbone. This is accomplished by covalently connecting the sugar backbone of the
+two DNA fragments. This reaction, called ligation, is performed by the T4 DNA
+ligase enzyme. The DNA ligase catalyzes the formation of covalent phosphodiester
+linkages, which permanently join the nucleotides together. After ligation, the
+insert DNA is physically attached to the backbone and the complete plasmid can be
+transformed into bacterial cells for propagation.
+
+The majority of ligation reactions involve DNA fragments that have been generated
+by restriction enzyme digestion. Most restriction enzymes digest DNA
+asymmetrically across their recognition sequence, which results in a single
+stranded overhang on the digested end of the DNA fragment. The overhangs, called
+"sticky ends", are what allow the vector and insert to bind to each other. When
+the sticky ends are compatible, meaning that the overhanging base pairs on the
+vector and insert are complementary, the two pieces of DNA connect and ultimately
+are fused by the ligation reaction.
+
+Usually, scientists select two different enzymes for adding an insert into a
+vector (one enzyme on the 5' end and a different enzyme on the 3' end). This
+ensures that the insert will be added in the correct orientation and prevents the
+vector from ligating to itself during the ligation process. If the sticky ends on
+either side of the vector are compatible with each other, the vector is much more
+likely to ligate to itself rather than to the desired insert. If you are in this
+situation, it is important to treat the digested vector backbone with a
+phosphatase before performing the ligation reaction (phosphatase removes the 5'
+phosphate and therefore prevents the ligase from being able to fuse the two ends
+of the vector together).
+
+
+PROTOCOL: STANDARD INSERT + VECTOR DNA LIGATION
+================================================================================
+
+Before setting up the ligation reaction itself, it is important to determine the
+amount of cut insert and vector to use for the ligation reaction. The volume of
+vector DNA and insert DNA used in the ligation will vary depending on the size of
+each and their concentration. However, for most standard cloning (where the
+insert is smaller than the vector) a 3 insert : 1 vector molar ratio will work
+just fine. We recommend around 100ng of total DNA in a standard ligation reaction.
+Use a ligation calculator to easily quantify how much vector and insert DNA to use.
+
+1. Combine the following in a PCR or Eppendorf tube:
+   • Vector DNA
+   • Insert DNA
+   • Ligase Buffer (1μL/10μL reaction for 10X buffer, and 2μL/10μL reaction for
+     5X buffer)
+   • 0.5-1μL T4 DNA Ligase
+   • H₂O to a total of 10μL
+
+   Notes:
+   • If the DNA concentrations are low such that you cannot get all 100ng of DNA,
+     buffer and ligase into a 10μL reaction, scale the reaction size as necessary
+     - being sure to increase the amount of buffer proportionally. 1μL of ligase
+     should be sufficient for larger ligation reactions.
+   • Because ligase buffer contains ATP, which degrades upon freeze/thaw cycles,
+     it is a good idea to take a fresh tube, thaw it one time and aliquot
+     individual tubes of 5, 10 or 20μL for storage at -20°C. Whenever you need to
+     set up ligations in the future you can thaw a new tube that you know has only
+     been thawed once before.
+   • Always do controls. See Tips and FAQ below for details.
+   • Try different vector to insert ratios to optimize the ligation reaction. See
+     Tips and FAQ below for details on optimization.
+
+2. Incubate at room temperature for 2hr, or at 16°C overnight (following the
+   manufacturer's instructions).
+
+   Note: For many ligation reactions, especially if using "high concentration"
+   ligase, 5min at room temperature is enough. For trickier ligations (such as
+   ligation of annealed oligos) the efficiency of ligation can be improved by
+   incubation at 37°C.
+
+3. Proceed with bacterial transformation.
+
+
+TIPS AND FAQ
+================================================================================
+
+Do controls
+
+When doing ligations you should ALWAYS do a vector alone + ligase control. This
+will allow you to verify that the vector was completely digested and if
+phosphatase treated, that the phosphatase treatment worked. This control should, in
+principle, be free of colonies, but the reality is that it will have some amount
+of background. What you want to see is that your vector + insert ligation has many
+more colonies than your vector alone ligation.
+
+Additional controls are encouraged, but may only be required for troubleshooting
+failed ligations. The following table indicates the various controls:
+
+Control        | Ligase | Interpretation
+--------------|--------|------------------------------------------
+Uncut vector  | -      | Checks viability of competent cells and
+              |        | verifies the antibiotic resistance of the
+              |        | plasmid
+Cut vector    | -      | Background due to uncut vector
+Cut vector    | +      | Background due to vector re-circularization
+              |        | - most useful for phosphatase treated vector
+Insert or     | +      | Any colonies indicate contamination of intact
+water         |        | plasmid in ligation or transformation reagents
+
+Optimizing the Vector:Insert Ratio
+
+Although a 3:1 insert to vector ratio is usually sufficient, you can optimize
+the amount of insert and vector to improve ligation efficiency in situations where
+the 3:1 ratio is not working or when doing more complicated cloning. While 3:1
+will get you in the ballpark for average size genes and vectors, this ratio is
+really meant to refer to the molarity of DNA ends available for ligation. Simply
+put, there are only two ends on any given piece of DNA no matter how long it is,
+and therefore we need to adjust the amount of DNA used in a ligation based on the
+length of the DNA to get a proper ratio of 3 available insert ends for every
+available vector end.
+
+Ligation calculators are easily found on the web. Just enter the concentration,
+lengths of your insert and vector, and what ratio you want, and it will tell you
+exactly how much of each to use.

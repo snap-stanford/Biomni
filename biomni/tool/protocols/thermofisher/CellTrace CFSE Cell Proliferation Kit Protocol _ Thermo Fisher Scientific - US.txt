@@ -1,0 +1,94 @@
+PROTOCOL: CellTrace CFSE Cell Proliferation Kit Protocol
+SOURCE: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/protocols/celltrace-cfse-cell-proliferation-kit-protocol.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+The CellTrace CFSE Cell Proliferation Kit provides a robust method for evaluating cell proliferation through CFSE staining. CFSE, or carboxyfluorescein succinimidyl ester, is a fluorescent dye used in CFSE proliferation assays to monitor distinct generations of proliferating cells. The CFSE staining protocol involves covalently labeling live cells with this bright and stable dye, which dilutes evenly among daughter cells during cell division. Flow cytometric visualization then allows researchers to observe each generation as a separate peak on a flow cytometry histogram, offering precise insights into cell proliferation dynamics. The CellTrace CFSE protocol is essential for studies requiring accurate measurement of cell proliferation and is widely used in various research applications to evaluate cell division and growth.
+
+APPLICATIONS
+================================================================================
+
+This protocol can be used for:
+• Detecting cell proliferation using flow cytometry
+
+This protocol should not be used for:
+• Fluorescence microscopy or microplate readers
+
+MATERIALS REQUIRED
+================================================================================
+
+You will need the following for this protocol:
+
+• 20 mL of heparinized peripheral whole blood
+• CellTrace CFSE Cell Proliferation Kit
+• OpTmizer T Cell Expansion SFM
+• Penicillin-Streptomycin-Glutamine (100X)
+• PBS
+• Ficoll-Paque Plus
+• Cell counter such as the Countess 3 FL
+• Dynabeads Human T-Activator CD3/CD28
+
+PROTOCOL
+================================================================================
+
+Culture medium preparation
+
+To 1 L Gibco OpTmizer T Cell Expansion SFM, add the following:
+• 26 mL of T Cell Expansion Supplement
+• 10 mL of Penicillin-Streptomycin-Glutamine
+
+Complete medium is stable for 4 weeks when stored at 2–8°C in the dark.
+
+Mononuclear cell isolation from whole blood
+
+1. Dilute 10 mL whole blood in 10 mL PBS and mix well.
+2. Add 15 mL Invitrogen Ficoll-Paque Plus to a 50 mL centrifuge tube and gently layer 20 mL diluted whole blood on top.
+3. Centrifuge for 30 minutes at 400 x g.
+4. Carefully remove lymphocyte layer and transfer to a new tube.
+5. Resuspend cells in 25 mL DPBS buffer in a 50 mL conical tube.
+6. Centrifuge for 5 minutes at 300 x g, pour off supernatant, and resuspend in 25 mL DPBS.
+7. Repeat wash step and resuspend in 10 mL DPBS.
+8. Count cells on the Invitrogen Countess Automated Counter or by another method; adjust concentration to 10⁶ cells/mL.
+
+Cell staining
+
+1. Add 18 µL DMSO to a vial of CellTrace CFSE staining solution.
+2. Dilute this stock solution into 20 mL of PBS (warmed to 37°C) for a 5 µM staining solution.
+3. Add 10 mL of cells to a 50 mL centrifuge tube.
+4. Centrifuge cells for 5 minutes at 300 x g and carefully pour off supernatant.
+5. Resuspend cells in 10 mL of CellTrace CFSE staining solution.
+6. Incubate cells for 20 minutes in a 37°C water bath.
+7. Add 40 mL OpTmizer T Cell Expansion SFM to the cells to absorb any unbound dye.
+8. Incubate cells for 5 minutes.
+9. Centrifuge cells for 5 minutes at 300 x g and resuspend the cell pellet in pre-warmed OpTmizer T Cell Expansion SFM.
+
+Stimulation and analysis
+
+1. Distribute aliquots of stained cells into culture plates or flasks.
+2. Stimulate with 50 µL Invitrogen Dynabeads Human T-Activator CD3/CD28 per 1 mL of cells, or other stimulus.
+3. Incubate for desired length of time under growth conditions.
+4. Harvest cells and stain for other markers if appropriate.
+5. Analyze using a flow cytometer with 488 nm excitation and emission filters appropriate for fluorescein.
+
+SPECTRAL INFORMATION AND STORAGE
+================================================================================
+
+CellTrace CFSE:
+• Excitation/Emission (in nm): 492/517
+• Standard filter set: Invitrogen Alexa Fluor 488
+• Storage conditions: ≤–20°C
+
+PROTOCOL TIPS
+================================================================================
+
+• Reserve 1 mL of cells for unstained control and 1 mL of cells for a stained, but unstimulated control
+• Dynabeads stimulation typically results in T cell division every 18–20 hr
+• Analyze as many cells as possible from each sample
+• Use a viability dye and gate on live cells
+
+PRODUCT CATALOG NUMBERS
+================================================================================
+
+C34554, A1048501, 10378016, 10010023, AMQAF2000, 11161D

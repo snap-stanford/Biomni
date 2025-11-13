@@ -1,0 +1,92 @@
+PROTOCOL: Water Bath Protocol
+SOURCE: https://www.addgene.org/protocols/water-bath/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+A water bath is a piece of laboratory equipment that helps bring your materials to
+a particular temperature, catalyze chemical reactions such as restriction digests
+needed in molecular biology, and thaw cell lines. There are many different types of
+water baths that exist as scientists work with tubes and bottles of different sizes
+in the lab. Some water baths contain individual slots for heating up tubes while
+other water baths hold many liters of water to incubate bottles and containers.
+Water baths can also be placed in walk-in refrigerators to achieve a temperature
+between 4°C and room temperature. This general protocol suits almost any water bath.
+
+
+EQUIPMENT
+================================================================================
+
+• Water Bath
+• 10% bleach or 70% ethanol
+• Distilled water
+• Disinfectant
+• Thermometer
+• Water bath weights and floats
+
+
+REAGENTS
+================================================================================
+
+None needed
+
+
+PROCEDURE
+================================================================================
+
+1. Ensure that the water bath and water bath cover are cleaned before filling the
+   water bath with water. You may use a 10% bleach solution or a 70% ethanol
+   solution to wipe down the inside of the water bath.
+
+   💡 PRO TIP: To properly maintain the water bath, empty and clean it regularly.
+
+2. Determine the amount of water needed to fill the water bath, and be sure to
+   know what the maximum fill capacity is. Look for a "fill" line inside the water
+   bath or read the user manual. If you're filling up a water bath with individual
+   slots for tubes, remember that when you add the tube to the slots, it can cause
+   the water level to rise up and flow over the edge of the slide.
+
+3. Fill the water bath with distilled water, not tap water, to prevent salts from
+   accumulating on the surfaces of the water bath as the water evaporates from the
+   tub. Disinfectant may be added to prevent growth of bacteria or fungi. There are
+   disinfectants designed to be used in water baths with instructions on the
+   bottle, for example, number of drops per liter.
+
+4. Place a thermometer in the water bath. Oftentimes, the water bath will have a
+   spot to secure the thermometer in place.
+
+5. Turn the water bath on and set the appropriate temperature as described in your
+   protocol. How to set the temperature will vary depending on the model of water
+   bath, but will likely involve a dial or a digital display you can set to the
+   correct temperature. Set up your water bath so that it will reach the desired
+   temperature by the time you need it for your experiment. Water baths tend to
+   heat up relatively slowly. Place the water bath cover on the top of the water
+   bath to prevent evaporation and maintain the desired temperature. This also
+   helps the water bath heat up quicker.
+
+   💡 PRO TIP: Set up the water bath 30 minutes to 1 hour before you need to use
+   it to allow the temperature to stabilize.
+
+6. Use water resistant markers, such as permanent markers, to label your tubes
+   and/or containers that will go into the water bath. If you'll need to sterilize
+   your items after removing them from the water bath, be sure to use a marker that
+   is also resistant to chemicals such as ethanol. Writing on the tops of the
+   tubes and lids of items to be placed in the water bath is often better than
+   writing on the side of the tube. This way, as items are floating, you do not
+   need to necessarily maneuver the bottles or tubes to identify them.
+
+7. Once the water bath is at the correct temperature, remove the lid and place your
+   tubes or bottles into the water bath. Many items may float in the water bath
+   when they are placed inside. Water bath floats can be used to secure tubes in
+   place and water bath weights can hold bottles in place.
+
+8. After putting your tubes or bottles in the water bath, place the lid back on.
+   Note the time that you've put your materials in the water bath so that you know
+   when to take them out after your incubation is over.
+
+Note: If you regularly use a water bath in the lab, you can leave the water in it
+from previous uses. However, you will still need to regularly clean out the water
+bath even if you are using disinfectants as described above in step 3. You will
+also need to maintain the appropriate water level in the water bath so before use,
+make sure that there is enough water inside.

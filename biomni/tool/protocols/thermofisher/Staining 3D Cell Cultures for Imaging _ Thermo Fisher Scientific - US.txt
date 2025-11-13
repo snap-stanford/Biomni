@@ -1,0 +1,171 @@
+PROTOCOL: Staining 3D Cell Cultures for Imaging
+SOURCE: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/protocols/staining-3d-cell-cultures-imaging.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+3D cell cultures and the study of organoids and spheroids require new approaches to be visualized with fluorescent microscopy. Unlike 2D cell cultures which can easily be visualized by light transmitted through the sample, 3D cultures may be too thick for light to effectively pass through. Clearing reagents are recommended when imaging fixed 3D cell cultures of various thickness, including organoids and spheroids. Clearing 3D culture samples enable optimal clarity for sharp, bright fluorescent images.
+
+MATERIALS REQUIRED
+================================================================================
+
+• 4% paraformaldehyde (e.g., Image-iT Fixative Solution, Cat. No. R37814)
+• Nunclon Sphera 96-well plates (Cat. No. 174925)
+• Nunclon 96-well optical-bottom plates (Cat. No. 164588)
+• Microscope coverslips
+• Phosphate buffer saline (e.g., Gibco PBS (10X), pH 7.4, Cat. No. 70011044)
+• Primary antibody (e.g., Invitrogen Antibodies)
+• Non-curing glass slide mountant (e.g., SlowFade Glass Soft-set Antifade Mountant, Cat. No. S36917)
+• Clearing reagents (CytoVista 3D Cell Culture Clearing/Staining Kit, Cat. No. V11325). Kit includes:
+  - Tissue penetration buffer (CytoVista Antibody Penetration Buffer, Cat. No. V11310)
+  - Antibody dilution buffer (CytoVista Antibody Dilution Buffer, Cat. No. V11305)
+  - Blocking buffer (CytoVista Blocking Buffer, Cat. No. V11306)
+  - Wash buffer (CytoVista Wash Buffer, Cat. No. V11312)
+• DAPI counterstain (e.g., NucBlue Fixed Cell ReadyProbes Reagent- DAPI, Cat. No. R37606)
+
+PROTOCOL
+================================================================================
+
+General Notes
+
+• We recommend that you cut your pipet tips to widen the openings. This will help to prevent shearing of the spheroids.
+• This protocol is recommended for spheroids cultured up to 500 microns in thickness.
+• Read instructions with fluorescent dyes and reagents—not all of them can be fixed and many need to be used pre-fixation.
+• We strongly recommend you optimize the primary antibody before using the kit. Positive and negative samples should be stained with a serial dilution including 1:10, 1:100, 1:500, 1:1000. Thicker spheroids may need more antibody.
+
+Spheroid fixation and permeabilization
+
+Spheroids can be fixed within the tissue culture plate or transferred into a microcentrifuge tube for fixation.
+
+1. Centrifuge samples 500 g for 5 min. Gently remove cell culture media.
+
+2. Wash cells once with cold PBS. Centrifuge at 500 g for 5 min. Remove supernatant.
+
+3. (Optional) Add fluorescent cell reagents for viability (refer to protocol below) before fixation. We recommend using LIVE/DEAD fixable dye for viability staining.
+
+4. Add 4% paraformaldehyde at a volume that is approximately 10X the volume of the tissue. Ensure that the tissue is submerged in the fixative. Fix for 1 h at 37°C at room temperature with gentle agitation.
+
+5. Wash cells once with cold PBS. Centrifuge at 500 g for 5 min. Remove supernatant.
+
+6. Permeabilize the spheres for antibody access by incubating spheres for 15 min at room temperature. Suitable permeabilization reagents include CytoVista Antibody Penetration buffer with gentle agitation.
+
+7. Centrifuge at 500 g for 5 min. Remove supernatant.
+
+8. Wash samples twice with 1% fetal bovine serum in PBS.
+
+9. Centrifuge at 500 g for 5 min. Remove supernatant.
+
+10. Block the samples with blocking buffer such as the CytoVista Blocking Buffer for 2 h at 37°C with gentle agitation.
+
+Labeling
+
+Tip: Titrate the primary antibody concentration for optimal results. Too much or too little primary antibody can result in sub-optimal or no labeling. Antibody concentration can vary depending on the thickness of the tissue.
+
+1. Add primary antibodies prepared in CytoVista Antibody Dilution Buffer.
+
+2. Incubate samples overnight at room temperature with gentle agitation.
+
+3. Wash samples 3X with CytoVista Wash Buffer to remove any unbound excess antibody solution. Centrifuge at 500 g for 5 min. Remove supernatant.
+
+4. Add secondary antibodies prepared in CytoVista Antibody Dilution Buffer.
+
+Note: We recommend that you titrate the antibody to find the optimal concentration.
+
+5. Incubate samples overnight at room temperature with gentle agitation.
+
+6. Add 1 drop of counterstain, NucBlue per mL of sample or 300 nM DAPI.
+
+Note: 300 nm DAPI preparation: Add 2 mL of dimethylformamide (DMF) to the entire contents of the DAPI vial to make a 14.3 mM (5 mg/mL) DAPI stock solution. Add 2.1 µL of the 14.3 mM DAPI stock solution to 100 µL PBS to make a 300 µM DAPI intermediate dilution. Dilute the 300 µM DAPI intermediate dilution 1:1,000 in PBS as needed to make a 300 nM DAPI stain solution.
+
+7. Incubate sample for 30 min at room temperature with gentle agitation.
+
+8. Centrifuge at 500 g for 5 min. Remove supernatant.
+
+9. Wash sample 3X with CytoVista Wash Buffer. Centrifuge at 500 g for 5 min. Remove supernatant.
+
+Mounting
+
+SlowFade mountant can be pipetted to cells in glass bottom plates. Other options include pipetting spheres on a coverslip. Add 1-3 drops of SlowFade glass mount on top of the section. Place coverslip over microscope slide and image.
+
+Tip: Allow the SlowFade Antifade Mountants to warm to room temperature. If the vials are refrigerated or frozen, thaw for 1 hour at room temperature. Avoid shaking the bottle to prevent air bubbles.
+
+Imaging
+
+We recommend using a microscope with Z stack capabilities such as the Invitrogen EVOS M5000, EVOS M7000, or CellInsight CX7 high-content platform. Celleste 6 Image Analysis Software has 2D/3D- deconvolution features that can be used for sharper images.
+
+CELL REAGENTS FOR SPHEROID IMAGING
+================================================================================
+
+Perform cell viability assay
+
+We recommend the LIVE/DEAD Viability/Cytotoxicity Kit (Cat. No. L3224).
+
+Perform this assay before fixation.
+
+1. Add 5 µL component A and 20 µL component B to 10 mL DPBS to create staining solution.
+
+2. Add 100–200 µL of the staining solution directly to cells.
+
+3. Incubate for 2 hours at room temperature with gently agitation. Protect from light.
+
+Measure reactive oxygen species (ROS) in live spheroid cells
+
+We recommend CellROX Green Reagent (Cat. No. C10444).
+
+Perform this measurement before fixation. Only CellROX Green and DeepRed can be fixed and permeabilized.
+
+Tip: Generate control with spheroids treated with 100 μM Menadione (e.g., Fisher Chemicals Cat. No. ICN10225925).
+
+1. Add CellROX Green dye to media for a final concentration of 5 µM (e.g., 1 µl per 500 µl of media).
+
+2. Incubate for 2 hours at room temperature with gently agitation. Protect from light.
+
+3. Wash with PBS. Centrifuge at 500 g for 5 min. Gently remove supernatant. Repeat 3x.
+
+4. Follow with fixation. Compatible with antibody staining and counter staining with NucBlue Live ReadyProbes Reagent (Cat. No. R37605).
+
+Apoptosis assay using CellEvent Caspase 3/7 detection reagent (with NucBlue dye)
+
+Reagents and kits:
+• NucBlue Live ReadyProbes Reagent (Cat. No. R37605)
+• CellEvent Caspase 3/7 detection reagent Green (Cat. No. C10423)
+
+Note: Use before fixation. Only CellEvent Caspase 3/7 Green or Red are fixable.
+
+1. Add 100 µL of PBS to dry down powder to generate 100X stock solution. Dilute this 100X stock solution 1:100 in complete media.
+
+2. Add 2 μM of CellEvent Caspase 3/7 detection reagent and 1 drop NucBlue per milliliter of PBS.
+
+3. Incubate 2 hours with gentle agitation at room temperature. Protect from light.
+
+4. Wash with PBS. Centrifuge at 500 g for 5 min. Gently remove supernatant.
+
+5. Follow with fixation.
+
+Cell proliferation assay with Click-iT Plus EdU cell proliferation kit
+
+Reagents and kits:
+• Click-iT Plus EdU cell proliferation kit, Alexa Fluor 488 (Cat. No. C10337)
+• Click-iT Plus EdU cell proliferation kit, Alexa Fluor 555 (Cat. No. C10638)
+• Click-iT Plus EdU cell proliferation kit, Alexa Fluor 594 (Cat. No. C10639)
+• Click-iT Plus EdU cell proliferation kit, Alexa Fluor 647 (Cat. No. C10640)
+
+Note: Use when growing cells in culture.
+
+1. Optimize cell culture so spheroid size increases. The reagent will be incorporated during S-phase of the cell cycle.
+
+2. Add 2 mL Component C or an aqueous solution to Component A to make a 10 mM EdU stock solution. Store at –20°C.
+
+3. Make 1X Click-iT EdU reaction buffer by transferring the solution (4 mL) in the Component D bottle to 36 mL of deionized water. Store any remaining solution at 2–8°C.
+
+4. Make 10X Click-iT EdU buffer additive by adding 2 mL deionized water to Component F and mixing until fully dissolved. Store at –20°C.
+
+5. Add fresh media containing 20 μM EdU and incubated overnight at 37°C. Proliferating cells will incorporate EdU at this stage.
+
+REFERENCES
+================================================================================
+
+Sherman H, Gitschier HJ, Rossi AE. A Novel Three-Dimensional Immune Oncology Model for High-Throughput Testing of Tumoricidal Activity. Front Immunol. 2018;9:857. Published 2018 Apr 23. PMID: 29740450
+
+Mittler F, Obeïd P, Rulina AV, Haguet V, Gidrol X, Balakirev MY. High-Content Monitoring of Drug Effects in a 3D Spheroid Model. Front Oncol. 2017;7:293. Published 2017 Dec 11. PMID: 29322028

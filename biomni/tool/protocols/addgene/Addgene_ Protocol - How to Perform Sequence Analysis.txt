@@ -1,0 +1,108 @@
+PROTOCOL: How to Perform Sequence Analysis
+SOURCE: https://www.addgene.org/protocols/sequence-analysis/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+Sequence verification of important plasmid features (such as the gene/insert,
+fusion proteins, point mutations, deletions, etc.) involves selecting one or more
+unique oligonucleotide primers that flank the regions of your plasmid that you
+wish to confirm. Addgene's plasmid information pages recommend 5' and 3'
+sequencing primers. These primers typically anneal to the backbone and can help
+you verify the ends of the insert. Longer genes may require internal primers that
+anneal to a specific region of the insert.
+
+You can find Addgene's sequencing results by clicking on the "View Sequences" link
+on the Plasmid Information Pages. Addgene sequences the plasmid to verify tags,
+mutations and a portion of the insert, but we do not sequence the entire plasmid.
+Addgene strongly recommends that you sequence any portion of the plasmid that is
+important for your experiments.
+
+
+FACTORS TO CONSIDER WHEN SELECTING SEQUENCING PRIMERS
+================================================================================
+
+Is the primer unique?
+
+Make sure the primer only anneals once within the entire construct.
+
+Is the primer an appropriate distance from the target?
+
+The primer should be a minimum of 50 nucleotides and a maximum of 300 nucleotides
+from your target.
+
+Are there commercially available primers that can be used for sequencing?
+
+There are many widely used, common primers that are often found within the
+plasmid backbone (See Addgene's Sequencing Primers for reference). Many
+sequencing cores have a list of common primers that can be requested for no
+additional charge.
+
+What primers were used by Addgene during quality control?
+
+Addgene lists the primers used to obtain each result above the posted sequence in
+the "View Sequence" link.
+
+Is your custom primer found within the Addgene sequencing results?
+
+If you require additional sequencing and need to design a custom primer, Addgene
+recommends using Addgene's sequencing results as a reference for primer design.
+
+
+SEQUENCING RESULTS
+================================================================================
+
+A good sequencing reaction will produce between 300-900 base pairs of useable
+sequence. You should receive your sequencing results as a trace file (.ab1) which
+graphically depicts the sequence as a series of colored peaks corresponding to
+one of the four nucleotide bases. This is an example of a trace file from a
+high-quality portion of a sequencing reaction.
+
+Sequence near the beginning or end of a sequencing reaction is often unreliable.
+Although your sequencing results may indicate bases at specific locations, by
+looking at the trace file, you will see that these base calls are unreliable.
+This is an example of a trace file from a portion of a sequencing reaction with
+high background.
+
+If you obtain a different sequence than expected and wish to contact Addgene about
+the accuracy of your plasmid, please email [email protected] and include:
+• The sequencing result
+• The original trace file (.ab1 file) provided by your sequencing company or
+  core facility
+• The corresponding primer sequence used for each reaction
+
+
+TIPS AND FAQs
+================================================================================
+
+My sequence doesn't match Addgene's sequencing result, what should I do?
+
+Check your trace file first; the apparent mismatch/mutation may be the result of a
+mis-called peak in the trace file. If the mutation is not an artifact, please
+email [email protected] with the sequence, trace file, and primer used.
+
+What program can I use to view my trace file?
+
+There are many free programs available that can open .ab1 files, such as:
+• 4Peaks (Mac)
+• SnapGene Viewer (Mac/PC)
+• FinchTV (Mac/PC)
+• Sequence Scanner (PC)
+• Chromas (PC)
+
+How can I tell if a peak is mis-called?
+
+Open the trace file and use the search feature in the program to locate the
+incorrect sequence. Look at the peaks in the area and make sure they are
+justifiable peaks. For instance, in the trace file below, you can see that just
+after base 70 there are multiple peaks in the same location. Looking at the trace
+file will give you more information than simply looking at the bases provided by
+your sequencing provider.
+
+My sequence has "N"s in it- what does that mean?
+
+"N" is the letter used to denote that the position could be any of the 4 bases.
+Check the trace file and see if you can manually call the correct base at the
+position. Sometimes an "N" is the result of an erroneous insertion by the
+sequencing reaction.

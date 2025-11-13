@@ -1,0 +1,102 @@
+PROTOCOL: Weighing Reagents Protocol
+SOURCE: https://www.addgene.org/protocols/weighing-reagents/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+For many experiments, you'll need to make buffers, media, or other solutions. A key
+part of this task is making sure you're weighing all reagents precisely to create
+the solution you expect. Understanding how to obtain the correct amounts of materials
+for an experiment or reagents for a stock mixture is an essential laboratory
+technique, as imprecise measurements can affect the outcome of your experiment. In
+this protocol, you will learn the basics of how to weigh reagents. Wear the
+appropriate personal protective equipment (PPE) prior to handling the materials.
+
+
+EQUIPMENT
+================================================================================
+
+• Weighing boats or weighing paper
+• Balance
+• Scoopula or spatula
+• Container (beaker, tube, flask, etc.)
+
+
+REAGENTS
+================================================================================
+
+• Material that will be weighed out
+
+
+PROCEDURE
+================================================================================
+
+The balance in the photo above has a capacity of 200 g, as indicated by the number
+above the "Zero" button.
+
+1. Before weighing out your reagents, determine the amount that you need to weigh.
+
+2. Gather the reagent you will be weighing out, a weighing boat or weighing paper
+   to contain the reagent while on the balance, and an appropriately sized container
+   to put the reagent in. For some reagents, you might need to weigh it out in the
+   fume hood to prevent exposure. Read the reagent's material safety data sheet
+   (MSDS) to determine if this is best.
+
+3. Check that the balance has the correct capacity for the material that you are
+   weighing by looking for a weight range on the scale. Make sure that the weight
+   of the material you're weighing out is within this range. If you need less than
+   a gram of material, use an analytical scale. This will provide more accuracy as
+   these types of scales display more decimal places.
+
+   💡 PRO TIP: If you're weighing out an amount larger than the capacity of your
+   balance or weighing boat, you can weigh out the reagents in batches. For
+   example, if you need 300 g of sucrose, you can weigh out 100 g three times,
+   placing the sucrose in your container after each time.
+
+4. Place the weighing boat or weighing paper onto the balance. These are used to
+   contain the material you're weighing and prevent cross-contamination with other
+   substances. They also help you transfer the material to your tube or container.
+
+   💡 PRO TIP: If you're using weighing paper, fold it in half first to create a
+   crease and then place it unfolded onto the balance. This will help you remove it
+   from the scale later on as otherwise, the paper could stick to the surface.
+
+5. Tare the weighing boat or paper. You need to do this because you don't want to
+   include the weight of the weighing boat or paper into your measurement. Hit the
+   tare button (or zero button) to set the balance to zero.
+
+   💡 PRO TIP: If you're weighing a minute amount of reagent that will be
+   resuspended in a small volume (e.g. 0.02 g to resuspend in 1 mL), you may place
+   a microcentrifuge tube on the balance and then tare it. Then add the material
+   directly to the tube to weigh it.
+
+6. Make sure that your scoopula or spatula is clean, and sterile (if necessary),
+   to prevent any potential contamination.
+
+7. Scoop out the material you are weighing onto the weighing boat or paper. If you
+   weighed out too much material, don't put any extra back into the original
+   container. Dispose of the excess material into an appropriate waste container if
+   the material is biohazardous. Check your lab's material safety data sheets
+   (MSDS) to understand how to properly dispose of reagents that you are working
+   with.
+
+   💡 PRO TIP: When you weigh out a reagent, you may leave trace amounts of it on
+   the balance. Therefore, it's best to clean the balance before adding your next
+   weighing boat for the next reagent.
+
+8. Once you've weighed out the correct amount of your reagent, transfer it into
+   your container.
+
+9. Make sure that any spills produced during the protocol are cleaned up. Discard
+   the weighing boat or weighing paper in the trash if the material weighed is not
+   biohazardous. If it is biohazardous, discard the weighing boat or paper in the
+   biohazard solid waste container.
+
+
+CONCLUSION
+================================================================================
+
+Appropriately weighing reagents is important to ensure the accurate composition of
+your solutions and buffers. Now that you have your reagents weighed out, you can
+begin making your solutions!

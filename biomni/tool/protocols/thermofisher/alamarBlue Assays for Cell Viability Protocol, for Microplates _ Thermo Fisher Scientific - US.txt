@@ -1,0 +1,80 @@
+PROTOCOL: alamarBlue Assays for Cell Viability Protocol, for Microplates
+SOURCE: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/protocols/alamarblue-cell-viability-reagent-for-microplates-protocol.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Monitoring viability using cellular reducing environment
+
+The alamarBlue HS and alamarBlue Cell Viability Reagents are ready-to-use resazurin-based reagents that function as cell health indicators by using the reducing power of living cells to quantitatively measure viability. Upon entering living cells, resazurin is reduced to resorufin, a compound that is red in color and highly fluorescent.
+
+APPLICATIONS
+================================================================================
+
+This protocol can be used for:
+• Identifying live mammalian, bacterial, plant, fungal cells using a microplate reader
+• Higher cell densities
+• Longer incubation times
+
+This protocol should not be used for:
+• Flow cytometry
+
+MATERIALS REQUIRED
+================================================================================
+
+• Cells growing in culture
+• One of the following:
+  - alamarBlue Cell Viability Reagent
+    • 25 mL (Cat. No. DAL1025)
+    • 100 mL (Cat. No. DAL1100)
+  - alamarBlue HS Cell Viability Reagent
+    • 25 mL (Cat. No. A50100)
+    • 100 mL (Cat. No. A50101)
+• Phosphate-buffered saline (PBS) (Cat. No. 14190-144)
+• Fluorescence or absorbance microplate reader
+
+PROTOCOL
+================================================================================
+
+1. Add cells in appropriate medium to microplate wells
+2. Add either alamarBlue HS or alamarBlue reagent to microplate wells (see recommended volumes below)
+3. Incubate at 37°C for 1–4 hours
+4. Read fluorescence or absorbance (signal is stable for 7 hours)
+5. Plot a curve of relative fluorescence units vs. drug concentration to generate quantitative results
+
+Note regarding subsequent culture:
+After viability determination, the diluted alamarBlue HS or alamarBlue reagent can be replaced with complete media and returned to the incubator. The cells will continue to proliferate normally.
+
+RECOMMENDED VOLUMES
+================================================================================
+
+Table 1. alamarBlue HS and alamarBlue reagent recommended volumes.
+
+Both alamarBlue Cell Viability Reagents are supplied as 10X solutions. Add alamarBlue reagent directly to cells in culture medium. See below for example volumes:
+
+Format              | Volume of cells + medium | Volume of alamarBlue HS or alamarBlue reagent
+--------------------|--------------------------|------------------------------------------------
+Cuvette             | 900 μL                   | 100 μL
+96-well plate       | 90 μL                    | 10 μL
+384-well plate      | 36 μL                    | 4 μL
+
+SPECTRAL INFORMATION AND STORAGE
+================================================================================
+
+alamarBlue HS or alamarBlue cell viability reagents:
+• Excitation/Emission: 560/590 nm
+• Absorbance: 570 nm (use 600 nm reference wavelength)
+• Storage conditions: 4°C
+
+PROTOCOL TIPS
+================================================================================
+
+• Correct for background fluorescence by including control wells containing only cell culture medium (no cells) on each plate
+• Fluorescence is more sensitive than absorbance and is the preferred detection method
+• Bottom-read is more sensitive than top-read
+
+PRODUCT CATALOG NUMBERS
+================================================================================
+
+A50100, A50101, DAL1025, DAL1100

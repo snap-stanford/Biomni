@@ -1,0 +1,140 @@
+PROTOCOL: How to Inoculate a Bacterial Culture
+SOURCE: https://www.addgene.org/protocols/inoculate-bacterial-culture/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+Plasmids can carry one or more antibiotic resistance genes, which confer
+resistance to a specific antibiotic to the bacteria carrying them. The presence of
+an antibiotic resistance gene on a plasmid allows researchers to easily isolate
+bacteria containing that plasmid from bacteria that do not contain it by
+artificial selection (i.e., growing the bacteria in the presence of the
+antibiotic).
+
+Luria broth (LB) is a nutrient-rich media commonly used to culture bacteria in
+the lab. LB agar plates are frequently used to isolate individual (clonal)
+colonies of bacteria carrying a specific plasmid. However, a liquid culture is
+capable of supporting a higher density of bacteria and is used to grow up
+sufficient numbers of bacteria necessary to isolate enough plasmid DNA for
+experimental use. The following protocol is for inoculating an overnight culture
+of liquid LB with bacteria.
+
+
+PROCEDURE
+================================================================================
+
+1. Prepare liquid LB. For example, to make 400 mL of LB, weigh out the following
+   into a 500 mL glass bottle:
+   • 4 g NaCl
+   • 4 g Tryptone
+   • 2 g Yeast Extract
+   • and dH₂O to 400 mL
+
+   Note: If your lab has pre-mixed LB agar powder, use the suggested amount,
+   instead of the other dry ingredients above.
+
+2. Loosely close the cap on the bottle (do NOT close all the way or the bottle may
+   explode!) and then loosely cover the entire top of the bottle with aluminum
+   foil. Autoclave and allow to cool to room temperature. Now screw on the top of
+   the bottle and store the LB at room temperature.
+
+3. When ready to grow your culture, add liquid LB to a tube or flask and add the
+   appropriate antibiotic to the correct concentration (see Preparing Antibiotics
+   below).
+
+   Note: If you intend to do a miniprep, you will usually want to start 2 mL in a
+   Falcon tube. For larger preps, you might want to use as much as a liter of LB
+   in a 2 L Erlenmeyer flask.
+
+4. Using a sterile pipette tip or toothpick, select a single colony from your LB
+   agar plate.
+
+5. Drop the tip or toothpick into the liquid LB + antibiotic and swirl.
+
+   Note: You can also use a long toothpick to select the colony, swirl it in the
+   LB, and remove prior to incubating.
+
+6. Loosely cover the culture with sterile aluminum foil or a cap that is not air
+   tight. Alternatively, you could use vented bioreactor tubes, dual position
+   snap-cap tubes, or permeable film to allow for aeration.
+
+7. Incubate bacterial culture at 37 °C for 12–18 h in a shaking incubator.
+
+   Note: Some plasmids or strains require growth at 30 °C. If so, you will likely
+   need to grow for a longer time to get the correct density of bacteria since
+   they will grow more slowly at lower temperatures.
+
+8. After incubation, check for growth, which is characterized by a cloudy haze in
+   the media (Figure 1).
+
+   Notes:
+   • Some protocols require bacteria to be in the log phase of growth. Check the
+     instructions for your specific protocol and conduct an OD600 to measure the
+     density of your culture if needed.
+   • A good negative control is LB media + antibiotic without any bacteria
+     inoculated. You should see no growth in this culture after overnight
+     incubation.
+
+9. Optional: For long term storage of the bacteria, you can proceed with creating
+   a glycerol stock.
+
+10. You can now isolate your plasmid DNA from the bacterial culture by following
+    the Isolating Your Plasmid DNA protocol.
+
+
+PREPARING ANTIBIOTICS
+================================================================================
+
+Create a stock solution of your antibiotic. Unless otherwise indicated, the
+antibiotic powder can be dissolved in dH₂O. Addgene recommends making 1000X stock
+solutions and storing aliquots at -20 °C.
+
+To use, dilute your antibiotic into your LB medium at 1:1,000. For example, to
+make 100 mL of LB/ampicillin growth media, add 100 μL of a 100 mg/mL ampicillin
+stock (1000X stock) to 100 mL of LB.
+
+Antibiotic Concentrations:
+
+Commonly Used Antibiotics | Recommended Concentration
+--------------------------|-------------------------
+Ampicillin                | 100 µg/mL
+Bleocin                   | 5 µg/mL
+Carbenicillin             | 100 µg/mL
+Chloramphenicol           | 25 µg/mL
+Coumermycin               | 25 µg/mL
+Gentamycin                | 10 µg/mL
+Kanamycin                 | 50 µg/mL
+Spectinomycin             | 50 µg/mL
+Tetracycline              | 10 µg/mL
+
+
+TIPS AND FAQ
+================================================================================
+
+What is the difference between high copy and low copy plasmids?
+
+The copy number refers to the number of copies of an individual plasmid within a
+single bacterial cell (Figure 2). Large plasmids usually have a low copy number
+(approximately one or two copies per cell) and they need to grow for longer
+periods of time (approximately 18–30 h). On the other hand, smaller plasmids can
+be present in large numbers, 50 or more per cell, and have a high copy number.
+High copy number plasmids should only need to be grown for 12–16 h on average.
+Certain features of a plasmid may render it low copy regardless of plasmid size.
+See the plasmid's info page to determine if your plasmid is high or low copy.
+
+I didn't get any growth after overnight incubation. What went wrong?
+
+• Try growing the culture for more time. Some bacterial cultures grow more slowly.
+  Also, bacteria incubated at 30 °C rather than 37 °C often require longer
+  incubation times.
+
+• Double check that the antibiotic in your LB media matches the antibiotic
+  resistance on your plasmid.
+
+• If the bacteria on your LB agar plates are not fresh, you should streak your
+  bacteria onto a new LB agar plate before growing in liquid culture.
+
+• More aeration may help to increase the density of the culture. Normally cultures
+  shake at 150–250 rpm, increase this to 350–400 rpm to obtain a higher cell
+  density.

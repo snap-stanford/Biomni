@@ -1,0 +1,170 @@
+PROTOCOL: Enzymatic and Non-Enzymatic Cell Dissociation Protocols
+SOURCE: https://www.thermofisher.com/us/en/home/references/gibco-cell-culture-basics/cell-culture-protocols/cell-dissociation-protocol.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Detachment, dissociation, and disaggregation are processes that require cellular material to be broken down from adherent conditions for study—without compromising the health of the cells or cultures involved. To do this, there are a wide range of dissociation methods and reagents available. These dissociation reagents are specially formulated with detachment agents tailored to specific cell types. Below you will find methods, protocols, and materials of the most common dissociation reagents used for gently detaching cells from a substrate or breaking down primary tissues.
+
+DETACHMENT METHODS
+================================================================================
+
+There are several detachment methods used to remove cells from substrates while maintaining the health of the cells to be harvested. Some cell lines require more gentle or assertive detachment methods, so it's imperative to understand your cell line's behavior and reaction to physical, enzymatic, or non-enzymatic dissociation methods.
+
+Table 1. Detachment methods
+
+Procedure              | Dissociation agent                                    | Applications
+-----------------------|------------------------------------------------------|--------------------------------------------------------------------------------------------------
+Shake-off              | Gentle shaking or rocking of culture vessel, or vigorous pipetting | Loosely adherent cells, mitotic cells
+Scraping               | Cell scraper                                         | Cell lines sensitive to proteases; may damage some cells
+Enzymatic dissociation | Trypsin                                              | Strongly adherent cells
+Enzymatic dissociation | Trypsin + collagenase                                | High density cultures, cultures that have formed multiple layers, especially fibroblasts
+Enzymatic dissociation | Dispase                                              | Detaching epidermal cells as confluent, intact sheets from the surface of culture dishes without dissociating the cells
+Enzymatic dissociation | Gibco TrypLE dissociation enzyme                     | Strongly adherent cells; direct substitute for trypsin; applications that require animal origin-free reagents
+Non-enzymatic dissociation | Cell dissociation buffer with salt solutions      | Lightly adherent cells, gentle, applications requiring intact cell surface proteins, not recommended for strongly adherent cells
+
+ENZYMATIC CELL DISSOCIATION
+================================================================================
+
+The following is a general procedure to rapidly remove various cell lines from the substratum while maintaining cellular integrity. This procedure is not meant to be universally applicable for all cell lines. The optimal conditions and concentrations employed for individual systems should be determined empirically. Cell viability should be routinely monitored at the time of subculturing. Cell viability should be greater than 90%.
+
+1. Remove and discard spent cell culture media.
+
+2. Wash cells using a balanced salt solution without calcium and magnesium or wash with EDTA. Add wash solution to the side of the flask opposite the cells. Rinse the cell sheet by rocking the flask for 1 to 2 min and discard wash solution.
+
+3. Add the dissociation solution of choice at 2 to 3 mL/25 cm² to the side of the flask opposite the cells. Be certain that the dissociation solution covers the cell sheet. Incubate the flasks at 37°C. Rock the flasks gently. Generally, cells are dissociated in 5 to 15 min. The actual time needed to dissociate cells will vary according to cell line. Monitor the process carefully to avoid cell damage. In addition to rocking gently, flasks of cell lines that are characteristically difficult to remove from the substratum may be tapped to expedite removal.
+
+4. When the cells are completely detached, stand the flask in the upright position to allow the cells to drain to the bottom of the flask. Add complete media to the flask. Disperse the cells by pipetting the suspension repeatedly.
+
+5. Transfer cell suspension to a 15 mL conical tube and centrifuge at 100 × g for 5–10 minutes.
+
+6. Discard supernatant and resuspend cell pellet with 2–5 mL of pre-warmed complete medium.
+
+7. Determine viable cell density and percent viability using a Countess Automated Cell Counter (similar automated or manual methods may be used).
+
+8. Seed, incubate, and subculture according to normal protocols for your cell type.
+
+TRYPLE EXPRESS ENZYMES PROTOCOL
+================================================================================
+
+TrypLE Express Enzymes are formulated to allow direct substitution into your existing protocols. The following general procedure can be used to remove various cell lines from cultureware while maintaining cellular integrity. Optimal conditions and concentrations employed for individual systems should be determined empirically.
+
+Note: TrypLE Express Enzymes may be used at ambient room temperature for many types of cells.
+
+1. Pre-warm TrypLE Express Enzymes and complete growth medium to 37°C before use. Minimize dwell time.
+
+2. Aspirate spent medium and discard.
+
+3. Wash cell monolayer with 5 mL of Dulbecco's Phosphate Buffered Saline (DPBS) without calcium and magnesium. Aspirate and discard.
+
+4. Add an appropriate volume (e.g., 5 mL in a 75 cm² flask) of TrypLE Express Enzymes to flask. Ensure complete coverage of cell monolayer with TrypLE Express Enzymes.
+
+5. Incubate at 37°C until cells have detached. Observe cell monolayer using an inverted microscope to ensure complete cell detachment from the surface of the flask. Gently tap flask to dislodge cells if necessary.
+
+6. Add 5–10 mL of pre-warmed complete medium to flask. Tilt flask in all directions to thoroughly rinse flask and transfer cell suspension to a 15 mL conical tube.
+
+7. Centrifuge at 100 × g for 5–10 minutes.
+
+8. Discard supernatant and resuspend cell pellet with 2–5 mL of pre-warmed complete medium.
+
+9. Determine viable cell density and percent viability using a Countess Automated Cell Counter (similar automated or manual methods may be used).
+
+10. Seed, incubate and subculture according to normal protocols depending on your cell type.
+
+Note: Use of soybean trypsin inhibitors are not recommended post-dissociation.
+
+ENZYMATIC DISSOCIATION REAGENTS
+================================================================================
+
+Catalog numbers: 15090046, 12604013, 12605010, 17018029, 17101015, 17104019, 17105041
+
+DISAGGREGATION AND TISSUE DISSOCIATION
+================================================================================
+
+A common method to obtain single cell suspensions from primary tissue is enzymatic disaggregation. Expose the cells to enzymes for a minimal amount of time to preserve maximum viability. The following procedures disaggregate whole tissue to obtain a high yield of viable cells.
+
+TRYPSIN PRIMARY TISSUE PROTOCOL
+================================================================================
+
+1. After dissecting off unusable tissue, mince the remaining tissue into 3 to 4 mm pieces with a sterile scalpel or scissors. Wash the tissue pieces by resuspending in a balanced salt solution without calcium and magnesium. Allow the tissue pieces to settle and remove the supernatant. Repeat the wash 2 or 3 times.
+
+2. Place the container with the tissue pieces on ice and remove any remaining supernatant. Add 0.25% trypsin in a balanced salt solution without calcium or magnesium (1 mL of trypsin for every 100 mg of tissue).
+
+3. Incubate at 4°C for 6 to 18 h to maximize penetration of the enzyme with little trypsin activity.
+
+4. Decant and discard the trypsin from the tissue pieces. Incubate the tissue pieces with residual trypsin at 37°C for 20 to 30 min.
+
+5. Add warm, complete media to the tissue pieces and gently disperse the tissue by pipetting. If using a serum-free medium, add soybean trypsin inhibitor.
+
+6. Filter the cell suspension through sterile, stainless-steel mesh (100 to 200 µM) to completely disperse any remaining tissue. Count and seed the cells for culture.
+
+COLLAGENASE PRIMARY TISSUE PROTOCOL
+================================================================================
+
+1. Mince tissue into 3–4 mm pieces with a sterile scalpel or scissors.
+
+2. Wash the tissue pieces several times with HBSS containing calcium and magnesium.
+
+3. Add sufficient HBSS with calcium and magnesium to submerge tissue. Add collagenase to 50–200 U/mL.
+
+4. Incubate at 37°C for 4–18 hours. Increased efficiency is obtained using a rocker platform and supplementing the digest with 3 mM CaCl₂.
+
+5. Disperse cells by passing through a sterile stainless steel or nylon mesh. Remaining tissue fragments may be disaggregated by addition to fresh collagenase solution and further incubation at 37°C.
+
+6. Wash dispersed cells several times by centrifugation in HBSS w/o collagenase.
+
+7. Resuspend cell pellet, after the final wash step, in culture medium. Determine viable cell density using a Countess Automated Cell Counter (alternate automated or manual methods may be used).
+
+8. Seed cells into culture vessels containing appropriate media.
+
+DISPASE PRIMARY TISSUE PROTOCOL
+================================================================================
+
+1. Mince tissue into 3–4 mm pieces with a sterile scalpel or scissors.
+
+2. Wash the tissue pieces several times in sterile DPBS without calcium and magnesium.
+
+3. Submerge tissue fragments in Dispase solution (0.6–2.4 U/mL) and incubate at 37°C. More efficient dissociation of tissue can be obtained by mixing the Dispase solution at 0.3–0.6 U/mL with collagenase (60–100 U/mL).
+
+4. Stir slowly at 37°C until the tissue is sufficiently dissolved. For compact tissues, we recommend incubating for 1 hour. Cells will not be adversely affected even after several hours in Dispase solution.
+
+5. If necessary, separate the dispersed cells from residual tissue by passing the mixture through a sterile stainless steel or nylon mesh or simply decant the cells after larger fragments have settled. Fresh Dispase solution may be added to the remaining tissue fragments if further disaggregation is required.
+
+6. Pellet cells by centrifugation and decant the enzyme solution.
+
+7. Resuspend the cell pellet in appropriate culture medium. Determine viable cell density using a Countess Automated Cell Counter (alternate automated or manual methods may be used).
+
+8. Seed cells into culture vessels containing appropriate culture medium and incubate under predetermined conditions.
+
+ENZYMATIC TISSUE DISSOCIATION REAGENTS
+================================================================================
+
+Catalog numbers: 15400054, 15050065, 15050057, 12604013, 12605028, 12605010, 17100017, 17018029, 17101015, 17104019, 17105041, 14190144
+
+NON-ENZYMATIC CELL DISSOCIATION
+================================================================================
+
+The following is a general procedure to rapidly remove various cell lines from the substratum while maintaining cellular integrity. This procedure is not meant to be universally applicable for all cell lines. The optimal conditions and concentrations employed for individual systems should be determined empirically. Cell viability should be routinely monitored at the time of subculturing. Cell viability should be greater than 90%.
+
+1. Warm all reagents to 37°C prior to use.
+
+2. Remove growth medium from cells.
+
+3. Thoroughly rinse cell monolayers with 5 mL Ca²⁺- and Mg²⁺-free PBS per T75 flask or 100 mm dish. Gently rock the flask (or dish), allowing the solution to bathe the cells for 30 to 60 seconds at room temperature. Aspirate the rinse solution and discard.
+
+4. Repeat step 3.
+
+5. Add approximately 5 mL of Cell Dissociation Buffer per T75 flask or 100 mm dish and gently bathe cells by rocking at room temperature for 1 to 2 minutes. You may check for dissociation under the microscope. Aspirate solution and discard.
+
+6. Firmly tap flask or dish against palm of hand to dislodge cells. If cells do not detach quickly, allow to sit at room temperature for another 2 to 5 minutes and tap flask against palm of hand again. This may be repeated for cells that are more strongly adherent (with 5 more milliliters of dissociation buffer). After the cells are visibly detached, add at least 5 mL of complete growth medium. Resuspend cells in growth medium.
+
+NON-ENZYMATIC DISSOCIATION REAGENTS
+================================================================================
+
+Catalog numbers: 13150016, 13151014, 15040066
+
+REFERENCES
+================================================================================
+
+Freshney, R. (1987) Culture of Animal Cells: A Manual of Basic Technique, p. 117, Alan R. Liss, Inc., New York.

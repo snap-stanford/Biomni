@@ -1,0 +1,204 @@
+PROTOCOL: Immunocytochemistry
+SOURCE: https://www.addgene.org/protocols/immunocytochemistry/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+Immunocytochemistry is a technique that uses antibodies to detect antigens in
+cells. Here we describe the basic steps for fixing and labeling cells in culture
+with a primary antibody against a target protein and a fluorescent secondary
+antibody. This protocol outlines the steps for fixing and labeling HeLa cells for
+a target protein using the formaldehyde fixation method. The protocol may need to
+be optimized for different cells, target proteins, etc.
+
+Last Update: January 20, 2022
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+Day 1: Seed cells
+
+Day 3-4: Fix and label cells
+
+
+EQUIPMENT
+================================================================================
+
+• Pipette controller
+• Pipette tips and pipettes
+• Rocking platform
+• Tweezers
+• Fluorescent microscope
+• 0.5–10 µL single channel pipette
+• 2–20 µL single channel pipette
+• 20–200 µL single channel pipette
+• 200–1000 µL single channel pipette
+
+
+REAGENTS
+================================================================================
+
+• 1X PBS
+• Microcentrifuge tubes
+• Sterile Poly-D-lysine coated coverslips
+• HeLa cells
+• 24-well plate
+• 4% Paraformaldehyde
+• 5 mg/mL 4′,6-diamidino-2-phenylindole (DAPI)
+• Bovine serum albumin (BSA)
+• Triton X-100
+• Primary antibody
+• Secondary antibody
+• Deionized water
+• Microscope slide
+• Anti-fade mounting medium
+• Laboratory wipes
+• 15 mL conical tubes
+• 50 mL conical tubes
+
+
+BEFORE STARTING
+================================================================================
+
+• Refer to the manufacturer's instructions for additional information specific to
+  your antibodies, such as antibody concentrations, incubation times, and
+  recommended compatible reagents.
+
+• Secondary antibodies must match the host species of the primary antibody. For
+  example, use an anti-mouse secondary antibody for primary antibodies raised in
+  a mouse.
+
+
+REAGENT PREPARATION
+================================================================================
+
+Permeabilization buffer:
+Dilute 20 µL of Triton X-100 in 10 mL PBS.
+
+Blocking buffer:
+Dilute 0.5 g BSA and 30 µL Triton X-100 in 10 mL PBS.
+
+Antibody dilution buffer:
+Dilute 0.5 g BSA and 150 µL Triton X-100 in 50 mL PBS.
+
+300 nM DAPI working solution:
+1. Prepare a 300 µM DAPI stock solution by diluting 2.1 µL of the 5 mg/mL DAPI
+   solution to 100 µL PBS. Protect from light.
+
+2. Prepare a 300 nM DAPI working solution by diluting 5 µL of the 300 µM DAPI
+   stock solution into 5 mL PBS. Protect from light.
+
+
+PROCEDURE
+================================================================================
+
+Section 1: Seeding cells
+
+1. Place a sterile poly-D-lysine coated coverslip in each well of a 24-well cell
+   culture treated plate.
+
+2. Seed 5 x 10³ HeLa cells per well.
+
+3. Allow the HeLa cells to grow to the desired density before labeling.
+
+Section 2: Fixing and permeabilizing cells
+
+1. Gently aspirate the media from the 24-well plate.
+
+2. Wash each well with 500 µL of PBS, remove the wash, and dispose of it in an
+   appropriate waste container.
+
+3. Fix each well with 500 µL of cold 4% paraformaldehyde in PBS on ice for 15
+   min.
+
+   💡 PRO TIP: While 4% Paraformaldehyde fixation works well for many target
+   proteins, it may not be the best fixation method for all. Alternative fixation
+   methods such as methanol or acetone may be better for some applications.
+
+4. Remove the paraformaldehyde and follow your institution's laboratory safety
+   guidelines for disposing of waste in the appropriate container.
+
+5. Wash 3x for 5 min in 500 µL PBS on a rocking platform.
+
+6. Permeabilize cells for 10 min at room temperature (RT) on a rocking platform
+   in 500 µL permeabilization buffer.
+
+7. Remove the permeabilization buffer and dispose of it in an appropriate waste
+   container.
+
+8. Wash 3x for 5 min in 500 µL PBS on a rocking platform.
+
+Section 3: Labeling with antibody
+
+1. Block for 20 min at RT on a rocking platform in 500 µL blocking buffer.
+
+2. Remove the blocking buffer and dispose of it in an appropriate waste
+   container.
+
+3. Dilute the primary antibody to the desired concentration in antibody dilution
+   buffer.
+
+   💡 PRO TIP: The optimal antibody concentration will vary but generally ranges
+   from 1-10 µg/mL.
+
+4. Add 500 µL of the diluted antibody to the wells and incubate 2 h at RT.
+
+5. Remove the primary antibody and dispose of it in an appropriate waste
+   container.
+
+6. Wash 3x for 5 min in 500 µL PBS on a rocking platform.
+
+7. Dilute the fluorescently-labeled secondary antibody to the desired
+   concentration in antibody dilution buffer.
+
+   💡 PRO TIP: The optimal antibody concentration will vary but generally ranges
+   from 1-10 µg/mL.
+
+8. Add 500 µL fluorescently-labeled secondary antibody to the wells and
+   incubate 30 min at RT in the dark.
+
+   💡 PRO TIP: The plate can be wrapped in foil to block light.
+
+9. Remove the secondary antibody and dispose of it in an appropriate waste
+   container.
+
+10. Wash 3x for 5 min in 500 µL PBS on a rocking platform.
+
+11. (Optional) Counterstain nuclei with 500 µL of 300 nM DAPI working solution
+    for 10 min at RT in the dark.
+
+12. Remove the DAPI and dispose of it in an appropriate waste container.
+
+13. Wash 3x for 5 min in 500 µL PBS on a rocking platform.
+
+14. Use tweezers to gently remove the coverslip.
+
+15. Blot the coverslip with a laboratory wipe to remove excess liquid.
+
+16. Add 1 drop of anti-fade mounting medium to the microscope slide.
+
+17. Gently place the coverslip on the microscope slide with the cell side facing
+    down.
+
+18. Observe the cell labeling on a microscope with appropriate fluorescent
+    filters.
+
+
+TIPS AND TROUBLESHOOTING
+================================================================================
+
+• The optimal fixation method will vary depending on the sample type and the
+  protein of interest. You may need to try a variety of fixation methods to find
+  the best conditions for your target.
+
+• The optimal antibody concentration will vary between antibodies. Review the
+  manufacturer's instructions before starting your experiment and consider
+  titrating your antibody to determine the optimal dose.
+
+• To ensure that your antibody is both functioning as expected and specific,
+  include a positive control sample that you know expresses the protein, such as
+  cells transfected with a plasmid to express the protein of interest, and a
+  negative control sample such as cells that do not express the protein of
+  interest.
