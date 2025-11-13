@@ -1,0 +1,98 @@
+PROTOCOL: Hoechst 33342 Protocol for Imaging
+SOURCE: Thermo Fisher Scientific - US
+URL: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/protocols/hoechst-33342-protocol-imaging.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Hoechst 33342 is a cell-permeant blue-fluorescent DNA stain that binds to the minor groove of double-stranded DNA, with preference for A-T rich regions. Unlike DAPI, Hoechst 33342 can readily enter live cells, making it useful for both live and fixed cell imaging applications. It is commonly used for nuclear staining and cell counting in fluorescence microscopy.
+
+APPLICATIONS
+================================================================================
+
+This protocol can be used for:
+• Nuclear staining in live or fixed cells for fluorescence microscopy
+• Cell counting and nuclear morphology analysis
+• Counterstaining in multicolor immunofluorescence experiments
+• Live cell imaging of nuclear structure
+
+This protocol should not be used for:
+• Flow cytometry (use Hoechst 33342 Protocol for HCA Instruments instead)
+
+MATERIALS REQUIRED
+================================================================================
+
+• Cells (live or fixed, on coverslips, slides, or in multiwell plates)
+• Hoechst 33342 stain (e.g., Hoechst 33342, trihydrochloride, trihydrate, Cat. No. H3570)
+• Phosphate-buffered saline (PBS) or cell culture medium
+• Mounting medium (for fixed cells, e.g., ProLong Gold Antifade Mountant)
+• Fluorescence microscope with DAPI/Hoechst filter set (excitation ~350 nm, emission ~461 nm)
+
+PROTOCOL
+================================================================================
+
+For live cells
+
+1. Prepare Hoechst 33342 stock solution:
+   - Dissolve Hoechst 33342 powder in water or DMSO to make a 1-10 mg/mL stock solution.
+   - Store at 2-8°C, protected from light. Stable for at least 6 months.
+
+2. Prepare working solution:
+   - Dilute stock to 1-10 µg/mL in cell culture medium or PBS.
+   - For most applications, 1-5 µg/mL is sufficient.
+
+3. Remove cell culture medium from cells.
+
+4. Add Hoechst 33342 working solution to cover cells.
+
+5. Incubate for 10-30 minutes at 37°C (or room temperature), protected from light.
+
+6. For live cell imaging:
+   - Remove staining solution and replace with fresh culture medium or imaging buffer.
+   - Image immediately using a fluorescence microscope.
+
+7. For fixed cell imaging:
+   - After staining, fix cells according to your standard protocol.
+   - Wash 2-3 times with PBS.
+   - Mount and image.
+
+For fixed cells
+
+1. Fix and permeabilize cells according to your standard protocol.
+
+2. Wash cells 2-3 times with PBS.
+
+3. Prepare Hoechst 33342 working solution (1-5 µg/mL in PBS).
+
+4. Remove PBS from cells.
+
+5. Add Hoechst 33342 working solution to cover cells.
+
+6. Incubate for 10-20 minutes at room temperature, protected from light.
+
+7. Wash 2-3 times with PBS.
+
+8. Mount cells in mounting medium (without DAPI if using Hoechst 33342).
+
+9. Image cells using a fluorescence microscope with DAPI/Hoechst filter set.
+
+SPECTRAL INFORMATION
+================================================================================
+
+Hoechst 33342:
+• Excitation maximum: ~350 nm (UV)
+• Emission maximum: ~461 nm (blue)
+• Standard filter set: DAPI/Hoechst
+• Compatible with: FITC, TRITC, Texas Red, Alexa Fluor dyes
+
+PROTOCOL TIPS
+================================================================================
+
+• Hoechst 33342 is light-sensitive; protect from light during staining and storage
+• Optimal concentration may vary by cell type; start with 1 µg/mL and adjust as needed
+• For live cells, use lower concentrations (1-2 µg/mL) to minimize toxicity
+• Higher concentrations may be needed for some tissue sections or thick samples
+• Hoechst 33342 can be used in combination with other fluorescent stains
+• For long-term live cell imaging, minimize exposure time and use lower concentrations
+• Fixed cells stained with Hoechst 33342 can be stored at 2-8°C, protected from light, for several weeks

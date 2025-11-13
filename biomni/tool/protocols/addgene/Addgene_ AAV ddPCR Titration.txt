@@ -1,0 +1,318 @@
+PROTOCOL: AAV ddPCR Titration
+SOURCE: https://www.addgene.org/protocols/aav-ddpcr-titration/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+This protocol describes how to use droplet digital PCR (ddPCR) to titer purified
+recombinant Adeno-associated viral vectors (AAV). This protocol specifically uses
+primers and probes targeting the ITR elements in the viral vectors but can be
+modified for other targets. The dilution series outlined in this protocol are
+based on an AAV titer range of 5E+12–5E+13 GC/mL, where GC is genome copies and
+generally represents the physical number of viral particles. Users may need to
+run lower or higher dilutions depending on their particular sample. For
+additional tips on AAV titering using ddPCR, read this blog post on ddPCR for
+AAV quantification.
+
+This protocol was modified from the publication Lock et al. (2014).
+
+
+BEFORE STARTING
+================================================================================
+
+• To reduce the risk of contaminating reagents we recommend making small aliquots
+  of master mixes, primers, and probes prior to use.
+
+• Thaw the master mix, primers, and probe on ice before use.
+
+• Wipe down all pipettes and surfaces with 10% bleach.
+
+
+SAFETY WARNINGS
+================================================================================
+
+AAV is generally considered biosafety level 1 but may require BSL-2 handling
+depending on the insert. Please ensure that you are in compliance with your
+institution's biosafety regulations.
+
+
+EQUIPMENT
+================================================================================
+
+• Class II, Type A2 Biological Safety Cabinet, Labconco 302411100
+• Droplet Digital PCR System, Bio-Rad, DX200
+• Thermal Cycler, Bio-Rad, T100
+• PCR Plate Sealer, Bio-Rad, PX1
+• 1–10 µL single channel pipette
+• 20–200 µL single channel pipette
+• 200–1000 µL single channel pipette
+• 1–10 µL multichannel pipette
+• 2–50 µL multichannel pipette
+• 20–200 µL multichannel pipette
+• Vortex, VWR, 10153-688
+• Mini Centrifuge, Thermo Scientific, 10199-452
+• Ice bucket
+• 96-well freezer blocks (x 3)
+
+
+REAGENTS
+================================================================================
+
+• Molecular Biology Grade Water, Hyclone, SH30538.02
+• GeneAmp 10X PCR Buffer, Applied Biosystems, N8080129
+• ddPCR Supermix for Probes no dUTP, Bio-Rad,1863023
+• 10% Poloxamer 188, Thermo Fisher, 24040032
+• Droplet generation oil, Bio-Rad, 1863005
+• DG8 cartridge, Bio-Rad, 1864008
+• DG8 gasket, Bio-Rad, 1863009
+• DG8 cartridge holder, Bio-Rad, 1863051
+• 8-strip PCR tubes, Axygen, PCR-02-FCP-C
+• ddPCR 96-well PCR plates, Bio-Rad, 12001925
+• 48-well dilution plate, Bio-Rad, MLL4801
+• Pierceable Foil Heat Seal, Bio-Rad, 1814040
+• Microseal adhesive seal, Bio-Rad, MSB1001
+• Polystyrene Reservoirs, VWR, 89094-662
+• Microcentrifuge tubes, VWR, 87003-294
+
+Primers/probe targeting ITR:
+• ITR Forward Primer: 5'-CGGCCTCAGTGAGCGA
+• ITR Reverse Primer: 5'-GGAACCCCTAGTGATGGAGTT
+• ITR Probe: -FAM-CACTCCCTCTCTGCGCGCTCG-BBQ-
+
+
+REAGENT PREPARATION
+================================================================================
+
+1X PCR Buffer containing 0.05% Poloxamer 188:
+
+Prepare immediately before use and vortex before using.
+
+• 500 µL of GeneAmp 10X Buffer
+• 25 µL of 10% Poloxamer 188
+• 4475 µL Molecular Biology Grade Water
+
+
+PROCEDURE
+================================================================================
+
+Preparation
+
+1. Before handling any viruses, get materials ready.
+
+2. Ensure that primers, probe, 10X PCR buffer, and master mix are thawed.
+
+3. Vortex primers, probe and master mix for 15 sec then spin 10 sec in a mini
+   centrifuge and place on ice.
+
+4. Wipe down a DG8 cartridge holder with bleach and place in the Biological
+   Safety Cabinet (BSC).
+
+5. Make sure that the BSC to be used for dilution and the BSC to be used for
+   droplet generation are supplied with sufficient pipette tips and reagent
+   reservoirs.
+
+   💡 PRO TIP: Prepare the viral dilutions in a separate biological safety
+   cabinet (dilution BSC) than that used for master mix preparation and droplet
+   generation (droplet generation BSC) to ensure no contamination of the PCR
+   reagents and the NTC with virus.
+
+6. Pre-warm the 96-well plate sealer by gently touching the screen.
+
+Prepare the Serial Dilution
+
+1. Place a 48-well dilution plate in a chilled 96-well freezer block and place in
+   the dilution BSC.
+
+2. Prepare 1X dilution buffer (see recipe above).
+
+3. Save ~25 µL of 1X dilution buffer in a microcentrifuge tube to be used as
+   the NTC.
+
+4. Pour the 1X dilution buffer into a polystyrene reagent reservoir.
+
+5. Using a 20–200 µL multichannel pipette, carefully add the dilution buffer to
+   the dilution plate according to the dilution scheme listed in step 13.
+
+6. Use a single channel 1–10 µL pipette to add 5 µL of each viral sample to
+   Dilution 1 in the 48-well dilution plate and pipette 5–10 times to mix.
+
+7. Dilute the virus as follows: Mix dilutions thoroughly, but pipette slowly to
+   avoid generating aerosols. Be sure to change tips each time.
+
+   • Dilution 1 (20X): 5 µL in 95 µL 1X PCR buffer (1:20)
+   • Dilution 2 (20X): 5 µL in 95 µL 1X PCR buffer (1:400)
+   • Dilution 3 (20X): 5 µL in 95 µL 1X PCR buffer (1:8,000)
+   • Dilution 4 (20X): 5 µL in 95 µL 1X PCR buffer (1:160,000)
+   • Dilution 5 (20X): 5 µL in 95 µL 1X PCR buffer (1:3,200,000)
+   • Dilution 6 (2X): 50 µL in 50 µL 1X PCR buffer (1:6,400,000)
+   • Dilution 7 (2X): 50 µL in 50 µL 1X PCR buffer (1:12,800,000)
+   • Dilution 8 (2X): 50 µL in 50 µL 1X PCR buffer (1:25,600,000)
+
+8. Use multichannel pipettes for the dilution series.
+   • For dilutions 1–5, use the 1–10 µL multichannel pipette set to 5 µL.
+   • For dilutions 6–8, use the 20–200 µL multichannel pipette set to 50 µL.
+   • For mixing between dilutions, use the 20–200 µL multichannel pipette set to
+     90 µL and mix by pipetting the liquid up and down 10–20 times.
+
+9. Gently cover the entire dilution plate with Microseal adhesive seal - do not
+   press the film, just gently cover so nothing falls into the plate.
+
+10. Leave dilutions on the chilled 96-well freezer block in the BSC until ready
+    to use.
+
+Prepare the Master Mix
+
+1. Place a ddPCR plate onto a chilled 96-well freezer block and set aside in the
+   droplet generation BSC to cool.
+
+2. Prepare the ITR master mix in a microcentrifuge tube as shown below. For 8
+   samples prepare enough master mix for 9 samples.
+
+   ITR Master Mix:
+
+   Component                        | Volume | 9X Volume | Final Concentration
+   ---------------------------------|--------|-----------|--------------------
+   2X ddPCR Supermix for Probes,     | 10 µL  | 90 µL     | 1X
+   no dUTP                           |        |           |
+   10 µM ITR probe (FAM)             | 0.5 µL | 4.5 µL    | 250 nM
+   Forward ITR Primer (10 µM)        | 1.8 µL | 16.2 µL   | 900 nM
+   Reverse ITR Primer (10 µM)        | 1.8 µL | 16.2 µL   | 900 nM
+   Nuclease-free water               | 5.9 µL | 71.55 µL  |
+   Total Volume                      | 20 µL  |           |
+
+3. Vortex the master mix for 15 sec and spin in a mini centrifuge for 10 sec
+   before use.
+
+4. Place an 8-well PCR tube strip into a chilled 96-well freezer block.
+
+5. Add 20 µL of the master mix to each PCR tube. Be careful to dispense to the
+   bottom of the tube without collecting drops along the side of the tube.
+
+6. Cap gently - do not push the cap in all the way, just ensure the samples are
+   covered.
+
+7. Bring the PCR tubes to the BSC used for dilutions.
+
+8. Without disturbing the liquid in the tube, gently uncap the PCR tubes.
+
+9. Add 5 µL of dilutions 6–8 to the appropriate PCR tubes. Pipette back and
+   forth 5 times.
+
+10. Lightly cap the PCR tubes.
+
+Generate the Droplets
+
+1. Bring the PCR tubes to the droplet generation BSC.
+
+2. Without disturbing the liquid in the tube, gently uncap the tubes.
+
+3. Add 5 µL of the previously aliquoted 1X dilution buffer from step 9 to the
+   NTC tube.
+
+4. Place a DG8 cartridge into the cartridge holder.
+
+5. Using a 2–50 µL multichannel pipet, load 20 µL of the reaction mixtures into
+   the middle wells of the cartridge.
+
+6. Add 800 µL of droplet generation oil to a polystyrene reagent reservoir.
+
+7. Using the 20–200 µL multichannel pipet, load 70 µL of droplet generation oil
+   into the bottom row of wells.
+
+8. Cover the cartridge with the DG8 gasket, making sure that it is secure.
+
+9. Transfer the cartridge holder to the droplet generator. Close the lid and wait
+   for the droplets to be generated.
+
+10. Once the droplets have been generated, use a 20–200 µL multichannel pipet to
+    aspirate 40 µL of droplets.
+
+    💡 PRO TIP: To ensure that the droplets are not disrupted, insert the pipette
+    tips directly in the center of the well and tilt to a 45° angle. Count to 20
+    while slowly and gently aspirating the droplets.
+
+11. Transfer the droplets to a prechilled PCR plate.
+
+    💡 PRO TIP: To ensure that the droplets are not disrupted insert the pipette
+    tips and gently touch the bottom of the well. Lift the tips ~1 mm. Touch the
+    side of the well and tilt the pipette tips at a 45° angle. Count to 20 while
+    slowly and gently dispensing the droplets down the side of the tube.
+
+12. Place a Pierceable Foil Heat Seal on the PCR plate with the red line facing
+    up. If the plate sealer is not at temperature, touch the screen on the plate
+    sealer to allow it to get to temperature. Once the temperature is reached,
+    place the PCR plate with the foil onto the metal support block. Place the
+    block in the plate sealer and press the 'Seal' button.
+
+13. After the plate has been sealed, proceed to thermocycling.
+
+Thermal Cycling
+
+Run the following PCR parameters:
+
+Cycling Step          | Temperature (°C) | Time (min) | Ramp Rate (°C/sec) | # Cycles
+----------------------|------------------|------------|-------------------|----------
+Denaturation          | 95               | 10         | 2                 | 1
+Denaturation          | 95               | 0.5        | 2                 | 50
+Annealing/Extension   | 60               | 1          | 2                 | 50
+Signal Stabilization  | 98               | 10         | 2                 | 1
+Hold                  | 4                | ∞          | 2                 | 1
+
+After PCR is complete, transfer the plate to the Droplet Reader.
+
+1. Open the QuantaSoft software to set up a new plate layout. Designate the
+   sample name, experiment type, supermix type (ddPCR Supermix for Probes), the
+   target names and target types.
+
+2. When the plate layout is complete, select 'Run' to begin the droplet reading.
+
+3. When the droplet reading is complete, export the data from all wells as a CSV
+   file and use the following equation to calculate the titer for each sample:
+
+   T = (R × C × D × 1000) / V
+
+   Where:
+   • T = Titer, GC/mL
+   • R = Reaction volume (20 µL)
+   • C = Copies/µL
+   • D = Dilution factor of virus
+   • V = Volume of virus in reaction mix (4 µL)
+
+
+SAMPLE DATA
+================================================================================
+
+When analyzing data there should be a clear distinction between negative droplets
+(black) and positive droplets (blue).
+
+The no template control (NTC) should be close to zero (B08). At Addgene, we
+consider runs with an NTC > 10 to be invalid.
+
+To reduce NTC values, we recommend wiping down all pipettes and equipment with
+10% bleach prior to use and keeping all reagents and samples on ice or
+pre-chilled 96-well freezer blocks during use.
+
+In this protocol, a dilution series is prepared for each AAV sample, and the
+three final dilutions are assayed. The samples that are assayed are diluted
+2-fold serially, therefore the concentration obtained by ddPCR should decrease by
+a factor of 2 across the dilutions.
+
+In the example below, 2-fold serial dilutions of a sample were loaded in wells
+A04, A05 and A06. As shown in the image (Figure 1) and table below, the
+concentration of positive droplets decreases by a factor of ~2.
+
+To increase the accuracy of the titer, take the average of several measurements.
+
+Example dilutions and titrations:
+
+Sample      | Dilution | Concentration | Titer (GC/mL) | Average Titer (GC/mL)
+------------|----------|---------------|---------------|----------------------
+AAV Sample 1| 6400000  | 965           | 3.09E+13      | 3.2E+13
+AAV Sample 1| 12800000 | 474           | 3.03E+13      |
+AAV Sample 1| 25600000 | 271           | 3.47E+13      |
+NTC         | N/A      | 2.5           | N/A           | N/A
+
+For additional tips on AAV titering using ddPCR, read our blog post.
+
+Last reviewed on: August 31, 2023

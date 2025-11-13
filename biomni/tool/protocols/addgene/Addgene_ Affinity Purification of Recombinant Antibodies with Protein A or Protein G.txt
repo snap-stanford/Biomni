@@ -1,0 +1,310 @@
+PROTOCOL: Affinity Purification of Recombinant Antibodies with Protein A or Protein G
+SOURCE: https://www.addgene.org/protocols/affinity-purification-recombinant-antibodies/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+This protocol describes how to affinity purify recombinant antibodies from cell
+culture supernatant using Protein A or Protein G columns.
+
+Last Update: February 7, 2022
+
+
+SAFETY WARNINGS
+================================================================================
+
+Sodium azide is toxic. When handling, use proper personal protective equipment
+including laboratory coat, laboratory goggles, and gloves. Sodium azide containing
+waste should be properly disposed of following your institution's hazardous waste
+procedures.
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+Day 1: Purify antibody
+
+Day 2 or later: Buffer exchange
+
+
+EQUIPMENT
+================================================================================
+
+• Class II, Type A2 Biological Safety Cabinet
+• 4 °C Refrigerator
+• Pipette controller
+• Benchtop centrifuge compatible with 50 mL conical tubes
+• NanoDrop spectrophotometer
+• 37 °C, 5% CO₂ incubator with shaking platform set to 120 rpm
+• 37 °C bead bath
+• Clamp stand and clamps
+• Autoclave
+• 0.1–1 mL single channel pipette
+• 0.5–10 µL single channel pipette
+• 20–200 µL single channel pipette
+• 2–20 µL single channel pipette
+
+
+REAGENTS
+================================================================================
+
+• Aspirating pipette, VWR 414004-265
+• 5 mL pipette, VWR 89130-896
+• 10 mL pipette, VWR 89130-898
+• 25 mL pipette, VWR 89130-900
+• 50 mL pipette, VWR 89130-902
+• 50 mL conical tubes, VWR 89039-656
+• Microcentrifuge tubes, VWR 89126-724
+• Filtering system 0.2 µm PES, VWR 431098
+• Sodium phosphate monobasic monohydrate, Millipore Sigma 71507-250G
+• Sodium phosphate dibasic, Millipore Sigma S7907-500G
+• 1 M Trizma hydrochloride solution pH 9.0, Millipore Sigma T2819-1L
+• 250 mL sterile bottle, VWR 430281
+• 0.45 µm PES complete filtration unit, 500 mL, rapid-flow, VWR 73520-984
+• Syringes, 30 mL, VWR BD302832
+• Filter, 0.2 µm (luer-lock), VWR 431229
+• IgG Elution Buffer, Thermo Fisher 21028
+• Protein G GraviTrap columns, Cytiva 28-9852-55 or rProtein A GraviTrap
+  columns, Cytiva 28-9852-54
+• LabMate PD10 Buffer Reservoir, Millipre Sigma GE18-3216-03
+• 5% Sodium Azide, 500 mL, VWR 7144.8-16
+• PBS, 1X pH 7.4, VWR 45000-446
+• Benzamide, Millipore Sigma 12072
+• Antipain, Millipore Sigma 10791
+• Leupeptin, Millipore Sigma L2884
+• Aprotinin, Millipore Sigma A6279
+• Zeba Spin Desalting Columns, 7 kDa MWCO, 10 mL, Thermo Fisher 89893
+• Amicon Ultra-15 30 kDa MWCO column, Millipore Sigma UFC903024
+• 50 mL LoBind tubes, VWR 76289-498
+
+
+BEFORE STARTING
+================================================================================
+
+• Wipe down all pipettes and equipment with 10% bleach prior to use.
+
+• Warm the affinity column, binding buffer, and elution buffer to room
+  temperature (RT) before use.
+
+
+REAGENT PREPARATION
+================================================================================
+
+1 M sodium phosphate monobasic monohydrate (NaH₂PO₄∙H₂O), pH 7.0:
+
+• 138 g NaH₂PO₄∙H₂O
+• 1 L deionized water
+• Adjust pH to 7.0
+• Autoclave or filter sterilize
+
+1 M sodium phosphate dibasic (Na₂HPO₄), pH 7.0:
+
+• 142 g of Na₂HPO₄∙H₂O
+• 1 L deionized water
+• Adjust pH to 7.0
+• Autoclave or filter sterilize
+
+1 M of sodium phosphate buffer, pH 7.0:
+
+• 390 mL of sterile sodium phosphate monobasic monohydrate (NaH₂PO₄∙H₂O)
+• 610 mL of sterile sodium phosphate dibasic (Na₂HPO₄)
+• Store up to 1 month at 4 °C
+• Adjust pH to 7.0
+• Autoclave or filter sterilize
+
+Protein A/G binding buffer (20 mM sodium phosphate buffer, pH 7.0):
+
+• 20 mL 1M sodium phosphate buffer
+• 980 mL of deionized water
+• Adjust pH to 7.0
+• Autoclave or filter sterilize
+
+1000X protease inhibitor cocktail:
+
+• 25 mg leupeptin
+• 50 mg antipain
+• 250 mg benzamidine
+• 25 mL of 2 mg/mL aprotinin
+• Mix well and sterilize through a 0.2 µm PES filter.
+• Aliquot and freeze upright at -20 °C
+
+
+PROCEDURE
+================================================================================
+
+Section 1: Affinity chromatography
+
+1. Equilibrate filtered tissue culture supernatant containing the recombinant
+   antibody to room temperature (see Transfection for Recombinant Antibody
+   protocol).
+
+   💡 PRO TIP: Add protease inhibitors to 1X if this has not already been done.
+   We typically start with about 250 mL of supernatant and add 250 µL of 100X
+   protease inhibitor cocktail.
+
+2. Add 1 part Protein A/G binding buffer to 1 part tissue culture supernatant
+   and mix well.
+
+3. Uncap the Protein G Gravitrap or rProtein A Gravitrap columns and gently pour
+   off the ethanol storage buffer.
+
+4. Tightly attach LabMate PD10 Buffer Reservoirs to the top of the Gravitrap
+   column.
+
+   💡 PRO TIP: Gravitrap columns have a finite binding capacity. If your sample
+   exceeds the capacity, divide the sample among multiple columns. For
+   information about the total binding capacity for your columns, refer to the
+   manufacturer's instructions.
+
+5. Attach the Gravitrap column to a clamp on a clamp stand.
+
+6. Use scissors to cut the bottom of the Gravitrap column at the indentation in
+   the tip.
+
+7. Equilibrate the column with 10 mL of RT Protein A/G binding buffer.
+
+8. Collect the flow-through in a 50 mL conical tube and dispose after use.
+
+9. Carefully pour the filtered and diluted cell culture supernatant into the
+   Gravitrap column.
+
+10. Collect the flow through in a 250 mL bottle.
+
+11. Repeat steps 9–10 such that the supernatant passes through the column a total
+    of 2x.
+
+    💡 PRO TIP: This will ensure depletion of the recombinant antibody from the
+    supernatant.
+
+12. Wash the column with 25 mL of Protein A/G binding buffer 2x.
+
+13. Add 50 µL of 1 M Trizma hydrochloride pH 9.0 to 10 microcentrifuge tubes.
+
+14. Cap the Gravitrap columns at the bottom.
+
+15. Add 5 mL of Pierce IgG Elution Buffer to the capped Gravitrap column and
+    incubate for 10 min at RT.
+
+16. Uncap the column and collect 500 µL fractions into the tubes containing 50 µL
+    1 M Trizma hydrochloride pH 9.0.
+
+17. Cap the tubes and vortex for 5 s to mix.
+
+18. Determine the protein concentration of each fraction on the NanoDrop
+    Spectrophotometer using the A280 IgG setting.
+
+19. Combine all eluates with measurable protein.
+
+20. Determine the protein concentration of the pooled sample on the NanoDrop
+    Spectrophotometer using the A280 IgG setting.
+
+21. If the concentration of the pooled sample is above 1.0 mg/mL proceed to Option
+    1 with a buffer exchange using a Zeba Spin 7 kDa MWCO desalting column.
+
+22. If the concentration of the pooled sample is below 1.0 mg/mL proceed to
+    Option 2 with a buffer exchange/concentration using an Amicon 30 kDa MWCO buffer
+    exchange column.
+
+23. (Optional) Regenerate the column by washing with 25 mL of Protein A/G binding
+    buffer and store in 20% ethanol at 4 °C.
+
+    💡 PRO TIP: Columns may be re-used up to 5x when purifying the same
+    recombinant antibody.
+
+Section 2: Buffer exchange
+
+Choose Option 1 or Option 2 based on the concentration of the pooled sample above.
+
+Option 1: Buffer exchange using a desalting column
+
+The 10 mL Zeba Spin Desalting Columns can accommodate up to 4 mL of recombinant
+antibody sample.
+
+💡 PRO TIP: If the volume of the sample is greater than 4 mL, then divide it into
+2 columns.
+
+1. Twist off the 10 mL Zeba Spin Desalting Column's bottom closure and loosen cap.
+
+2. Place column in a 50 mL conical collection tube.
+
+3. Centrifuge column at 1000 x g for 2 min to remove storage solution.
+
+4. Place a mark on the side of the column where the compacted resin is slanted
+   upward. Place column in centrifuge with the mark facing outward in all
+   subsequent centrifugation step
+
+   💡 PRO TIP: Resin will appear compacted after centrifugation.
+
+5. Discard the flow through into a waste container.
+
+6. Add 5 mL PBS to the column.
+
+7. Centrifuge at 1000 x g for 2 min to remove PBS.
+
+8. Repeat Steps 6–7 3x, discarding buffer from the collection tube each time.
+
+9. Place column in a new 50 mL LoBind collection tube.
+
+10. Slowly apply the sample to the center of the compact resin bed.
+
+    💡 PRO TIP: For sample volumes <1.5 mL top off the sample with 0.2 mL PBS to
+    aid protein recovery.
+
+11. Allow the resin bed to fully absorb the sample.
+
+12. Centrifuge at 1000 x g for 2 min to collect the sample.
+
+13. Discard column after use.
+
+14. Determine antibody concentration on the NanoDrop Spectrophotometer.
+
+15. Dilute antibody to 1 mg/mL with PBS if needed.
+
+16. For long term storage, add sterile sodium azide to 1 mM.
+
+Option 2: Buffer exchange and concentration with an Amicon column
+
+1. Apply 15 mL of PBS to the reservoir of a Amicon Ultra-4 30 kDa MWCO column.
+
+2. Incubate for 10 min at RT.
+
+3. Centrifuge at 3100 x g for 8 min.
+
+4. Discard the flow through into a waste container.
+
+5. Add the recombinant antibody sample to the reservoir of the column.
+
+6. Fill the remaining space in the column with PBS and pipette several times to
+   mix.
+
+7. Centrifuge at 3100 x g for 8 min.
+
+8. Discard the flow through into a waste container.
+
+9. Repeat steps 5-8 at least 4 additional times to ensure a full buffer exchange.
+
+10. Discard the flow through into a waste container.
+
+11. Fill the remaining space in the column with PBS and pipette several times to
+    mix.
+
+12. Centrifuge at 3100 x g for 8 min.
+
+13. Remove a small aliquot of your sample from the filter reservoir to check the
+    concentration on the NanoDrop Spectrophotometer to see if the sample has
+    reached the desired concentration.
+
+14. If the sample concentration is still too low, repeat the centrifugation until
+    the volume of the sample is reduced enough to reach the desired concentration.
+
+    💡 PRO TIP: Periodically check the concentration on the NanoDrop
+    Spectrophotometer to see if the sample has reached the desired concentration.
+
+15. Gently transfer the sample from the reservoir to a LoBind tube.
+
+    💡 PRO TIP: Do not scrape the filter with the pipette tip.
+
+16. Determine the concentration of the sample on the NanoDrop Spectrophotometer.
+
+17. For long term storage, add sterile sodium azide to 1 mM.

@@ -1,0 +1,325 @@
+PROTOCOL: AAV Production
+SOURCE: https://www.addgene.org/protocols/aav-production-hek293-cells/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+This protocol can be used to produce AAV from one Five Chambers Cell-Stack (CS5)
+(3,180 cm² - the same surface area as 21 x T-175 flasks). Cell stacks provide an
+efficient means to scale-up without having to handle a large number of T-175
+flasks.
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+Day 0: Seed cells in CS2
+
+Day 2: Seed cells in CS5
+
+Day 3 (am): Transfect cells
+
+Day 7 (am): Harvest cells
+
+
+EQUIPMENT
+================================================================================
+
+• Class II, Type A2 Biological Safety Cabinet
+• 0.5–10 µL single channel pipette
+• 2–20 µL single channel pipette
+• 20–200 µL single channel pipette
+• 200–1000 µL single channel pipette
+• Hemocytometer or cell counter
+• Ice bucket
+• CO₂ incubator
+• Pipet controller
+• Hazardous waste container
+• pH meter
+• Stir plate
+• Magnetic stir bar
+• Sonicator
+• Ear protection
+• Vortex
+
+
+REAGENTS
+================================================================================
+
+• Adherent HEK293T cells (ideally AAV-293T clones)
+
+  💡 PRO TIP: While adherent, these cells are very loosely attached to the dish
+  surface and should be handled carefully. Avoid touching the cells when replacing
+  media.
+
+• T-175 flask, Corning 430825, 175 cm²
+• Cellstack 5, Corning 3319, 3180 cm²
+• Cellstack 2, Corning 3269, 1272 cm²
+• Heat-inactivated FBS (HI-FBS)
+
+  💡 PRO TIP: Different brands and lots of FBS can promote or inhibit
+  transfection. Test a variety of brands and lots of FBS to find one suitable for
+  your protocols. FBS can be purchased already heat-inactivated, or it can be
+  inactivated in the lab by heating to 56 °C for 30 minutes.
+
+• 0.45 μm polyethersulfone (PES) filter system, Nalgene, 565-0010 (or for larger
+  volumes 1000 mL 0.45 µm Rapid-Flow PES Filtration Unit, Nalgene 167-0045)
+
+  💡 PRO TIP: Do not use filters made of materials other than PES. AAV particles
+  stick to many other surfaces, but do not stick to PES. Using a PES filter will
+  maximize titer.
+
+• DMEM high glucose, Corning 10-013-CV
+• DMEM, low glucose (1 g/L) glucose, sodium pyruvate, Corning 10-014-CV (optional)
+• 7.5% sodium bicarbonate, Corning 25-035-CI (optional)
+• 1 M HEPES, HyClone SH30237.01 (optional)
+• L-alanyl-L-glutamine (or alternative stable glutamine such as glutaGRO,
+  Corning 25-015-CI)
+• Opti-MEM, Thermo Fisher 31985-070
+• 0.05% Trypsin/EDTA (e.g. TrypLE, Thermo Fisher, 12605010)
+• 1X PBS pH 7.4 without calcium or magnesium, Corning 21-040-CV (cations can
+  affect the attachment of adherent cells)
+• 1 mg/mL Polyethylenimine (PEI) 25 kDa MW
+
+  💡 PRO TIP: Other transfection reagents may be used in this protocol, but their
+  conditions must be optimized.
+
+• Plasmids for transfection: pHelper; pRC (Rep-Cap), plasmid expressing your gene
+  of interest
+• Triton X-100
+• Benzonase/DNAse I (Millipore 71205-3)
+• 40% Polyethylene Glycol 8000 (PEG) + 0.5 M NaCl
+• Cell lysis buffer (50 mM Tris HCl, 150 mM NaCl, 2 mM MgCl₂)
+
+
+REAGENT PREPARATION
+================================================================================
+
+DMEM Complete: 10% v/v FBS and 4 mM L-alanyl-L-glutamine (or stable alternative,
+such as glutaGRO)
+
+To a 500 mL bottle of DMEM high glucose, add 55 mL of heat-inactivated FBS and 5
+mL of glutaGRO 11 mL of 200 mM L-alanyl-L-glutamine. Store at 4 °C.
+
+D1 + 0.1 M sorbitol (optional): DMEM low glucose + 1% v/v HI-FBS + 0.1 M sorbitol
+
+In our hands, we have found that a lower glucose, lower FBS media causes less
+filter clogging during harvesting. The addition of sorbitol has been shown to
+increase viral titers by up to 1.8-fold (Rego et al., 2018).
+
+To prepare D1 + 0.1 M sorbitol, add 57 mL of 1.46 M sorbitol, 7.5 mL HI-FBS, and
+7.5 mL 100X glutaGRO, 7.5 mL of 7.5% Sodium Bicarbonate, 7.5 mL 1 M HEPES to 750
+mL DMEM + 1 g/L glucose.
+
+1 mg/mL polyethylenimine (PEI) solution:
+
+1. Dissolve 100 mg of PEI powder into 100 mL of deionized water.
+
+2. While stirring, slowly add hydrochloric acid until the solution clears.
+
+3. Check the pH of the solution and use hydrochloric acid or sodium hydroxide to
+   adjust the pH to 7.0.
+
+   💡 PRO TIP: The pH of this solution will drift pretty rapidly upon addition
+   of acid or base. Add only a few drops at a time. Allow them to mix and recheck
+   the pH to prevent over or undershooting the desired pH.
+
+4. Allow the solution to mix for 10 min and then recheck the pH to ensure that it
+   has not drifted.
+
+5. Filter the solution through a 0.22 μm membrane.
+
+6. Aliquot 500–1000 μL into sterile tubes.
+
+7. Store the tubes at -80 °C.
+
+8. After thawing, the solution can be stored at 4 °C for up to 2 months. After 2
+   months, discard the tube and thaw a new working stock.
+
+40% POLYETHYLENE GLYCOL (PEG) 8000 solution:
+
+1. Dissolve 400 g of PEG 8000 and 24 g of NaCl into deionized water and adjust to
+   a final volume of 1000 mL.
+
+2. Stir at RT until fully dissolved.
+
+   💡 PRO TIP: This step is challenging due to the high viscosity of PEG.
+   Stirring under medium heat will promote faster dissolution.
+
+3. Adjust the pH to ~7.4.
+
+4. Autoclave or sterile filter.
+
+   💡 PRO TIP: Stirring during the cooling period is recommended or the solution
+   may separate into phases.
+
+5. Aliquot and store at 4 °C.
+
+Cell Lysis Buffer: 50 mM Tris HCl, 150 mM NaCl, 2 mM MgCl₂
+
+1. Add the following to the 2 L sterile bottle: 1836 mL deionized water + 100 mL
+   of 1 M Tris HCl pH 8.5 + 60 mL of 5 M Sodium Chloride + 4 mL of 1 M Magnesium
+   Chloride
+
+2. Close the bottle and mix by inverting multiple times
+
+3. Adjust pH to ~8.5
+
+4. Filter sterilize through a 0.22 μm membrane.
+
+5. Store at 4 °C.
+
+
+CONSIDERATIONS BEFORE YOU START
+================================================================================
+
+• The health of the HEK293T cells is critical for optimal AAV yield.
+
+• Do not overgrow your cells. Pass the cells twice a week during the maintenance
+  phase and do not allow cells to reach 100% confluence (80–90% is ideal).
+
+• Pass and plate the cells the day before the transfection.
+
+• Thaw a new vial of cells after 30 passages.
+
+
+PROCEDURE
+================================================================================
+
+1. Trypsinize and resuspend the HEK293T cells from 2 x T-175 flasks. Cells should
+   be at ~80% confluence. For each T-175 flask:
+   • Aspirate culture media and rinse once with 10 mL of PBS.
+   • Aspirate PBS and add 2 mL of 0.05% Trypsin/EDTA. Wait ~2 min.
+   • Neutralize trypsin by adding 10 mL of DMEM Complete.
+   • Pipet back and forth vigorously multiple times to obtain a single cell
+     suspension (no clumps of cells).
+
+2. Pool cells from 2 x T-175 flasks. Adjust volume to 300 mL with DMEM complete
+   media and mix.
+
+3. Seed all cells in 1 CS2. Return to incubator for 48 h.
+
+4. Trypsinize and resuspend cells from the CS2. Cells should be at ~80%
+   confluence.
+   • Aspirate culture media and rinse once with 60 mL PBS.
+   • Aspirate PBS and add 35 mL of 0.05% Trypsin/EDTA.
+   • Wait ~2-3 minutes for cells to detach.
+   • Gently tap the sides of the CS2 to help detach the cells, add 200 mL of DMEM
+     complete media, then transfer the cells into a sterile bottle.
+   • Rinse the CS2 with 100 mL of DMEM complete medium and pool with the cells
+     harvested in the previous step.
+   • Pipette back and forth or shake vigorously to obtain a single cell suspension
+     (no clumps).
+
+5. Count cells using a hemocytometer or cell counter.
+
+6. Seed 350 million cells from the CS2 into one CS5 with a total volume of 850 mL.
+   Return to the incubator for 24 h–36 h.
+
+7. Proceed with transfection:
+   • Calculate the amount of each plasmid needed to have a 1:1:1 molar ratio with 2
+     mg total DNA per CS5
+
+     Example calculations:
+     - RepCap (7,265 bp): 582.1 μg = 582.1 μL (at 1.00 μg/μL)
+     - pHelper (11,854 bp): 949.8 μg = 949.8 μL (at 1.00 μg/μL)
+     - Transfer Plasmid (5,842 bp): 468.1 μg = 468.1 μL (at 1.00 μg/μL)
+
+   • Aliquot 100 mL of OptiMEM into a sterile 250 mL bottle.
+
+   • Aliquot 774 mL of DMEM + 2% HI-FBS into a sterile 1 L bottle.
+
+   • Add each plasmid DNA into the bottle containing the Opti-MEM. Mix well.
+
+   • Add 4 mL of PEI (1:2 μg DNA to μg PEI ratio). Shake the bottle up/down
+     vigorously for 30 sec (it's okay to make bubbles).
+
+   • Incubate at RT for 15 min. Note that longer incubation times can reduce
+     transfection efficiency.
+
+   • Add the OptiMEM + DNA + PEI solution to the bottle containing 774 mL of DMEM
+     + 2% HI-FBS. Mix well.
+
+8. Take the CS5 out of the incubator and pour the media into a waste container.
+
+9. Carefully add the OptiMEM + DNA + PEI solution to the CS5. Make sure that all
+   five layers are covered with media. 293T cells are delicate and detach very
+   easily - media should always be added away from the cells (not poured on them)
+   and can be adjusted by carefully tilting the CS5 back and forth.
+
+   💡 PRO TIP: To help distribute the media amongst the five layers, tilt the CS5
+   such that the media goes toward the cap. If the media touches the cap, replace
+   it with a new one before putting the CS5 in the incubator.
+
+10. Return the CS5 to the incubator for 96 h. This incubation time can be adjusted
+    depending upon the serotype. Often AAV2 are harvested at 48–72 h, while other
+    serotypes are harvested at 96–120 h.
+
+11. Optional: perform a media exchange at ~18 h post transfection. Changing the
+    media can reduce toxicity associated with PEI and allow for the addition of
+    other components, such as sorbitol and sodium bicarbonate, sorbitol has been
+    found to increase viral titers by up to 1.8-fold. See the recipe for D1 + 0.1 M
+    sorbitol above.
+    • Carefully pour off the media into a waste container.
+    • Gently pour new media into the CS5.
+    • Distribute the media evenly between the layers.
+    • Return the CS5 to the incubator for ~72 h.
+
+12. Harvest cells and media by tapping the sides of the CS5. Cells should detach
+    easily.
+
+13. Transfer cells and media into 500 mL conical vessels.
+
+14. Rinse CS5 once with 100 mL of PBS and add to the harvested media and cells.
+
+15. Centrifuge at 3900 rpm for 20 min at 4 °C to pellet the cells.
+
+16. Keep the cell pellet on ice and transfer supernatant to a sterile 500 mL
+    bottle.
+
+17. Process the supernatant as follows:
+    • Filter through a 0.45 μm PES membrane.
+    • Add 40% PEG such that the final PEG concentration is 8%.
+    • Add 25 mL of PEG solution to each 100 mL of supernatant. Split into 2 x 500
+      mL sterile bottles as needed.
+    • Add stir bar and stir slowly at 4 °C for 1 h, then keep at 4 °C for 3 h
+      without stirring to allow full precipitation. Precipitation of the viruses
+      can proceed overnight at 4 °C if needed.
+    • Transfer the entire sample to 3 x 500 mL conical bottles and centrifuge at
+      3900 rpm for 15 min at 4 °C.
+    • Discard the supernatant and resuspend the pellets in a total of 5 mL of cell
+      lysis buffer (recipe above). Pipet back and forth to resuspend each pellet
+      completely.
+    • Combine resuspended pellets and keep on ice.
+
+18. Process the cell pellet from above as follows:
+    • Resuspend and lyse the cells by adding a total of 12.5 mL of cell lysis
+      buffer. Pipet back and forth to resuspend each pellet completely.
+    • Combine all resuspended cell pellets and sonicate 5 x 1 sec pulses with at
+      least 5 minutes on ice between each pulse, 50% amplitude. Return to ice
+      between each round of sonication to avoid overheating of the sample. Mix
+      well between rounds of sonication.
+    • Sonicate until no live cells can be seen when stained with Trypan Blue.
+    • Pellet cell debris by centrifugation at 3900 rpm for 10 min at 4 °C.
+    • Transfer the cleared lysate to the tube containing the resuspended virus from
+      step 17 above.
+
+19. Add 50 units of benzonase per mL of viral suspension (you should have ~18 mL
+    from steps 17 & 18). Benzonase is an endonuclease that will degrade any
+    residual DNA carried over from the packaging process.
+
+20. Incubate at 37 °C for 45 min.
+
+21. You are now ready to purify your prep. The clarified supernatant can be kept
+    overnight at 4 °C before proceeding with the purification protocol.
+
+
+SAMPLE DATA
+================================================================================
+
+HEK293T cells at various confluencies. This AAV production protocol should be
+started with cells that are ~80% confluent (center panel). These cells were
+imaged with a 10X objective and were split 2 days before these images were taken.
+
+Last reviewed on: October 10, 2023

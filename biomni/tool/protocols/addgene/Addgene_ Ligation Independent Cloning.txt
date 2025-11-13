@@ -1,0 +1,113 @@
+PROTOCOL: Ligation Independent Cloning
+SOURCE: https://www.addgene.org/protocols/lic/
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Ligation Independent Cloning (LIC) obviates the need for the time-consuming
+ligation step of traditional cloning methods. In traditional cloning,
+base-pairing in the short overlapping regions (usually 4 bp) does not provide
+enough stability to hold the plasmid together through the
+transformation/replication process. LIC employs long overhangs to form a stable
+association between fragments, allowing for transformation without ligation.
+Because of its dual polymerase/exonuclease functions, T4 DNA polymerase can
+create overhangs of varying length (typically 10-12 bp) based on a specific
+sequence. The annealed but nicked vector product is then repaired during the
+replication cycle.
+
+Empty vectors for LIC typically employ type II restriction enzymes (e.g. BsaI),
+which cut at a specified distance from their recognition sequence. This can
+create multiple distinct overhangs with a single enzyme, and remove the restriction
+sites from the final product (no "cloning scars"). A "stuffer" sequence allows
+for electrophoretic separation of linearized vector from the reaction mixture, and
+may provide counter-selection for negative clones as in the example shown here. The
+manufacturer of an LIC-specific vector will provide the homologous sequence which
+must be built into the 5' end of the respective primers. Below we use
+pNIC28-Bsa4 as an example of LIC experimental design.
+
+
+PROTOCOL
+================================================================================
+
+Step 1: Design Your Primers
+
+Primer design for LIC is often as simple as using the backbone manufacturer's
+suggested leader sequence fused to your gene of interest, in frame with the
+start codon or tag sequences (where appropriate). The primer length is dependent
+on the T4 Pol "chew back" reaction, in which a single dNTP is included to stop
+the exonuclease function of the enzyme and shift its activity back to polymerase.
+In our case, dGTP will be used in the reaction, meaning that T4 Pol will remove
+bases from the 3' end of the cut site until the first G is reached (shown in
+blue), at which point it will add back the G and become stalled. Therefore, the
+primer must begin with the following T, so that there are no gaps in the final
+assembly. In this case, 15 bp of homologous sequence is used, plus a minimum of
+18 bp of your template sequence. 5' and 3' primers will have different leader
+sequences, but operate on the same principle (homologous to the first G on 3'-5'
+strand from cut site). For simplicity, only the 5' primer is shown here.
+
+Note: Use web-based primer design software to ensure a melting temperature
+between 50-60°C for your PCR primers.
+
+Step 2: Linearize Vector
+
+In this example, the vector is cut at two points by the enzyme BsaI, removing the
+stuffer sequence and sacB counter-selection marker (see our restriction digest
+protocol). After the digest is complete, you will need to separate the
+linearized vector from the reaction mixture by gel electrophoresis followed by
+gel purification. The cut vector end will now look like this:
+
+Note: Elute your purified digestion and PCR products with sterile water (instead
+of TE buffer) to ensure optimal salt concentrations in subsequent reactions.
+
+Step 3: Create Vector Overhangs
+
+Treat the linearized vector with T4 DNA polymerase to "chew back" the free 3'
+ends, following the manufacturer's instructions. In this case, we will include
+the free nucleotide dGTP in the reaction (exclude all other nucleotides from
+standard polymerase protocol), causing the enzyme to perform exonuclease activity
+until the first "G" in the sequence. Because the polymerase reaction is favored
+over the exonuclease reaction, the polymerase will add back the guanosine residue
+and become stalled. A typical T4 Pol reaction is shown. Mix the components (add
+the T4 last) and incubate at room temperature for 30 minutes. Inactivate T4 Pol
+by heating to 75° for 20 minutes.
+
+T4 DNA Polymerase Reaction:
+
+Volume (μl) | Reagent              | Final Conc.
+------------|----------------------|------------
+4           | 10X Buffer           | 1X
+20-30       | Eluted DNA           | 10-50 ng/μl
+1           | dGTP (100mM)         | 2.5 mM
+2           | DTT (100 mM)         | 5 mM
+1           | BSA (10 μg/μl)       | 0.25 μg/μl
+1           | T4 DNA polymerase    | 0.075 units/μl
+sterile dH₂O to 40 μl
+
+Step 4: Amplify Insert by PCR
+
+Perform PCR amplification of your insert following the instructions provided by
+your polymerase manufacturer. It is very important to remove all free nucleotides
+from your PCR product before proceeding, as they will interfere with the
+exonuclease activity of T4 Pol in the following step. This may be accomplished
+by gel purification.
+
+Step 5: Create Insert Overhangs
+
+Treat your purified PCR product with T4 Pol in the presence of dCTP (not dGTP),
+corresponding to the first base removed by the restriction digest to create the
+free 5' end of the cut vector (shown in blue here). The T4 reaction may be
+stopped by heating to 75° for 20 minutes.
+
+Step 6: Anneal and Transform
+
+Mix your treated vector and insert at a molar ratio of 1:2 or 1:3, using between
+20 and 50 ng of vector per annealing reaction. This should be done in a small
+volume with no additional water (<5 μl). It is advisable to set up multiple
+reactions by holding the vector concentration fixed across multiple
+concentrations of insert, thereby increasing your chances of success. Set up a
+vector only control with water instead of the insert. Incubate the annealing
+reaction for 5 minutes at room temperature, then add 1 μl of 25 mM EDTA,
+followed by another 5 minutes at room temperature. The reaction is now ready for
+transformation. Use 1-2 μl of annealing reaction for each transformation,
+following a standard protocol.

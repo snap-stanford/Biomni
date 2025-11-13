@@ -1,0 +1,75 @@
+PROTOCOL: Adherent Cell Culture Protocol
+SOURCE: https://www.thermofisher.com/us/en/home/references/gibco-cell-culture-basics/cell-culture-protocols/subculturing-adherent-cells.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+An adherent cell culture is characterized by the cell's ability to proliferate when attached to a growth-promoting substrate, a property known as "anchorage dependence." The following protocols detail various methods for dissociation of adherent cells from cultureware and subsequent procedures for subculturing, or splitting, adherent cells.
+
+MATERIALS FOR DETACHING AND PASSAGING ADHERENT CELLS
+================================================================================
+
+In addition to the catalog items below, detaching and passaging adherent cells also requires the following:
+
+• Adherent cells
+• Tissue-culture treated flasks, plates or dishes
+• Complete growth medium: basal medium, serum, and supplements pre-warmed to 37°C
+• Disposable, sterile 15 mL tubes
+• 37°C incubator with humidified atmosphere of 5% CO₂
+• Pipettes and pipette tips
+• Automated cell counter such as the Countess Automated Cell Counter
+
+Catalog numbers: 13151014, 13150016, 14190144, 15400054, 15090046, 12604013, 15575020, 179693, 17105041, 15040066, 15250061
+
+PROTOCOL FOR PASSAGING ADHERENT CELLS
+================================================================================
+
+The following adherent cell culture protocol describes how to subculture mammalian cells. Note that the procedure for subculturing insect cells differs from that for mammalian cells in several crucial steps. For more information, refer to "Considerations for passaging adherent insect cells" below.
+
+For passaging a particular cell line within your experiments, we recommend that you closely follow the instructions provided with each product you use, especially regarding formulation of your complete growth medium. The consequences of deviating from the culture conditions specified for a particular cell type can range from the expression of aberrant phenotypes to a complete failure of the cell culture. The SDSs for all Thermo Fisher Scientific products can be accessed here.
+
+Before passaging, ensure the solutions and equipment that come in contact with the cells are sterile. Use proper sterile technique throughout the subculture procedure and work in a laminar flow hood.
+
+Routinely monitor your cell's viability prior to subculturing. Adherent cells should be passaged at log phase with viability greater than 90% at the time of subculturing.
+
+1. Remove and discard the spent cell culture media from the culture vessel.
+
+2. Wash cells using a balanced salt solution without calcium and magnesium (approximately 2 mL per 10 cm² culture surface area). Gently add wash solution to the side of the vessel opposite the attached cell layer to avoid disturbing the cell layer and rock the vessel back and forth several times. The wash step removes any traces of serum, calcium, and magnesium that would inhibit the action of the dissociation reagent.
+
+3. Remove and discard the wash solution from the culture vessel.
+
+4. Add the pre-warmed dissociation reagent such as trypsin or TrypLE to the side of the flask; use enough reagent to cover the cell layer (approximately 0.5 mL per 10 cm²). Gently rock the container to get complete coverage of the cell layer.
+
+5. Incubate the culture vessel at room temperature for approximately 2 minutes. Note that the actual incubation time varies with the cell line used.
+
+6. Observe the cells under the microscope for detachment. If cells are less than 90% detached, increase the incubation time a few more minutes, checking for dissociation every 30 seconds. You may also tap the vessel to expedite cell detachment.
+
+7. When ≥ 90% of the cells have detached, tilt the vessel for a minimal length of time to allow the cells to drain. Add the equivalent of 2 volumes (twice the volume used for the dissociation reagent) of pre-warmed complete growth medium. Disperse the medium by pipetting over the cell layer surface several times.
+
+8. Transfer the cells to a 15 mL conical tube and centrifuge them at 200 x g for 5 to 10 minutes. Note that the centrifuge speed and time vary based on the cell type.
+
+9. Resuspend the cell pellet in a minimal volume of pre-warmed complete growth medium and remove a sample for counting.
+
+10. Determine the total number of cells and percent viability using a hemocytometer and the Trypan blue exclusion protocol, or the Invitrogen Countess Automated Cell Counter. If necessary, add growth media to the cells to achieve the desired cell concentration and recount the cells.
+
+11. Dilute cell suspension to the seeding density recommended for the cell line, and pipet the appropriate volume into new cell culture vessels and return the cells to the incubator. If using culture flasks, loosen the caps before placing them in the incubator to allow proper gas exchange unless you are using vented flasks with gas-permeable caps.
+
+CONSIDERATIONS FOR PASSAGING ADHERENT INSECT CELLS
+================================================================================
+
+While the general procedure for subculturing insect cells follows the same steps as mammalian cells, some key requirements of these culture systems are different. For the best results, always follow the instructions provided with each product you are using in your experiments.
+
+When to subculture adherent insect cells
+
+Passage insect cells at log phase, before they reach confluency, unless your cells are strongly adherent. If your insect cells are strongly adherent, you may passage them at confluency or slightly after when they are starting to pull away from the bottom of the flask because they will be easier to dislodge. However, insect cells that are repeatedly passaged at densities past confluency display decreased doubling times, decreased viability, and a decreased ability to attach.
+
+In contrast, passaging insect cells in adherent culture before they reach confluency requires more mechanical force to dislodge them from the monolayer. When repeatedly subcultured before confluency, these cells also display decreased doubling times, decreased viability, and are considered unhealthy. Densities lower than 20% confluency inhibit cell growth as well.
+
+How to subculture insect cells
+
+• Maintain insect cells at 27°C in a non-humidified environment. Cells can be maintained at room temperature on the bench top if protected from light or in a drawer. However, a 27°C controlled environment is recommended.
+• CO₂ exchange is not recommended for insect cell culture.
+• Use media specifically formulated for insect cell growth. Insect cells are cultured in growth media that are usually more acidic than those used for mammalian cells such as Grace's medium.
+• Insect cells attach very tightly to substrates under serum-free conditions and require additional effort to detach. To dislodge the cells, you may need to give the flask one quick shake using a wrist-snapping motion. To avoid contamination, always tighten the cap before this procedure.
+• Do not shake the flask vigorously, because it may result in damage to the cells.

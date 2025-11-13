@@ -1,0 +1,128 @@
+PROTOCOL: BestProtocols: Annexin V Staining Protocol for Flow Cytometry
+SOURCE: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/protocols/annexin-v-staining-flow-cytometry.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Note: This protocol is intended for use with the specific products mentioned within it. Substituting different products is not recommended.
+
+The use of the annexin V apoptosis assay protocol is a common method for detecting apoptotic cells. The below protocols are recommended for use with the specific flow cytometry kits mentioned. Please see the Annexin V Staining page for a discussion about general experimental conditions and avoiding false positives, or to review a selection guide for all of our annexin V products.
+
+GENERAL NOTES
+================================================================================
+
+• Invitrogen Fixable Viability Dye (FVD) eFluor 450 is not recommended for use with Annexin V Apoptosis Detection Kits.
+• Due to the calcium dependence of the Annexin V:PS interaction, it is critical to avoid buffers containing EDTA or other calcium chelators during Annexin V experiments.
+• Annexin V can only be used as a marker of apoptosis in cells where the plasma membrane is intact. Destroying the integrity of the plasma membrane will allow binding of Annexin V to PS inside the cell.
+
+PROTOCOL A: ANNEXIN V STAINING PROTOCOL
+================================================================================
+
+Materials
+
+• 12 x 75 mm round-bottom tubes
+• 1X PBS
+• Annexin V Apoptosis Detection kit (any one of the kits listed). Each kit includes an Annexin V conjugate:
+  - eFluor 450 (Cat. Nos. 88-8006-72, 88-8006-74)
+  - FITC (Cat. Nos. 88-8005-72, 88-8005-74)
+  - PerCP-eFluor 710 (Cat. Nos. 88-8008-72, 88-8008-74)
+  - PE (Cat. Nos. 88-8102-72, 88-8102-74)
+  - PE-Cyanine7 (Cat. Nos. 88-8103-72, 88-8103-74)
+  - APC (Cat. Nos. 88-8007-72, 88-8007-74)
+• 10X Binding buffer
+
+Note: PerCP-eFluor 710 (Cat. Nos. 88-8008-72, 88-8008-74) do not include a viability dye. We recommend using this format in combination with a Invitrogen Fixable Viability Dye (FVD) such as FVD eFluor 660 (Cat. Nos. 65-0864-14, 65-0864-18), FVD eFluor 506 (Cat. Nos. 65-0866-14, 65-0866-18), or FVD eFluor 780 (Cat. Nos. 65-0865-14, 65-8065-18).
+
+Experimental procedure
+
+1. Prepare 1X binding buffer by mixing 1 part of 10X binding buffer with 9 parts of distilled water.
+2. Harvest cells.
+3. Wash cells once in 1X PBS, then once in 1X binding buffer.
+4. Resuspend cells in 1X Binding Buffer at 1-5 x 10⁶ cells/mL.
+5. Add 5 μL of fluorochrome-conjugated Annexin V to 100 μL of the cell suspension.
+6. Incubate 10-15 minutes at room temperature. Protect from light.
+7. Add 2 mL 1X binding buffer and centrifuge at 400-600 x g for 5 minutes at room temperature. Discard supernatant.
+8. Resuspend cells in 200 µL of 1X binding buffer.
+9. Add 5 μL of Propidium Iodide Staining Solution or 7-AAD Viability Staining Solution and incubate 5-15 minutes on ice or at room temperature.
+
+Note: Propidium iodide and 7-AAD must remain in the buffer during acquisition. Do not wash cells after the addition of propidium iodide or 7-AAD.
+
+10. Analyze by flow cytometry.
+
+Note: Cells should be analyzed within 4 hours after the initial incubation period due to adverse effects on the viability of cells left in the presence of propidium iodide or 7-AAD for prolonged periods. Store at 2–8°C and protect from light until ready for analysis.
+
+PROTOCOL B: ANNEXIN V STAINING PROTOCOL WITH FIXABLE VIABILITY DYES
+================================================================================
+
+Materials
+
+• 12 x 75 mm round-bottom tubes
+• 1X PBS
+• Annexin V Apoptosis Detection kit (any one of the kits listed). Each kit includes an Annexin V conjugate:
+  - eFluor 450 (Cat. Nos. 88-8006-72, 88-8006-74)
+  - FITC (Cat. Nos. 88-8005-72, 88-8005-74)
+  - PerCP-eFluor 710 (Cat. Nos. 88-8008-72, 88-8008-74)
+  - PE (Cat. Nos. 88-8102-72, 88-8102-74)
+  - PE-Cyanine7 (Cat. Nos. 88-8103-72, 88-8103-74)
+  - APC (Cat. Nos. 88-8007-72, 88-8007-74)
+• 10X Binding buffer
+• Flow Cytometry Staining Buffer (Cat. No. 00-4222)
+• PBS (azide- and serum/protein-free PBS)
+• FVD eFluor 660 (Cat. Nos. 65-0864-14, 65-0864-18), FVD eFluor 506 (Cat. Nos. 65-0866-14, 65-0866-18) or FVD eFluor 780 (Cat. Nos. 65-0865-14, 65-8065-18)
+
+Note: FVD eFluor 450 is not recommended for use with the Annexin V Apoptosis Detection Kits.
+
+Experimental procedure
+
+1. Prepare 1X binding buffer by mixing 1 part of 10X binding buffer with 9 parts of distilled water.
+2. Wash cells twice in azide-free and serum/protein-free PBS.
+3. Resuspend cells at 1-10 x 10⁶ cells/mL in azide-free and serum/protein-free PBS.
+4. Add 1 µL of FVD per 1 mL of cells and vortex immediately.
+5. Incubate for 30 minutes at 2-8°C. Protect from light.
+6. Wash cells twice with Flow Cytometry Staining Buffer or equivalent.
+7. Wash cells once with 1X Binding Buffer.
+8. Resuspend cells in 1X Binding Buffer at 1-5 x 10⁶ cells/mL.
+9. Add 5 μL of fluorochrome-conjugated Annexin V to 100 μL of the cell suspension.
+10. Incubate 10-15 minutes at room temperature. Protect from light.
+11. Add 2 mL of 1X binding buffer and centrifuge at 400-600 x g for 5 minutes at room temperature. Discard supernatant.
+12. Resuspend cells in 200 μL of 1X Binding Buffer.
+13. Analyze by flow cytometry.
+
+PROTOCOL C: ANNEXIN V STAINING PROTOCOL WITH SURFACE AND INTRACELLULAR STAINING
+================================================================================
+
+Materials
+
+• 12 x 75 mm round-bottom tubes
+• 1X PBS (azide- and serum/protein-free PBS)
+• Flow Cytometry Staining Buffer Set (Cat. No. 00-4222)
+• Foxp3/Transcription Factor Staining Buffer Set (Cat. No. 00-5523) or Intracellular Fixation & Permeabilization Buffer Set (Cat. No. 88-8824)
+• Annexin V Apoptosis Detection kit (any one of the kits listed). Each kit includes an Annexin V conjugate:
+  - eFluor 450 (Cat. Nos. 88-8006-72, 88-8006-74)
+  - FITC (Cat. Nos. 88-8005-72, 88-8005-74)
+  - PerCP-eFluor 710 (Cat. Nos. 88-8008-72, 88-8008-74)
+  - PE (Cat. Nos. 88-8102-72, 88-8102-74)
+  - PE-Cyanine7 (Cat. Nos. 88-8103-72, 88-8103-74)
+  - APC (Cat. Nos. 88-8007-72, 88-8007-74)
+• 10X Binding buffer
+• FVD eFluor 660 (Cat. Nos. 65-0864-14, 65-0864-18), FVD eFluor 506 (Cat. Nos. 65-0866-14, 65-0866-18) or FVD eFluor 780 (Cat. Nos. 65-0865-14, 65-8065-18)
+
+Note: FVD eFluor 450 is not recommended for use with the Annexin V Apoptosis Detection Kits.
+
+Experimental procedure
+
+1. Prepare 1X binding buffer by mixing 1 part of 10X binding buffer with 9 parts of distilled water.
+2. Stain cell surface antigen(s). Refer to 'Staining Cell Surface Targets, Protocol A'.
+3. Wash cells twice in azide-free and serum/protein-free PBS.
+4. Resuspend cells at 1-10 x 10⁶ cells/mL in azide-free and serum/protein-free PBS.
+5. Add 1 µL of Fixable Viability Dye per 1 mL of cells and vortex immediately.
+6. Incubate for 30 minutes at 2-8°C. Protect from light.
+7. Wash cells twice in Flow Cytometry Staining Buffer or equivalent.
+8. Wash cells once with 1X binding buffer.
+9. Resuspend cells in 1X binding buffer at 1-5 x 10⁶ cells/mL.
+10. Add 5 μL of fluorochrome-conjugated Annexin V to 100 μL of the cell suspension.
+11. Incubate 10-15 minutes at room temperature. Protect from light.
+12. Wash cells once with 1X binding buffer.
+13. Stain intracellular antigen(s). Refer to 'Staining Intracellular Antigens, Protocol A or B'.
+14. Analyze by flow cytometry.

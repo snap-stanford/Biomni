@@ -1,0 +1,115 @@
+PROTOCOL: How to Perform a Diagnostic Digest
+SOURCE: https://www.addgene.org/protocols/diagnostic-digest/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+Restriction enzymes are naturally occurring bacterial endonucleases that recognize
+a large range of DNA sequences. Given the variety of these enzymes and the unique
+sites they recognize, restriction digests have become the most widely used method
+scientists employ to selectively move a specific piece of DNA from one plasmid to
+another. A diagnostic restriction enzyme digest takes advantage of the fact that
+restriction enzymes cleave DNA at specific sequences called restrictions sites.
+Often, the size of the plasmid insert and vector backbone are known and thus this
+technique can be quickly used to verify your plasmid.
+
+The goal of a diagnostic digest is to cut your plasmid into specific sized pieces
+and analyze the resulting fragments by gel electrophoresis. The pattern of the
+fragments on the gel can indicate if the plasmid contains the expected size insert.
+By selecting the appropriate enzyme(s), one can either linearize a plasmid to
+determine the size of the entire construct or excise some or all of an insert from
+it.
+
+Before beginning your diagnostic digest, you will need to select a restriction
+enzyme or enzymes that cut your plasmid. Many DNA analysis tools, including
+Addgene's Sequence Analyzer, allow you to identify which restriction sites are
+present in a given sequence.
+
+For a list of the commonly used commercially available restriction enzymes, see
+New England Biolabs' website.
+
+Last Upload: May 18, 2018
+
+
+EQUIPMENT
+================================================================================
+
+• Electrophoresis chamber
+• Pipetman
+• Pipet tips
+
+
+REAGENTS
+================================================================================
+
+• Liquid DNA aliquot of your plasmid of interest (see below for recommended
+  amounts)
+• Appropriate restriction enzyme (see manufacturer's instructions for proper
+  amount)
+• Appropriate restriction digest buffer (see manufacturer's instructions)
+• Gel loading dye
+• Electrophoresis buffer
+
+
+VERIFYING TOTAL PLASMID SIZE -OR- INSERT AND BACKBONE SIZE
+================================================================================
+
+The simplest form of diagnostic digest is one in which you just want to verify
+that the plasmid that you have is the expected size, or that it is composed of a
+backbone and insert of expected sizes. This is frequently done after performing
+either PCR - or restriction enzyme -based cloning to test individual clones
+before use of more expensive forms of plasmid verification, such as DNA sequencing.
+In the example above, digestion with enzyme RE1 will linearize the 6200bp plasmid
+into one single 6200bp fragment. Alternatively, digestion with both RE1 and RE2
+will result in two bands; the 1200bp insert and the 5000bp backbone.
+
+
+VERIFYING PLASMID IDENTITY BY "PLASMID FINGERPRINTING"
+================================================================================
+
+Often, it will be enough to know that you have a 1,200bp insert in a 5,000bp
+backbone, but there are many plasmids out there that, when digested with
+restriction enzymes common to multiple cloning sites, will result in similar
+sized bands, thus making this simple digest less informative. This is particularly
+true if you receive a plasmid from someone in another lab, or dig one out of the
+freezer and you are not 100% sure it is what you are looking for, but you have a
+map and know exactly what it should be. A useful restriction enzyme based
+technique for verifying plasmids like this is "plasmid fingerprinting", where you
+cut the plasmid into 3-8 pieces such that all (or most) fragments are small enough
+to be accurately sized on a gel and also such that they are different enough in
+size to be easily resolved from each other. However, by choosing an enzyme or
+enzymes that will cut your plasmid into multiple fragments, you can get a very
+unique pattern that will distinguish one 5kb backbone with a 1.2kb insert from all
+others.
+
+When choosing restriction enzymes for this approach, it is often a good idea to
+choose two different enzymes that will give you unique but distinct patterns so
+that you get double confirmation. In the example above, digestion with either RE3
+or RE4 will give a very predictable pattern of bands on the gel, but by digesting
+with both and seeing both patterns you can be incredibly confident that you have
+the correct plasmid.
+
+
+VERIFYING INSERT ORIENTATION BY RESTRICTION DIGEST
+================================================================================
+
+If you clone an insert into a vector by a single restriction enzyme, you will need
+to verify that it has be cloned in the correct orientation - this can be done by
+restriction digest. Although this is never an ideal cloning strategy, sometimes it
+cannot be avoided. If you do have to do so, there is no way to control which
+orientation the insert is ligated into the vector backbone and therefore the only
+thing left to do is identify the clone(s) in which the insert is in the correct
+orientation.
+
+In the example below we want to know how to differentiate between two clones that
+differ only in the orientation of the insert. By choosing an enzyme (or enzymes)
+that cuts within the insert, but significantly off center (ideally around 1/3 of
+the way from one end), and also cuts in the backbone on one side of the insert,
+you can get a very obvious verification of the orientation so long as the
+expected products from each orientation are different sizes. Simply run the
+digest products on a gel and those clones with the appropriately sized products
+should have the correct orientation.
+
+For detailed protocols as well as tips and tricks see the Restriction Digest and
+Gel Electrophoresis pages.

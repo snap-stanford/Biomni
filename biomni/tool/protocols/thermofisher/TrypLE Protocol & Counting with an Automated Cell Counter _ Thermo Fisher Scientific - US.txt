@@ -1,0 +1,76 @@
+PROTOCOL: TrypLE Protocol & Counting with an Automated Cell Counter
+SOURCE: https://www.thermofisher.com/us/en/home/references/gibco-cell-culture-basics/cell-culture-protocols/cell-counting-tryple-countess.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Gibco TrypLE reagents are recombinant enzymes of high purity, which contain no components of animal origin. By conducting this cell dissociation protocol with TrypLE reagent, you will learn how TrypLE reagents were designed to gently remove adherent cells from the surface of plastic flasks and plates, offering a milder alternative to traditional trypsin cell dissociation methods. In addition, TrypLE reagents are room temperature stable and can be substituted for trypsin in existing protocols.
+
+The Invitrogen Countess Automated Cell Counter is a benchtop instrument which performs cell counting and viability measurements with trypan blue stain. This instrument offers fast, easy, and accurate cell counting without using a hemocytometer, thus eliminating the tedium and subjectivity of manual cell counting.
+
+MATERIALS REQUIRED
+================================================================================
+
+You will need the following materials to complete the TrypLE reagent cell dissociation protocol below:
+
+Catalog numbers: 12604013, 12605010, C10228, 14190144, 339650, 339651, 156499
+
+CELL DISSOCIATION PROTOCOL
+================================================================================
+
+The purpose of using TrypLE Express Enzymes instead of trypsin in cell culture is to provide a gentler and more consistent method for removing adherent cells, reducing the risk of damaging sensitive cells and improving cell viability and recovery rates.
+
+The following protocol details how to use TrypLE Express to complete cell dissociation.
+
+1. Warm TrypLE reagent and complete growth medium to 37°C.
+
+2. Aspirate growth medium from the flask (or plate) and rinse the cells with 5 mL of Dulbecco's Phosphate Buffered Saline (DPBS) without calcium and without magnesium. Gently rock the vessel back and forth. Decant DPBS.
+
+3. Add an appropriate volume (e.g., 5 mL in a 75 cm² flask) of TrypLE reagent to the vessel. Ensure complete coverage of cell monolayer. Gently rock the vessel, allowing the solution to coat the cell sheet completely.
+
+4. Leave the cells incubating in TrypLE enzyme for 5–10–minute intervals at 37°C. Remove from the incubator when the cells are visibly detached. Gently tap the vessel to dislodge any cells that remain adhered to the vessel surface.
+
+5. Add 5-10 mL of pre-warmed complete growth medium to flask. Tilt flask in all directions to thoroughly rinse flask.
+
+6. Move the entire volume of the cell suspension to a 15 mL conical tube.
+
+7. Centrifuge at 100 x g for 5–10 minutes.
+
+8. Discard supernatant and re-suspend cell pellet with 2–5 mL of pre-warmed medium and pipette repeatedly to break up any clumps that may be present.
+
+DIRECT CELL COUNT PROTOCOL FOR AN AUTOMATIC CELL COUNTER
+================================================================================
+
+To accurately conduct a direct cell count with an automatic cell counter, it is essential to understand what is a direct cell count? A direct cell count involves counting individual cells, both live and dead, to get an accurate number of cells in your sample. In contrast, an indirect cell count involves counting the number of cells based on other properties of the cell, such as by nuclei staining or spectrophotometry.
+
+One advantage of direct cell counting using an automated cell counter is that you can save more time completing tedious cell counts than with a hemocytometer alone. Unlike a hemocytometer, which requires manual counting and can be prone to human error, the direct cell count using a cell counter enables automated, precise, and reproducible results, significantly improving efficiency and reliability in cell quantification.
+
+The following protocol details how to get a direct cell count and viability of your sample using the Countess Automated Cell Counter.
+
+1. Start the instrument. Automatic instrument functions and count parameters are defined in the Edit protocol screen. For more information on specific operating settings please use the Countess Automated Cell Counter User Guide. Or you can select Rapid capture at the top of the Home screen to set the parameters and perform a count as soon as the slide is inserted into the instrument.
+
+2. Take 10 μL of cell suspension from step 5 of the Cell Dissociation Protocol and add 10 μL of 0.4% trypan blue stain. Mix gently by pipetting the liquid up and down.
+
+3. Add 10 μL of the sample mixture into the half-moon shaped chamber port on one or both sides of the Countess cell counting chamber slide and let it settle for 30 seconds.
+
+4. Insert slide into the slide adapter until a soft click is heard. Slides are read one side at a time, so insert the side you intend to count first accordingly.
+
+5. Select your count protocol as described in Step 2. When the slide is inserted, the instrument automatically illuminates the sample, sets the intensity of brightfield illumination, and auto focuses on the cells.
+
+6. Press Count to obtain results. The instrument captures the image and displays the following results: total concentration, percentage and concentration of Live and Dead cells, and percentage of Aggregates (clusters of three or more cells with touching membranes).
+
+7. To calculate the volume of cell sample and buffer needed to reach a desired concentration based on the count results, press Calculators.
+
+8. To permanently save the results, press Save.
+
+9. To perform a new count, push the slide to eject, then insert a new sample slide or the alternate side of the current slide.
+
+For detailed instructions using all other available models of the Countess automated cell counter, refer to the manuals on thermofisher.com/countess
+
+REFERENCES
+================================================================================
+
+Boundless. 6.8.3: Measurements of Microbial Mass. LibreTexts Biology.
+
+Hoffman, Tracy L. (2006) Counting Cells. Cell Biology (Third Edition). Academic Press. pp 21–24.

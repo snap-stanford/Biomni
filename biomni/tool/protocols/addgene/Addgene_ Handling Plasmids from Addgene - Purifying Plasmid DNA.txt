@@ -1,0 +1,277 @@
+PROTOCOL: Handling Plasmids from Addgene - Purifying Plasmid DNA
+SOURCE: https://www.addgene.org/protocols/purify-plasmid-dna/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+Many molecular biology techniques require highly purified and concentrated plasmid
+DNA. This page will discuss the general procedure for purifying plasmid DNA from
+bacterial culture. For details on how to streak a plate to get individual
+colonies and to generate liquid bacterial cultures, please see those pages.
+
+Several companies, such as NEB, Qiagen, Invitrogen, and Promega sell kits for
+isolating plasmid DNA in quantities as low as a few micrograms to as much as
+several milligrams and at concentrations ranging from 150 ng/μL to several μg/μL.
+The protocol below is meant to describe the general procedure for purifying
+plasmid DNA from bacterial cultures. If you will be using a kit, follow the kit's
+instructions. If you want to perform plasmid purification without using a kit,
+you can find a protocol for kit-free plasmid mini-prep at the bottom of this page.
+
+Last Update: Feb. 8, 2018
+
+
+EQUIPMENT
+================================================================================
+
+• Desktop microcentrifuge
+• Desktop vortexer
+• Vacuum (optional)
+
+
+REAGENTS
+================================================================================
+
+• Overnight culture of bacteria transformed with your plasmid
+• Resuspension buffer
+• Denaturing solution
+• Renaturing solution
+• 2 mg/mL RNase A
+• TE or water-saturated phenol-chloroform
+• Chloroform
+• 100% ethanol or isopropanol
+• 90% ethanol
+• 70% ethanol
+• TE buffer
+• 3 M Na-acetate (pH 4.8)
+
+
+PROTOCOL: GENERALIZED DNA PURIFICATION
+================================================================================
+
+1. Grow an overnight culture of bacteria.
+
+   💡 PRO TIP: Refer to appropriate DNA prep protocol for volume of bacteria to
+   grow (low copy plasmids require larger cultures).
+
+2. Centrifuge the culture to pellet the bacteria before proceeding with DNA
+   preparation.
+
+   💡 PRO TIP: If your entire overnight culture cannot fit into a single
+   centrifuge tube, aliquot it into several tubes/bottles.
+
+3. Remove the supernatant and resuspend the bacteria in buffer.
+
+   Note: This step gets all of the bacteria back into suspension, but within a
+   smaller volume of buffer that is compatible with the next solution.
+
+4. Add a denaturing solution to the resuspended bacteria.
+
+   Note: This step causes the bacteria to lyse, releasing their contents,
+   including plasmid DNA, into solution.
+
+5. Add a renaturing solution to the denatured bacteria.
+
+   Note: This step brings the pH back down causing the proteins and genomic DNA
+   to precipitate, while leaving the smaller plasmids free in solution.
+
+6. Pellet the proteins and genomic DNA by centrifugation, and remove the
+   plasmid-containing supernatant.
+
+7. Add either ethanol or isopropanol to precipitate the plasmid DNA.
+
+8. Either spin to pellet the DNA or apply the solution to a column that will bind
+   the now precipitated DNA.
+
+9. Wash the pellet or column with 70% ethanol to remove excess salt.
+
+10. Resuspend the DNA pellet, or elute the DNA off of the column using water or a
+    neutral buffer such as TE.
+
+You will now have plasmid DNA that has been purified away from the bacterial
+proteins and genomic DNA. Depending on the method used, the DNA concentration and
+purity will vary. For more information on determining DNA concentration and purity
+click here.
+
+
+PROTOCOL: KIT-FREE ALKALINE LYSIS PLASMID MINIPREP
+================================================================================
+
+Prepare the following solutions:
+
+Solution I - Resuspension Buffer:
+• 25 mM Tris-HCl (pH 8)
+• 50 mM glucose
+• 10 mM EDTA
+• Store Solution I at 4°C
+
+Solution II - Denaturing Solution:
+• 0.2 N NaOH
+• 1.0% SDS
+• Store Solution II at room temperature
+
+Solution III - Renaturing Solution (Potassium Acetate):
+• 120 mL 5M Potassium acetate
+• 23 mL glacial acetic acid
+• 57 mL of dH₂O
+• Store Solution III at 4°C
+
+Procedure:
+
+1. Grow 2 mL overnight cultures from single colonies of bacteria containing your
+   plasmid of interest.
+
+2. Add 1.5 mL of the stock culture to a 1.75 mL microfuge tube.
+
+3. Centrifuge in microfuge tube at 10,000 g for 30 sec.
+
+4. Pour off the supernatant, being careful not to disturb the bacterial pellet.
+
+5. Resuspend the pellet in 100 μL of cold Solution I.
+
+6. Vortex the solution for 2 min or until all bacteria are fully resuspended.
+
+7. Add 200 μL of Solution II and invert the tube carefully 5 times to mix the
+   contents. The contents will become clear and thicker as the proteins and DNA
+   are denatured.
+
+   💡 PRO TIP: Do not vortex at this stage or the genomic DNA will become sheared
+   and will therefore contaminate your purified plasmid DNA.
+
+8. Incubate solution on ice for 5 min.
+
+9. Add 150 μL of cold Solution III to each tube.
+
+10. Mix by inverting several times. A white precipitate will be formed which
+    contains the bacterial proteins and genomic DNA.
+
+11. Incubate tube on ice for 5 min.
+
+12. Centrifuge the tube for 5 min at 12,000 g.
+
+    Notes:
+    • Pellet contains proteins, cell fragments, salt and other extra particles
+      from solutions.
+    • Supernatant contains the plasmid DNA separated from bacterial chromosomes.
+
+13. Collect the supernatant into a new tube by pipetting or carefully pouring.
+
+14. Optional: Add 5 μL of 2 mg/mL RNase A to the supernatant in the new tube and
+    incubate at 37 °C for 5 min.
+
+    Note: Ribonuclease A (RNase A) is a pancreatic ribonuclease that digests
+    single-stranded RNA.
+
+15. Optional: Perform phenol-chloroform extraction - see protocol below.
+
+    Note: Phenol-chloroform extraction removes remaining contaminant proteins and
+    RNase A from the DNA sample. When phenol is mixed with the aqueous solution
+    containing DNA, proteins will move into the phenol phase and will be
+    separated from the aqueous DNA.
+
+16. Add either 700 μL of cold 100% ethanol or 350 μL room temperature isopropanol
+    to the solution to precipitate the plasmid DNA; see detailed protocol below.
+
+    💡 PRO TIP: If precipitating with ethanol, it is often thought that an
+    incubation of 20 min to overnight at -20 °C or -80 °C will improve
+    precipitation.
+
+17. Pour out the supernatant.
+
+18. Optional: Wash the pellet with 70% ethanol.
+
+    Note: This step removes excess salt from the pellet which can cause problems
+    with some common reactions.
+
+19. Air dry the pellet (can be done by inverting the tube at an angle over
+    kimwipe) for 20-30 min.
+
+20. Resuspend pellet with 25-50 μL of TE.
+
+
+PROTOCOL: PHENOL-CHLOROFORM EXTRACTION OF DNA SAMPLES
+================================================================================
+
+1. Add an equal volume of TE-saturated phenol-chloroform to the aqueous DNA
+   sample.
+
+   💡 PRO TIP: Water-saturated phenol-chloroform can be used if TE-saturated is
+   not available.
+
+2. Vortex microfuge tube for 30-60 sec.
+
+3. Centrifuge the tube for 5 min at room temperature on the highest setting.
+
+   Note: You should see clearly separated layers:
+   • Top Phase - Aqueous DNA phase
+   • Middle phase - A white layer may appear, consisting of precipitated protein
+     particles
+   • Bottom phase - Organic phase (protein)
+
+4. Pipet the aqueous DNA layer and place it in a new microfuge tube.
+
+5. Add equal volume of chloroform to the recovered aqueous DNA layer.
+
+6. Repeat steps 2-4.
+
+   Note: Phenol-chloroform is a hazardous waste - DO NOT pour down sink.
+
+
+PROTOCOL: ETHANOL PRECIPITATION
+================================================================================
+
+1. To your DNA solution, add 2-2.5 volumes 95% or 100% ethanol and 1/10 volume
+   of 3 M Na-acetate (pH 4.8).
+
+2. Invert the microfuge tube to mix.
+
+3. Optional: Place the tube either at -20 °C overnight OR -80 °C for 30 min OR on
+   dry ice for 5 min.
+
+   Note: This freezing may help the DNA to precipitate.
+
+4. Centrifuge solution at high speed (at least 12,000 rpm) for 15-30 min at 4°C.
+
+   Notes:
+   • Pellet contains the precipitated DNA.
+   • Supernatant contains residues, salts, and water.
+
+5. Pour out the supernatant in the sink.
+
+6. Open and invert the tubes on a paper towel to drain them out.
+
+7. Wash pellet by adding 500 µL cold 70% ethanol.
+
+   Note: This helps to remove excess salt from the DNA pellet.
+
+8. Centrifuge solution at high speed (at least 12,000 rpm) for 5 min at room
+   temp.
+
+9. Pour out the supernatant in the sink.
+
+   💡 PRO TIP: Be careful, the pellet is harder to see and less well attached to
+   the tube after the 70% ethanol wash. You can also pipet the supernatant out of
+   the tube if you are worried about losing the pellet.
+
+10. Dry with vacuum or by inverting over paper towel for 5-20 min.
+
+11. Resuspend dry DNA with TE (10 mM Tris-HCl pH 8, 0.1 mM EDTA).
+
+    💡 PRO TIP: DNA resuspension can take time, it is a good idea to let it sit
+    for several hours to overnight at room temperature before quantifying and
+    using.
+
+12. Store DNA at 4°C.
+
+
+TIPS AND FAQ
+================================================================================
+
+• Plasmid purification kits provide the fastest way to obtain a high
+  concentration of clean plasmid DNA. To improve the purity of plasmid DNA
+  purified without a kit it is advisable to perform a phenol/chloroform
+  extraction of the supernatant after step 6 and before step 7. This will help
+  to remove proteins and other contaminants from the plasmid DNA.
+
+• It is also advisable to add RNAse to the supernatant after step 6 to eliminate
+  RNA contamination. This is included in the resuspension buffer of most kits.

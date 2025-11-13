@@ -1,0 +1,85 @@
+PROTOCOL: BrdU Staining Protocol for Flow Cytometry
+SOURCE: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/protocols/brdu-staining-flow-cytometry.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+The BrdU Staining Kits for flow cytometry provide all necessary reagents and buffers for identifying and analyzing proliferating cells using flow cytometry. BrdU, or 5-bromo-2'-deoxyuridine, is a synthetic analog of thymidine that integrates into newly synthesized DNA during the S-phase of mitosis. This kit allows for the staining of BrdU-incorporated DNA, facilitating the examination of cell proliferation alongside other cell surface or intracellular markers of interest.
+
+MATERIALS PROVIDED IN KIT
+================================================================================
+
+• BrdU (32.5 mM, 10 mg/mL): 5 x 1 mL sterile vials; store at ≤–70°C. Avoid multiple freeze-thaws. Vial should be opened under sterile conditions.
+• DNase I (1 mg/mL; 0.3 mg/vial): 10 x 0.3 mL vials; store at ≤–70°C. Each vial can be used to treat 10 samples. Avoid multiple freeze-thaws.
+• Anti-BrdU Antibody (clone BU20A), fluorochrome-conjugated: 1 x 100 test vial; store at 2–8°C.
+• BrdU Staining Buffer Concentrate (4X): 1 x 30 mL bottle; store at 2–8°C. This buffer contains formaldehyde. Please handle appropriately.
+• Fixation/Permeabilization Diluent: 1 x 100 mL bottle; store at 2–8°C.
+
+OTHER MATERIALS NEEDED
+================================================================================
+
+• Sterile 1X PBS
+• Flow Cytometry Staining Buffer
+• 12 x 75 mm round bottom test tubes
+• Optional:
+  - Primary antibodies (directly conjugated)
+  - Fixable Viability Dye (FVD): eFluor 450, eFluor 660, eFluor 780, eFluor 506, eFluor 520, or eFluor 455UV
+
+NOTE: The antibodies used for surface staining can be added after BrdU and Fixable Viability Dye labeling (but before fixation). Alternatively, if the antibody(s) is known to recognize a formaldehyde-fixed epitope, it can be added concurrently with the BrdU antibody.
+
+BrdU staining buffer working solution preparation
+
+Prepare fresh 1X BrdU Staining Buffer working solution by diluting BrdU Staining Buffer Concentrate (1 part) with Fixation/Permeabilization Diluent (3 parts). Mix by gentle inversion, do not vortex. You will need 1 mL of the 1X BrdU Staining Buffer working solution for each sample. Use caution and handle appropriately as the buffer contains formaldehyde.
+
+PROTOCOL
+================================================================================
+
+Step 1: In vitro labeling of 10⁵ to 10⁸ dividing cells with 10 µM BrdU for 45 minutes at 37°C.
+
+1. Under sterile conditions thaw BrdU on ice and dilute to a working concentration of 1 mM with sterile 1X PBS.
+2. Add 10 µM BrdU to each sample. (For example, add 10 µL of 1 mM BrdU directly to every milliliter of tissue culture medium.)
+3. Incubate your cells long enough to allow incorporation of BrdU. The timing will be dependent on your culture conditions (e.g., stimulants used) and the proliferation kinetics of your cells. Therefore, the incubation time will need to be determined empirically. After the incubation, harvest the cells.
+4. Wash cells by adding 2 mL of Flow Cytometry Staining Buffer (or azide-free PBS if proceeding to Step 2) and then centrifuge at 300–400 x g for 5 minutes at room temperature. Discard the supernatant.
+
+Step 2: [Optional] Stain with fixable viability dye (FVD) to label dead cells before fixation.
+
+Note: Allow the vial of Fixable Viability Dye to equilibrate to room temperature before opening. The dye must be used with azide-free PBS. For consistent staining of cells in tubes, do not stain in less than 0.5 mL. Please refer to our website Best Protocols (Viability Staining Protocol, Protocol C: Staining Dead Cells with Fixable Viability eFluor Dyes) for additional information. (Proceed to Step 3 if a FVD will not be used.)
+
+1. Wash cells one additional time with 2 mL of azide-free PBS, as described in step 4 above.
+2. Resuspend cells at 1–10 x 10⁶ cells/mL in azide-free PBS.
+3. Add 1 μL of Fixable Viability Dye per 1 mL of cells and vortex immediately.
+4. Incubate for 30 minutes at 2–8°C in the dark.
+5. Wash cells 1–2 times with Flow Cytometry Staining Buffer, as described in step 4 above.
+6. Resuspend cells at 1–10 x 10⁶ cells/mL in Flow Cytometry Staining Buffer.
+
+Step 3: [Optional] Stain cell surface antigen(s).
+
+Note: For additional information, please refer to Staining Cell Surface Antigens for Flow Cytometry. Proceed to Step 4 if cell surface antigens will not be examined or if the antibody(s) is known to recognize a formaldehyde-fixed epitope.
+
+1. Aliquot 50 μL of cell suspension to each tube or well. The cell number should be determined empirically but can range from 10⁵ to 10⁸ cells/test per tube.
+2. Add the recommended amount (refer to the Technical Data Sheet for each product) of each fluorochrome-conjugated primary antibody(s) in an appropriate volume of Flow Cytometry Staining Buffer such that the final staining volume is 100 μL. (For example, add 50 μL of an antibody mix to 50 μL of cells.) Mix gently.
+3. Incubate for at least 30 minutes at 2–8°C in the dark.
+4. Wash the cells twice with Flow Cytometry Staining Buffer, as described in step 4 under Step 1.
+
+Step 4: Fix cells and intracellularly stain with Anti-BrdU.
+
+1. Thaw DNase I solution on ice. Once thawed, prepare a working solution of DNase I by adding 300 µL of the DNase I solution to 700 µL of Flow Cytometry Staining Buffer and mix gently. Store on ice until ready for use in step 6 below.
+2. If cells were not stained in Steps 2 or 3, aliquot 100 μL of cell suspension to each tube. The cell number should be determined empirically but can range from 10⁵ to 10⁸ cells/tube.
+3. Gently resuspend the cells by pulse-vortexing once. This resuspension step is critical before the addition of the freshly prepared 1X BrdU Staining Buffer working solution.
+4. Add 1 mL of freshly prepared 1X BrdU Staining Buffer working solution and mix gently. Incubate for 15 minutes at room temperature in the dark. Incubations may go longer (up to 14 hours) but should be determined empirically for each cell type.
+5. Wash cells twice with Flow Cytometry Staining Buffer, as described in step 4 under Step 1.
+6. Add 100 µL of the DNase I working solution that was prepared in step 1 to each sample. Incubate for 1 hour at 37°C in the dark.
+7. Wash cells twice with Flow Cytometry Staining Buffer, as described in step 4 under Step 1.
+8. Add 5 µL of Anti-BrdU fluorochrome-conjugated antibody per sample. Mix and incubate for 20–30 minutes at room temperature in the dark.
+
+NOTE: Antibodies against intracellular antigens or surface antigens not stained in Step 3 may be added here. The antibodies used for surface staining at this step must recognize a fixed epitope. If an antibody only recognizes a native epitope or if this information is unknown, we recommend surface staining at Step 3.
+
+9. Wash cells twice with Flow Cytometry Staining Buffer, as described in step 4 under Step 1.
+
+Step 5: Acquire data on a flow cytometer.
+
+PRODUCT CATALOG NUMBERS
+================================================================================
+
+8811-6600-42, 8817-6600-42, 8812-6600-42, 8848-6600-42, 8846-6600-42, 00-5525-00, 00-4222-26

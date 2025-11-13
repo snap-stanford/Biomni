@@ -1,0 +1,63 @@
+PROTOCOL: Immunolabeling Using Secondary Antibodies
+SOURCE: https://www.thermofisher.com/us/en/home/life-science/cell-analysis/cell-analysis-learning-center/molecular-probes-school-of-fluorescence/imaging-basics/protocols-troubleshooting/protocols/immunolabeling-using-secondary-antibodies.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+This protocol provides general instructions for immunolabeling cells with a primary and secondary antibody. Immunolabeling is a technique for fluorescently labeling a specific biological target within a sample using an antibody. You'll also see immunolabeling referred to as both ICC (immunocytochemistry) and IHC (immunohistochemistry), and sometimes even antibody labeling.
+
+MATERIALS REQUIRED
+================================================================================
+
+• Fixed, permeabilized, and blocked cells (See Fix, Perm, and Block protocol)
+• Primary antibody
+• Secondary antibody conjugated with fluorophore of choice
+• Phosphate-buffered saline (PBS)
+• Antibody staining solution.
+
+Note: If there is a recommendation from the manufacturer, then use the solution recommended to dilute your antibodies. Usually the antibody staining solution is made with diluted blocking solution (1% blocking solution in PBS) or just PBS.
+
+• Fluorescence microscope with filter set matched to your fluorophore
+
+PREPARING YOUR PRIMARY ANTIBODY STAINING SOLUTION
+================================================================================
+
+Before you begin, you will need to prepare your primary antibody staining solution. The antibody you have purchased will usually come with recommendations for its use, but if it doesn't, a good place to start is at 1 μg/mL, which is usually a 1:1,000 dilution from your tube if the primary antibody concentration is 1 mg/mL. That means for 1 mL of staining solution, you would add 1 μL of antibody to 1 mL of PBS or blocking solution.
+
+A dilution series can help you identify optimal signal:background conditions
+
+If you're using an antibody for the first time, it never hurts to try a few different concentrations to find the one that gives you the highest signal and lowest background for your target. Try a simple series of dilutions (1:100, 1:250, 1:500, 1:750, and 1:1,000) for your primary antibody while holding the secondary antibody concentration constant. You can do this experiment in a 96-well plate in order to quickly find the optimal concentration (see vessel considerations).
+
+Most secondary antibodies are used between 1 and 10 μg/mL. A good starting concentration for a typical secondary antibody in that concentration range would be a dilution of 1:1,000. If you find your staining to be extremely bright, or that you have too much background, you can always try a higher dilution (from 1:2,000 to 1:10,000).
+
+Use controls to make sure your signal is not an artifact
+
+If possible, it's a good idea to have both a positive and negative control for an experiment that uses immunolabeling. A positive control would be an alternate sample, in addition to your experimental sample, that contains high levels of your target. A positive control will verify that you have done the immunolabeling properly. A negative control would be one where the sample is incubated only with secondary antibody (omitting the primary antibody step); this will show you the level of background fluorescence (nonspecific fluorescent signal) that is coming from your secondary antibody.
+
+PROTOCOL
+================================================================================
+
+General immunofluorescence protocol using secondary detection
+
+1. Remove the blocking solution from your sample.
+
+2. Add enough primary antibody staining solution to cover your samples, except for your negative control, which you will incubate without primary antibody, but with the same buffer you diluted your antibodies in.
+
+3. Incubate for 1 hr at room temperature or overnight at 4°C.
+
+Note: Once you have completed this step, you can put your experiment in the refrigerator until the following day.
+
+4. Remove the primary antibody staining solution from your samples.
+
+5. Wash 3 times with PBS.
+
+6. Add enough secondary antibody staining solution to cover your samples, including your negative control.
+
+7. Incubate for 30 min to 1 hr at room temperature.
+
+8. Wash 3 times with PBS.
+
+9. Optional: Go to fluorescent labeling if you wish to stain your cells with other markers and haven't done it yet.
+
+10. Image cells.

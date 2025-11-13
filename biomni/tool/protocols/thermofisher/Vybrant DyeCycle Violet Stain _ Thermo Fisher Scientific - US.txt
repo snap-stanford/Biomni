@@ -1,0 +1,96 @@
+PROTOCOL: Vybrant DyeCycle Violet Stain
+SOURCE: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/protocols/vybrant-dyecycle-violet-stain-protocol.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Live cell studies of cellular DNA content and cell cycle distribution are useful to detect variations of growth patterns due to a variety of physical, chemical, or biological means, to monitor apoptosis, and to study tumor behavior and suppressor gene mechanisms. In a given population, cells are distributed among three major phases of cell cycle: G0/G1 phase (one set of paired chromosomes per cell), S phase (DNA synthesis with variable amount of DNA), and G2/M phase (two sets of paired chromosomes per cell, prior to cell division).
+
+DNA content can be measured using fluorescent, DNA-selective stains that exhibit emission signals proportional to DNA mass. Flow cytometric analysis of these stained populations is then used to produce a frequency histogram that reveals the various phases of the cell cycle. This analysis is typically performed on permeabilized or fixed cells using a cell-impermeant nucleic acid stain, but is also possible using live cells and a cell-permeant nucleic acid stain. While the choices for fixed cell staining are varied, there are only a few examples of useful cell-permeant nucleic acid stains.
+
+The Vybrant™ DyeCycle™ Violet stain is a DNA-selective, cell membrane-permeant, and nonfluorescent stain that uses the violet laser for DNA content analysis in living cells. The Vybrant DyeCycle Violet stain is fluorescent upon binding to double-stranded DNA. Well suited for the popular violet laser line, Vybrant DyeCycle Violet stain can also be used with UV excitation, having emission at ~440 nm.
+
+The staining protocol is simple and includes incubating suspended cells in the presence of Vybrant DyeCycle Violet stain and directly measuring the fluorescence without the need for any additional treatment or centrifugation steps. This live cell stain allows the simultaneous co-staining of the cell population for other parameters, and allows for the possibility of cell sorting based on DNA content. Vybrant DyeCycle Violet stain does efflux in rodent and human stem cells, making the Side Population (SP) technique now available with violet excitation.
+
+SPECTRAL CHARACTERISTICS
+================================================================================
+
+The Vybrant DyeCycle Violet stain/DNA complex has fluorescence excitation and emission maxima of 369/437 nm, respectively.
+
+MATERIALS PROVIDED
+================================================================================
+
+Table 1. Contents and storage information.
+
+Material                    | Amount | Concentration              | Storage* | Stability
+----------------------------|--------|----------------------------|----------|----------
+Vybrant DyeCycle Violet stain | 200 μL | 5 mM solution in deionized water | 2-6°C DO NOT FREEZE Protect from light | When stored as directed, this kit is stable for at least 6 months.
+
+Number of assays: Sufficient material is supplied for approximately 200 flow cytometry assays based on a 1 mL test volume.
+
+Approximate fluorescence excitation/emission maxima: Vybrant DyeCycle Violet stain: 369/437 in nm bound to DNA.
+
+MATERIALS REQUIRED BUT NOT PROVIDED
+================================================================================
+
+• Cells and culture medium
+• Flow cytometer tubes
+
+CAUTION
+================================================================================
+
+The hazards posed by this stain have not been fully investigated. Since Vybrant DyeCycle Violet stain is known to bind to nucleic acids, treat the stain as a potential mutagen and use with appropriate care. The stain is supplied as a solution in DMSO, which is known to facilitate the entry of organic molecules into tissues. Use the stain using equipment and practices appropriate for the hazards posed by such materials. Dispose of the reagents in compliance with all pertaining local regulations.
+
+PROTOCOL
+================================================================================
+
+The following staining protocol was optimized using Jurkat cells, a human T-cell leukemia line, in complete RPMI medium containing 10% fetal bovine serum with staining at 37°C, but can be adapted to most cell types. Test samples comprise of 1 × 10⁶ cells per 1 mL. Growth medium or buffer used, cell density, cell type variations, and other factors may influence staining. In initial experiments, try a range of dye concentrations to determine the one that yields optimal staining for the given cell type, buffer, and experimental condition. For a given experiment, each flow cytometry sample should contain the same number of cells, as sample-to-sample variation in cell number leads to significant differences in fluorescence signal.
+
+If Vybrant DyeCycle Violet stain is used in combination with other stains for multicolor applications, apply the other stain(s) to the sample first, following all manufacturers' instructions, including wash steps. Vybrant DyeCycle Violet stain should be the last stain applied to the sample, and do not wash or fix samples prior to flow cytometric analysis.
+
+General Guidelines
+
+For optimal DNA content cell cycle analysis, follow these guidelines:
+
+• Eliminate cell clumps and aggregates from the cell suspension before staining
+• Use 37°C for incubation with the Vybrant DyeCycle Violet stain
+• Hanks' Balanced Salt Solution (HBSS) is recommended if media is not desired, however phosphate buffers are not recommended
+• Do not use glass containers with this stain
+• Do not wash or fix cells after staining cells with Vybrant DyeCycle Violet stain
+• Validate flow cytometry instrument performance on the day of use
+• Use linear amplification for DNA content
+• Use low flow rate for acquisition
+• Collect adequate numbers of events for the intended application
+• Eliminate dead cells from the DNA content analysis of living cells using a dead cell discriminating stains such as SYTOX™ Green, SYTOX™ Red or SYTOX™ AADvanced™ dead cell stains or LIVE/DEAD™ Fixable Dead cell stains such as Green, Red, Far Red, or Near-IR kits
+• Compensation may be required for Alexa Fluor 488 and PE channels
+• Eliminate or correct for cell aggregates during data analysis using gating or modeling software
+• Human and rodent stem cells efflux Vybrant DyeCycle Violet stain, and this is the basis for the Side Population (SP) technique; the efflux can be blocked with verapamil, Fumitremorgin C, or other such blocking agents, to prevent dye efflux for accurate DNA content analysis in these stem cells
+
+Vybrant DyeCycle Violet Staining Protocol
+
+This basic protocol is optimized using Jurkat cells suspended in complete medium (RPMI/10% fetal bovine serum) and stained with Vybrant DyeCycle Violet stain at 37°C.
+
+1. Remove the Vybrant DyeCycle Violet stain from the refrigerator and allow the vial to equilibrate to room temperature.
+
+2. Prepare flow cytometry tubes each containing 1 mL of cell suspension in complete media at a cell concentration of 1 × 10⁶ cells/mL.
+
+3. To each tube, add 1 μL of Vybrant DyeCycle Violet stain and mix well. Final stain concentration is 5 μM.
+
+4. Incubate at 37°C for 30 minutes, protected from light. Keep cells at 37°C until acquisition.
+
+5. Analyze samples without washing or fixing on a flow cytometer using ~405 nm excitation and ~440 nm emission. Vybrant DyeCycle Violet stain may also be excited with a UV light source.
+
+PRODUCT CATALOG NUMBERS
+================================================================================
+
+V35003, V10273, V10309, S10349, S7020, S34859, S11348, L23105, L34955, L34957, L34959, L23101, L23102, L10120, L10119, L34960
+
+REFERENCES
+================================================================================
+
+1. Current Protocols in Cytometry, 7.0.1–7.27.7 (2004)
+2. Practical Flow Cytometry, 4th Ed., Shapiro H. M., Ed. (2003)
+3. Methods Mol Biol 281, 301 (2004)
+4. Cytometry A 58, 21 (2004)
+5. Stem Cells 25, 1029 (2007)

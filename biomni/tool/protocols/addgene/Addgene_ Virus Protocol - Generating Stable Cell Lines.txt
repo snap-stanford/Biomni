@@ -1,0 +1,127 @@
+Title: Addgene: Virus Protocol - Generating Stable Cell Lines
+URL: https://www.addgene.org/protocols/generating-stable-cell-lines/
+================================================================================
+
+Protocols
+Generating Stable Cell Lines with Lentivirus
+Generating Stable Cell Lines with Lentivirus
+You may also like...
+Viral Vector Guides
+Virus Blog Posts
+Mol Bio Protocols
+Viral Service
+Introduction
+This protocol can be used to generate stable cell lines expressing a gene of interest from an integrated lentiviral vector. Unlike the short-term protein expression observed using transient transfection approaches, generating cell lines using lentiviral vectors enables long-term protein expression studies. Moreover, repeating experiments in a stable cell line, as opposed to transiently-transfected cells, increases reproducibility, as it eliminates the variation associated with repeated transient transfection.
+Some lentiviral vectors deliver mammalian antibiotic resistance (e.g., puromycin, blasticidin), which enables selection of a stable cell culture after transduction. Performing antibiotic selection on transduced cells enables elimination of untransduced cells, resulting in a more homogenous (but still polyclonal) cell population. Depending on the transducibility of the cell line used, this antibiotic selection may be a vital step for obtaining a population of cells that have taken up the lentiviral transgene. Note that not all lentiviral vectors deliver antibiotic resistance.
+This protocol was established using 293T cells but can be adapted to alternative cell lines.
+Workflow Timeline
+Day 0:
+Seed and transduce Cells
+Day 2–3 (am):
+Remove media, replace with fresh media containing selection reagent
+Day 3–14:
+Change media as needed
+Day 14–18:
+Expand and harvest stable cell lines
+Equipment
+Class II, Type A2 Biological Safety Cabinet
+0.5–10 µL single channel pipette
+2–20 µL single channel pipette
+20–200 µL single channel pipette
+200–1000 µL single channel pipette
+Ice bucket
+CO
+2
+incubator
+Pipet controller
+Hazardous waste container
+Reagents
+DMEM high glucose, Corning 10-013-CV
+L-alanyl-L-glutamine (or alternative stable glutamine such as glutaGRO, Corning 25-015-CI)
+Heat-inactivated FBS
+Polybrene (10 mg/mL), Millipore TR-1003-G
+1X PBS pH 7.4 without calcium or magnesium, Corning 21-040-CV (cations can affect the attachment of adherent cells)
+0.45 μm polyethersulfone filter, Nalgene, 565-0010 (for viral preps, if prep was not previously filtered)
+Microcentrifuge tubes, Neptune 3745.X
+6-well tissue culture treated dish, Corning 3516
+15 mL conical tubes, VWR 21008-216
+Lentivirus preparation
+Appropriate antibiotic for selection (e.g. puromycin, blasticidin)
+Reagent Preparation
+DMEM Complete: 10% v/v FBS and 4 mM L-alanyl-L-glutamine (or stable alternative, such as glutaGRO)
+To a 500 mL bottle of DMEM high glucose, add 55 mL of heat-inactivated FBS and 5mL of 100X glutaGRO. Store at 4 °C.
+Pro-Tip
+Different brands and FBS lots can promote or inhibit transfection. Test a variety of brands and FBS lot numbers to find one suitable with your protocols. FBS can be purchased already heat-inactivated, or it can be inactivated in the lab by heating to 56 °C for 30 min.
+Considerations Before You Start
+The health of the target cell line is critical for obtaining accurate results.
+Check the cells for
+mycoplasma
+(Link opens in a new window)
+regularly
+Do not over or under-grow your cells.
+Thaw a new vial of cells after 20-30 passages.
+Do not add penicillin/streptomycin to the media, as it can affect viability and transduction efficiency.
+Infection efficiency will vary between cell lines.
+It is not recommended that lentiviral supernatants be subjected to multiple freeze-thaw cycles.
+Procedure
+Before beginning, determine the optimal dose of selective reagent for your target cell line. To do this, treat target cells with a range of doses of antibiotic and determine the lowest dose that kills all of the cells.
+Prepare a batch of DMEM complete + 10 µg/mL polybrene by diluting 20 µL of 10 mg/mL polybrene into 20 mL media.
+Thaw the lentiviral aliquot on ice prior to use.
+Prepare a range of dilutions of the lentivirus in DMEM complete + 10 µg/mL polybrene. Note, this is just a sample of possible dilutions. You may want to try higher/lower dilutions depending on your downstream applications. If you’ve titered your virus beforehand, you can narrow this range according to the results of your titration.
+Mix the dilutions well.
+Dilution
+Volume of Lentivirus (μL)
+Volume of DMEM complete + 10 µg/mL polybrene (µL)
+0
+0
+500
+1:5
+300
+200
+1:10
+150
+350
+1:50
+30
+470
+1:100
+15
+485
+1:500
+3
+497
+Add 0.5 mL of a single viral dilution to each well (each well gets one dilution, so a 6-well plate will hold 5 dilutions plus one 'no virus' control well).
+Perform a "reverse transduction" by seeding 50,000 cells into each well of the 6-well dish. These cells will be added to the wells that already contain 0.5 mL of virus solutions at various dilution. Make sure to use the polybrene-containing media to make the cell solution in this step. To seed the cells:
+Prepare a batch of cells as follows: Dilute 350,000 cells into a total volume of 7 mL of DMEM complete + 10 µg/mL polybrene.
+Mix well by pipetting or inverting the tube.
+Aliquot 1 mL of cell suspension (i.e., 50,000 cells) into each well of the 6-well dish. This brings the total volume in each well up to 1.5 mL. Since all the media in these wells was made with DMEM complete + 10 µg/mL polybrene, the final concentration of polybrene in each well should be 10 µg/mL.
+Pro-Tip
+Transducing too many cells relative to the number of virus particles reduces the transduction efficiency, resulting in massive cell death upon antibiotic selection. The number of cells transduced should be enough that they can grow out in a reasonable amount of time, but not so many that they vastly outnumber the virus particles.
+Incubate the cells with the virus for 48–72 h.
+Gently aspirate the media from the cells.
+Add 1.5 mL of DMEM complete containing the appropriate antibiotic. This is the beginning of the selection process, which will begin the selection of a stable cell pool.
+Observe the dish every day to ensure that the cells in the untransduced well (0 µL lentivirus, above) are dying. Perform regular media changes and monitor the growth of the cells.
+Pro-Tips
+Depending on the efficiency of your transduction, you will see different degrees of cell death upon antibiotic selection. It is important to monitor these cells regularly and replace the cell media. Cell death by some cells in the culture may adversely affect the surviving cells in the culture, so it is important to do regular media changes and maintain optimal growth conditions for the surviving cells. Even in the absence of cell death, the cell media should be changed every 2–3 days to maintain the dose of antibiotic, which may not be stable at 37 °C.
+To achieve a stable cell pool, the antibiotic selection should last at least as long as it takes the control (untransduced) cells to completely die. After that, the cells may undergo additional selection while the population expands. At this time, some researchers reduce the concentration of the antibiotic in culture, or remove the antibiotic entirely. If the antibiotic is reduced or removed from the culture, check the cells regularly to confirm transgene expression.
+As polyclonal populations of resistant cells start proliferating and the individual wells become confluent, expand into larger vessels. A confluent well of a 6-well dish can be expanded into a 10 cm dish. A confluent 10 cm dish can be expanded into two 75 cm
+2
+flasks, etc.
+Pro-Tip
+This selection method results in a polyclonal cell population, meaning that the transgene has integrated in different locations in the various cells in the culture. This is because lentiviral integration is random. Given the MOI of the lentivirus used, cells may also exhibit varying numbers of integration events. In other words, if an MOI >1 was used, some cells may have 1 copy of the transgene, while others have >1 copy of the transgene in their genome. This can result in varying expression levels of the transgene from different cells in the population.
+Once the polyclonal populations are growing well and have been sufficiently expanded, prepare cell stocks and/or harvest to test for protein expression.
+Typically, cells transduced with lower dilutions of the virus will have higher levels of expression. Consider expanding populations transduced with a variety of dilutions and pick the population that has the most desirable level of expression.
+Over time, transgene expression in a polyclonal population may drop. This is because cells that express high levels of the transgene may have reduced growth rates, especially if that transgene is toxic. Eventually, the rapidly growing low-level transgene expressors may take over the culture. To overcome this, consider
+generating monoclonal lines
+from the early polyclonal populations.
+Sample Data
+Figure 1:
+Generation of monoclonal cell lines from expansion of individual A549 cells stably expressing Cas9. A549 cells were transduced with
+lentiCas9-Blast
+and then selected with 1 µg/mL  blasticidin for  9 days. Single cells were then plated in individual wells of a 96-well plate and left undisturbed for 13 days. (a, b, c) Colonies formed by expansion of single cells for 13 days. lentiCas9-Blast was a gift from Feng Zhang (Addgene plasmid
+#52962
+) and is described in
+Improved vectors and genome-wide libraries for CRISPR screening. Sanjana NE, Shalem O, Zhang F. Nature Methods. 2014 Aug;11(8):783-4
+(Link opens in a new window)
+.
+Last reviewed on: September 9, 2023

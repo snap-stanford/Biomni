@@ -1,0 +1,43 @@
+PROTOCOL: F-Actin Staining
+SOURCE: https://www.thermofisher.com/us/en/home/life-science/cell-analysis/cell-analysis-learning-center/molecular-probes-school-of-fluorescence/imaging-basics/protocols-troubleshooting/protocols/f-actin-staining.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+This protocol provides general instructions for labeling F-actin in fixed and permeabilized cells. Actin is one of the most abundant proteins found in cells and can be labeled with a fluorophore very easily when the monomers form a certain type of microfilament, referred to as F-actin. When phalloidin, a molecule that binds F-actin, is conjugated to a fluorophore, it becomes a very useful tool for cell biologists who are using fluorescence microscopy to study their cells. Labeling F-actin can help show the overall shape and structure of the cell and provide context for other fluorescent labels.
+
+Protocol tip: If you're using fluorescent phalloidin to visualize actin in your experiment, you'll get better results if you perm for 20 minutes instead of 15.
+
+MATERIALS REQUIRED
+================================================================================
+
+• Cells that have been fixed and permeabilized (See Fix, Perm, and Block protocol)
+• Phosphate-buffered saline (PBS)
+• Phalloidin conjugated to fluorophore
+• Fluorescence microscope with filter set matched to your fluorophore
+
+PROTOCOL
+================================================================================
+
+F-actin dyes—basic labeling protocol
+
+For fixed and permeabilized cells. Can be used before or after immunolabeling.
+
+The volumes given in this protocol are good for a single well in a 6-well vessel or a single 35 mm vessel.
+
+1. Prepare 1 mL F-actin staining solution in PBS from conjugated fluorophore. Phalloidins are typically very water soluble and stain F-actin at 100–200 nM concentrations. If you are optimizing for dye concentration, you will need to prepare a staining solution for each concentration you want to test.
+
+2. Remove PBS from fixed and permeabilized cells.
+
+3. Add 1 mL of staining solution.
+
+4. Incubate for 20 minutes at room temperature.
+
+5. Remove dye solution.
+
+6. Wash 3 times with PBS.
+
+7. Image cells.
+
+8. Optional: To preserve your sample for long-term storage, you can also mount your sample in mounting medium. Before you start your staining experiment, it's a good idea to check that your fluorophores are compatible with the mounting medium you want to use.

@@ -1,0 +1,144 @@
+PROTOCOL: Restriction Digest of Plasmid DNA
+SOURCE: https://www.addgene.org/protocols/restriction-digest/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+Restriction enzyme digestion takes advantage of naturally occurring enzymes that
+cleave DNA at specific sequences. There are hundreds of different restriction
+enzymes, allowing scientists to target a wide variety of recognition sequences.
+For a list of many commonly used restriction enzymes, visit NEB.
+
+Restriction enzyme digestion is commonly used in molecular cloning techniques,
+such as PCR or restriction cloning. It is also used to quickly check the identity
+of a plasmid by diagnostic digest.
+
+Last Upload: Oct. 11th, 2016
+
+
+EQUIPMENT
+================================================================================
+
+• Electrophoresis chamber
+• Pipetman
+
+
+REAGENTS
+================================================================================
+
+• Liquid DNA aliquot of your plasmid of interest (see below for recommend
+  amounts)
+• Appropriate restriction enzyme (see manufacturer's instructions for proper
+  amount)
+• Appropriate restriction digest buffer (see manufacturer's instructions)
+• Gel loading dye
+• Electrophoresis buffer
+• Pipet tips
+
+
+PROCEDURE
+================================================================================
+
+1. Select restriction enzymes to digest your plasmid.
+
+   💡 PRO TIP: To determine which restriction enzymes will cut your DNA sequence
+   (and where they will cut), use a sequence analysis program such as Addgene's
+   Sequence Analyzer.
+
+2. Determine an appropriate reaction buffer by reading the instructions for your
+   enzyme.
+
+   💡 PRO TIP: If you are conducting a double digest (digesting with two enzymes
+   at the same time), you will need to determine the best buffer that works for
+   both of your enzymes. Most companies will have a compatibility chart, such as
+   the double digest finder tool from NEB.
+
+3. In a 1.5mL tube combine the following:
+   • DNA
+   • Restriction Enzyme(s)
+   • Buffer
+   • BSA (if recommended by manufacturer)
+   • dH₂O up to total volume
+
+   💡 PRO TIPS:
+   • The amount of DNA that you cut depends on your application. A diagnostic
+     digest typically involves ∼500 ng of DNA, while molecular cloning often
+     requires 1 µg of DNA. The total reaction volume usually varies from 10-50 µL
+     depending on application and is largely determined by the volume of DNA to
+     be cut.
+
+   • A typical restriction digestion reaction could look like this:
+     - 1 µg DNA
+     - 1 µL of each Restriction Enzyme
+     - 3 µL 10x Buffer
+     - 3 µL 10x BSA (if recommended)
+     - x µL dH₂O (to bring total volume to 30µL)
+
+   • The amount of restriction enzyme you use for a given digestion will depend on
+     the amount of DNA you want to cut. By definition: one unit of enzyme will
+     cut 1 µg of DNA in a 50 µL reaction in 1 hour. Using this ratio, you can
+     calculate the minimal amount of enzyme for your reaction. However, keep in
+     mind that restriction enzyme activity is determined under ideal conditions
+     with very clean DNA, so using a little more enzyme is advisable. Reactions
+     are often performed with 0.2-0.5 µL of enzyme because it is difficult to
+     pipette less volume than this; 0.2-0.5 µL will likely be more enzyme than
+     you will need, but that's okay because a little more enzyme is usually
+     better.
+
+4. Mix gently by pipetting.
+
+5. Incubate tube at appropriate temperature (usually 37 °C) for 1 hour. Always
+   follow the manufacturer's instructions.
+
+   💡 PRO TIP: Depending on the application and the amount of DNA in the reaction,
+   incubation time can range from 45 mins to overnight. For diagnostic digests,
+   1-2 hours is often sufficient. For digests with >1 µg of DNA used for cloning,
+   it is recommended that you digest for at least 4 hours.
+
+6. If you will be using the digested DNA for another application (such as a
+   digestion with another enzyme in a different buffer), but will not be gel
+   purifying it, you may need to inactivate the enzyme(s) following the digestion
+   reaction. This may involve incubating the reaction at 70 °C for 15 mins, or
+   purifying the DNA via a purification kit, such as a QIAGEN DNA cleanup kit.
+   See the enzyme manufacturer's instructions for more details.
+
+7. To visualize the results of your digest, conduct gel electrophoresis.
+
+
+TIPS AND FAQ
+================================================================================
+
+• Restriction enzymes MUST be placed in an ice bucket immediately after removal
+  from the -20 °C freezer because heat can cause the enzymes to denature and lose
+  their function.
+
+• If you are having difficulty finding an enzyme that cuts your vector's
+  multiple cloning site (MCS), but does not cut your insert, you could try using
+  two different enzymes that have compatible sticky ends. See NEB's compatible
+  cohesive ends chart.
+
+• If you cannot find compatible sticky ends, you will need to fill in the
+  overhangs and conduct a blunt end ligation. Use T4 DNA Polymerase or Klenow
+  DNA Polymerase I for 3′ overhang removal and 5′ overhang fill-in.
+
+• If you are using blunt ends or a single enzyme to cut the vector, you will need
+  to use a phosphatase to prevent re-circularization of the vector if you are
+  cloning in an insert. CIP (calf alkaline phosphatase) or SAP (shrimp alkaline
+  phosphatase) are commonly used. Follow the manufacturer's instructions.
+
+• If your enzyme did not cut, check to make sure that it isn't methylation
+  sensitive. Plasmids grown in Dam or Dcm methylase positive strains will be
+  resistant to cleavage at certain restriction sites. See NEB's table of
+  methylation sensitive restriction sites.
+
+• Sometimes enzymes cut sequences which are similar, but not identical, to their
+  recognition sites. This is due to "Star Activity" and can happen for a variety
+  of reasons, including high glycerol concentration. Learn more at NEB's website
+  about star activity.
+
+• If you are digesting a large number of plasmids with the same enzyme(s) (for
+  instance, in a diagnostic digest), you can create a "Master Mix" consisting of
+  all of the reaction components except for the DNA. Aliquot your DNA into
+  individual tubes and then add the appropriate amount of Master Mix to each
+  tube. This will save you time and ensure consistency across the reactions.

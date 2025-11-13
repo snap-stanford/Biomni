@@ -1,0 +1,94 @@
+PROTOCOL: Caspase Activity Assay Protocol
+SOURCE: Thermo Fisher Scientific - US
+URL: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/apoptosis-protocol.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Caspases are a family of cysteine proteases that play essential roles in apoptosis (programmed cell death). Measuring caspase activity is a common method for detecting and quantifying apoptosis. This protocol describes methods for detecting caspase activity using fluorescent substrates in both live and fixed cells.
+
+APPLICATIONS
+================================================================================
+
+This protocol can be used for:
+• Detecting apoptosis in cell cultures
+• Quantifying caspase-3/7, caspase-8, or caspase-9 activity
+• Screening for apoptosis-inducing compounds
+• Time-course studies of apoptosis
+
+MATERIALS REQUIRED
+================================================================================
+
+• Cells in culture
+• CellEvent Caspase-3/7 Green Detection Reagent or similar caspase substrate
+• Cell culture medium
+• Phosphate-buffered saline (PBS)
+• Fluorescence microscope or microplate reader
+• Optional: NucBlue Live ReadyProbes Reagent for nuclear counterstaining
+
+PROTOCOL
+================================================================================
+
+For live cell imaging (CellEvent Caspase-3/7 Green Detection Reagent)
+
+1. Prepare cells in appropriate culture vessel (coverslips, multiwell plates, etc.).
+
+2. Treat cells with apoptosis-inducing agent or control treatment.
+
+3. Prepare CellEvent Caspase-3/7 Green Detection Reagent:
+   - Add 100 µL of PBS to the dry powder to make a 100X stock solution.
+   - Dilute 1:100 in cell culture medium to make working solution (final concentration typically 2-5 µM).
+
+4. Remove cell culture medium from cells.
+
+5. Add CellEvent Caspase-3/7 Green Detection Reagent working solution to cells.
+
+6. Incubate for 30-60 minutes at 37°C, protected from light.
+
+7. Optional: Add NucBlue Live ReadyProbes Reagent (1 drop per mL) for nuclear counterstaining.
+
+8. Wash cells once with PBS or fresh culture medium.
+
+9. Image cells immediately using a fluorescence microscope with appropriate filter set (FITC/GFP filter for green fluorescence).
+
+For microplate reader detection
+
+1. Seed cells in 96-well microplate.
+
+2. Treat cells with apoptosis-inducing agent or control.
+
+3. Prepare CellEvent Caspase-3/7 Green Detection Reagent as described above.
+
+4. Add reagent to cells and incubate as described above.
+
+5. Read fluorescence using a microplate reader:
+   - Excitation: ~502 nm
+   - Emission: ~530 nm
+
+6. Calculate caspase activity relative to controls.
+
+For flow cytometry
+
+1. Prepare cell suspension.
+
+2. Treat cells with apoptosis-inducing agent.
+
+3. Prepare CellEvent Caspase-3/7 Green Detection Reagent working solution.
+
+4. Add reagent to cells and incubate for 30-60 minutes at 37°C.
+
+5. Wash cells with PBS.
+
+6. Analyze by flow cytometry using FITC/GFP channel.
+
+PROTOCOL TIPS
+================================================================================
+
+• Include positive control (cells treated with known apoptosis inducer) and negative control (untreated cells)
+• Optimize incubation time based on your cell type and treatment
+• Protect from light during incubation to prevent photobleaching
+• For time-course studies, image at multiple time points
+• Caspase activity typically peaks 2-6 hours after apoptosis induction
+• Some caspase substrates are cell-permeant and work in live cells; others require cell fixation
+• For fixed cells, follow manufacturer's instructions for fixation and permeabilization steps

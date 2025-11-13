@@ -1,0 +1,135 @@
+PROTOCOL: BestProtocols: Cell Preparation for Flow Cytometry Protocols
+SOURCE: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/protocols/cell-preparation-flow-cytometry.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Note: This protocol is intended for use with the specific products mentioned within it. Substituting different products is not recommended.
+
+Introduction
+
+Single-cell suspensions are required for all flow cytometry assays. Thus, peripheral blood cells or cells that grow in suspension are well suited for analysis by flow cytometry. Adherent cell lines, solid tissue samples, and tumors require processing into single-cell suspensions before they can be analyzed. Numerous protocols are available and may involve enzymatic digestion or mechanical dissociation of the tissue. Care should be used when chelation or enzymatic digestion are used, as these may result in the destruction of the antibody epitope. In all situations, removing cell clumps, dead cells, and debris is essential to eliminate false positives and obtain results of the highest quality.
+
+PROTOCOL A: TISSUE CULTURE CELLS
+================================================================================
+
+Materials
+
+• Invitrogen Accutase Enzyme Cell Detachment Medium (cat. no. 00-4555) or trypsin or ethylenediaminetetraacetic acid (EDTA)
+• Flow Cytometry Staining Buffer (cat. no. 00-4222)
+• 15- or 50-mL conical centrifuge tubes
+
+Experimental procedure
+
+1. For cells that grow in suspension, decant the cells into a conical centrifuge tube and perform a cell count and viability analysis. Proceed to Step 4.
+
+2. For adherent cells lines, detach cells from the plate using one of the following options:
+   - Cell scraper
+   - Trypsin
+   - EDTA (10 mM in phosphate-buffered saline)
+   - Accutase Enzyme Cell Detachment Medium
+
+3. Place cells into a conical centrifuge tube and use a Invitrogen Pipetman to dissociate any clumps, and then perform cell count and viability analysis.
+
+4. Centrifuge cells and resuspend in an appropriate volume of Flow Cytometry Staining Buffer so that the final cell concentration is 1 x 10⁷ cells/mL (other cell concentrations may be appropriate for different experiments).
+
+PROTOCOL B: LYMPHOID TISSUE
+================================================================================
+
+Mechanical disruption of lymphoid tissue is generally sufficient to release cells to a single cell suspension.
+
+Materials
+
+• 60 x 15 mm tissue culture dish
+• 3-mL syringe or frosted glass microscope slides
+• Cell strainer (nylon mesh)
+• Flow Cytometry Staining Buffer (cat. no. 00-4222) or other buffer of choice
+• 15- or 50-mL conical centrifuge tubes
+
+Experimental procedure
+
+Note: If cells are to be cultured, perform all steps using aseptic technique and buffers that do not contain azide.
+
+1. Harvest tissue (spleen; thymus; lymph nodes) into a tissue culture dish containing 10 mL of Flow Cytometry Staining Buffer or buffer of choice. Tease apart into a single-cell suspension by pressing with the plunger of a 3-mL syringe. Alternatively, mash tissue between the frosted ends of two microscope slides using 10 mL of Flow Cytometry Staining Buffer.
+
+2. Place a cell strainer on top of a 15- or 15-mL conical tube. Pass cells from the tissue culture dish through the cell strainer to eliminate clumps and debris.
+
+3. Centrifuge cell suspension at 300-400 x g for 4-5 minutes at 2-8°C. Discard the supernatant.
+
+4. Resuspend the cell pellet in an appropriate volume of Flow Cytometry Staining Buffer or buffer of choice and perform a cell count and viability analysis.
+
+5. Centrifuge cells as in Step 3 and resuspend in appropriate volume of Flow Cytometry Staining Buffer or buffer of choice so that the final cell concentration is 1 x 10⁷ cells/mL (other cell concentrations may be appropriate for different experiments).
+
+PROTOCOL C: NON-LYMPHOID TISSUE
+================================================================================
+
+Materials
+
+• Scissors or scalpel blade
+• Phosphate-buffered saline (PBS) or other suitable physiologic buffer
+• Enzymes for tissue digestion
+• 60 x 15 mm tissue culture dish
+• 3-mL syringe
+• Cell strainer (nylon mesh)
+• Flow Cytometry Staining Buffer (cat. no. 00-4222) or other buffer of choice
+• 15- or 50-mL conical centrifuge tubes
+
+Experimental procedure
+
+Note: If cells are to be cultured, perform all steps using aseptic technique and buffers that do not contain azide.
+
+1. Harvest tissue and mince into 2-4 mm pieces using scissors or scalpel blade.
+
+2. Add appropriate amount of enzyme(s) diluted in PBS and incubate at the optimal temperature for the appropriate amount of time according to enzyme manufacturer instructions.
+
+3. Disperse cells by gentle pipetting and filter through a cell strainer to eliminate clumps and debris. Collect cell suspension in a conical tube.
+
+4. Centrifuge cells at 300-400 x g for 4-5 minutes at 2-8°C. Discard the supernatant.
+
+5. Resuspend the cell pellet in PBS.
+
+6. Centrifuge cells as in Step 4.
+
+7. Repeat Steps 5 and 6.
+
+8. Resuspend the cell pellet in an appropriate volume of Flow Cytometry Staining Buffer or buffer of choice and perform a cell count and viability analysis.
+
+9. Centrifuge cells as in Step 4 and resuspend in appropriate volume of Flow Cytometry Staining Buffer or buffer of choice so that the final cell concentration is 1 x 10⁷ cells/mL (other cell concentrations may be appropriate for different experiments).
+
+PROTOCOL D: ISOLATION OF PBMC FROM WHOLE BLOOD
+================================================================================
+
+Materials
+
+• PBS
+• Invitrogen Ficoll Paque or other density separation medium
+• Flow Cytometry Staining Buffer (cat. no. 00-4222) or other buffer of choice
+• 15- or 50-mL conical centrifuge tubes
+
+Experimental procedure
+
+Note: If cells are to be cultured, perform all steps using aseptic technique and buffers that do not contain azide.
+
+1. Dilute blood sample at least 1:1 with PBS in a conical tube.
+
+2. Underlay the diluted sample with a volume of Ficoll that is equal to the original sample volume.
+
+3. Centrifuge at 400 x g for 20 minutes at room temperature with the brake OFF.
+
+4. Harvest PBMC located at the interface of the PBS and Ficoll layers into a fresh tube.
+
+5. Fill the tube with PBS to wash the cells.
+
+6. Centrifuge the cells at 300-400 x g for 4-5 minutes at 2-8°C. Discard supernatant.
+
+7. Resuspend the cell pellet in an appropriate volume of Flow Cytometry Staining Buffer or buffer of choice and perform a cell count and viability analysis.
+
+8. Centrifuge cells as in Step 4 and resuspend in appropriate volume of Flow Cytometry Staining Buffer or buffer of choice so that the final cell concentration is 1 x 10⁷ cells/mL (other cell concentrations may be appropriate for different experiments).
+
+USEFUL RESOURCES
+================================================================================
+
+Worthington tissue dissociation guide (https://www.worthington-biochem.com/tools-resources/tissue-dissociation-guide)
+
+The Worthington Tissue Dissociation Guide provides a useful summary and guide of the various methods that can be used for tissue dissociation.

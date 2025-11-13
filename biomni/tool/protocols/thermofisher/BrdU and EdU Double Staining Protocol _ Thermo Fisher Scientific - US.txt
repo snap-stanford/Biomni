@@ -1,0 +1,90 @@
+PROTOCOL: BrdU and EdU Double Staining Protocol
+SOURCE: Thermo Fisher Scientific - US
+URL: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/flow-cytometry-protocol/cell-proliferation/dual-pulse-labeling-of-cell-proliferation-using-edu-and-brdu-incorporation.html
+================================================================================
+
+Introduction
+The measurement of cell proliferation is fundamental to the assessment of cell health, genotoxicity, and drug efficacy. Proliferation is traditionally assessed by incubating cells with a single "pulse" of a nucleoside analog that is incorporated into DNA and detected using radioactivity, antibodies, or click chemistry. Some applications, such as drug efficacy testing, benefit from the incorporation of two different analogs at different time points (dual pulse labeling), which can further define cell cycle kinetics. With the availability of new highly specific anti-BrdU antibodies, the BrdU labeling technique can be combined with click chemistry detection for a simplified method of dual pulse labeling.
+Traditionally, the detection of cell proliferation has employed the incorporation of the thymidine analog BrdU (5-bromo-2´-deoxyuridine) during DNA synthesis, followed by detection with an anti-BrdU antibody [1–4]. This method is rapidly being replaced by the click chemistry–based Click-iT EdU assay [5,6], because unlike BrdU assays, Click-iT EdU assays are not antibody-based and therefore do not require DNA denaturation for detection of the incorporated nucleoside. Click-iT assays use a modified nucleoside, EdU (5-ethynyl-2´-deoxyuridine), that is incorporated during DNA synthesis and detected using a click reaction—a copper(I)-catalyzed reaction between an azide and an alkyne.
+
+Materials
+- Jurkat cells in complete RPMI media/10%FBS
+- BrdU (5-bromodeoxyuridin) (B23151) (10mM in DMSO)
+- EdU (5-Ethynyl-2'-deoxyuridine) (10mM in DMSO)
+- PBS pH7.2 (GIBCO(R))
+- 70% Ethanol, ice cold
+- 4M HCl
+- Phosphate/citric acid buffer, pH 7.4 (182 ml of 0.2M Na2HPO4+18ml 0.1M citric acid)
+- Antibody Diluting buffer (PBS + 0.1% Triton-X100 + 1% BSA)—prepare fresh
+- Purified anti-BrdU antibody(clone MoBU-1) (B35141) 0.1 mg/ml; use 2.5ul
+- anti-BrdU- (clone Br3) pure MD5300 lot 0903 0.4mg/ml titer use: 2.5uL
+- Goat anti-mouse IgG Alexa Fluor® 488 secondary antibody 2mg/ml, dilute 1:20 and use 2.5ul/test (0.25ug/test) (A11001)
+- Tris Buffered Saline
+- CuSo4 100mM
+- 100mM ascorbate (Freshly prepared)
+- AF647-azide 20uM DMSO A10277
+- FxCycle™ Violet 1mg/ml DI F10347 use 0.5µl/0.5ml
+
+Procedure
+1. Use Jurkat cells in complete RPMI/10%FBS media, separate into 5 flasks:
+   - Flask 1: control
+   - Flask 2: 10uM BrdU 1 hour
+   - Flask 3: 20uM EdU 1 hour
+   - Flask 4: 10µM BrdU + 20µM EdU together 1 hour
+   - Flask 5: 20µM EdU one hour then 10µM BrdU one hour
+   Incubate 37°C/5% CO2.
+
+2. After incubation, centrifuge cells, pellet and remove supernatant.
+
+3. FIX cells: Add 10ml ice cold 70% Ethanol to a 15ml tube containing the cell pellet, adding dropwise at first while vortexing, mix well.
+
+4. Store at -20°C until use, 4 hours to several months.
+
+5. Centrifuge cells, pellet & discard supernatant; vortex pellet.
+
+6. Resuspend pellet in 2.0ml 4M HCl for 20 min at room temperature.
+
+7. Add 10ml phosphate/citric acid buffer, centrifuge and decant supernatant. Filter out large clumps.
+
+8. Resuspend in PBS/0.1%Triton/1%BSA (antibody stain solution) wash & pellet.
+
+9. Repeat wash.
+
+10. Resuspend in PBS/0.1%Triton/1%BSA (antibody stain solution), adjust concentration to 1x10⁷/ml.
+
+11. Add 100µl cell suspension to designated tubes.
+
+12. Prepare click reaction and add 0.5ml to designated tubes.
+
+13. Incubate 30 minutes at room temperature protected from light.
+
+14. Wash x1 PBS/0.1%Triton/1%BSA.
+
+15. Add anti-BrdU purified antibody to designated tubes.
+
+16. Incubate for 30 minutes at room temperature protected from light.
+
+17. Wash with 3ml PBS/0.1%Triton/1%BSA (antibody stain solution) spin & pellet.
+
+18. Add Goat anti-mouse IgG Alexa Fluor 488 secondary antibody, incubate for 30 minutes at room temperature, followed by wash as in step 15.
+
+19. Resuspend pellet in 0.5ml PBS/0.1%Triton/1%BSA (antibody stain solution).
+
+20. Add 0.5µL FxCycle Violet Stain.
+
+21. Incubate for 15-30 minute at room temperature protected from light.
+
+22. Run on LSRII.
+
+23. Analyze Alexa Fluor 488 using blue laser excitation and 525/50 emission filter, Alexa Fluor 647 using red laser excitation and 660/20 emission filter, and FxCycleViolet using violet laser excitation and 450/50 emission filter.
+
+24. Gate on main population cells and collect 10,000 gated events for single color data. For triple color samples, make a singlet gate on WvA and collect 20,000 singlet events.
+
+References
+- Gratzner HG (1982) Science 218:474–475.
+- Dolbeare F, Selden JR (1994) Methods Cell Biol 41:297–316.
+- Li X, Darzynkiewicz Z (1995) Cell Prolif 28:571–579.
+- Conboy MJ, Karasov AO, Rando TA (2007) PLoS Biology 5:1120–1126.
+- Salic A, Mitchison TJ (2008) Proc Natl Acad Sci U S A 105:2415–2420.
+- Buck SB, Bradford J, Gee KR et al. (2008) Biotechniques 44:927–929.
+- Current Protocols in Cytometry Vol. 1, JP Robinson, Ed., John Wiley & Sons Inc. (2007)

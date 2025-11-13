@@ -1,0 +1,154 @@
+PROTOCOL: Bacterial Transformation
+SOURCE: https://www.addgene.org/protocols/bacterial-transformation/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+Transformation is the process by which foreign DNA is introduced into a cell.
+Transformation of bacteria with plasmids is important not only for studies in
+bacteria but also because bacteria are used as the means for both storing and
+replicating plasmids. Because of this, nearly all plasmids (even those designed
+for mammalian cell expression) carry both a bacterial origin of replication and
+an antibiotic resistance gene for use as a selectable marker in bacteria.
+
+Scientists have made many genetic modifications to create bacterial strains that
+can be more easily transformed and that will help to maintain the plasmid without
+rearrangement of the plasmid DNA. Additionally, specific treatments have been
+discovered that increase the transformation efficiency and make bacteria more
+susceptible to either chemical or electrical based transformation, generating what
+are commonly referred to as 'competent cells.'
+
+Many companies sell competent cells, which come frozen and are prepared for optimal
+transformation efficiencies upon thawing.
+
+For the highest transformation efficiency, we recommend that you follow the
+instructions that came with your competent cells.
+
+💡 PRO TIPS:
+
+• Commercial competent cells range significantly in their transformation
+  efficiency. The lowest efficiency cells (usually the least expensive) are fine
+  for transforming plasmid DNA for the purposes of storage and amplification.
+  Higher efficiency cells are more important if you will be transforming with very
+  small amounts of DNA or if you're multiple plasmids at once.
+
+• To save money, many labs also make their own competent cells. This is a
+  relatively simple procedure and is useful for performing low efficiency
+  transformations.
+
+Last Update: Nov. 13, 2017
+
+
+EQUIPMENT
+================================================================================
+
+• Shaking incubator at 37 °C
+• Stationary incubator at 37 °C
+• Water bath at 42 °C
+• Ice bucket filled with ice
+• Microcentrifuge tubes
+• Sterile spreading device
+
+
+REAGENTS
+================================================================================
+
+• LB agar plate (with appropriate antibiotic)
+• LB or SOC media
+• Competent cells
+• DNA you'd like to transform
+
+
+PROCEDURE
+================================================================================
+
+1. Take competent cells out of -80°C and thaw on ice (approximately 20-30 mins).
+
+2. Remove agar plates (containing the appropriate antibiotic) from storage at 4°C
+   and let warm up to room temperature and then (optional) incubate in 37°C
+   incubator.
+
+3. Mix 1 - 5 μl of DNA (usually 10 pg - 100 ng) into 20-50 μL of competent cells
+   in a microcentrifuge or falcon tube. GENTLY mix by flicking the bottom of the
+   tube with your finger a few times.
+
+   💡 PRO TIP: Transformation efficiencies will be approximately 10-fold lower
+   for ligation of inserts to vectors than for an intact control plasmid.
+
+4. Incubate the competent cell/DNA mixture on ice for 20-30 mins.
+
+5. Heat shock each transformation tube by placing the bottom 1/2 to 2/3 of the
+   tube into a 42°C water bath for 30-60 secs (45 secs is usually ideal, but this
+   varies depending on the competent cells you are using).
+
+6. Put the tubes back on ice for 2 min.
+
+7. Add 250-1,000 μl LB or SOC media (without antibiotic) to the bacteria and grow
+   in 37°C shaking incubator for 45 min.
+
+   💡 PRO TIP: This outgrowth step allows the bacteria time to generate the
+   antibiotic resistance proteins encoded in the plasmid backbone so that they will
+   be able to grow once plated on the antibiotic containing agar plate. This step
+   is not critical for Ampicillin resistance but is much more important for other
+   antibiotic resistances.
+
+8. Plate some or all of the transformation onto a 10 cm LB agar plate containing
+   the appropriate antibiotic.
+
+   💡 PRO TIPS:
+   • We recommend that you plate 50 μL on one plate and the rest on a second plate.
+     This gives the best chance of getting single colonies, while allowing you to
+     recover all transformants.
+   • If the culture volume is too big, gently collect the cells by centrifugation
+     and resuspend in a smaller volume of LB so that there isn't too much liquid
+     media on the agar plates. If the agar plate doesn't dry adequately before the
+     cells begin dividing, the bacteria diffuse through the liquid and won't grow
+     in colonies.
+
+9. Incubate plates at 37°C overnight.
+
+
+TIPS AND FAQ
+================================================================================
+
+How can I save time when carrying out transformations?
+
+If you are not concerned with transformation efficiency (such as when you have a
+tube of plasmid DNA and just need to transform bacteria so that you can grow up
+more of the plasmid) you can save a lot of time by shortening or skipping many
+steps and will still get enough colonies for your next step. Remember that each of
+these shortcuts will reduce the efficiency of the transformation, so when higher
+efficiency is needed follow the complete protocol.
+
+• Thaw the competent cells in your hand instead of on ice
+• Reduce step 4 from 20 - 30 mins to 2 mins on ice before heat-shock
+• Shorten or skip the outgrowth (for Ampicillin resistance it is ok to completely
+  skip the outgrowth, for the other antibiotics it is a good idea to outgrow for at
+  least 20-30 mins)
+
+I get very few if any transformants when transforming large plasmids (>10 kb) or
+BACs, what can I do?
+
+Chemically competent cells are fast and easy to use, but are less efficient at
+taking up larger plasmids. If you need to transform large plasmids, it is a good
+idea to use electro-competent cells. Instead of relying on the heat-shock to cause
+the cells to take up the DNA, an electro-magnetic field is applied to the
+cell/DNA mixture to induce membrane permeability. To do this you will need to
+have access to an electroporator and the appropriate cuvettes. Follow the
+manufacturer's instructions for each.
+
+I got no transformants. What went wrong?
+
+Check that you are plating on an LB Agar plate containing the correct antibiotic.
+The resistance gene on your plasmid must match the antibiotic on the plate. You
+should also add a positive control (many companies include a positive control
+plasmid with their competent cells) to ensure that your transformation procedure
+is working.
+
+TIP: Sometimes less is more.
+
+Although it may be counter-intuitive, you will often get higher transformation
+efficiencies with less DNA, especially when using highly competent cells. If you
+used 100-1000 ng of total DNA in a ligation you will often get more colonies if
+you use 1 μl of a 1:5 or 1:10 dilution rather than 1 μl directly.

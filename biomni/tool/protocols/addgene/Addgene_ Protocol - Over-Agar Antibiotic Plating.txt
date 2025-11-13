@@ -1,0 +1,113 @@
+PROTOCOL: Over-Agar Antibiotic Plating
+SOURCE: https://www.addgene.org/protocols/over-agar-antibiotic-plating/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+This protocol describes methodology for plating antibiotic over-agar for the
+selection of transformed E. coli. Over-agar spreading of antibiotic makes it
+easy for an investigator to conveniently plate and select transformed cells
+containing plasmids differing in their resistance genes, as one does not need to
+prepare separate batches of antibiotic-containing agar. This protocol will focus
+specifically on selection with carbenicillin; however it can be adapted for any
+antibiotic through the use of a selection curve to determine optimal antibiotic
+concentration.
+
+Last Update: Oct. 27, 2017
+
+
+EQUIPMENT
+================================================================================
+
+• Pipette tips for both pipetting and spreading
+• Bunsen burner (or other small flame source)
+• Incubator
+
+
+REAGENTS
+================================================================================
+
+• 6 cm diameter LB/agar plates without antibiotic
+• High concentration (100 mg/mL, 1000x) carbenicillin stock solution in sterile
+  water (or other antibiotic)
+• E. coli transformed with a plasmid containing the carbenicillin (amp) resistance
+  gene (or other antibiotic resistance)
+
+
+PROCEDURE
+================================================================================
+
+Day 1
+
+1. Prepare carbenicillin to a concentration of 1 mg/mL – 4 mg/mL in LB medium.
+
+   The concentration of antibiotic required for effective over-agar selection has
+   been empirically determined. See selection curve below.
+
+   Carbenicillin is used here in place of ampicillin because carbenicillin is more
+   stable, so it is potentially more effective at selecting only bacteria containing
+   the plasmids of interest (for example, fewer satellite colonies will grow). It
+   is, however, more expensive.
+
+2. With a 6 cm diameter petri plate containing solidified LB-agar, pipette 150 µL
+   of carbenicillin on top of the agar and gently spread over the surface until the
+   liquid is mostly absorbed (there is a very small visible volume of pooled liquid
+   remaining on the surface).
+
+   We use the micropipette tip itself to do the spreading; the tip is gently bent
+   to create an "L" shape, and then used like a cell spreader. Several other
+   devices may be used for this purpose, provided that they fit your petri plate.
+
+3. Incubate the plate at room temperature for at least 30 minutes with the lid on
+   to give the antibiotic time to more fully absorb.
+
+4. During the incubation, transform DH5α E. coli cells by heatshock with the
+   plasmid of interest. See our transformation page for a detailed heatshock
+   transformation protocol.
+
+5. Plate 50 µL of transformed E. coli/rescue media suspension onto the agar and
+   gently spread over the surface until the liquid is mostly absorbed.
+
+   The spreading of cells can be done in the same way as the antibiotic, using
+   either a bent micropipette tip or other cell spreading device that fits the
+   plate.
+
+6. Incubate plates at 37 ℃ for 18 hours.
+
+Day 2
+
+7. Observe plates for colony formation. Shown below are the results from an
+   experiment optimizing the concentration of carbenicillin, plated over-agar for
+   selection of transformed E. coli.
+
+
+SAMPLE DATA
+================================================================================
+
+Selection of E.coli on LB-agar using different concentrations of carbenicillin
+plated over-agar.
+
+Control Plate with No Carbenicillin:
+Plate shows a lawn of E. coli and no selection.
+
+150 µL of 0.1 mg/mL Carbenicillin plated over-agar:
+Plate shows a lawn of E. coli and no apparent selection.
+
+150 µL of 1 mg/mL Carbenicillin plated over-agar:
+Plate shows several individual colonies and effective selection.
+
+150 µL of 2 mg/mL Carbenicillin plated over-agar:
+Plate shows less individual colonies than the 1 mg/mL plate and effective selection.
+
+150 µL of 4 mg/mL Carbenicillin plated over-agar:
+Plate shows several individual colonies with smaller size than the 1 mg/mL and 2
+mg/mL plates and effective selection.
+
+Selection Curve of Transformed E. coli after Over-Agar Plating of Carbenicillin.
+
+The above graph displays the stock concentration of Carbenicillin stock used (150
+µL per plate). Please note we have found that there is generally a broad range of
+antibiotic concentrations that will work for this assay, and the above result
+represents a single experiment. For publishable data, the experiment would need to
+be repeated to account for variability.

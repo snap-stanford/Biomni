@@ -32,4 +32,37 @@ description = [
             }
         ],
     },
+    {
+        "description": "List available protocol files in the local biomni/tool/protocols/ directory. Includes protocols from Addgene and Thermo Fisher Scientific.",
+        "name": "list_local_protocols",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Filter by source directory (e.g., 'addgene' or 'thermofisher'). If None, lists all protocols.",
+                "name": "source",
+                "type": "str",
+            }
+        ],
+        "required_parameters": [],
+    },
+    {
+        "description": "Read the contents of a local protocol file from biomni/tool/protocols/. Use list_local_protocols() first to find available protocol filenames.",
+        "name": "read_local_protocol",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Source directory (e.g., 'addgene' or 'thermofisher'). If None, searches all sources.",
+                "name": "source",
+                "type": "str",
+            }
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Name of the protocol file (e.g., 'Addgene_ Protocol - How to Run an Agarose Gel.txt')",
+                "name": "filename",
+                "type": "str",
+            }
+        ],
+    },
 ]
