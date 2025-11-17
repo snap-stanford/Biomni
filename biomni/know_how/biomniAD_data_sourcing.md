@@ -74,7 +74,7 @@ def get_download_links(entry: Dict) -> Dict[str, List[str]]:
 		"dataset_url": [u for u in [entry.get("dataset_url"), entry.get("open_access_portal_url"), entry.get("manifest_url")] if u],
 		"file_uris": []
 	}
-	for f in entry.get("files", []) or []:
+	for f in entry.get("files", []):
 		uri = f.get("uri")
 		if uri:
 			links["file_uris"].append(uri)
