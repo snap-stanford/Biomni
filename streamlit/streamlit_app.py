@@ -42,7 +42,11 @@ from omics_horizon_app.agent_runtime import (
 )
 from omics_horizon_app.ui import render_control_panel
 from omics_horizon_app.ui.data_panels import render_primary_panels
-from omics_horizon_app.resources import load_logo_base64, LOGO_COLOR_PATH, LOGO_MONO_PATH
+from omics_horizon_app.resources import (
+    load_logo_base64,
+    LOGO_COLOR_PATH,
+    LOGO_MONO_PATH,
+)
 from omics_horizon_app.agent_service import get_or_create_agent
 from conversational_analysis import (
     answer_qa_question,
@@ -78,6 +82,7 @@ MIN_COLUMN_PATTERN_LENGTH = 3
 MAX_CONTENT_LENGTH_FOR_LLM = 15000
 MAX_DISPLAY_TEXT_LENGTH = 8000
 MIN_MEANINGFUL_CONTENT_LENGTH = 50
+
 
 @st.cache_data
 def _get_logo_assets() -> tuple[str, str]:
@@ -148,7 +153,9 @@ def save_uploaded_file(uploaded_file):
     file_path = os.path.join(st.session_state.work_dir, uploaded_file.name)
     with open(file_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
-    log.info("Uploaded file saved: %s (%d bytes)", file_path, len(uploaded_file.getbuffer()))
+    log.info(
+        "Uploaded file saved: %s (%d bytes)", file_path, len(uploaded_file.getbuffer())
+    )
     return uploaded_file.name
 
 
@@ -1045,7 +1052,9 @@ def run_omicshorizon_app(from_lims=False, workspace_path=None):
                         st.caption("• Can you summarize the key findings so far?")
                         st.caption("• Why was this statistical test chosen?")
                         st.caption("• How should I interpret the volcano plot?")
-                        st.caption("• What threshold should I compare this p-value against?")
+                        st.caption(
+                            "• What threshold should I compare this p-value against?"
+                        )
         else:
             st.info(t("qa_no_analysis"))
 
@@ -1124,8 +1133,6 @@ def run_omicshorizon_app(from_lims=False, workspace_path=None):
                 st.rerun()
 
 
-<<<<<<< HEAD
-=======
 # =============================================================================
 # INTERACTIVE MODE: STEP-BY-STEP EXECUTION
 # =============================================================================
@@ -4091,7 +4098,6 @@ with st.sidebar:
             st.session_state.language = "ko"
             st.rerun()
 
->>>>>>> main
 
 # =============================================================================
 # MAIN EXECUTION
