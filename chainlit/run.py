@@ -280,6 +280,7 @@ async def start_chat():
     print("current dir", os.getcwd())
     logger.info(f"Chat session started for thread: {dir_name}")
     cl.user_session.set("message_history", [])
+    cl.user_session.set("uploaded_files", [])
 
     files = None
 
@@ -330,6 +331,20 @@ async def resume_chat():
     os.chdir(log_dir)
     print("current dir", os.getcwd())
     logger.info(f"Chat session resumed for thread: {dir_name}")
+    
+    # Restore uploaded files from directory
+    uploaded_files = []
+    if os.path.exists(log_dir):
+        # Scan directory for user-uploaded files (exclude system files)
+        exclude_files = {'chainlit_stream.log', 'conversation_history.txt'}
+        for filename in os.listdir(log_dir):
+            file_path = os.path.join(log_dir, filename)
+            if os.path.isfile(file_path) and filename not in exclude_files:
+                uploaded_files.append(filename)
+    
+    cl.user_session.set("uploaded_files", uploaded_files)
+    if uploaded_files:
+        logger.info(f"Restored {len(uploaded_files)} uploaded files: {', '.join(uploaded_files)}")
 
 
 @cl.on_message
@@ -369,9 +384,16 @@ async def _process_user_message(user_message: cl.Message) -> dict:
         ".tif",
     }
 
+    # Get current uploaded files list from session
+    uploaded_files = cl.user_session.get("uploaded_files", [])
+
     # Process uploaded files
     for file in user_message.elements:
         os.system(f"cp {file.path} '{file.name}'")
+        
+        # Add to uploaded files list if not already present
+        if file.name not in uploaded_files:
+            uploaded_files.append(file.name)
 
         # Check if it's an image file
         file_ext = os.path.splitext(file.name)[1].lower()
@@ -417,7 +439,14 @@ async def _process_user_message(user_message: cl.Message) -> dict:
         else:
             user_prompt += f"\n - user uploaded data file: {file.name}\n"
 
-    user_prompt += "\n" + cl.user_session.get("user_uploaded_system_file", "")
+    # Update uploaded files in session
+    cl.user_session.set("uploaded_files", uploaded_files)
+
+    # Always append all uploaded files information to the prompt
+    # This ensures the AI remembers all files throughout the conversation
+    if uploaded_files:
+        files_info = "\n\n[System: Available uploaded files in working directory: " + ", ".join(uploaded_files) + "]"
+        user_prompt += files_info
 
     return {"text": user_prompt, "images": images}
 
