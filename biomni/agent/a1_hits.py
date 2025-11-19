@@ -374,7 +374,9 @@ Output:
 
         return self.log, message
 
-    def go_stream(self, prompt, additional_system_prompt=None):
+    def go_stream(
+        self, prompt, additional_system_prompt=None, skip_generate_system_prompt=False
+    ):
         """Execute the agent with the given prompt.
 
         Args:
@@ -383,7 +385,7 @@ Output:
         """
         self.critic_count = 0
         self.user_task = prompt
-        if self.use_tool_retriever:
+        if self.use_tool_retriever and not skip_generate_system_prompt:
             # Gather all available resources
             # 1. Tools from the registry
             all_tools = (
@@ -598,7 +600,9 @@ Output:
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
             t1 = time.time()
-
+            if "chunk_messages" not in state:
+                state["chunk_messages"] = []
+            state["chunk_messages"].append("")  # dummy message
             # Process messages to keep only the most recent observation's images
             # processed_messages = remove_old_images_from_messages(state["messages"])
             processed_messages = state["messages"]
@@ -609,9 +613,7 @@ Output:
             for chunk in self.llm.stream(messages):
                 chunk_msg = chunk.content
                 msg += chunk_msg
-                # if "chunk_messages" not in state:
-                #     state["chunk_messages"] = []
-                # state["chunk_messages"].append(chunk_msg)
+                state["chunk_messages"].append(chunk_msg)
                 # yield {"messages": [AIMessage(content=chunk_msg)]}
 
             # Parse the response
