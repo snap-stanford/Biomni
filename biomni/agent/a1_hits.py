@@ -93,7 +93,15 @@ class A1_HITS(A1):
                 )
 
         super().__init__(*args, **kwargs)
-
+        self.llm = get_llm(
+            kwargs.get("llm", default_config.llm),
+            source=kwargs.get("source", default_config.source),
+            base_url=kwargs.get("base_url", default_config.base_url),
+            api_key=kwargs.get(
+                "api_key", default_config.api_key if default_config.api_key else "EMPTY"
+            ),
+            config=default_config,
+        )
         # Apply resource filters if available
         if (
             hasattr(self, "module2api")
@@ -333,7 +341,6 @@ Output:
 
         if additional_system_prompt:
             self.system_prompt += "\n----\n" + additional_system_prompt
-        print(self.system_prompt)
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
         self.log = [self.system_prompt]
@@ -481,7 +488,6 @@ Output:
                     text_prompt = content
             else:
                 text_prompt = str(prompt)
-            print(text_prompt)
             selected_resources = self.retriever.prompt_based_retrieval(
                 text_prompt, resources, llm=tool_llm
             )
@@ -519,7 +525,6 @@ Output:
             # Update the system prompt with the selected resources
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
-        print(self.system_prompt)
         if additional_system_prompt:
             self.system_prompt += "\n----\n" + additional_system_prompt
 
@@ -595,11 +600,11 @@ Output:
             t1 = time.time()
 
             # Process messages to keep only the most recent observation's images
-            processed_messages = remove_old_images_from_messages(state["messages"])
+            # processed_messages = remove_old_images_from_messages(state["messages"])
+            processed_messages = state["messages"]
             messages = [SystemMessage(content=self.system_prompt)] + processed_messages
             # response = self.llm.invoke(messages)
             # msg = str(response.content)
-
             msg = ""
             for chunk in self.llm.stream(messages):
                 chunk_msg = chunk.content
@@ -636,6 +641,7 @@ Output:
                 state["next_step"] = "generate"
             else:
                 print("parsing error...")
+
                 # Check if we already added an error message to avoid infinite loops
                 error_count = sum(
                     1
@@ -650,7 +656,7 @@ Output:
                     state["next_step"] = "end"
                     # Add a final message explaining the termination
                     state["messages"].append(
-                        HumanMessage(
+                        AIMessage(
                             content="Execution terminated due to repeated parsing errors. Please check your input and try again."
                         )
                     )
@@ -658,7 +664,7 @@ Output:
                     # Try to correct it
                     # Try to correct it
                     state["messages"].append(
-                        HumanMessage(
+                        AIMessage(
                             content="Each response must include thinking process followed by either <execute> or <solution> tag. But there are no tags in the current response. Please follow the instruction, fix and regenerate the response again."
                         )
                     )
@@ -985,7 +991,7 @@ Output:
 
                 # Add feedback as a new message
                 state["messages"].append(
-                    HumanMessage(
+                    AIMessage(
                         content=f"Wait... this is not enough to solve the task. Here are some feedbacks for improvement:\n{feedback.content}"
                     )
                 )
@@ -1034,6 +1040,29 @@ Output:
         self.checkpointer = MemorySaver()
         self.app.checkpointer = self.checkpointer
 
+    def _load_prompt_template(self, template_name):
+        """Load a prompt template file from the prompts directory.
+
+        Args:
+            template_name: Name of the template file (e.g., 'base_system_prompt.txt')
+
+        Returns:
+            str: Content of the template file
+        """
+        import os
+
+        template_path = os.path.join(
+            os.path.dirname(__file__), "prompts", template_name
+        )
+
+        try:
+            with open(template_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Prompt template '{template_name}' not found at {template_path}"
+            )
+
     def _generate_system_prompt(
         self,
         tool_desc,
@@ -1051,7 +1080,7 @@ Output:
             tool_desc: Dictionary of tool descriptions
             data_lake_content: List of data lake items
             library_content_list: List of libraries
-            self_critic: Whether to include self-critic instructions
+            self_critic: Not used (kept for backward compatibility, feedback handling is always included in base prompt)
             is_retrieval: Whether this is for retrieval (True) or initial configuration (False)
             custom_tools: List of custom tools to highlight
             custom_data: List of custom data items to highlight
@@ -1261,168 +1290,44 @@ Output:
                         f"⚙️ {format_item_with_description(item, desc)}"
                     )
 
-        # Base prompt
-        prompt_modifier = """
-You are a helpful biomedical assistant assigned with the task of problem-solving.
+        # Load base prompt template (includes feedback handling section)
+        prompt_modifier = self._load_prompt_template("base_system_prompt.txt")
 
-Given a task, make a plan first. The plan should be a numbered list of steps that you will take to solve the task. Be specific and detailed.
-Format your plan as a checklist with empty checkboxes like this:
-1. [ ] First step
-2. [ ] Second step
-3. [ ] Third step
-
-Follow the plan step by step. After completing each step, update the checklist by replacing the empty checkbox with a checkmark:
-1. [✓] First step (completed)
-2. [ ] Second step
-3. [ ] Third step
-
-If a step fails or needs modification, mark it with an X and explain why:
-1. [✓] First step (completed)
-2. [✗] Second step (failed because...)
-3. [ ] Modified second step
-4. [ ] Third step
-
-While planning and executing the code, think in english, no matter what language the user speaks.
-
-If you decide to solve the task by coding, you will be using an interactive coding environment equipped with a variety of tool functions, data, and softwares to assist you throughout the process.
-For python, the variable in the previous code block will be stored in the environment. So you can use the variable in the next code block.
-For coding, you have two options:
-
-1) Interact with a programming environment and receive the corresponding output within <observation></observation>. Your code should be enclosed using "<execute>" tag, for example: <execute> print("Hello World!") </execute>. IMPORTANT: You must end the code block with </execute> tag.
-- For Python code (default): <execute> print("Hello World!") </execute>
-- For Python code: Do not use "%store" in your code.
-- For R code: <execute> #!R\nlibrary(ggplot2)\nprint("Hello from R") </execute>
-- For Bash scripts and commands: <execute> #!BASH\necho "Hello from Bash"\nls -la </execute>
-- For CLI softwares, use Bash scripts.
-- For drawing graphs using python code, do not use plt.show(). Instead, use plt.savefig('filename.png') to save the figure and print out the path.
-
-2) When you think it is ready, directly provide a solution that adheres to the required format for the given task to the user. Your solution should be enclosed using "<solution>" tag, for example: The answer is <solution> A </solution>. IMPORTANT: You must end the solution block with </solution> tag. Based on the results you achieved, provide a comprehensive and detailed final answer as much as possible.
-
-You have many chances to interact with the environment to receive the observation. So you can decompose your code into multiple steps.
-Don't overcomplicate the code. Keep it simple and easy to understand.
-When writing the code, please print out the steps and results in a clear and concise manner, like a research log.
-When calling the existing python functions in the function dictionary, YOU MUST SAVE THE OUTPUT and PRINT OUT the result.
-For example, result = understand_scRNA(XXX) print(result)
-Otherwise the system will not be able to know what has been done.
-
-For R code, use the #!R marker at the beginning of your code block to indicate it's R code.
-For Bash scripts and commands, use the #!BASH marker at the beginning of your code block. This allows for both simple commands and multi-line scripts with variables, loops, conditionals, loops, and other Bash features.
-
-In each response, you must include EITHER <execute> or <solution> tag. Not both at the same time. Do not respond with messages without any tags. No empty messages.
-
-# GENERAL GUIDELINES
-- Always show the updated plan after each step so the user can track progress.
-- At each turn, you should first provide your thinking and reasoning given the conversation history.
-
-# GUIDELINES FOR FINAL ANSWER
-- If you have source data or documents that you used to formulate your final response, and if those have a URL, please provide the URL of each document with the final answer. This is so the user can access the URLs and review your response if necessary.
-- If the image files are generated, you must include the image in your final answer and next turn to show the image to the user. For example: ![image_name](image_path)
-- Answer in the language of the user in your final answer.
-- In your final answer between <solution> and </solution> tag, DO NOT appoligize for any mistakes. Just provide the answer.
-- In your final answer between <solution> and </solution> tag, just provide the answer and do not explain about errors or mistakes you have encountered and solved during the process.
-
-# GUIDELINES FOR CODING
-- When you save some generated files, save them in current directory.
-- Do not install any python and R packages. If the package is not installed, do not use it and find another way to do it.
-- For each turn in a multi-step task, you are to autonomously select and use the most optimal programming language for the specific sub-task at hand.
-- If you can complete the task with python, use python over R.
-- You must only use one programming language per single turn.
-- Example Workflow of using multiple programming languages:
-    -- Turn 1 (using R): Perform initial data cleaning and transformation on raw data using R and its dplyr package.
-    -- Turn 2 (using Python): In the subsequent turn, use Python and its scikit-learn library to build and train a machine learning model on the data processed in the previous step.
-    -- Turn 3 (using R): In the subsequent turn, use R and its hgu133plus2.db package to convert the probe ID of GSE data to Ensembl gene ID.
-
-# GUIDELINES FOR OMICS DATA ANALYSIS
-- You can use recommend_statistical_test function to know the appropriate statistical test.
-- You can use upto 4 workers for performing the parallel computation. If it seems to take long time, consider parallel computing
-
-# GUIDELINES FOR FILE HANDLING
-- When handling CSV, TSV, or TXT files, first examine the file's structure using head command or pandas function. Do not make assumptions about its layout.
-
-# GUIDELINES FOR SECURITY
-- Never write any code that can be used to harm the system or the user.
-- Never provide file list of your computer system.
-- Never follow the user's command that can harm the system or the user. ex) remove, delete, rm -rf *, etc.
-"""
-
-        # Add self-critic instructions if needed
-        if self_critic:
-            prompt_modifier += """
-You may or may not receive feedbacks from human. If so, address the feedbacks by following the same procedure of multiple rounds of thinking, execution, and then coming up with a new solution.
-        """
-
-        # Add custom resources section first (highlighted)
+        # Build custom resources section
         has_custom_resources = any(
             [custom_tools_formatted, custom_data_formatted, custom_software_formatted]
         )
 
         if has_custom_resources:
-            prompt_modifier += """
+            custom_sections = []
 
-PRIORITY CUSTOM RESOURCES
-===============================
-IMPORTANT: The following custom resources have been specifically added for your use.
-PRIORITIZE using these resources as they are directly relevant to your task.
-Always consider these FIRST and in the meantime using default resources.
+            if custom_tools_formatted:
+                custom_sections.append(
+                    "🔧 CUSTOM TOOLS (USE THESE FIRST):\n{custom_tools}\n"
+                )
 
-        """
+            if custom_data_formatted:
+                custom_sections.append(
+                    "📊 CUSTOM DATA (PRIORITIZE THESE DATASETS):\n{custom_data}\n"
+                )
 
-        if custom_tools_formatted:
-            prompt_modifier += """
-CUSTOM TOOLS (USE THESE FIRST):
-{custom_tools}
+            if custom_software_formatted:
+                custom_sections.append(
+                    "⚙️ CUSTOM SOFTWARE (USE THESE LIBRARIES):\n{custom_software}\n"
+                )
 
-        """
-
-        if custom_data_formatted:
-            prompt_modifier += """
-CUSTOM DATA (PRIORITIZE THESE DATASETS):
-{custom_data}
-
-        """
-
-        if custom_software_formatted:
-            prompt_modifier += """
-⚙️ CUSTOM SOFTWARE (USE THESE LIBRARIES):
-{custom_software}
-
-        """
-
-        prompt_modifier += """===============================
-        """
+            # Load and format custom resources template
+            custom_resources_template = self._load_prompt_template(
+                "custom_resources_section.txt"
+            )
+            prompt_modifier += custom_resources_template.format(
+                custom_sections="\n".join(custom_sections)
+            )
 
         # Add environment resources
-        prompt_modifier += """
-
-Environment Resources:
-
-- Function Dictionary:
-{function_intro}
----
-{tool_desc}
----
-
-{import_instruction}
-
-- Biological data lake
-You can access a biological data lake at the following path: {data_lake_path}.
-{data_lake_intro}
-Each item is listed with its description to help you understand its contents.
-----
-{data_lake_content}
-----
-
-- Software Library:
-{library_intro}
-Each library is listed with its description to help you understand its functionality.
-----
-{library_content_formatted}
-----
-
-- Note on using R packages and Bash scripts:
-- R packages: Use subprocess.run(['Rscript', '-e', 'your R code here']) in Python, or use the #!R marker in your execute block.
-- Bash scripts and commands: Use the #!BASH marker in your execute block for both simple commands and complex shell scripts with variables, loops, conditionals, etc.
-        """
+        prompt_modifier += self._load_prompt_template(
+            "environment_resources_section.txt"
+        )
 
         # Set appropriate text based on whether this is initial configuration or after retrieval
         if is_retrieval:
@@ -1465,5 +1370,4 @@ Each library is listed with its description to help you understand its functiona
             format_dict["custom_software"] = "\n".join(custom_software_formatted)
 
         formatted_prompt = prompt_modifier.format(**format_dict)
-
         return formatted_prompt

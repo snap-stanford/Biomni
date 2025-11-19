@@ -28,7 +28,7 @@ import logging
 import concurrent.futures
 
 # Configuration
-LLM_MODEL = "gemini-2.5-pro"
+LLM_MODEL = "gemini-3-pro-preview"
 # LLM_MODEL = "grok-4-fast"
 BIOMNI_DATA_PATH = "/workdir_efs/jhjeon/Biomni/biomni_data"
 BIOMNI_DATA_PATH = "./"
