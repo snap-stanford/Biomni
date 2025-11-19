@@ -1,0 +1,8 @@
+# PRIORITY CUSTOM RESOURCES
+
+IMPORTANT: The following custom resources have been specifically added for your use.
+PRIORITIZE using these resources as they are directly relevant to your task.
+Always consider these FIRST and in the meantime using default resources.
+
+{custom_sections}
+
