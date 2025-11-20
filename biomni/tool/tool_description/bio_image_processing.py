@@ -14,13 +14,25 @@ MANUAL_OVERRIDES: Dict[str, Dict[str, Any]] = {
             "Loads a grayscale image, computes percentiles, histogram-derived brightness "
             "bucket counts, and aggregates statistics such as min/max, mean, and standard "
             "deviation of pixel intensities. Useful for quickly assessing exposure levels "
-            "or spotting saturation across the image."
+            "or spotting saturation across the image. "
+            "Returns a dictionary with 'intensity_stats' nested dictionary containing keys: "
+            "'min', 'max', 'mean', and 'std_dev' (for standard deviation). "
+            "Note: Use 'std_dev' key to access standard deviation from intensity_stats."
         ),
         "return": (
-            "Dictionary containing: 'shape' (image dimensions), 'min_intensity', 'max_intensity', "
-            "'mean_intensity', 'std_intensity' (individual stats), 'intensity_stats' (dict with "
-            "keys 'min', 'max', 'mean', 'std'), 'percentiles_label', 'percentiles_values', and "
-            "'pixel_brightness_distribution' (list of formatted brightness range strings)."
+            "Dictionary with the following structure: "
+            "{'shape': str (e.g., '(1282, 1198)'), "
+            "'intensity_stats': {'min': int, 'max': int, 'mean': float, 'std_dev': float}, "
+            "'percentiles_label': str, 'percentiles_values': str, "
+            "'pixel_brightness_distribution': list[str]}. "
+            "Usage examples: "
+            "pixel_stats = analyze_pixel_distribution('image.png'); "
+            "print(pixel_stats['shape']); "
+            "print(pixel_stats['intensity_stats']['min']); "
+            "print(pixel_stats['intensity_stats']['max']); "
+            "print(pixel_stats['intensity_stats']['mean']); "
+            "print(pixel_stats['intensity_stats']['std_dev']); "
+            "IMPORTANT: Use 'std_dev' key to access standard deviation from intensity_stats."
         ),
         "parameters": {
             "image_path": {
@@ -57,6 +69,15 @@ MANUAL_OVERRIDES: Dict[str, Dict[str, Any]] = {
             "upper_threshold": {
                 "description": "Upper bound of the intensity window used to build the binary mask.",
                 "type": "int",
+            },
+            "number_of_bands": {
+                "description": "The actual number of bands in the image.",
+                "type": "int",
+            },
+            "debug": {
+                "description": "If True, draw green contours (hulls) and blue keypoint boxes for debugging. Default is False.",
+                "type": "bool",
+                "default": False,
             },
         },
     },
@@ -103,6 +124,91 @@ MANUAL_OVERRIDES: Dict[str, Dict[str, Any]] = {
                 ),
                 "type": "str",
                 "default": "median",
+            },
+        },
+    },
+    "binarize_image": {
+        "description": "Apply CLAHE (Contrast Limited Adaptive Histogram Equalization) and then binarize the image.",
+        "long_description": (
+            "Loads an image (from path or numpy array), converts it to grayscale if needed, "
+            "applies CLAHE for adaptive histogram equalization to improve contrast, and then "
+            "performs threshold-based binarization. Useful for preprocessing images before "
+            "cell counting or object detection tasks."
+        ),
+        "return": (
+            "Binary image as numpy array after applying CLAHE and thresholding. Pixels below "
+            "the threshold are set to 0, others to 255."
+        ),
+        "parameters": {
+            "image": {
+                "description": (
+                    "Input image as numpy array or absolute/relative path to the image file."
+                ),
+                "type": "np.ndarray | str",
+            },
+            "threshold": {
+                "description": (
+                    "Threshold value for binarization. This value MUST be determined by "
+                    "analyze_pixel_distribution function. Pixels with intensity below this value "
+                    "are set to 0, others are set to 255."
+                ),
+                "type": "int",
+            },
+            "clip_limit": {
+                "description": (
+                    "CLAHE clipLimit parameter controlling contrast limiting. Higher values "
+                    "allow more contrast enhancement."
+                ),
+                "type": "float",
+                "default": 2.0,
+            },
+            "tile_grid_size": {
+                "description": (
+                    "CLAHE tileGridSize parameter as tuple (width, height). Defines the size "
+                    "of tiles for adaptive histogram equalization."
+                ),
+                "type": "tuple[int, int]",
+                "default": "(8, 8)",
+            },
+        },
+    },
+    "count_cells": {
+        "description": "Count cells in a binary image using watershed algorithm.",
+        "long_description": (
+            "Separates overlapping cells and counts them by applying distance transform, "
+            "finding local maxima (cell centers), and using watershed algorithm for region "
+            "separation. Counts cells from the watershed labels (excluding background). "
+            "Draws white boundaries on the binary image to visualize detected cells and "
+            "saves the result. Returns the cell count, labeled array, and path to the saved image."
+        ),
+        "return": (
+            "Tuple containing: (1) number of detected cells (int, counted from watershed labels), "
+            "(2) labeled numpy array where each cell region has a unique label, and (3) path (str) "
+            "to the saved image file with cell boundaries drawn on the binary image."
+        ),
+        "parameters": {
+            "binary_img": {
+                "description": (
+                    "Binary image as numpy array where cells are represented as white (255) "
+                    "pixels and background as black (0) pixels."
+                ),
+                "type": "np.ndarray",
+            },
+            "min_distance": {
+                "description": (
+                    "Minimum distance between peaks in pixels. Controls sensitivity for "
+                    "separating overlapping cells. Smaller values detect more closely packed cells."
+                ),
+                "type": "int",
+                "default": 10,
+            },
+            "output_path": {
+                "description": (
+                    "Path to save the watershed labeled image. If None, saves to "
+                    "'watershed_labels.png' in the current directory."
+                ),
+                "type": "str | None",
+                "default": None,
             },
         },
     },
