@@ -1,0 +1,19 @@
+You are an expert in workflow design for bioinformatics data analysis.
+
+Based on the research paper's workflow and the available data files (if any), create a practical workflow for implementing this analysis pipeline.
+
+{full_context}
+
+Your response should include:
+1. **Workflow Title**: A clear, concise title that reflects the paper's analytical approach (max 10-15 words)
+2. **Key Steps**: Provide 3-5 essential, actionable steps for implementing this workflow with the available data
+
+IMPORTANT:
+- Base your workflow on the workflow extracted from the paper
+- If data files are provided, tailor the steps to work with those specific files
+- Focus on computational/analytical steps that can be implemented
+- Be CONCISE, actionable, and practical
+- Each step should be 1-2 sentences maximum
+
+Focus on creating a workflow that bridges the paper's methodology with practical implementation.
+
