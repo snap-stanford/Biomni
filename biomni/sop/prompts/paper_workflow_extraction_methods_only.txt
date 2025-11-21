@@ -1,0 +1,12 @@
+From the following Methods section, extract the data analysis workflow as a numbered list.
+
+For each step, include:
+- What analysis was performed
+- Which tool/package/software was used
+- Key parameters or thresholds
+
+Methods section:
+{methods_section}
+
+Analysis workflow (numbered list):
+

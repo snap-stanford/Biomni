@@ -1,0 +1,9 @@
+From the following Results section, extract the data analysis workflow sequence.
+
+Focus on the order of analyses performed (not biological findings).
+
+Results section:
+{results_section}
+
+Analysis workflow (numbered list with brief descriptions):
+
