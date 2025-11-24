@@ -106,3 +106,4 @@ dependencies:
     - chainlit  # Conda에 없음
     #- PyMassSpec     # Conda에 있지만 복잡할 수 있으니 pip 유지 (선택)
     - ddgs           # Conda에 없음
+    - pylint

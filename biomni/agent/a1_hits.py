@@ -213,10 +213,9 @@ Output:
             result = qa_chain.invoke(
                 {
                     "question": question,
-                    "chat_history": [],
-                    # "chat_history": state["error_fixing_history"][
-                    #     -1:
-                    # ],  # Use only the last message for error fixing
+                    "chat_history": state[
+                        "error_fixing_history"
+                    ],  # Use conversational history for error fixing
                 }
             )
             return result["answer"]
