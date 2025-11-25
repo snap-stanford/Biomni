@@ -242,3 +242,5 @@ biomni_data
 *.md
 streamlit/streamlit_app_v3.py
 workspace/
+
+QA/qa_results/run_2025*

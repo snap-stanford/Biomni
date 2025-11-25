@@ -1,0 +1,14 @@
+{
+  "category": "bioinformatics",
+  "difficulty": "medium",
+  "created_at": "2024-11-24T12:30:00",
+  "description": "Gene expression analysis with input CSV data",
+  "tags": ["gene_expression", "differential_expression", "statistics", "t-test", "visualization"],
+  "expected_tools": ["pandas", "scipy", "matplotlib", "run_python_code"],
+  "requires_images": true,
+  "expected_images": ["fold_change_plot.png"],
+  "requires_input_data": true,
+  "input_data_files": ["gene_expression_data.csv"],
+  "input_data_description": "Gene expression data with 8 genes and 6 samples (3 treatment, 3 control)"
+}
+

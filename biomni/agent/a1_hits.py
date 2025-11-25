@@ -94,6 +94,23 @@ class A1_HITS(A1):
 
         super().__init__(*args, **kwargs)
 
+        # Override self.llm with stop_sequences set to None
+        # Extract model parameters from parent's initialization
+        llm_model = kwargs.get("llm", None)
+        source = kwargs.get("source", None)
+        base_url = kwargs.get("base_url", None)
+        api_key = kwargs.get("api_key", None)
+
+        # Reinitialize self.llm with stop_sequences=None
+        self.llm = get_llm(
+            model=llm_model,
+            stop_sequences=None,
+            source=source,
+            base_url=base_url,
+            api_key=api_key,
+            config=default_config,
+        )
+
         # Apply resource filters if available
         if (
             hasattr(self, "module2api")
