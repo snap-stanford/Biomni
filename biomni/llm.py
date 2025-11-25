@@ -44,7 +44,7 @@ def get_llm(
     # Use config values for any unspecified parameters
     if config is not None:
         if model is None:
-            model = config.llm_model
+            model = config.llm
         if temperature is None:
             temperature = config.temperature
         if source is None:
