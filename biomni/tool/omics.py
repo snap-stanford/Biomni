@@ -70,10 +70,20 @@ def convert_gene_ids(
     Notes
     -----
     - Uses gget library for gene ID conversion via Ensembl database
+    - Supported conversions:
+      * Ensembl <-> Symbol: Fully supported
+      * Ensembl <-> Entrez: Fully supported
+      * Symbol <-> Entrez: Supported (via Ensembl as intermediate)
+      * Symbol <-> Ensembl: Supported
+      * Entrez -> Symbol/Ensembl: Limited support (may fail if exact match not found)
+      * RefSeq conversions: Limited support
+    - gget.info() only accepts Ensembl IDs directly
+    - For non-Ensembl input types, gget.search() is used first to find Ensembl ID
     - Some IDs may not have direct mappings and will return None
     - Case-sensitive for gene symbols in most databases
     - For large lists (>1000 genes), consider batching
     - Requires internet connection for database queries
+    - For Ensembl IDs, version suffix (e.g., .20) is automatically removed
     """
     import gget
     
@@ -102,27 +112,76 @@ def convert_gene_ids(
     # Convert each gene ID
     for gene_id in gene_ids:
         try:
-            # Use gget info to get gene information
-            gene_info = gget.info(gene_id, species=species, verbose=False)
+            # Step 1: If from_type is not Ensembl, first convert to Ensembl ID
+            if from_type != "ensembl":
+                # Use gget.search() to find Ensembl ID
+                if from_type == "symbol":
+                    search_result = gget.search(gene_id, species, id_type='gene', verbose=False)
+                elif from_type == "entrez":
+                    # For Entrez ID, search might not work directly - try to use as Ensembl-like
+                    # Actually, Entrez IDs need special handling - gget might not support direct search
+                    search_result = None
+                elif from_type == "refseq":
+                    # RefSeq IDs also need special handling
+                    search_result = None
+                else:
+                    search_result = None
+                
+                # Extract Ensembl ID from search result
+                if search_result is not None and len(search_result) > 0:
+                    # Find exact match if possible
+                    exact_match = search_result[search_result['gene_name'] == gene_id]
+                    if len(exact_match) > 0:
+                        ensembl_id = exact_match.iloc[0]['ensembl_id']
+                    else:
+                        # Use first result if no exact match
+                        ensembl_id = search_result.iloc[0]['ensembl_id']
+                else:
+                    # If search fails, try direct info lookup (might work for some formats)
+                    ensembl_id = None
+                    gene_info = gget.info(gene_id, verbose=False)
+                    if gene_info is not None and len(gene_info) > 0:
+                        ensembl_id = gene_info.iloc[0].get("ensembl_id", None)
+                        if ensembl_id:
+                            ensembl_id = ensembl_id.split(".")[0] if "." in str(ensembl_id) else ensembl_id
+                
+                if not ensembl_id:
+                    result[gene_id] = None
+                    continue
+            else:
+                # Already Ensembl ID, use directly
+                ensembl_id = gene_id.split(".")[0] if "." in gene_id else gene_id
+            
+            # Step 2: Use gget.info() to get detailed gene information
+            # Note: gget.info() only accepts Ensembl IDs
+            gene_info = gget.info(ensembl_id, verbose=False)
             
             if gene_info is None or len(gene_info) == 0:
                 result[gene_id] = None
                 continue
             
-            # Extract the target ID type from the result
+            # Step 3: Extract the target ID type from the result
             if to_type == "ensembl":
-                result[gene_id] = gene_info.iloc[0]["ensembl_id"]
+                # Extract base Ensembl ID (remove version suffix if present)
+                result_ensembl_id = gene_info.iloc[0]["ensembl_id"]
+                result[gene_id] = result_ensembl_id.split(".")[0] if "." in str(result_ensembl_id) else result_ensembl_id
             elif to_type == "entrez":
                 entrez_id = gene_info.iloc[0].get("ncbi_gene_id", None)
                 result[gene_id] = str(int(entrez_id)) if pd.notna(entrez_id) else None
             elif to_type == "symbol":
-                result[gene_id] = gene_info.iloc[0].get("gene_name", None)
+                # Use primary_gene_name (gget's column name for gene symbol)
+                result[gene_id] = gene_info.iloc[0].get("primary_gene_name", None)
             elif to_type == "refseq":
                 # Get RefSeq from transcript information
-                refseq_ids = gene_info.iloc[0].get("refseq_id", None)
+                # Note: RefSeq IDs may be in transcript_names or need separate lookup
+                refseq_ids = gene_info.iloc[0].get("transcript_names", None)
                 if pd.notna(refseq_ids):
-                    # Take first RefSeq ID if multiple exist
-                    result[gene_id] = refseq_ids.split(";")[0] if isinstance(refseq_ids, str) else refseq_ids
+                    # Extract RefSeq IDs (NM_* or NR_* format)
+                    if isinstance(refseq_ids, str):
+                        refseq_list = [r.strip() for r in refseq_ids.split(",") if r.strip().startswith(("NM_", "NR_"))]
+                        result[gene_id] = refseq_list[0] if refseq_list else None
+                    else:
+                        result[gene_id] = None
                 else:
                     result[gene_id] = None
             
@@ -994,10 +1053,6 @@ def impute_missing_values(
 #     - Good for detecting batch effects and outliers
 #     - Requires umap-learn package
     
-#     References
-#     ----------
-#     [1] McInnes et al. "UMAP: Uniform Manifold Approximation and Projection",
-#         Journal of Open Source Software, 2018.
 #     """
 #     try:
 #         import umap

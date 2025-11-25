@@ -81,11 +81,6 @@ def calculate_qc_metrics(
     - Outliers are identified using isolation forest method
     - Correlation matrix uses Pearson correlation
     - For RNA-seq, data should be log-transformed counts
-    
-    References
-    ----------
-    [1] Conesa et al. "A survey of best practices for RNA-seq data 
-        analysis", Genome Biol, 2016.
     """
     from sklearn.ensemble import IsolationForest
     from sklearn.preprocessing import StandardScaler
@@ -522,164 +517,164 @@ def calculate_qc_metrics(
 #     return output_file
 
 
-def generate_qc_report(
-    qc_results: dict,
-    output_file: str = "qc_report.html",
-) -> str:
-    """
-    Generate an HTML QC report with plots and metrics.
+# def generate_qc_report(
+#     qc_results: dict,
+#     output_file: str = "qc_report.html",
+# ) -> str:
+#     """
+#     Generate an HTML QC report with plots and metrics.
     
-    Parameters
-    ----------
-    qc_results : dict
-        Results from calculate_qc_metrics()
-    output_file : str
-        Path to save HTML report
+#     Parameters
+#     ----------
+#     qc_results : dict
+#         Results from calculate_qc_metrics()
+#     output_file : str
+#         Path to save HTML report
     
-    Returns
-    -------
-    str
-        Path to saved report
-    """
-    # Create QC plots
-    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+#     Returns
+#     -------
+#     str
+#         Path to saved report
+#     """
+#     # Create QC plots
+#     fig, axes = plt.subplots(2, 2, figsize=(15, 12))
     
-    sample_metrics = qc_results['sample_metrics']
+#     sample_metrics = qc_results['sample_metrics']
     
-    # 1. Total intensity distribution
-    axes[0, 0].bar(range(len(sample_metrics)), sample_metrics['total_intensity'])
-    axes[0, 0].set_xlabel('Sample Index')
-    axes[0, 0].set_ylabel('Total Intensity')
-    axes[0, 0].set_title('Total Intensity per Sample')
-    axes[0, 0].tick_params(axis='x', rotation=45)
+#     # 1. Total intensity distribution
+#     axes[0, 0].bar(range(len(sample_metrics)), sample_metrics['total_intensity'])
+#     axes[0, 0].set_xlabel('Sample Index')
+#     axes[0, 0].set_ylabel('Total Intensity')
+#     axes[0, 0].set_title('Total Intensity per Sample')
+#     axes[0, 0].tick_params(axis='x', rotation=45)
     
-    # 2. Detection rate
-    axes[0, 1].bar(range(len(sample_metrics)), sample_metrics['detected_features'])
-    axes[0, 1].set_xlabel('Sample Index')
-    axes[0, 1].set_ylabel('Number of Detected Features')
-    axes[0, 1].set_title('Feature Detection per Sample')
-    axes[0, 1].tick_params(axis='x', rotation=45)
+#     # 2. Detection rate
+#     axes[0, 1].bar(range(len(sample_metrics)), sample_metrics['detected_features'])
+#     axes[0, 1].set_xlabel('Sample Index')
+#     axes[0, 1].set_ylabel('Number of Detected Features')
+#     axes[0, 1].set_title('Feature Detection per Sample')
+#     axes[0, 1].tick_params(axis='x', rotation=45)
     
-    # 3. Correlation heatmap
-    corr_matrix = qc_results['correlation_matrix']
-    im = axes[1, 0].imshow(corr_matrix, cmap='RdBu_r', vmin=-1, vmax=1, aspect='auto')
-    axes[1, 0].set_xticks(range(len(corr_matrix)))
-    axes[1, 0].set_yticks(range(len(corr_matrix)))
-    axes[1, 0].set_xticklabels(corr_matrix.columns, rotation=45, ha='right')
-    axes[1, 0].set_yticklabels(corr_matrix.index)
-    axes[1, 0].set_title('Sample Correlation Matrix')
-    plt.colorbar(im, ax=axes[1, 0])
+#     # 3. Correlation heatmap
+#     corr_matrix = qc_results['correlation_matrix']
+#     im = axes[1, 0].imshow(corr_matrix, cmap='RdBu_r', vmin=-1, vmax=1, aspect='auto')
+#     axes[1, 0].set_xticks(range(len(corr_matrix)))
+#     axes[1, 0].set_yticks(range(len(corr_matrix)))
+#     axes[1, 0].set_xticklabels(corr_matrix.columns, rotation=45, ha='right')
+#     axes[1, 0].set_yticklabels(corr_matrix.index)
+#     axes[1, 0].set_title('Sample Correlation Matrix')
+#     plt.colorbar(im, ax=axes[1, 0])
     
-    # 4. PCA plot
-    pca_coords = qc_results['pca_coordinates']
-    axes[1, 1].scatter(pca_coords['PC1'], pca_coords['PC2'], s=100, alpha=0.6)
+#     # 4. PCA plot
+#     pca_coords = qc_results['pca_coordinates']
+#     axes[1, 1].scatter(pca_coords['PC1'], pca_coords['PC2'], s=100, alpha=0.6)
     
-    # Mark outliers
-    for sample in qc_results['outlier_samples']:
-        idx = pca_coords.index.get_loc(sample)
-        axes[1, 1].scatter(
-            pca_coords.loc[sample, 'PC1'],
-            pca_coords.loc[sample, 'PC2'],
-            s=150, c='red', marker='x', linewidths=3,
-            label='Outlier' if sample == qc_results['outlier_samples'][0] else ''
-        )
+#     # Mark outliers
+#     for sample in qc_results['outlier_samples']:
+#         idx = pca_coords.index.get_loc(sample)
+#         axes[1, 1].scatter(
+#             pca_coords.loc[sample, 'PC1'],
+#             pca_coords.loc[sample, 'PC2'],
+#             s=150, c='red', marker='x', linewidths=3,
+#             label='Outlier' if sample == qc_results['outlier_samples'][0] else ''
+#         )
     
-    # Add sample labels
-    for idx, sample in enumerate(pca_coords.index):
-        axes[1, 1].annotate(
-            sample,
-            (pca_coords.loc[sample, 'PC1'], pca_coords.loc[sample, 'PC2']),
-            xytext=(5, 5), textcoords='offset points', fontsize=8
-        )
+#     # Add sample labels
+#     for idx, sample in enumerate(pca_coords.index):
+#         axes[1, 1].annotate(
+#             sample,
+#             (pca_coords.loc[sample, 'PC1'], pca_coords.loc[sample, 'PC2']),
+#             xytext=(5, 5), textcoords='offset points', fontsize=8
+#         )
     
-    pca_var = qc_results['pca_variance']
-    axes[1, 1].set_xlabel(f"PC1 ({pca_var['PC1']*100:.1f}%)")
-    axes[1, 1].set_ylabel(f"PC2 ({pca_var['PC2']*100:.1f}%)")
-    axes[1, 1].set_title('PCA - Sample Overview')
-    if qc_results['outlier_samples']:
-        axes[1, 1].legend()
+#     pca_var = qc_results['pca_variance']
+#     axes[1, 1].set_xlabel(f"PC1 ({pca_var['PC1']*100:.1f}%)")
+#     axes[1, 1].set_ylabel(f"PC2 ({pca_var['PC2']*100:.1f}%)")
+#     axes[1, 1].set_title('PCA - Sample Overview')
+#     if qc_results['outlier_samples']:
+#         axes[1, 1].legend()
     
-    plt.tight_layout()
+#     plt.tight_layout()
     
-    # Save plot
-    plot_file = output_file.replace('.html', '_plots.png')
-    plt.savefig(plot_file, dpi=300, bbox_inches='tight')
-    plt.close()
+#     # Save plot
+#     plot_file = output_file.replace('.html', '_plots.png')
+#     plt.savefig(plot_file, dpi=300, bbox_inches='tight')
+#     plt.close()
     
-    # Generate HTML report
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>QC Report</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 20px; }}
-            h1 {{ color: #333; }}
-            h2 {{ color: #666; margin-top: 30px; }}
-            table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
-            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-            th {{ background-color: #4CAF50; color: white; }}
-            .warning {{ color: #ff9800; font-weight: bold; }}
-            .good {{ color: #4CAF50; font-weight: bold; }}
-        </style>
-    </head>
-    <body>
-        <h1>Quality Control Report</h1>
+#     # Generate HTML report
+#     html_content = f"""
+#     <!DOCTYPE html>
+#     <html>
+#     <head>
+#         <title>QC Report</title>
+#         <style>
+#             body {{ font-family: Arial, sans-serif; margin: 20px; }}
+#             h1 {{ color: #333; }}
+#             h2 {{ color: #666; margin-top: 30px; }}
+#             table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
+#             th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+#             th {{ background-color: #4CAF50; color: white; }}
+#             .warning {{ color: #ff9800; font-weight: bold; }}
+#             .good {{ color: #4CAF50; font-weight: bold; }}
+#         </style>
+#     </head>
+#     <body>
+#         <h1>Quality Control Report</h1>
         
-        <h2>Overall Metrics</h2>
-        <table>
-            <tr><th>Metric</th><th>Value</th></tr>
-    """
+#         <h2>Overall Metrics</h2>
+#         <table>
+#             <tr><th>Metric</th><th>Value</th></tr>
+#     """
     
-    for key, value in qc_results['overall_metrics'].items():
-        if isinstance(value, float):
-            html_content += f"<tr><td>{key}</td><td>{value:.4f}</td></tr>\n"
-        else:
-            html_content += f"<tr><td>{key}</td><td>{value}</td></tr>\n"
+#     for key, value in qc_results['overall_metrics'].items():
+#         if isinstance(value, float):
+#             html_content += f"<tr><td>{key}</td><td>{value:.4f}</td></tr>\n"
+#         else:
+#             html_content += f"<tr><td>{key}</td><td>{value}</td></tr>\n"
     
-    html_content += "</table>\n"
+#     html_content += "</table>\n"
     
-    # Outlier warnings
-    if qc_results['outlier_samples']:
-        html_content += f"""
-        <h2 class="warning">⚠️ Outlier Samples Detected</h2>
-        <p>The following samples were identified as potential outliers:</p>
-        <ul>
-        """
-        for sample in qc_results['outlier_samples']:
-            html_content += f"<li>{sample}</li>\n"
-        html_content += "</ul>\n"
-    else:
-        html_content += '<h2 class="good">✓ No Outlier Samples Detected</h2>\n'
+#     # Outlier warnings
+#     if qc_results['outlier_samples']:
+#         html_content += f"""
+#         <h2 class="warning">⚠️ Outlier Samples Detected</h2>
+#         <p>The following samples were identified as potential outliers:</p>
+#         <ul>
+#         """
+#         for sample in qc_results['outlier_samples']:
+#             html_content += f"<li>{sample}</li>\n"
+#         html_content += "</ul>\n"
+#     else:
+#         html_content += '<h2 class="good">✓ No Outlier Samples Detected</h2>\n'
     
-    # Batch effect warning
-    if 'batch_effect_warning' in qc_results:
-        html_content += f"""
-        <h2>Batch Effect Assessment</h2>
-        <p>{qc_results['batch_effect_warning']}</p>
-        """
+#     # Batch effect warning
+#     if 'batch_effect_warning' in qc_results:
+#         html_content += f"""
+#         <h2>Batch Effect Assessment</h2>
+#         <p>{qc_results['batch_effect_warning']}</p>
+#         """
     
-    # Add plots
-    html_content += f"""
-        <h2>Quality Control Plots</h2>
-        <img src="{plot_file}" style="width:100%; max-width:1200px;">
+#     # Add plots
+#     html_content += f"""
+#         <h2>Quality Control Plots</h2>
+#         <img src="{plot_file}" style="width:100%; max-width:1200px;">
         
-        <h2>Sample Metrics</h2>
-    """
+#         <h2>Sample Metrics</h2>
+#     """
     
-    # Add sample metrics table
-    html_content += sample_metrics.to_html()
+#     # Add sample metrics table
+#     html_content += sample_metrics.to_html()
     
-    html_content += """
-    </body>
-    </html>
-    """
+#     html_content += """
+#     </body>
+#     </html>
+#     """
     
-    # Write HTML file
-    with open(output_file, 'w') as f:
-        f.write(html_content)
+#     # Write HTML file
+#     with open(output_file, 'w') as f:
+#         f.write(html_content)
     
-    return output_file
+#     return output_file
 
 
 def correct_batch_effects(
@@ -748,13 +743,6 @@ def correct_batch_effects(
     - Covariates should include biological factors to preserve
     - Mean centering is simplest but less robust than ComBat
     - Run QC before and after to verify correction
-    
-    References
-    ----------
-    [1] Johnson et al. "Adjusting batch effects in microarray expression 
-        data using empirical Bayes methods", Biostatistics, 2007.
-    [2] Leek et al. "Tackling the widespread and critical impact of batch 
-        effects in high-throughput data", Nat Rev Genet, 2010.
     """
     result = data.copy()
     
@@ -971,11 +959,6 @@ def assess_technical_replicates(
     - ICC > 0.75 indicates high reproducibility
     - High replicate variability may indicate technical problems
     - Compare biological vs technical variation
-    
-    References
-    ----------
-    [1] Koo & Li. "A Guideline of Selecting and Reporting Intraclass 
-        Correlation Coefficients for Reliability Research", J Chiropr Med, 2016.
     """
     # Validate that all samples exist in data
     all_replicate_samples = []
@@ -1230,11 +1213,6 @@ def assess_missing_value_patterns(
     - MNAR: Missing Not At Random (related to unobserved values)
     - Proteomics often has MNAR (low abundance proteins not detected)
     - Use Little's MCAR test for formal testing
-    
-    References
-    ----------
-    [1] Lazar et al. "Accounting for the Multiple Natures of Missing Values",
-        J Proteome Res, 2016.
     """
     # Validate inputs
     missing_samples = set(sample_columns) - set(data.columns)

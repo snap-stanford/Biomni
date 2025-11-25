@@ -43,8 +43,9 @@ allowed_resources:
   
   # Data lake items: list of allowed data lake item names
   # Uncomment and add data lake item names you want to allow:
+  # If data_lake section is empty or commented out, all data lake files will be downloaded
   data_lake:
-    - example_data_item_1
+    # - example_data_item_1
     # - example_data_item_2
   
   # Libraries: list of allowed library/software names

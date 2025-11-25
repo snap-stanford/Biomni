@@ -1,0 +1,31 @@
+You are analyzing a bioinformatics research paper to extract the data analysis workflow.
+
+TASK: Extract the complete analysis workflow in the order it was actually performed.
+
+RESULTS SECTION (shows the analysis sequence and rationale):
+{results_section}
+
+METHODS SECTION (shows technical details and parameters):
+{methods_section}
+
+INSTRUCTIONS:
+1. Identify the sequence of analyses from the Results section (look for "first", "next", "then", "finally", etc.)
+2. For each analysis step, find the corresponding technical details from the Methods section
+3. Create a numbered workflow that combines: analysis order + purpose + technical details
+
+OUTPUT FORMAT (numbered list):
+1. [Analysis name]: [Brief description of what was done]
+   - Tool: [Software/package with version if available]
+   - Parameters: [Key parameters, thresholds, or settings]
+   - Purpose: [Why this step was performed - from Results context]
+
+2. [Next analysis step]...
+
+EXAMPLE:
+1. Quality Control: Assess sequencing data quality
+   - Tool: FastQC v0.11.9
+   - Parameters: Default settings, min quality score > 20
+   - Purpose: Filter low-quality reads before downstream analysis
+
+Keep each step concise but include all essential information. Focus on computational/statistical analyses, not wet-lab procedures.
+

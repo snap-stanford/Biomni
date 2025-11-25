@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
-from typing import Optional, List, Dict, Tuple, Union
+from typing import Optional, List, Dict, Tuple, Union, Any
 
 
 def perform_multi_group_test(
@@ -807,10 +807,6 @@ def adjust_pvalues(
     - FDR is less conservative, more appropriate for exploratory analysis
     - Bonferroni recommended when false positives are very costly
     
-    References
-    ----------
-    [1] Benjamini & Hochberg. "Controlling the False Discovery Rate",
-        J R Stat Soc B, 1995.
     """
     is_series = isinstance(pvalues, pd.Series)
     if is_series:
@@ -920,8 +916,7 @@ def t_test_FDR(
         Results with columns:
         - statistic: t-statistic
         - p_value: Raw p-value
-        - FDR: FDR-adjusted p-value (if adjust_p=True)
-        - p_value_adj: FDR-adjusted p-value (alias for FDR)
+        - p_value_adj: FDR-adjusted p-value (if adjust_p=True)
         - significant: Boolean indicating significance
         - mean_group1: Mean of group 1
         - mean_group2: Mean of group 2
@@ -991,20 +986,15 @@ def t_test_FDR(
             padj = adjust_pvalues(valid_pvals.values, method='fdr_bh')
             
             # Add adjusted p-values
-            results['FDR'] = np.nan
             results['p_value_adj'] = np.nan
-            results.loc[valid_pvals.index, 'FDR'] = padj
             results.loc[valid_pvals.index, 'p_value_adj'] = padj
         else:
-            results['FDR'] = np.nan
             results['p_value_adj'] = np.nan
     else:
-        results['FDR'] = results['p_value']
         results['p_value_adj'] = results['p_value']
     
     # Mark significant features
-    fdr_col = results.get('FDR', results.get('p_value_adj', results['p_value']))
-    results['significant'] = fdr_col < alpha
+    results['significant'] = results['p_value_adj'] < alpha
     
     return results.sort_values('p_value')
 
@@ -1067,10 +1057,6 @@ def calculate_correlation(
     - Kendall more robust but computationally intensive
     - High correlations may indicate co-regulation or functional relationships
     
-    References
-    ----------
-    [1] Stuart et al. "A Gene-Coexpression Network for Global Discovery 
-        of Conserved Genetic Modules", Science, 2003.
     """
     # Determine if self-correlation
     if data2 is None:
@@ -1220,10 +1206,6 @@ def perform_enrichment_test(
     - FDR correction essential for multiple pathway testing
     - Enrichment score useful for ranking terms
     
-    References
-    ----------
-    [1] Huang et al. "Systematic and integrative analysis of large gene lists",
-        Nat Protoc, 2009.
     """
     from scipy.stats import hypergeom, fisher_exact
     
@@ -1370,10 +1352,6 @@ def perform_permutation_test(
     - Uses two-tailed test: counts how often |null| >= |observed|
     - For statistic="tstat", uses absolute t-statistic (no variance assumption)
     
-    References
-    ----------
-    [1] Good P. "Permutation, Parametric and Bootstrap Tests of Hypotheses",
-        Springer, 2005.
     """
     np.random.seed(random_state)
     
@@ -1649,9 +1627,6 @@ def test_variance_homogeneity(
     - Bartlett's test: More powerful but sensitive to non-normality
     - If equal_variance=False, use Welch's ANOVA instead of standard ANOVA
     
-    References
-    ----------
-    [1] Levene, H. "Robust tests for equality of variances", 1960.
     """
     # Validate that all samples exist in data
     all_samples = []
@@ -2088,7 +2063,7 @@ def smart_differential_analysis(
     alpha: float = 0.05,
     adjust_pvalues: bool = True,
     verbose: bool = True
-) -> Tuple[pd.DataFrame, Dict[str, any]]:
+) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
     Automatically select and perform appropriate statistical test.
     
@@ -2126,27 +2101,50 @@ def smart_differential_analysis(
     
     Returns
     -------
-    results : pd.DataFrame
-        Test results with p-values, fold changes, etc.
-    metadata : dict
-        - selected_test: Name of test used
-        - test_function: Function name called
-        - selection_rationale: Why this test was selected
-        - confidence: Confidence in test selection
-        - data_characteristics: Summary of data properties
-        - assumptions_check: Full assumptions check results
-        - warnings: Any warnings about data or test choice
+    Tuple[pd.DataFrame, Dict[str, Any]]
+        A tuple containing:
+        
+        results : pd.DataFrame
+            Statistical test results with columns:
+            - p_value: Raw p-values
+            - p_value_adj: FDR-adjusted p-values (if adjust_pvalues=True)
+            - significant: Boolean indicating significance (p_value_adj < alpha)
+            - statistic: Test statistic (t-statistic, F-statistic, etc.)
+            - mean_group1, mean_group2: Group means (for 2-group tests)
+            - fold_change: Log2 fold change (for 2-group tests)
+            - Additional columns depending on test type
+            
+        metadata : dict
+            Dictionary containing analysis metadata:
+            - selected_test: Name of the test used
+            - test_function: Function name that was called
+            - selection_rationale: Explanation of why this test was selected
+            - confidence: Confidence score (0-1) in test selection
+            - auto_selected: Whether test was auto-selected (True) or forced (False)
+            - n_groups: Number of groups compared
+            - paired: Whether paired test was used
+            - alpha: Significance level used
+            - adjust_pvalues: Whether FDR correction was applied
+            - data_characteristics: Summary of data properties (n_features, n_samples, etc.)
+            - assumptions_check: Full assumptions check results
+            - warnings: List of warnings about data or test choice
+            - success: Whether test execution succeeded (True/False)
+            - error: Error message if test failed (None if successful)
     
     Examples
     --------
-    >>> # Automatic test selection
+    >>> # Automatic test selection (returns tuple: results, metadata)
     >>> groups = {
     ...     'Control': ['C1', 'C2', 'C3', 'C4'],
     ...     'Treatment': ['T1', 'T2', 'T3', 'T4']
     ... }
     >>> results, metadata = smart_differential_analysis(data, groups)
-    >>> print(f"Selected: {metadata['selected_test']}")
-    >>> print(metadata['selection_rationale'])
+    >>> # Access results DataFrame
+    >>> significant_features = results[results['significant']]
+    >>> # Access metadata dictionary
+    >>> print(f"Selected test: {metadata['selected_test']}")
+    >>> print(f"Rationale: {metadata['selection_rationale']}")
+    >>> print(f"Warnings: {metadata['warnings']}")
     >>> 
     >>> # Force specific test
     >>> results, metadata = smart_differential_analysis(

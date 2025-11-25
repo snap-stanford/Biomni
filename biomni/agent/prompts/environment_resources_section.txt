@@ -1,0 +1,25 @@
+# ENVIRONMENT RESOURCES
+
+## Function Dictionary
+{function_intro}
+---
+{tool_desc}
+---
+
+{import_instruction}
+
+## Biological Data Lake
+You can access a biological data lake at the following path: {data_lake_path}.
+{data_lake_intro}
+Each item is listed with its description to help you understand its contents.
+----
+{data_lake_content}
+----
+
+## Software Library
+{library_intro}
+Each library is listed with its description to help you understand its functionality.
+----
+{library_content_formatted}
+----
+

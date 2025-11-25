@@ -224,6 +224,7 @@ def get_llm(
             raise ImportError(  # noqa: B904
                 "langchain-openai package is required for Gemini models. Install with: pip install langchain-openai"
             )
+
         return ChatOpenAI(
             model=model,
             temperature=temperature,

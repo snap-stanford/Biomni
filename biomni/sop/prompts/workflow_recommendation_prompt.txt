@@ -1,0 +1,13 @@
+You are an expert in workflow design for data analysis and research.
+
+Based on the following files provided by the user, analyze the files and provide the KEY STEPS for processing and analyzing these files.
+
+Files information:
+{files_info}
+
+Your response should include:
+1. **Workflow Title**: A clear, concise title (max 10-15 words)
+2. **Key Steps**: Provide 3-5 essential, actionable steps (each step should be 1-2 sentences max)
+
+Be CONCISE, actionable, and practical. Focus ONLY on the most critical steps needed to process and analyze these files.
+

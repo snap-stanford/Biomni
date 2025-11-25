@@ -12,6 +12,7 @@ import shutil
 import random
 import string
 import base64
+from PIL import Image
 from biomni.config import default_config
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from chainlit.data.storage_clients.base import BaseStorageClient
@@ -27,7 +28,7 @@ import logging
 import concurrent.futures
 
 # Configuration
-LLM_MODEL = "gemini-2.5-pro"
+LLM_MODEL = "gemini-3-pro-preview"
 # LLM_MODEL = "grok-4-fast"
 BIOMNI_DATA_PATH = "/workdir_efs/jhjeon/Biomni/biomni_data"
 BIOMNI_DATA_PATH = "./"
@@ -47,15 +48,66 @@ agent = A1_HITS(
 )
 
 # 로깅 설정
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("chainlit_stream.log", mode="a"),
-    ],
-)
+LOG_FILE_PATH = f"{CURRENT_ABS_DIR}/chainlit_stream.log"
+
+# Create logger and set up handlers directly
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Remove any existing handlers to avoid duplicates
+logger.handlers.clear()
+
+# Create and configure handlers
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+# Console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
+# File handler for global log
+file_handler = logging.FileHandler(LOG_FILE_PATH, mode="a")
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+# Prevent propagation to root logger to avoid duplicate logs
+logger.propagate = False
+
+logger.info(f"Logger initialized. Log file: {LOG_FILE_PATH}")
+
+# Thread-specific log handler management
+_thread_log_handler = None
+
+
+def add_thread_log_handler(thread_id: str):
+    """Add a thread-specific log handler to capture logs for individual chat sessions.
+
+    Args:
+        thread_id: The unique thread/session identifier
+    """
+    global _thread_log_handler
+
+    # Remove previous thread-specific handler if exists
+    if _thread_log_handler:
+        logger.removeHandler(_thread_log_handler)
+        _thread_log_handler.close()
+
+    # Create new thread-specific log file
+    thread_log_path = f"{CURRENT_ABS_DIR}/chainlit_logs/{thread_id}/chainlit_stream.log"
+    os.makedirs(os.path.dirname(thread_log_path), exist_ok=True)
+
+    # Add new handler for this thread
+    _thread_log_handler = logging.FileHandler(thread_log_path, mode="a")
+    _thread_log_handler.setLevel(logging.INFO)
+    _thread_log_handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    )
+    logger.addHandler(_thread_log_handler)
+
+    logger.info(f"Thread-specific log handler added for thread: {thread_id}")
+    logger.info(f"Thread log file: {thread_log_path}")
 
 
 class LocalStorageClient(BaseStorageClient):
@@ -195,15 +247,19 @@ def auth_callback(username: str, password: str):
     # Fetch the user matching username from your database
     # and compare the hashed password with the value stored in the database
     # Support both username and email format for login
-    valid_logins = [
-        ("admin", "admin"),
-        ("admin@example.com", "admin"),  # Email format
-        ("admin@biomni.com", "admin"),  # Another email format
-    ]
+    valid_logins = {
+        ("admin", "admin"): "admin",
+        ("admin@example.com", "admin"): "admin@example.com",
+        ("admin@biomni.com", "admin"): "admin@biomni.com",
+        ("jslink", "5fdf7e4a-6632-48b1-a9c8-b79d9a9be2e0"): "jslink",
+    }
 
-    if (username, password) in valid_logins:
+    identifier = valid_logins.get((username, password))
+
+    if identifier:
         return cl.User(
-            identifier="admin", metadata={"role": "admin", "provider": "credentials"}
+            identifier=identifier,  # 각 사용자마다 고유한 identifier 사용
+            metadata={"role": "admin", "provider": "credentials"},
         )
     else:
         return None
@@ -216,9 +272,15 @@ async def start_chat():
     dir_name = cl.context.session.thread_id
     log_dir = f"chainlit_logs/{dir_name}"
     os.makedirs(log_dir, exist_ok=True)
+
+    # Add thread-specific log handler
+    add_thread_log_handler(dir_name)
+
     os.chdir(log_dir)
     print("current dir", os.getcwd())
+    logger.info(f"Chat session started for thread: {dir_name}")
     cl.user_session.set("message_history", [])
+    cl.user_session.set("uploaded_files", [])
 
     files = None
 
@@ -262,8 +324,27 @@ async def resume_chat():
     dir_name = thread_id
     log_dir = f"chainlit_logs/{dir_name}"
     os.makedirs(log_dir, exist_ok=True)
+
+    # Add thread-specific log handler
+    add_thread_log_handler(dir_name)
+
     os.chdir(log_dir)
     print("current dir", os.getcwd())
+    logger.info(f"Chat session resumed for thread: {dir_name}")
+    
+    # Restore uploaded files from directory
+    uploaded_files = []
+    if os.path.exists(log_dir):
+        # Scan directory for user-uploaded files (exclude system files)
+        exclude_files = {'chainlit_stream.log', 'conversation_history.txt'}
+        for filename in os.listdir(log_dir):
+            file_path = os.path.join(log_dir, filename)
+            if os.path.isfile(file_path) and filename not in exclude_files:
+                uploaded_files.append(filename)
+    
+    cl.user_session.set("uploaded_files", uploaded_files)
+    if uploaded_files:
+        logger.info(f"Restored {len(uploaded_files)} uploaded files: {', '.join(uploaded_files)}")
 
 
 @cl.on_message
@@ -303,14 +384,29 @@ async def _process_user_message(user_message: cl.Message) -> dict:
         ".tif",
     }
 
+    # Get current uploaded files list from session
+    uploaded_files = cl.user_session.get("uploaded_files", [])
+
     # Process uploaded files
     for file in user_message.elements:
         os.system(f"cp {file.path} '{file.name}'")
+        
+        # Add to uploaded files list if not already present
+        if file.name not in uploaded_files:
+            uploaded_files.append(file.name)
 
         # Check if it's an image file
         file_ext = os.path.splitext(file.name)[1].lower()
         if file_ext in image_extensions:
             try:
+                # Extract image resolution
+                img_width, img_height = None, None
+                try:
+                    with Image.open(file.path) as img:
+                        img_width, img_height = img.size
+                except Exception as e:
+                    print(f"Could not extract image dimensions for {file.name}: {e}")
+
                 # Read image and encode to base64
                 with open(file.path, "rb") as f:
                     image_data = base64.b64encode(f.read()).decode("utf-8")
@@ -331,14 +427,26 @@ async def _process_user_message(user_message: cl.Message) -> dict:
                 images.append(
                     {"name": file.name, "data": f"data:{mime_type};base64,{image_data}"}
                 )
-                user_prompt += f"\n - user uploaded image file: {file.name}\n"
+
+                # Add image info with resolution to prompt
+                if img_width and img_height:
+                    user_prompt += f"\n - user uploaded image file: {file.name} (resolution: {img_width}x{img_height} pixels)\n"
+                else:
+                    user_prompt += f"\n - user uploaded image file: {file.name}\n"
             except Exception as e:
                 print(f"Error processing image {file.name}: {e}")
                 user_prompt += f"\n - user uploaded data file: {file.name}\n"
         else:
             user_prompt += f"\n - user uploaded data file: {file.name}\n"
 
-    user_prompt += "\n" + cl.user_session.get("user_uploaded_system_file", "")
+    # Update uploaded files in session
+    cl.user_session.set("uploaded_files", uploaded_files)
+
+    # Always append all uploaded files information to the prompt
+    # This ensures the AI remembers all files throughout the conversation
+    if uploaded_files:
+        files_info = "\n\n[System: Available uploaded files in working directory: " + ", ".join(uploaded_files) + "]"
+        user_prompt += files_info
 
     return {"text": user_prompt, "images": images}
 
@@ -431,7 +539,7 @@ def _extract_text_from_content(content):
 async def _process_agent_response(agent_input: list, message_history: list):
     """Process agent response and handle streaming."""
 
-    with open(f"conversion_history.txt", "a") as f:
+    with open(f"conversation_history.txt", "a") as f:
         user_content_text = _extract_text_from_content(agent_input[-1].content)
         f.write(user_content_text + "\n")
 
@@ -455,7 +563,7 @@ async def _process_agent_response(agent_input: list, message_history: list):
         print(os.getcwd())
         print(final_message)
 
-        with open(f"conversion_history.txt", "a") as f:
+        with open(f"conversation_history.txt", "a") as f:
             f.write(raw_full_message + "\n")
         message_history.append({"role": "assistant", "content": raw_full_message})
 
@@ -582,42 +690,40 @@ async def _handle_message_stream(message_stream, chainlit_step, sync_generator):
             if chunk_content is None:
                 continue
 
-            if isinstance(chunk_content, str):
-                raw_full_message += chunk_content
-                step_message += chunk_content
+            if not isinstance(chunk_content, str):
+                chunk_content = chunk_content[0]["text"] + "\n"
 
-                # Remove heartbeat message if present (new chunk arrived!)
-                if last_heartbeat_msg[0]:
-                    logger.debug(
-                        "[STREAM] Removing heartbeat message (new chunk arrived)"
-                    )
-                    current_output = chainlit_step.output or ""
-                    if current_output.endswith(last_heartbeat_msg[0]):
-                        chainlit_step.output = current_output[
-                            : -len(last_heartbeat_msg[0])
-                        ]
-                    last_heartbeat_msg[0] = ""  # Clear heartbeat message
+            raw_full_message += chunk_content
+            step_message += chunk_content
 
-                # Format and detect images
-                formatted_text = _modify_chunk(raw_full_message)
-                formatted_text = _detect_image_name_and_move_to_public(
-                    formatted_text, image_cache
-                )
+            # Remove heartbeat message if present (new chunk arrived!)
+            if last_heartbeat_msg[0]:
+                logger.debug("[STREAM] Removing heartbeat message (new chunk arrived)")
+                current_output = chainlit_step.output or ""
+                if current_output.endswith(last_heartbeat_msg[0]):
+                    chainlit_step.output = current_output[: -len(last_heartbeat_msg[0])]
+                last_heartbeat_msg[0] = ""  # Clear heartbeat message
 
-                # Only stream if changed
-                if formatted_text != last_formatted_text:
-                    prev_output = last_formatted_text
+            # Format and detect images
+            formatted_text = _modify_chunk(raw_full_message)
+            formatted_text = _detect_image_name_and_move_to_public(
+                formatted_text, image_cache
+            )
 
-                    if prev_output and formatted_text.startswith(prev_output):
-                        delta = formatted_text[len(prev_output) :]
-                    else:
-                        delta = formatted_text
+            # Only stream if changed
+            if formatted_text != last_formatted_text:
+                prev_output = last_formatted_text
 
-                    if delta:
-                        # This await also checks for CancelledError
-                        await chainlit_step.stream_token(delta)
-                        chainlit_step.output = formatted_text
-                        last_formatted_text = formatted_text
+                if prev_output and formatted_text.startswith(prev_output):
+                    delta = formatted_text[len(prev_output) :]
+                else:
+                    delta = formatted_text
+
+                if delta:
+                    # This await also checks for CancelledError
+                    await chainlit_step.stream_token(delta)
+                    chainlit_step.output = formatted_text
+                    last_formatted_text = formatted_text
 
         logger.info("[STREAM] Stream completed successfully")
 
@@ -705,12 +811,21 @@ def _extract_chunk_content(chunk):
 
 
 def _extract_final_message(step_message: str) -> str:
-    """Extract final message from step message."""
+    """Extract final message from the last <solution> tag pair."""
+    # Close unclosed solution tag if needed
     if "<solution>" in step_message and "</solution>" not in step_message:
         step_message += "</solution>"
 
-    solution_match = re.search(r"<solution>(.*?)</solution>", step_message, re.DOTALL)
-    return solution_match.group(1) if solution_match else step_message
+    # Find all solution tag matches
+    solution_matches = list(
+        re.finditer(r"<solution>(.*?)</solution>", step_message, re.DOTALL)
+    )
+
+    # Return content from the last match, or original message if no match found
+    if solution_matches:
+        return solution_matches[-1].group(1).strip()
+    else:
+        return step_message
 
 
 def _detect_code_type(code: str) -> str:
@@ -967,11 +1082,12 @@ def _replace_biomni(content: str) -> str:
 
     # Additional replacements for text outside code blocks:
     # 1. Replace 'biomni.' pattern (e.g., biomni.tool.omics -> hits.tool.omics)
-    content = re.sub(r"\bbiomni\.", "hits.", content, flags=re.IGNORECASE)
+    content = re.sub(r"biomni\.", "hits.", content, flags=re.IGNORECASE)
 
     # 2. Replace biomni/Biomni in paths and general text with 'hits'
     # This handles cases like /home/ec2-user/Biomni_HITS/... -> /home/ec2-user/hits_HITS/...
-    content = re.sub(r"\bbiomni\b", "hits", content, flags=re.IGNORECASE)
+    # Also handles biomni_hits_test -> hits_hits_test
+    content = re.sub(r"biomni", "hits", content, flags=re.IGNORECASE)
 
     return content
 
