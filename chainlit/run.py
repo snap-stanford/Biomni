@@ -1,4 +1,8 @@
 import chainlit as cl
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from biomni.agent import A1_HITS
 from langchain_core.messages import (
     AIMessage,
@@ -64,9 +68,10 @@ def _resolve_biomni_data_path() -> str:
 
 # Configuration
 LLM_MODEL = "gemini-2.5-pro"
+LLM_MODEL = "gemini-3-pro-preview"
 # LLM_MODEL = "grok-4-fast"
 BIOMNI_DATA_PATH = _resolve_biomni_data_path()
-PUBLIC_DIR = os.path.join(CURRENT_ABS_DIR, "public")
+PUBLIC_DIR = os.path.join(os.getcwd(), "public")
 CHAINLIT_DB_PATH = os.path.join(CURRENT_ABS_DIR, "chainlit.db")
 STREAMING_MAX_TIMEOUT = 3600  # Maximum streaming timeout in seconds (1 hour)
 
@@ -90,6 +95,30 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
+
+
+# 시스템 프롬프트를 녹색으로 출력하는 커스텀 핸들러
+class GreenColorHandler(logging.StreamHandler):
+    """녹색으로 출력하는 커스텀 핸들러"""
+    
+    def emit(self, record):
+        # ANSI 색상 코드: \033[32m = 녹색, \033[0m = 리셋
+        green_start = "\033[32m"
+        green_end = "\033[0m"
+        message = self.format(record)
+        self.stream.write(f"{green_start}{message}{green_end}\n")
+        self.flush()
+
+
+# 시스템 프롬프트 전용 로거 설정
+system_prompt_logger = logging.getLogger("system_prompt")
+system_prompt_logger.setLevel(logging.INFO)
+system_prompt_logger.propagate = False  # 부모 로거로 전파하지 않음
+
+# 녹색 핸들러 추가
+green_handler = GreenColorHandler()
+green_handler.setFormatter(logging.Formatter("%(message)s"))
+system_prompt_logger.addHandler(green_handler)
 
 
 class LocalStorageClient(BaseStorageClient):
@@ -1056,6 +1085,26 @@ def _detect_image_name_and_move_to_public(
             )
 
         # Check if file exists
+        if not os.path.exists(image_path):
+             # Try to find it relative to the current working directory (chainlit_logs/thread_id)
+             # or relative to the project root (CURRENT_ABS_DIR)
+            
+            # 1. Check relative to CWD (already done by exists check if path is relative, but explicit check for absolute path construction might be needed)
+            cwd_path = os.path.abspath(image_path)
+            if os.path.exists(cwd_path):
+                image_path = cwd_path
+            else:
+                # 2. Check relative to CURRENT_ABS_DIR (project root where run.py is, or parent of it)
+                # Note: CURRENT_ABS_DIR in this file is chainlit/ directory. 
+                # But the agent execution happens in chainlit_logs/{thread_id}. 
+                # Sometimes paths are relative to project root.
+                
+                # Try relative to project root (parent of chainlit dir)
+                project_root = os.path.dirname(CURRENT_ABS_DIR)
+                root_path = os.path.join(project_root, image_path)
+                if os.path.exists(root_path):
+                    image_path = root_path
+                
         if not os.path.exists(image_path):
             return match.group(0)
 

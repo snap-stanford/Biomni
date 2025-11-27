@@ -1801,6 +1801,33 @@ Each library is listed with its description to help you understand its functiona
 
     def update_system_prompt_with_selected_resources(self, selected_resources):
         """Update the system prompt with the selected resources."""
+        # Check if resource.yaml has module-level tool specifications
+        # If a tool from a module is selected, include ALL tools from that module
+        from biomni.utils.resource_filter import load_resource_filter_config, _parse_tool_spec
+        
+        resource_config = load_resource_filter_config()
+        allowed_tools = resource_config.get("tools", [])
+        
+        # Find modules specified in resource.yaml
+        resource_modules = set()
+        for spec in allowed_tools:
+            parsed = _parse_tool_spec(spec)
+            if parsed["type"] == "module":
+                module_name = parsed["value"]
+                # Convert to tool_description format if needed
+                if not module_name.startswith("biomni.tool.tool_description."):
+                    if module_name.startswith("biomni.tool."):
+                        tool_name = module_name.replace("biomni.tool.", "")
+                        module_name = f"biomni.tool.tool_description.{tool_name}"
+                resource_modules.add(module_name)
+                # Also add the regular module format
+                if module_name.startswith("biomni.tool.tool_description."):
+                    base_module = module_name.replace("biomni.tool.tool_description.", "")
+                    resource_modules.add(f"biomni.tool.{base_module}")
+        
+        # Track which modules have at least one tool selected
+        selected_modules = set()
+        
         # Extract tool descriptions for the selected tools
         tool_desc = {}
         for tool in selected_resources["tools"]:
@@ -1848,6 +1875,17 @@ Each library is listed with its description to help you understand its functiona
             if module_name not in tool_desc:
                 tool_desc[module_name] = []
 
+            # Track selected modules that are in resource.yaml
+            if module_name in resource_modules:
+                selected_modules.add(module_name)
+            # Also check if it's the regular format (biomni.tool.X)
+            if module_name.startswith("biomni.tool.") and not module_name.startswith("biomni.tool.tool_description."):
+                # Check if corresponding tool_description module is in resource_modules
+                tool_desc_module = f"biomni.tool.tool_description.{module_name.replace('biomni.tool.', '')}"
+                if tool_desc_module in resource_modules:
+                    selected_modules.add(module_name)
+                    selected_modules.add(tool_desc_module)
+
             # Add the tool to the appropriate module
             if isinstance(tool, dict):
                 # Ensure the module is included in the tool description
@@ -1863,6 +1901,43 @@ Each library is listed with its description to help you understand its functiona
                     "module": module_name,  # Explicitly include the module
                 }
                 tool_desc[module_name].append(tool_dict)
+        
+        # For each selected module that's in resource.yaml, add ALL tools from that module
+        if selected_modules and hasattr(self, "module2api"):
+            for selected_mod in selected_modules:
+                # Get the corresponding module2api key
+                if selected_mod.startswith("biomni.tool.tool_description."):
+                    base_module = selected_mod.replace("biomni.tool.tool_description.", "")
+                    module2api_key = f"biomni.tool.{base_module}"
+                else:
+                    module2api_key = selected_mod
+                
+                # If this module is in module2api and not already fully included
+                if module2api_key in self.module2api:
+                    # Get all tools from this module
+                    all_tools_in_module = self.module2api[module2api_key]
+                    
+                    # Initialize if not exists
+                    if module2api_key not in tool_desc:
+                        tool_desc[module2api_key] = []
+                    
+                    # Add all tools from the module (avoid duplicates)
+                    existing_tool_names = {t.get("name") if isinstance(t, dict) else getattr(t, "name", str(t)) 
+                                         for t in tool_desc[module2api_key]}
+                    
+                    for api in all_tools_in_module:
+                        tool_name = api.get("name")
+                        if tool_name and tool_name not in existing_tool_names:
+                            # Convert to tool dict format
+                            tool_dict = {
+                                "name": tool_name,
+                                "description": api.get("description", ""),
+                                "required_parameters": api.get("required_parameters", []),
+                                "optional_parameters": api.get("optional_parameters", []),
+                                "module": module2api_key,
+                            }
+                            tool_desc[module2api_key].append(tool_dict)
+                            existing_tool_names.add(tool_name)
 
         # Prepare data lake items with descriptions
         data_lake_with_desc = []

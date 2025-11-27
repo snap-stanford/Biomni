@@ -224,10 +224,40 @@ def get_llm(
             raise ImportError(  # noqa: B904
                 "langchain-openai package is required for Gemini models. Install with: pip install langchain-openai"
             )
+
+        # Ensure GEMINI_API_KEY is loaded from bash_profile if not in environment
+        gemini_api_key = os.getenv("GEMINI_API_KEY")
+        if not gemini_api_key:
+            try:
+                import subprocess
+
+                result = subprocess.run(
+                    [
+                        "bash",
+                        "-c",
+                        "source ~/.bash_profile 2>/dev/null && echo $GEMINI_API_KEY",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if result.stdout.strip():
+                    gemini_api_key = result.stdout.strip()
+                    os.environ["GEMINI_API_KEY"] = gemini_api_key
+                    print("✓ Loaded GEMINI_API_KEY from ~/.bash_profile")
+            except Exception as e:
+                print(f"Note: Could not load GEMINI_API_KEY from bash_profile: {e}")
+
+        if not gemini_api_key:
+            raise ValueError(
+                "GEMINI_API_KEY environment variable is not set. "
+                "Please set it or add it to ~/.bash_profile"
+            )
+
         return ChatOpenAI(
             model=model,
             temperature=temperature,
-            api_key=os.getenv("GEMINI_API_KEY"),
+            api_key=gemini_api_key,
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             stop_sequences=stop_sequences,
         )

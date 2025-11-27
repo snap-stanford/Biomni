@@ -49,13 +49,14 @@ original_dir = os.getcwd()
 os.chdir(dir_name)
 
 # Copy image file if it exists in parent directory
-image_file = "a.png"
-parent_image_path = os.path.join(original_dir, image_file)
-if os.path.exists(parent_image_path):
-    shutil.copy2(parent_image_path, image_file)
-    print(f"✅ Copied {image_file} to current directory")
-elif not os.path.exists(image_file):
-    print(f"⚠️ Warning: {image_file} not found in current or parent directory")
+image_files = ["rep1.png", "rep2.png", "rep3.png"]
+for image_file in image_files:
+    parent_image_path = os.path.join(original_dir, image_file)
+    if os.path.exists(parent_image_path):
+        shutil.copy2(parent_image_path, image_file)
+        print(f"✅ Copied {image_file} to current directory")
+    elif not os.path.exists(image_file):
+        print(f"⚠️ Warning: {image_file} not found in current or parent directory")
 
 t1 = time.time()
 # llm = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
@@ -70,10 +71,28 @@ agent = A1_HITS(
     use_tool_retriever=True,
     resource_filter_config_path=os.path.join(original_dir, "chainlit", "resource.yaml"),
 )
-user_command = """
+image_file = 'rep1_full.png'
+user_command = f"""
 이 웨스턴블롯 이미지에서 맨 윗줄의 밴드의 세기를 정량화 해줘. control을 기준으로 정규화해서 상대적인 발현량을 계산해야해 
- - user uploaded data file: a.png
+ - user uploaded data file: {image_file}
 """
+# user_command = f"""
+# 이미지의 녹색세포와 빨간색 세포 개수를 세서 그래프로 비교해줘
+# 컨트롤은 컨트롤끼리 비교하고, 실험군은 실험군 끼리 비교해서 각각 바그래프로 보여줘
+#  - user uploaded data file: {image_file}
+# """
+
+# user_command = f"""
+# Run densitometry on Rep1, Rep2, and Rep3, identifying the bands from top to bottom as PSMAD2, SMAD2, and GAPDH.
+# Each of the image has 12 bands.
+
+# 1. Use find_roi_from_image function.
+# 2. Quantify the intensity of them.
+# 3. Caclulate PSMAD2 / (SMAD2 / GAPDH).
+# 4. Normalize values relative to the control.
+# 4. Generate a bar graph with error bars. Result graph should have 4 bars.
+#  - user uploaded data file: {image_files}
+# """
 
 with open("logs.txt", "w") as f1, open("system_prompt.txt", "w") as f2:
     for idx, output in enumerate(agent.go(user_command)):

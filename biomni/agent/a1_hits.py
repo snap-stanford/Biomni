@@ -1,5 +1,6 @@
 import glob
 import re
+import logging
 from typing import Literal, TypedDict, List
 from pydantic import BaseModel, Field
 import time
@@ -333,7 +334,9 @@ Output:
 
         if additional_system_prompt:
             self.system_prompt += "\n----\n" + additional_system_prompt
-        print(self.system_prompt)
+        # 시스템 프롬프트를 녹색으로 출력
+        system_prompt_logger = logging.getLogger("system_prompt")
+        system_prompt_logger.info(self.system_prompt)
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
         self.log = [self.system_prompt]
@@ -519,7 +522,9 @@ Output:
             # Update the system prompt with the selected resources
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
-        print(self.system_prompt)
+        # 시스템 프롬프트를 녹색으로 출력
+        system_prompt_logger = logging.getLogger("system_prompt")
+        system_prompt_logger.info(self.system_prompt)
         if additional_system_prompt:
             self.system_prompt += "\n----\n" + additional_system_prompt
 
@@ -1330,6 +1335,7 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
 
 # GUIDELINES WHEN IMAGE GIVEN
 - If the image is given, you MUST first see the image and understand the image.
+- If the image is needed to be processed, you can use analyze_pixel_distribution function.
 - Then, compare the image with yout final answer.
 
 # GUIDELINES FOR WESTERN BLOT DENSITOMETRY
@@ -1337,6 +1343,9 @@ In each response, you must include EITHER <execute> or <solution> tag. Not both 
 - 2. Apply the chosen lower and upper thresholds when calling find_roi_from_image.
 - 3. **IMPORTANT**: Then, you MUST examine the result image if some bands are still not detected. If so, you MUST iterate through the detected ROIs and scan along the x-axis and y-axis to detect the remaining bands' ROIs.
 - 4. You can use quantify_bands function to quantify the bands' intensities. This intensities result MUST be given as a bar plot AND the image with all the ROIs used in the quantify_bands function.
+
+# GUIDELINES FOR CELL COUNTING
+- Use segment_cells_with_deep_learning function to segment the cells in the image.
 
 # GUIDELINES FOR FILE HANDLING
 - When handling CSV, TSV, or TXT files, first examine the file's structure using head command or pandas function. Do not make assumptions about its layout.

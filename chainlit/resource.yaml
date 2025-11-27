@@ -32,6 +32,8 @@ allowed_resources:
     # - file: biomni/tool/genetics.py
     
     - module: biomni.tool.bio_image_processing
+    - module: biomni.tool.immunology
+    - module: biomni.tool.microbiology
     # Example: Allow all tools from genetics module
     # - module: biomni.tool.genetics
     
