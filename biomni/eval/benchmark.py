@@ -79,8 +79,9 @@ def execute_parallel(commands, max_workers, commands_file):
     if max_workers > 1:
         if use_parallel:
             print(f"⚡ Running with GNU parallel (jobs={max_workers})...\n")
+            # Use --eta instead of --bar for batch environments (no /dev/tty)
             parallel_cmd = (
-                f"parallel --jobs {max_workers} --bar --halt never < {commands_file}"
+                f"parallel --jobs {max_workers} --eta --halt never < {commands_file}"
             )
 
             subprocess.run(parallel_cmd, shell=True)
