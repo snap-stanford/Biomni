@@ -1,0 +1,11 @@
+{
+  "category": "statistics",
+  "difficulty": "medium",
+  "created_at": "2024-11-24T10:30:00",
+  "description": "Basic statistical analysis with visualization",
+  "tags": ["statistics", "visualization", "data_analysis"],
+  "expected_tools": ["run_python_code", "matplotlib"],
+  "requires_images": true,
+  "expected_images": ["histogram.png", "boxplot.png"]
+}
+

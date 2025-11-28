@@ -1,0 +1,30 @@
+# QA System gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# QA Results (실행 결과는 버전 관리하지 않음)
+qa_results/
+
+# 임시 파일
+*.tmp
+*.log
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 개인 설정
+qa_config/custom_*.txt
+
+# 가상환경
+venv/
+env/
+

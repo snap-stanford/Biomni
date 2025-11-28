@@ -634,14 +634,13 @@ Output:
             think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL)
             execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL)
             answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL)
-
+            print(execute_match, answer_match, think_match)
             # Add the message to the state before checking for errors
             state["messages"].append(AIMessage(content=msg.strip()))
-
-            if answer_match:
-                state["next_step"] = "end"
-            elif execute_match:
+            if execute_match:
                 state["next_step"] = "execute"
+            elif answer_match:
+                state["next_step"] = "end"
             elif think_match:
                 state["next_step"] = "generate"
             else:
@@ -1347,17 +1346,35 @@ Output:
             import_instruction = ""
 
         # Format the content consistently for both initial and retrieval cases
-        library_content_formatted = "\n".join(libraries_formatted)
-        data_lake_content_formatted = "\n".join(data_lake_formatted)
+        library_content_formatted = (
+            "\n".join(libraries_formatted)
+            if libraries_formatted
+            else "No specific libraries have been pre-identified for this task.\nUse standard Python libraries (pandas, numpy, scipy, matplotlib, etc.) as needed."
+        )
+        data_lake_content_formatted = (
+            "\n".join(data_lake_formatted)
+            if data_lake_formatted
+            else f"No specific datasets have been pre-identified for this task.\nExplore the data lake directory if you need biological data: {self.path}/data_lake"
+        )
 
         # Format the prompt with the appropriate values
+        # Handle empty tool_desc
+        if isinstance(tool_desc, dict):
+            tool_desc_formatted = (
+                textify_api_dict(tool_desc)
+                if tool_desc
+                else "No specific functions have been pre-identified for this task.\nUse standard Python functions and methods as needed."
+            )
+        else:
+            tool_desc_formatted = (
+                tool_desc
+                if tool_desc
+                else "No specific functions have been pre-identified for this task.\nUse standard Python functions and methods as needed."
+            )
+
         format_dict = {
             "function_intro": function_intro,
-            "tool_desc": (
-                textify_api_dict(tool_desc)
-                if isinstance(tool_desc, dict)
-                else tool_desc
-            ),
+            "tool_desc": tool_desc_formatted,
             "import_instruction": import_instruction,
             "data_lake_path": self.path + "/data_lake",
             "data_lake_intro": data_lake_intro,
@@ -1376,5 +1393,3 @@ Output:
 
         formatted_prompt = prompt_modifier.format(**format_dict)
         return formatted_prompt
-
-

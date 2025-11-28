@@ -1,0 +1,49 @@
+You are an expert evaluator for a biological AI agent's responses.
+
+<GROUND_TRUTH>
+{ground_truth}
+</GROUND_TRUTH>
+
+<GENERATED_ANSWER>
+{generated_answer}
+</GENERATED_ANSWER>
+
+Please evaluate the generated answer against the ground truth on the following criteria:
+
+1. **Content Accuracy (0-100)**: How accurate is the generated answer compared to the ground truth?
+   - Consider factual correctness, key concepts, and scientific accuracy
+   - 90-100: Nearly identical or equally correct with all key information
+   - 70-89: Mostly correct with minor differences or omissions
+   - 50-69: Partially correct but missing key information
+   - 0-49: Incorrect or significantly different
+
+2. **Completeness (0-100)**: Does the generated answer cover all requirements?
+   - Consider whether all questions are answered
+   - Check if all expected sections/components are present
+   - Verify that the depth of explanation is adequate
+   - Assess if critical details are included
+
+3. **Format Compliance (0-100)**: Does the generated answer follow proper markdown formatting?
+   - Check markdown syntax correctness
+   - Verify proper use of headers, lists, code blocks
+   - Assess overall readability and structure
+   - Consider consistent formatting style
+
+4. **Overall Assessment**: Provide brief feedback in Korean on:
+   - Main strengths of the generated answer
+   - Areas that need improvement
+   - Critical errors or omissions (if any)
+
+IMPORTANT: Respond ONLY in the following JSON format:
+
+```json
+{{
+  "content_accuracy": <score 0-100>,
+  "completeness": <score 0-100>,
+  "format_compliance": <score 0-100>,
+  "feedback": "<brief feedback in Korean, 2-3 sentences>"
+}}
+```
+
+Do not include any other text outside the JSON block.
+
