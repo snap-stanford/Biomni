@@ -239,58 +239,54 @@ def print_summary(
     )
     avg_time_per_task = total_execution_time / total_runs if total_runs > 0 else 0
 
+    # 경로 축약 함수
+    def truncate_path(path_str, max_len=60):
+        """경로가 너무 길면 축약"""
+        if len(path_str) <= max_len:
+            return path_str
+        parts = path_str.split("/")
+        if len(parts) <= 2:
+            return path_str
+        return f".../{'/'.join(parts[-2:])}"
+
+    output_path_display = truncate_path(str(run_output_dir), 60)
+
     print("\n")
     print("╔" + "═" * 78 + "╗")
-    print("║" + " " * 25 + "QA PIPELINE SUMMARY" + " " * 34 + "║")
+    print("║" + " " * 27 + "QA PIPELINE SUMMARY" + " " * 32 + "║")
     print("╠" + "═" * 78 + "╣")
-    print(f"║  📋 Run ID: {run_id:<62} ║")
-    print(f"║  📁 Output: {str(run_output_dir):<62} ║")
+    print(f"║  📋 Run ID          : {run_id:<55} ║")
+    print(f"║  📁 Output Path     : {output_path_display:<55} ║")
     print("╠" + "═" * 78 + "╣")
 
     # 실행 설정
-    print("║" + " " * 30 + "CONFIGURATION" + " " * 35 + "║")
+    print("║" + " " * 31 + "CONFIGURATION" + " " * 34 + "║")
     print("╠" + "─" * 78 + "╣")
     print(
-        f"║  Tasks: {total_tasks:<10} │ Repeats/Task: {num_repeats:<10} │ Total Runs: {total_runs:<20} ║"
+        f"║  Tasks              : {total_tasks:<8}   Repeats/Task  : {num_repeats:<8}   Total Runs  : {total_runs:<8} ║"
     )
     print(
-        f"║  Max Workers: {max_workers:<10} │ Pass Threshold: {pass_threshold:<8}% │ SSIM: {ssim_threshold:<20} ║"
+        f"║  Max Workers        : {max_workers:<8}   Pass Threshold: {pass_threshold:.1f}%{' ' * 5}   SSIM Thresh.: {ssim_threshold:<8} ║"
     )
     print("╠" + "═" * 78 + "╣")
 
     # 결과 통계
-    print("║" + " " * 32 + "RESULTS" + " " * 39 + "║")
+    print("║" + " " * 34 + "RESULTS" + " " * 37 + "║")
     print("╠" + "─" * 78 + "╣")
     print(
-        f"║  ✅ Passed: {passed_tasks}/{total_tasks} tasks"
-        + " " * (78 - 21 - len(str(passed_tasks)) - len(str(total_tasks)))
-        + "║"
+        f"║  ✅ Passed          : {passed_tasks}/{total_tasks} tasks{' ' * (50 - len(str(passed_tasks)) - len(str(total_tasks)))}║"
     )
     print(
-        f"║  ❌ Failed: {failed_tasks}/{total_tasks} tasks"
-        + " " * (78 - 21 - len(str(failed_tasks)) - len(str(total_tasks)))
-        + "║"
+        f"║  ❌ Failed          : {failed_tasks}/{total_tasks} tasks{' ' * (50 - len(str(failed_tasks)) - len(str(total_tasks)))}║"
     )
-    print(
-        f"║  📊 Success Rate: {success_rate:.1f}%"
-        + " " * (78 - 23 - len(f"{success_rate:.1f}"))
-        + "║"
-    )
+    print(f"║  📊 Success Rate    : {success_rate:>6.1f}%{' ' * 51}║")
     print("╠" + "─" * 78 + "╣")
-    print(
-        f"║  ⏱️  Total Time: {total_execution_time:.1f}s"
-        + " " * (78 - 20 - len(f"{total_execution_time:.1f}"))
-        + "║"
-    )
-    print(
-        f"║  ⚡ Avg Time/Run: {avg_time_per_task:.1f}s"
-        + " " * (78 - 21 - len(f"{avg_time_per_task:.1f}"))
-        + "║"
-    )
+    print(f"║  ⏱️  Total Time      : {total_execution_time:>8.1f}s{' ' * 48}║")
+    print(f"║  ⚡ Avg Time/Run    : {avg_time_per_task:>8.1f}s{' ' * 48}║")
     print("╠" + "═" * 78 + "╣")
 
     # 태스크별 상세 결과
-    print("║" + " " * 28 + "TASK DETAILS" + " " * 38 + "║")
+    print("║" + " " * 30 + "TASK DETAILS" + " " * 36 + "║")
     print("╠" + "─" * 78 + "╣")
 
     for idx, result in enumerate(final_results, 1):
@@ -302,24 +298,29 @@ def print_summary(
 
         status_icon = "✅" if all_passed else "❌"
 
-        task_line = f"║  {status_icon} {task_id:<25} │ {passed_count}/{total_count} passed │ {avg_time:>6.1f}s avg"
-        padding = 78 - len(task_line) + 1
-        print(task_line + " " * padding + "║")
+        # 더 깔끔한 정렬
+        task_name = f"{task_id:<20}"
+        pass_info = f"{passed_count:>2}/{total_count:<2} passed"
+        time_info = f"{avg_time:>7.1f}s avg"
 
-        if idx < len(final_results):
-            print("║" + " " * 78 + "║")
+        print(f"║  {status_icon} {task_name} │ {pass_info} │ {time_info}{' ' * 13}║")
 
     print("╚" + "═" * 78 + "╝")
     print()
 
     # 최종 상태 메시지
     if passed_tasks == total_tasks:
-        print("🎉 " + "ALL TASKS PASSED!".center(76) + " 🎉")
+        print("\n" + "🎉" * 40)
+        print("🎉" + "ALL TASKS PASSED!".center(78) + "🎉")
+        print("🎉" * 40 + "\n")
     elif passed_tasks > 0:
-        print("⚠️  " + "SOME TASKS FAILED".center(76) + " ⚠️ ")
+        print("\n" + "⚠️ " * 20)
+        print("⚠️ " + "SOME TASKS FAILED".center(76) + " ⚠️")
+        print("⚠️ " * 20 + "\n")
     else:
-        print("❌ " + "ALL TASKS FAILED".center(76) + " ❌")
-    print()
+        print("\n" + "❌" * 40)
+        print("❌" + "ALL TASKS FAILED".center(78) + "❌")
+        print("❌" * 40 + "\n")
 
 
 def generate_report(
