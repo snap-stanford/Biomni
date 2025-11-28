@@ -1077,6 +1077,7 @@ Output:
         custom_tools=None,
         custom_data=None,
         custom_software=None,
+        know_how_docs=None,
     ):
         """Generate the system prompt based on the provided resources.
 

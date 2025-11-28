@@ -956,7 +956,11 @@ class A1:
             commercial_use = metadata.get("commercial_use", "")
 
             # Check if commercial use is NOT allowed
-            if "❌" in commercial_use or "Not Allowed" in commercial_use or "Non-Commercial" in commercial_use:
+            if (
+                "❌" in commercial_use
+                or "Not Allowed" in commercial_use
+                or "Non-Commercial" in commercial_use
+            ):
                 docs_to_remove.append(doc_id)
 
         # Remove documents that don't allow commercial use
@@ -1270,11 +1274,12 @@ You may or may not receive feedbacks from human. If so, address the feedbacks by
 
         # Add custom resources section first (highlighted)
         has_custom_resources = any(
-<<<<<<< HEAD
-            [custom_tools_formatted, custom_data_formatted, custom_software_formatted]
-=======
-            [custom_tools_formatted, custom_data_formatted, custom_software_formatted, know_how_formatted]
->>>>>>> upstream/main
+            [
+                custom_tools_formatted,
+                custom_data_formatted,
+                custom_software_formatted,
+                know_how_formatted,
+            ]
         )
 
         if has_custom_resources:
@@ -1490,7 +1495,9 @@ Each library is listed with its description to help you understand its functiona
                         "metadata": doc["metadata"],
                     }
                 )
-            print(f"📚 Loading {len(know_how_docs)} know-how documents into system prompt")
+            print(
+                f"📚 Loading {len(know_how_docs)} know-how documents into system prompt"
+            )
 
         self.system_prompt = self._generate_system_prompt(
             tool_desc=tool_desc,
@@ -1509,16 +1516,13 @@ Each library is listed with its description to help you understand its functiona
             # Add OpenAI-specific formatting reminders if using OpenAI models
             system_prompt = self.system_prompt
             if hasattr(self.llm, "model_name") and (
-                "gpt" in str(self.llm.model_name).lower() or "openai" in str(type(self.llm)).lower()
+                "gpt" in str(self.llm.model_name).lower()
+                or "openai" in str(type(self.llm)).lower()
             ):
                 system_prompt += "\n\nIMPORTANT FOR GPT MODELS: You MUST use XML tags <execute> or <solution> in EVERY response. Do not use markdown code blocks (```) - use <execute> tags instead."
 
             messages = [SystemMessage(content=system_prompt)] + state["messages"]
             response = self.llm.invoke(messages)
-<<<<<<< HEAD
-            # Parse the response
-            msg = str(response.content)
-=======
 
             # Normalize Responses API content blocks (list of dicts) into a plain string
             content = response.content
@@ -1540,7 +1544,6 @@ Each library is listed with its description to help you understand its functiona
             else:
                 # Fallback to string conversion for legacy content
                 msg = str(content)
->>>>>>> upstream/main
 
             # Enhanced parsing for better OpenAI compatibility
             # Check for incomplete tags and fix them
@@ -1552,14 +1555,22 @@ Each library is listed with its description to help you understand its functiona
                 msg += "</think>"
 
             # More flexible pattern matching for different LLM styles
-            think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL | re.IGNORECASE)
-            execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL | re.IGNORECASE)
-            answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL | re.IGNORECASE)
+            think_match = re.search(
+                r"<think>(.*?)</think>", msg, re.DOTALL | re.IGNORECASE
+            )
+            execute_match = re.search(
+                r"<execute>(.*?)</execute>", msg, re.DOTALL | re.IGNORECASE
+            )
+            answer_match = re.search(
+                r"<solution>(.*?)</solution>", msg, re.DOTALL | re.IGNORECASE
+            )
 
             # Alternative patterns for OpenAI models that might use different formatting
             if not execute_match:
                 # Try to find code blocks that might be intended as execute blocks
-                code_block_match = re.search(r"```(?:python|bash|r)?\s*(.*?)```", msg, re.DOTALL)
+                code_block_match = re.search(
+                    r"```(?:python|bash|r)?\s*(.*?)```", msg, re.DOTALL
+                )
                 if code_block_match and not answer_match:
                     # If we found a code block and no solution, treat it as execute
                     execute_match = code_block_match
@@ -1836,21 +1847,6 @@ Each library is listed with its description to help you understand its functiona
                         {"name": name, "description": info["description"]}
                     )
 
-<<<<<<< HEAD
-            # Use retrieval to get relevant resources
-            resources = {
-                "tools": all_tools,
-                "data_lake": data_lake_descriptions,
-                "libraries": library_descriptions,
-            }
-            # Use prompt-based retrieval with the agent's LLM
-            # tool_llm = get_llm(model="solar-pro2")
-            tool_llm = get_llm(model="us.anthropic.claude-3-7-sonnet-20250219-v1:0")
-            selected_resources = self.retriever.prompt_based_retrieval(
-                prompt, resources, llm=tool_llm
-            )
-            print("Using prompt-based retrieval with the agent's LLM")
-=======
         # 4. Know-how documents
         know_how_summaries = self.know_how_loader.get_document_summaries()
 
@@ -1863,26 +1859,23 @@ Each library is listed with its description to help you understand its functiona
         }
 
         # Use prompt-based retrieval with the agent's LLM
-        selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
+        selected_resources = self.retriever.prompt_based_retrieval(
+            prompt, resources, llm=self.llm
+        )
         print("\n" + "=" * 60)
         print("🔍 RESOURCE RETRIEVAL")
         print("=" * 60)
         print("Using prompt-based retrieval with the agent's LLM")
->>>>>>> upstream/main
 
         # Extract the names from the selected resources for the system prompt
         selected_resources_names = {
             "tools": selected_resources["tools"],
             "data_lake": [],
-<<<<<<< HEAD
             "libraries": [
                 lib["name"] if isinstance(lib, dict) else lib
                 for lib in selected_resources["libraries"]
             ],
-=======
-            "libraries": [lib["name"] if isinstance(lib, dict) else lib for lib in selected_resources["libraries"]],
             "know_how": [],
->>>>>>> upstream/main
         }
 
         # Process data lake items to extract just the names
@@ -1896,9 +1889,6 @@ Each library is listed with its description to help you understand its functiona
             else:
                 selected_resources_names["data_lake"].append(item)
 
-<<<<<<< HEAD
-            # Update the system prompt with the selected resources
-=======
         # Process know-how documents - get the full content for selected documents
         if "know_how" in selected_resources and selected_resources["know_how"]:
             print("\n📚 Know-How Documents Retrieved:")
@@ -1913,7 +1903,9 @@ Each library is listed with its description to help you understand its functiona
                             "id": doc["id"],
                             "name": doc["name"],
                             "description": doc["description"],
-                            "content": doc["content_without_metadata"],  # Use stripped version for agent
+                            "content": doc[
+                                "content_without_metadata"
+                            ],  # Use stripped version for agent
                             "metadata": doc["metadata"],
                         }
                         selected_resources_names["know_how"].append(doc_for_agent)
@@ -1943,7 +1935,6 @@ Each library is listed with its description to help you understand its functiona
 
         if self.use_tool_retriever:
             selected_resources_names = self._prepare_resources_for_retrieval(prompt)
->>>>>>> upstream/main
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
@@ -2898,7 +2889,13 @@ Each library is listed with its description to help you understand its functiona
 
             return wrapper
 
-    def launch_gradio_demo(self, thread_id=42, share=False, server_name="0.0.0.0", require_verification=False):
+    def launch_gradio_demo(
+        self,
+        thread_id=42,
+        share=False,
+        server_name="0.0.0.0",
+        require_verification=False,
+    ):
         """Launch a full-featured Gradio UI for the A1 agent (adapted from codeact_copilot).
 
         Args:
@@ -2915,13 +2912,23 @@ Each library is listed with its description to help you understand its functiona
             import gradio as gr
             from gradio import ChatMessage
         except ImportError:
-            raise ImportError("Gradio is not installed. Please install it with: pip install gradio") from None
+            raise ImportError(
+                "Gradio is not installed. Please install it with: pip install gradio"
+            ) from None
 
         import os
         from time import time
 
         # Define supported file extensions
-        SUPPORTED_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".pdf")
+        SUPPORTED_EXTENSIONS = (
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".gif",
+            ".bmp",
+            ".webp",
+            ".pdf",
+        )
 
         self.main_history_copy = []
 
@@ -2931,12 +2938,19 @@ Each library is listed with its description to help you understand its functiona
         # Function for verification page
         def verify_access_code(code):
             if code in available_access_codes:
-                return gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)
+                return (
+                    gr.update(visible=False),
+                    gr.update(visible=True),
+                    gr.update(visible=False),
+                )
             else:
                 return (
                     gr.update(visible=True),
                     gr.update(visible=False),
-                    gr.update(value="Incorrect access code. Please check your access code.", visible=True),
+                    gr.update(
+                        value="Incorrect access code. Please check your access code.",
+                        visible=True,
+                    ),
                 )
 
         def generate_response(prompt_input, inner_history=None, main_history=None):
@@ -2948,10 +2962,16 @@ Each library is listed with its description to help you understand its functiona
             files = prompt_input.get("files", [])
 
             self.main_history_copy += [{"role": "user", "content": text_input}]
-            main_history.append(ChatMessage(role="user", content=text_input if text_input else "[Uploaded file]"))
+            main_history.append(
+                ChatMessage(
+                    role="user", content=text_input if text_input else "[Uploaded file]"
+                )
+            )
 
             # Add "Executor is working on it" message
-            main_history.append(ChatMessage(role="assistant", content="Executor is working on it 👉"))
+            main_history.append(
+                ChatMessage(role="assistant", content="Executor is working on it 👉")
+            )
             yield inner_history, main_history
 
             # Process uploaded files if any
@@ -2989,9 +3009,13 @@ Each library is listed with its description to help you understand its functiona
                 yield inner_history, main_history
 
                 try:
-                    selected_resources_names = self._prepare_resources_for_retrieval(text_input)
+                    selected_resources_names = self._prepare_resources_for_retrieval(
+                        text_input
+                    )
                     if selected_resources_names:
-                        self.update_system_prompt_with_selected_resources(selected_resources_names)
+                        self.update_system_prompt_with_selected_resources(
+                            selected_resources_names
+                        )
                 except Exception as e:
                     print(f"Warning: Tool retrieval failed: {e}")
                     print("Continuing without tool retrieval...")
@@ -3034,35 +3058,49 @@ Each library is listed with its description to help you understand its functiona
                                 ChatMessage(
                                     role="assistant",
                                     content=f"{thinking}",
-                                    metadata={"title": "🤔 Reasoning", "log": "Agent's thinking process"},
+                                    metadata={
+                                        "title": "🤔 Reasoning",
+                                        "log": "Agent's thinking process",
+                                    },
                                 )
                             )
                             yield inner_history, main_history
 
                     # Check for solution tag
-                    solution_match = re.search(r"<solution>(.*?)</solution>", message.content, re.DOTALL)
+                    solution_match = re.search(
+                        r"<solution>(.*?)</solution>", message.content, re.DOTALL
+                    )
                     if solution_match and not solution_found:
                         solution = solution_match.group(1).strip()
                         main_history.append(
                             ChatMessage(
                                 role="assistant",
                                 content=solution,
-                                metadata={"title": "✅ Answer", "log": "Final answer provided by the agent"},
+                                metadata={
+                                    "title": "✅ Answer",
+                                    "log": "Final answer provided by the agent",
+                                },
                             )
                         )
-                        self.main_history_copy += [{"role": "assistant", "content": solution}]
+                        self.main_history_copy += [
+                            {"role": "assistant", "content": solution}
+                        ]
                         solution_found = True
                         yield inner_history, main_history
 
                     # Check for execute tag
-                    execute_match = re.search(r"<execute>(.*?)</execute>", message.content, re.DOTALL)
+                    execute_match = re.search(
+                        r"<execute>(.*?)</execute>", message.content, re.DOTALL
+                    )
                     if execute_match:
                         code = execute_match.group(1).strip()
                         language = "python"
                         if code.strip().startswith("#!R"):
                             language = "r"
                             code = re.sub(r"^#!R", "", code, count=1).strip()
-                        elif code.strip().startswith("#!BASH") or code.strip().startswith("#!CLI"):
+                        elif code.strip().startswith(
+                            "#!BASH"
+                        ) or code.strip().startswith("#!CLI"):
                             language = "bash"
                             code = re.sub(r"^#!BASH|^#!CLI", "", code, count=1).strip()
 
@@ -3081,7 +3119,9 @@ Each library is listed with its description to help you understand its functiona
                         yield inner_history, main_history
 
                     # Check for observation
-                    observation_match = re.search(r"<observation>(.*?)</observation>", message.content, re.DOTALL)
+                    observation_match = re.search(
+                        r"<observation>(.*?)</observation>", message.content, re.DOTALL
+                    )
                     if observation_match:
                         observation = observation_match.group(1).strip()
 
@@ -3113,13 +3153,20 @@ Each library is listed with its description to help you understand its functiona
                         yield inner_history, main_history
 
                         # Check for file paths in the observation
-                        if isinstance(observation, str) and any(ext in observation for ext in SUPPORTED_EXTENSIONS):
-                            matches = re.findall(r"(\S+?(?:\.png|\.jpg|\.jpeg|\.gif|\.bmp|\.webp|\.pdf))", observation)
+                        if isinstance(observation, str) and any(
+                            ext in observation for ext in SUPPORTED_EXTENSIONS
+                        ):
+                            matches = re.findall(
+                                r"(\S+?(?:\.png|\.jpg|\.jpeg|\.gif|\.bmp|\.webp|\.pdf))",
+                                observation,
+                            )
 
                             valid_matches = []
                             for match in matches:
                                 if not (
-                                    match.startswith("Warning:") or match.startswith("Error:") or match.startswith("'")
+                                    match.startswith("Warning:")
+                                    or match.startswith("Error:")
+                                    or match.startswith("'")
                                 ):
                                     if not match.startswith("."):
                                         valid_matches.append(match)
@@ -3129,7 +3176,10 @@ Each library is listed with its description to help you understand its functiona
                                     ChatMessage(
                                         role="assistant",
                                         content="",
-                                        metadata={"title": "📁 Files", "log": "Files generated by the agent"},
+                                        metadata={
+                                            "title": "📁 Files",
+                                            "log": "Files generated by the agent",
+                                        },
                                     )
                                 )
 
@@ -3137,14 +3187,20 @@ Each library is listed with its description to help you understand its functiona
                                     file_path = file_path.strip("\"'").strip()
 
                                     abs_path = None
-                                    if os.path.isabs(file_path) and os.path.exists(file_path):
+                                    if os.path.isabs(file_path) and os.path.exists(
+                                        file_path
+                                    ):
                                         abs_path = file_path
-                                    elif os.path.exists(os.path.join(os.getcwd(), file_path)):
+                                    elif os.path.exists(
+                                        os.path.join(os.getcwd(), file_path)
+                                    ):
                                         abs_path = os.path.join(os.getcwd(), file_path)
                                     elif (
                                         hasattr(self, "path")
                                         and self.path
-                                        and os.path.exists(os.path.join(self.path, file_path))
+                                        and os.path.exists(
+                                            os.path.join(self.path, file_path)
+                                        )
                                     ):
                                         abs_path = os.path.join(self.path, file_path)
 
@@ -3162,7 +3218,9 @@ Each library is listed with its description to help you understand its functiona
                                                 ChatMessage(
                                                     role="assistant",
                                                     content=gr.Image(abs_path),
-                                                    metadata={"title": "🖼️ Image Preview"},
+                                                    metadata={
+                                                        "title": "🖼️ Image Preview"
+                                                    },
                                                 )
                                             )
 
@@ -3173,25 +3231,44 @@ Each library is listed with its description to help you understand its functiona
             # If no solution was found, add the final message
             if not solution_found:
                 final_message = s["messages"][-1].content if s["messages"] else ""
-                solution_match = re.search(r"<solution>(.*?)</solution>", final_message, re.DOTALL)
+                solution_match = re.search(
+                    r"<solution>(.*?)</solution>", final_message, re.DOTALL
+                )
                 if solution_match:
                     solution = solution_match.group(1).strip()
                     main_history.append(
-                        ChatMessage(role="assistant", content=solution, metadata={"title": "✅ Solution"})
+                        ChatMessage(
+                            role="assistant",
+                            content=solution,
+                            metadata={"title": "✅ Solution"},
+                        )
                     )
-                    self.main_history_copy += [{"role": "assistant", "content": solution}]
+                    self.main_history_copy += [
+                        {"role": "assistant", "content": solution}
+                    ]
                 else:
-                    cleaned_content = re.sub(r"<execute>.*?</execute>", "", final_message, flags=re.DOTALL)
-                    cleaned_content = re.sub(r"<observation>.*?</observation>", "", cleaned_content, flags=re.DOTALL)
+                    cleaned_content = re.sub(
+                        r"<execute>.*?</execute>", "", final_message, flags=re.DOTALL
+                    )
+                    cleaned_content = re.sub(
+                        r"<observation>.*?</observation>",
+                        "",
+                        cleaned_content,
+                        flags=re.DOTALL,
+                    )
                     cleaned_content = re.sub(r"\n\s*\n", "\n\n", cleaned_content)
 
                     if cleaned_content.strip():
                         main_history.append(
                             ChatMessage(
-                                role="assistant", content=cleaned_content.strip(), metadata={"title": "📝 Summary"}
+                                role="assistant",
+                                content=cleaned_content.strip(),
+                                metadata={"title": "📝 Summary"},
                             )
                         )
-                        self.main_history_copy += [{"role": "assistant", "content": cleaned_content.strip()}]
+                        self.main_history_copy += [
+                            {"role": "assistant", "content": cleaned_content.strip()}
+                        ]
                     else:
                         main_history.append(
                             ChatMessage(
@@ -3200,7 +3277,9 @@ Each library is listed with its description to help you understand its functiona
                                 metadata={"title": "📝 Summary"},
                             )
                         )
-                        self.main_history_copy += [{"role": "assistant", "content": "Task completed."}]
+                        self.main_history_copy += [
+                            {"role": "assistant", "content": "Task completed."}
+                        ]
 
             # Add completion message
             inner_history.append(
@@ -3231,7 +3310,11 @@ Each library is listed with its description to help you understand its functiona
                 verify_btn.click(
                     fn=verify_access_code,
                     inputs=[access_code_input],
-                    outputs=[verification_container, main_interface_container, access_error_msg],
+                    outputs=[
+                        verification_container,
+                        main_interface_container,
+                        access_error_msg,
+                    ],
                 )
 
             # Main interface
