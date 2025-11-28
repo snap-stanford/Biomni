@@ -230,7 +230,7 @@ def get_llm(
             temperature=temperature,
             api_key=os.getenv("GEMINI_API_KEY"),
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-            stop_sequences=stop_sequences,
+            # stop_sequences=stop_sequences,
         )
 
     elif source == "Groq":

@@ -634,7 +634,7 @@ Output:
             think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL)
             execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL)
             answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL)
-
+            print(execute_match, answer_match, think_match)
             # Add the message to the state before checking for errors
             state["messages"].append(AIMessage(content=msg.strip()))
             if execute_match:
