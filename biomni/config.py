@@ -49,6 +49,9 @@ class BiomniConfig:
     # LLM source (auto-detected if None)
     source: str | None = None
 
+    # Third-party integrations
+    protocols_io_access_token: str | None = None
+
     def __post_init__(self):
         """Load any environment variable overrides if they exist."""
         # Check for environment variable overrides (optional)
@@ -71,6 +74,11 @@ class BiomniConfig:
             self.api_key = os.getenv("BIOMNI_CUSTOM_API_KEY")
         if os.getenv("BIOMNI_SOURCE"):
             self.source = os.getenv("BIOMNI_SOURCE")
+
+        # Protocols.io access token (prefer specific env vars)
+        env_token = os.getenv("PROTOCOLS_IO_ACCESS_TOKEN") or os.getenv("BIOMNI_PROTOCOLS_IO_ACCESS_TOKEN")
+        if env_token:
+            self.protocols_io_access_token = env_token
 
     def to_dict(self) -> dict:
         """Convert config to dictionary for easy access."""

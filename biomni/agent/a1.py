@@ -15,6 +15,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from biomni.config import default_config
+from biomni.know_how import KnowHowLoader
 from biomni.llm import SourceType, get_llm
 from biomni.model.retriever import ToolRetriever
 from biomni.tool.support_tools import run_python_repl
@@ -168,30 +169,33 @@ class A1:
         if expected_data_lake_files is None:
             expected_data_lake_files = list(self.data_lake_dict.keys())
 
-        # Check and download missing data lake files
-        print("Checking and downloading missing data lake files...")
-        check_and_download_s3_files(
-            s3_bucket_url="https://biomni-release.s3.amazonaws.com",
-            local_data_lake_path=data_lake_dir,
-            expected_files=expected_data_lake_files,
-            folder="data_lake",
-        )
-
-        # Check if benchmark directory structure is complete
-        benchmark_ok = False
-        if os.path.isdir(benchmark_dir):
-            patient_gene_detection_dir = os.path.join(benchmark_dir, "hle")
-            if os.path.isdir(patient_gene_detection_dir):
-                benchmark_ok = True
-
-        if not benchmark_ok:
-            print("Checking and downloading benchmark files...")
+            # Check and download missing data lake files
+            print("Checking and downloading missing data lake files...")
             check_and_download_s3_files(
                 s3_bucket_url="https://biomni-release.s3.amazonaws.com",
-                local_data_lake_path=benchmark_dir,
-                expected_files=[],  # Empty list - will download entire folder
-                folder="benchmark",
+                local_data_lake_path=data_lake_dir,
+                expected_files=expected_data_lake_files,
+                folder="data_lake",
             )
+
+            # Check if benchmark directory structure is complete
+            benchmark_ok = False
+            if os.path.isdir(benchmark_dir):
+                patient_gene_detection_dir = os.path.join(benchmark_dir, "hle")
+                if os.path.isdir(patient_gene_detection_dir):
+                    benchmark_ok = True
+
+            if not benchmark_ok:
+                print("Checking and downloading benchmark files...")
+                check_and_download_s3_files(
+                    s3_bucket_url="https://biomni-release.s3.amazonaws.com",
+                    local_data_lake_path=benchmark_dir,
+                    expected_files=[],  # Empty list - will download entire folder
+                    folder="benchmark",
+                )
+        else:
+            print("Skipping datalake download (load_datalake=False)")
+            print("Note: Some tools may require datalake files to function properly.")
 
         self.path = os.path.join(path, "biomni_data")
         module2api = read_module2api()
@@ -210,6 +214,15 @@ class A1:
         if self.use_tool_retriever:
             self.tool_registry = ToolRegistry(module2api)
             self.retriever = ToolRetriever()
+
+        # Initialize know-how loader
+        self.know_how_loader = KnowHowLoader()
+
+        # Filter know-how documents based on commercial mode
+        if commercial_mode:
+            self._filter_know_how_for_commercial_mode()
+
+        print(f"📚 Loaded {len(self.know_how_loader.documents)} know-how documents")
 
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
@@ -930,6 +943,28 @@ class A1:
 
         return removed
 
+    def _filter_know_how_for_commercial_mode(self):
+        """Filter out know-how documents that don't allow commercial use.
+
+        This method removes documents from the know-how loader that have
+        commercial use restrictions when the agent is in commercial mode.
+        """
+        docs_to_remove = []
+
+        for doc_id, doc in self.know_how_loader.documents.items():
+            metadata = doc.get("metadata", {})
+            commercial_use = metadata.get("commercial_use", "")
+
+            # Check if commercial use is NOT allowed
+            if "❌" in commercial_use or "Not Allowed" in commercial_use or "Non-Commercial" in commercial_use:
+                docs_to_remove.append(doc_id)
+
+        # Remove documents that don't allow commercial use
+        for doc_id in docs_to_remove:
+            doc_name = self.know_how_loader.documents[doc_id]["name"]
+            self.know_how_loader.remove_document(doc_id)
+            print(f"  ⚠️  Excluded know-how '{doc_name}' (non-commercial license)")
+
     def _generate_system_prompt(
         self,
         tool_desc,
@@ -940,6 +975,7 @@ class A1:
         custom_tools=None,
         custom_data=None,
         custom_software=None,
+        know_how_docs=None,
     ):
         """Generate the system prompt based on the provided resources.
 
@@ -952,6 +988,7 @@ class A1:
             custom_tools: List of custom tools to highlight
             custom_data: List of custom data items to highlight
             custom_software: List of custom software items to highlight
+            know_how_docs: List of know-how documents with best practices and protocols
 
         Returns:
             The generated system prompt
@@ -1157,6 +1194,16 @@ class A1:
                         f"⚙️ {format_item_with_description(item, desc)}"
                     )
 
+        # Format know-how documents - include FULL content (metadata already stripped)
+        know_how_formatted = []
+        if know_how_docs:
+            for doc in know_how_docs:
+                if isinstance(doc, dict):
+                    name = doc.get("name", "Unknown")
+                    content = doc.get("content", "")
+                    # Include full content in system prompt (metadata already removed)
+                    know_how_formatted.append(f"📚 {name}:\n{content}")
+
         # Base prompt
         prompt_modifier = """
 You are a helpful biomedical assistant assigned with the task of problem-solving.
@@ -1223,7 +1270,11 @@ You may or may not receive feedbacks from human. If so, address the feedbacks by
 
         # Add custom resources section first (highlighted)
         has_custom_resources = any(
+<<<<<<< HEAD
             [custom_tools_formatted, custom_data_formatted, custom_software_formatted]
+=======
+            [custom_tools_formatted, custom_data_formatted, custom_software_formatted, know_how_formatted]
+>>>>>>> upstream/main
         )
 
         if has_custom_resources:
@@ -1234,6 +1285,21 @@ PRIORITY CUSTOM RESOURCES
 IMPORTANT: The following custom resources have been specifically added for your use.
     PRIORITIZE using these resources as they are directly relevant to your task.
     Always consider these FIRST and in the meantime using default resources.
+
+"""
+
+            if know_how_formatted:
+                prompt_modifier += """
+📚 KNOW-HOW DOCUMENTS (BEST PRACTICES & PROTOCOLS - ALREADY LOADED):
+{know_how_docs}
+
+IMPORTANT: These documents are ALREADY AVAILABLE in your context. You do NOT need to
+retrieve them or "review" them as a separate step. You can DIRECTLY reference and use
+the information from these documents to answer questions, provide protocols, suggest
+parameters, and offer troubleshooting guidance.
+
+These documents contain expert knowledge, protocols, and troubleshooting guidance.
+Reference them directly for experimental design, methodology, and problem-solving.
 
 """
 
@@ -1327,6 +1393,8 @@ Each library is listed with its description to help you understand its functiona
         }
 
         # Add custom resources to format dict if they exist
+        if know_how_formatted:
+            format_dict["know_how_docs"] = "\n\n".join(know_how_formatted)
         if custom_tools_formatted:
             format_dict["custom_tools"] = "\n".join(custom_tools_formatted)
         if custom_data_formatted:
@@ -1407,6 +1475,23 @@ Each library is listed with its description to help you understand its functiona
                     {"name": name, "description": info["description"]}
                 )
 
+        # Load ALL know-how documents into initial system prompt
+        # This makes best practices always available, not just when retrieved
+        know_how_docs = []
+        if hasattr(self, "know_how_loader") and self.know_how_loader.documents:
+            for _doc_id, doc in self.know_how_loader.documents.items():
+                # Use content without metadata for efficiency
+                know_how_docs.append(
+                    {
+                        "id": doc["id"],
+                        "name": doc["name"],
+                        "description": doc["description"],
+                        "content": doc["content_without_metadata"],
+                        "metadata": doc["metadata"],
+                    }
+                )
+            print(f"📚 Loading {len(know_how_docs)} know-how documents into system prompt")
+
         self.system_prompt = self._generate_system_prompt(
             tool_desc=tool_desc,
             data_lake_content=data_lake_with_desc,
@@ -1416,15 +1501,48 @@ Each library is listed with its description to help you understand its functiona
             custom_tools=custom_tools if custom_tools else None,
             custom_data=custom_data if custom_data else None,
             custom_software=custom_software if custom_software else None,
+            know_how_docs=know_how_docs if know_how_docs else None,
         )
 
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
-            messages = [SystemMessage(content=self.system_prompt)] + state["messages"]
+            # Add OpenAI-specific formatting reminders if using OpenAI models
+            system_prompt = self.system_prompt
+            if hasattr(self.llm, "model_name") and (
+                "gpt" in str(self.llm.model_name).lower() or "openai" in str(type(self.llm)).lower()
+            ):
+                system_prompt += "\n\nIMPORTANT FOR GPT MODELS: You MUST use XML tags <execute> or <solution> in EVERY response. Do not use markdown code blocks (```) - use <execute> tags instead."
+
+            messages = [SystemMessage(content=system_prompt)] + state["messages"]
             response = self.llm.invoke(messages)
+<<<<<<< HEAD
             # Parse the response
             msg = str(response.content)
+=======
 
+            # Normalize Responses API content blocks (list of dicts) into a plain string
+            content = response.content
+            if isinstance(content, list):
+                # Concatenate textual parts; ignore tool_use or other non-text blocks
+                text_parts: list[str] = []
+                for block in content:
+                    try:
+                        if isinstance(block, dict):
+                            btype = block.get("type")
+                            if btype in ("text", "output_text", "redacted_text"):
+                                part = block.get("text") or block.get("content") or ""
+                                if isinstance(part, str):
+                                    text_parts.append(part)
+                    except Exception:
+                        # Be conservative; skip malformed blocks
+                        continue
+                msg = "".join(text_parts)
+            else:
+                # Fallback to string conversion for legacy content
+                msg = str(content)
+>>>>>>> upstream/main
+
+            # Enhanced parsing for better OpenAI compatibility
             # Check for incomplete tags and fix them
             if "<execute>" in msg and "</execute>" not in msg:
                 msg += "</execute>"
@@ -1433,9 +1551,18 @@ Each library is listed with its description to help you understand its functiona
             if "<think>" in msg and "</think>" not in msg:
                 msg += "</think>"
 
-            think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL)
-            execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL)
-            answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL)
+            # More flexible pattern matching for different LLM styles
+            think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL | re.IGNORECASE)
+            execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL | re.IGNORECASE)
+            answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL | re.IGNORECASE)
+
+            # Alternative patterns for OpenAI models that might use different formatting
+            if not execute_match:
+                # Try to find code blocks that might be intended as execute blocks
+                code_block_match = re.search(r"```(?:python|bash|r)?\s*(.*?)```", msg, re.DOTALL)
+                if code_block_match and not answer_match:
+                    # If we found a code block and no solution, treat it as execute
+                    execute_match = code_block_match
 
             # Add the message to the state before checking for errors
             state["messages"].append(AIMessage(content=msg.strip()))
@@ -1709,6 +1836,7 @@ Each library is listed with its description to help you understand its functiona
                         {"name": name, "description": info["description"]}
                     )
 
+<<<<<<< HEAD
             # Use retrieval to get relevant resources
             resources = {
                 "tools": all_tools,
@@ -1722,15 +1850,39 @@ Each library is listed with its description to help you understand its functiona
                 prompt, resources, llm=tool_llm
             )
             print("Using prompt-based retrieval with the agent's LLM")
+=======
+        # 4. Know-how documents
+        know_how_summaries = self.know_how_loader.get_document_summaries()
+
+        # Use retrieval to get relevant resources
+        resources = {
+            "tools": all_tools,
+            "data_lake": data_lake_descriptions,
+            "libraries": library_descriptions,
+            "know_how": know_how_summaries,
+        }
+
+        # Use prompt-based retrieval with the agent's LLM
+        selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
+        print("\n" + "=" * 60)
+        print("🔍 RESOURCE RETRIEVAL")
+        print("=" * 60)
+        print("Using prompt-based retrieval with the agent's LLM")
+>>>>>>> upstream/main
 
         # Extract the names from the selected resources for the system prompt
         selected_resources_names = {
             "tools": selected_resources["tools"],
             "data_lake": [],
+<<<<<<< HEAD
             "libraries": [
                 lib["name"] if isinstance(lib, dict) else lib
                 for lib in selected_resources["libraries"]
             ],
+=======
+            "libraries": [lib["name"] if isinstance(lib, dict) else lib for lib in selected_resources["libraries"]],
+            "know_how": [],
+>>>>>>> upstream/main
         }
 
         # Process data lake items to extract just the names
@@ -1744,7 +1896,54 @@ Each library is listed with its description to help you understand its functiona
             else:
                 selected_resources_names["data_lake"].append(item)
 
+<<<<<<< HEAD
             # Update the system prompt with the selected resources
+=======
+        # Process know-how documents - get the full content for selected documents
+        if "know_how" in selected_resources and selected_resources["know_how"]:
+            print("\n📚 Know-How Documents Retrieved:")
+            for item in selected_resources["know_how"]:
+                if isinstance(item, dict):
+                    doc_id = item["id"]
+                    doc = self.know_how_loader.get_document_by_id(doc_id)
+                    if doc:
+                        print(f"  ✓ {doc['name']}")
+                        # Create a copy with content_without_metadata for agent context
+                        doc_for_agent = {
+                            "id": doc["id"],
+                            "name": doc["name"],
+                            "description": doc["description"],
+                            "content": doc["content_without_metadata"],  # Use stripped version for agent
+                            "metadata": doc["metadata"],
+                        }
+                        selected_resources_names["know_how"].append(doc_for_agent)
+        else:
+            print("\n📚 Know-How: None retrieved for this query")
+
+        # Print summary of what was retrieved
+        print("\n" + "-" * 60)
+        print("📊 RETRIEVAL SUMMARY:")
+        print(f"  🔧 Tools: {len(selected_resources_names['tools'])} selected")
+        print(f"  📊 Data Lake: {len(selected_resources_names['data_lake'])} selected")
+        print(f"  ⚙️  Libraries: {len(selected_resources_names['libraries'])} selected")
+        print(f"  📚 Know-How: {len(selected_resources_names['know_how'])} selected")
+        print("=" * 60 + "\n")
+
+        return selected_resources_names
+
+    def go(self, prompt):
+        """Execute the agent with the given prompt.
+
+        Args:
+            prompt: The user's query
+
+        """
+        self.critic_count = 0
+        self.user_task = prompt
+
+        if self.use_tool_retriever:
+            selected_resources_names = self._prepare_resources_for_retrieval(prompt)
+>>>>>>> upstream/main
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
@@ -1894,6 +2093,9 @@ Each library is listed with its description to help you understand its functiona
                     {"name": name, "description": info["description"]}
                 )
 
+        # Extract know-how documents if present
+        know_how_docs = selected_resources.get("know_how", [])
+
         self.system_prompt = self._generate_system_prompt(
             tool_desc=tool_desc,
             data_lake_content=data_lake_with_desc,
@@ -1903,6 +2105,7 @@ Each library is listed with its description to help you understand its functiona
             custom_tools=custom_tools if custom_tools else None,
             custom_data=custom_data if custom_data else None,
             custom_software=custom_software if custom_software else None,
+            know_how_docs=know_how_docs if know_how_docs else None,
         )
 
         # Print the raw system prompt for debugging
@@ -2694,3 +2897,379 @@ Each library is listed with its description to help you understand its functiona
             )
 
             return wrapper
+
+    def launch_gradio_demo(self, thread_id=42, share=False, server_name="0.0.0.0", require_verification=False):
+        """Launch a full-featured Gradio UI for the A1 agent (adapted from codeact_copilot).
+
+        Args:
+            thread_id: Thread ID for the conversation
+            share: Whether to create a public shareable link
+            server_name: Server name/IP to bind to (default: "0.0.0.0")
+            require_verification: If True, requires access code verification
+
+        Example:
+            >>> agent = A1()
+            >>> agent.launch_gradio_demo()
+        """
+        try:
+            import gradio as gr
+            from gradio import ChatMessage
+        except ImportError:
+            raise ImportError("Gradio is not installed. Please install it with: pip install gradio") from None
+
+        import os
+        from time import time
+
+        # Define supported file extensions
+        SUPPORTED_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".pdf")
+
+        self.main_history_copy = []
+
+        # Available access codes (if verification is required)
+        available_access_codes = ["Biomni2025"]
+
+        # Function for verification page
+        def verify_access_code(code):
+            if code in available_access_codes:
+                return gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)
+            else:
+                return (
+                    gr.update(visible=True),
+                    gr.update(visible=False),
+                    gr.update(value="Incorrect access code. Please check your access code.", visible=True),
+                )
+
+        def generate_response(prompt_input, inner_history=None, main_history=None):
+            if main_history is None:
+                main_history = []
+            if inner_history is None:
+                inner_history = []
+            text_input = prompt_input.get("text", "")
+            files = prompt_input.get("files", [])
+
+            self.main_history_copy += [{"role": "user", "content": text_input}]
+            main_history.append(ChatMessage(role="user", content=text_input if text_input else "[Uploaded file]"))
+
+            # Add "Executor is working on it" message
+            main_history.append(ChatMessage(role="assistant", content="Executor is working on it 👉"))
+            yield inner_history, main_history
+
+            # Process uploaded files if any
+            for file_info in files:
+                file_path = file_info
+                text_input += f"\n\n User uploaded this file: {file_path}\n Please use it if needed."
+
+            agent_messages = []
+            for msg in self.main_history_copy:
+                if msg["role"] == "user":
+                    agent_messages.append(HumanMessage(content=msg["content"]))
+                elif msg["role"] == "assistant":
+                    if msg["content"] not in ["Executor is working on it 👉"]:
+                        agent_messages.append(AIMessage(content=msg["content"]))
+
+            agent_messages.append(HumanMessage(content=text_input))
+
+            # Prepare inputs for the agent
+            inputs = {"messages": agent_messages, "next_step": None}
+            config = {"recursion_limit": 500, "configurable": {"thread_id": thread_id}}
+
+            # Stream the agent's responses
+            t = time()
+            solution_found = False
+
+            # Configure the agent with tool retrieval if needed
+            if self.use_tool_retriever:
+                print("Using tool retriever...")
+                inner_history.append(
+                    ChatMessage(
+                        role="assistant",
+                        content="Retrieving relevant tools, data lake items, and libraries...",
+                    )
+                )
+                yield inner_history, main_history
+
+                try:
+                    selected_resources_names = self._prepare_resources_for_retrieval(text_input)
+                    if selected_resources_names:
+                        self.update_system_prompt_with_selected_resources(selected_resources_names)
+                except Exception as e:
+                    print(f"Warning: Tool retrieval failed: {e}")
+                    print("Continuing without tool retrieval...")
+                    inner_history.append(
+                        ChatMessage(
+                            role="assistant",
+                            content="Tool retrieval unavailable, proceeding with all tools...",
+                        )
+                    )
+                    yield inner_history, main_history
+
+            # Keep track of code execution messages
+            code_execution_messages = []
+
+            # Stream the agent's responses
+            for s in self.app.stream(inputs, stream_mode="values", config=config):
+                t_step = time() - t
+                message = s["messages"][-1]
+
+                # Skip the first message which is the input task
+                if message.content == text_input:
+                    t = time()
+                    continue
+
+                # Process the message
+                if isinstance(message.content, str):
+                    # Extract thinking/reasoning part (text before any tags)
+                    tag_positions = []
+                    for tag in ["<execute>", "<solution>", "<observation>"]:
+                        pos = message.content.find(tag)
+                        if pos != -1:
+                            tag_positions.append(pos)
+
+                    # If there are tags, extract the text before the first tag
+                    if tag_positions:
+                        first_tag_pos = min(tag_positions)
+                        thinking = message.content[:first_tag_pos].strip()
+                        if thinking:
+                            inner_history.append(
+                                ChatMessage(
+                                    role="assistant",
+                                    content=f"{thinking}",
+                                    metadata={"title": "🤔 Reasoning", "log": "Agent's thinking process"},
+                                )
+                            )
+                            yield inner_history, main_history
+
+                    # Check for solution tag
+                    solution_match = re.search(r"<solution>(.*?)</solution>", message.content, re.DOTALL)
+                    if solution_match and not solution_found:
+                        solution = solution_match.group(1).strip()
+                        main_history.append(
+                            ChatMessage(
+                                role="assistant",
+                                content=solution,
+                                metadata={"title": "✅ Answer", "log": "Final answer provided by the agent"},
+                            )
+                        )
+                        self.main_history_copy += [{"role": "assistant", "content": solution}]
+                        solution_found = True
+                        yield inner_history, main_history
+
+                    # Check for execute tag
+                    execute_match = re.search(r"<execute>(.*?)</execute>", message.content, re.DOTALL)
+                    if execute_match:
+                        code = execute_match.group(1).strip()
+                        language = "python"
+                        if code.strip().startswith("#!R"):
+                            language = "r"
+                            code = re.sub(r"^#!R", "", code, count=1).strip()
+                        elif code.strip().startswith("#!BASH") or code.strip().startswith("#!CLI"):
+                            language = "bash"
+                            code = re.sub(r"^#!BASH|^#!CLI", "", code, count=1).strip()
+
+                        code_msg = ChatMessage(
+                            role="assistant",
+                            content=f"##### Code: \n```{language}\n{code}\n```",
+                            metadata={
+                                "title": "🛠️ Executing code...",
+                                "log": f"Executing {language.capitalize()} code block...",
+                                "status": "pending",
+                                "start_time": t,
+                            },
+                        )
+                        inner_history.append(code_msg)
+                        code_execution_messages.append(code_msg)
+                        yield inner_history, main_history
+
+                    # Check for observation
+                    observation_match = re.search(r"<observation>(.*?)</observation>", message.content, re.DOTALL)
+                    if observation_match:
+                        observation = observation_match.group(1).strip()
+
+                        # Update the status of the most recent code execution message
+                        if code_execution_messages:
+                            code_msg = code_execution_messages[-1]
+                            code_msg.metadata.update(
+                                {
+                                    "status": "done",
+                                    "duration": t_step,
+                                    "log": f"Code execution completed in {t_step:.2f}s",
+                                }
+                            )
+
+                        # Create a new message for the observation
+                        inner_history.append(
+                            ChatMessage(
+                                role="assistant",
+                                content=f"##### Observation: \n```\n{observation}\n```",
+                                metadata={
+                                    "status": "done",
+                                    "duration": t_step,
+                                    "log": "Observation from code execution",
+                                    "collapsed": True,
+                                    "collapsible": True,
+                                },
+                            )
+                        )
+                        yield inner_history, main_history
+
+                        # Check for file paths in the observation
+                        if isinstance(observation, str) and any(ext in observation for ext in SUPPORTED_EXTENSIONS):
+                            matches = re.findall(r"(\S+?(?:\.png|\.jpg|\.jpeg|\.gif|\.bmp|\.webp|\.pdf))", observation)
+
+                            valid_matches = []
+                            for match in matches:
+                                if not (
+                                    match.startswith("Warning:") or match.startswith("Error:") or match.startswith("'")
+                                ):
+                                    if not match.startswith("."):
+                                        valid_matches.append(match)
+
+                            if valid_matches:
+                                inner_history.append(
+                                    ChatMessage(
+                                        role="assistant",
+                                        content="",
+                                        metadata={"title": "📁 Files", "log": "Files generated by the agent"},
+                                    )
+                                )
+
+                                for file_path in valid_matches:
+                                    file_path = file_path.strip("\"'").strip()
+
+                                    abs_path = None
+                                    if os.path.isabs(file_path) and os.path.exists(file_path):
+                                        abs_path = file_path
+                                    elif os.path.exists(os.path.join(os.getcwd(), file_path)):
+                                        abs_path = os.path.join(os.getcwd(), file_path)
+                                    elif (
+                                        hasattr(self, "path")
+                                        and self.path
+                                        and os.path.exists(os.path.join(self.path, file_path))
+                                    ):
+                                        abs_path = os.path.join(self.path, file_path)
+
+                                    if abs_path:
+                                        if file_path.lower().endswith(".pdf"):
+                                            inner_history.append(
+                                                ChatMessage(
+                                                    role="assistant",
+                                                    content=f"Found PDF at: {abs_path}",
+                                                    metadata={"title": "📄 PDF File"},
+                                                )
+                                            )
+                                        else:
+                                            inner_history.append(
+                                                ChatMessage(
+                                                    role="assistant",
+                                                    content=gr.Image(abs_path),
+                                                    metadata={"title": "🖼️ Image Preview"},
+                                                )
+                                            )
+
+                                yield inner_history, main_history
+
+                t = time()
+
+            # If no solution was found, add the final message
+            if not solution_found:
+                final_message = s["messages"][-1].content if s["messages"] else ""
+                solution_match = re.search(r"<solution>(.*?)</solution>", final_message, re.DOTALL)
+                if solution_match:
+                    solution = solution_match.group(1).strip()
+                    main_history.append(
+                        ChatMessage(role="assistant", content=solution, metadata={"title": "✅ Solution"})
+                    )
+                    self.main_history_copy += [{"role": "assistant", "content": solution}]
+                else:
+                    cleaned_content = re.sub(r"<execute>.*?</execute>", "", final_message, flags=re.DOTALL)
+                    cleaned_content = re.sub(r"<observation>.*?</observation>", "", cleaned_content, flags=re.DOTALL)
+                    cleaned_content = re.sub(r"\n\s*\n", "\n\n", cleaned_content)
+
+                    if cleaned_content.strip():
+                        main_history.append(
+                            ChatMessage(
+                                role="assistant", content=cleaned_content.strip(), metadata={"title": "📝 Summary"}
+                            )
+                        )
+                        self.main_history_copy += [{"role": "assistant", "content": cleaned_content.strip()}]
+                    else:
+                        main_history.append(
+                            ChatMessage(
+                                role="assistant",
+                                content="Task completed. Please check the execution log for details.",
+                                metadata={"title": "📝 Summary"},
+                            )
+                        )
+                        self.main_history_copy += [{"role": "assistant", "content": "Task completed."}]
+
+            # Add completion message
+            inner_history.append(
+                ChatMessage(
+                    role="assistant",
+                    content="👈 Returning the result to the main interface...",
+                    metadata={"title": "🔄 Complete"},
+                )
+            )
+            yield inner_history, main_history
+
+        def like(data: gr.LikeData):
+            print("User liked the response")
+            print(f"Index: {data.index}, Liked: {data.liked}")
+
+        # Create the Gradio interface
+        with gr.Blocks() as demo:
+            # Verification page (if enabled)
+            verification_container = gr.Group(visible=require_verification)
+            main_interface_container = gr.Group(visible=not require_verification)
+
+            with verification_container:
+                gr.Markdown("# Biomni A1 Agent - Access Verification")
+                gr.Markdown("Please enter your access code to continue.")
+                access_code_input = gr.Textbox(label="Access Code", type="password")
+                access_error_msg = gr.Markdown(visible=False)
+                verify_btn = gr.Button("Verify Access")
+                verify_btn.click(
+                    fn=verify_access_code,
+                    inputs=[access_code_input],
+                    outputs=[verification_container, main_interface_container, access_error_msg],
+                )
+
+            # Main interface
+            with main_interface_container:
+                with gr.Row():
+                    with gr.Column(scale=1):
+                        main_chatbot = gr.Chatbot(
+                            label="Biomni A1 Agent",
+                            type="messages",
+                            height=800,
+                            show_copy_button=True,
+                            show_share_button=True,
+                        )
+                    with gr.Column(scale=1):
+                        innerloop_chatbot = gr.Chatbot(
+                            label="Biomni Executor",
+                            type="messages",
+                            height=800,
+                            show_copy_button=True,
+                            show_share_button=True,
+                        )
+
+                with gr.Row():
+                    prompt_input = gr.MultimodalTextbox(
+                        interactive=True,
+                        file_count="multiple",
+                        placeholder="Ask something or upload a file...",
+                        show_label=False,
+                    )
+
+                # Bind submission
+                prompt_input.submit(
+                    generate_response,
+                    [prompt_input, innerloop_chatbot, main_chatbot],
+                    [innerloop_chatbot, main_chatbot],
+                ).then(lambda: gr.MultimodalTextbox(value=None), None, [prompt_input])
+                main_chatbot.like(like)
+
+        # Launch
+        print(f"Launching Gradio demo on {server_name}:7860")
+        demo.launch(share=share, server_name=server_name)

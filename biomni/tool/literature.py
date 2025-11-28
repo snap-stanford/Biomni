@@ -296,8 +296,13 @@ def query_scholar(query: str) -> str:
     automated queries may result in temporary or permanent IP blocking. Use responsibly
     and consider implementing delays between requests.
     """
-    from scholarly import scholarly
+    from scholarly import ProxyGenerator, scholarly
 
+    # Set up a ProxyGenerator object to use free proxies
+    # This needs to be done only once per session
+    pg = ProxyGenerator()
+    pg.FreeProxies()
+    scholarly.use_proxy(pg)
     try:
         search_query = scholarly.search_pubs(query)
         result = next(search_query, None)
