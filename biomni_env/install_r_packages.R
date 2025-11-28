@@ -61,9 +61,9 @@ cran_packages <- c(
 # Install Bioconductor packages
 bioc_packages <- c(
   "DESeq2",
-  "DADA2",
+  "dada2",
   "xcms",
-  "FlowCore",
+  "flowCore",
   "edgeR",
   "limma"
 )
