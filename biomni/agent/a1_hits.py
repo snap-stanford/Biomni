@@ -637,11 +637,10 @@ Output:
 
             # Add the message to the state before checking for errors
             state["messages"].append(AIMessage(content=msg.strip()))
-
-            if answer_match:
-                state["next_step"] = "end"
-            elif execute_match:
+            if execute_match:
                 state["next_step"] = "execute"
+            elif answer_match:
+                state["next_step"] = "end"
             elif think_match:
                 state["next_step"] = "generate"
             else:
@@ -1376,5 +1375,3 @@ Output:
 
         formatted_prompt = prompt_modifier.format(**format_dict)
         return formatted_prompt
-
-

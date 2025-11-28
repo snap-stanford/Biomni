@@ -1,339 +1,418 @@
 #!/usr/bin/env python3
 """
-HITS AI Agent QA Runner
-AI agent를 실행하여 QA 태스크를 평가하는 CLI 도구
+HITS AI Agent QA Runner (Parallel Wrapper)
+qa_single_task.py를 parallel로 실행하는 wrapper 스크립트
+
+Simple and clean architecture:
+- qa_single_task.py: 단일 task 실행 (완전히 독립)
+- qa_runner_simple.py: 전체 파이프라인 관리 및 병렬 실행
 """
 
 import argparse
-import re
+import json
+import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
+
+# Biomni HITS 모듈 import를 위한 경로 추가
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from biomni.config import default_config
 
+# default_config 설정
 default_config.llm = "gemini-3-pro-preview"
-# default_config.llm = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
-# default_config.llm = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 default_config.commercial_mode = True
 default_config.use_tool_retriever = True
 default_config.path = "/workdir_efs/jaechang/work2/biomni_hits_test/biomni_data"
 default_config.timeout_seconds = 3600
 
-# Biomni HITS 모듈 import를 위한 경로 추가
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from qa_core import (
-    Evaluator,
-    ImageComparator,
-    QAManager,
-    ReportGenerator,
-)
+from qa_core import QAManager, ReportGenerator
 
 
-def extract_solution_from_response(response: str) -> str:
-    """
-    AI agent 응답에서 <solution>...</solution> 태그 내용 추출
-
-    Args:
-        response: AI agent의 전체 응답
-
-    Returns:
-        solution 태그 내용 (태그가 없으면 전체 응답 반환)
-    """
-    # <solution>...</solution> 패턴 추출
-    pattern = r"<solution>(.*?)</solution>"
-    match = re.search(pattern, response, re.DOTALL | re.IGNORECASE)
-
-    if match:
-        return match.group(1).strip()
-    else:
-        # solution 태그가 없으면 전체 응답 반환
-        print(
-            "Warning: <solution> tag not found in agent response. Using full response."
-        )
-        return response.strip()
-
-
-def run_agent_on_question(
-    agent, question: str, task_id: str, input_data_files: Optional[List[str]] = None
-) -> tuple[str, float]:
-    """
-    AI agent에게 질문을 주고 답변 생성
-
-    Args:
-        agent: A1_HITS agent 인스턴스
-        question: 질문 텍스트
-        task_id: 태스크 ID
-        input_data_files: input data 파일 리스트 (optional)
-
-    Returns:
-        (답변, 실행시간) 튜플
-    """
-    print(f"\n{'='*60}")
-    print(f"Running AI Agent on Task: {task_id}")
-    if input_data_files:
-        print(f"Input Data: {', '.join(input_data_files)}")
-    print(f"{'='*60}")
-
-    start_time = time.time()
-
+def check_parallel_available():
+    """GNU parallel 사용 가능 여부 확인"""
     try:
-        # agent 실행 (go 사용 - run2.py 스타일)
-        full_response_parts = []
-        print("\n🤖 Agent is thinking...\n")
-
-        for idx, output in enumerate(agent.go(question)):
-            print(f"==================== Step {idx} ====================")
-
-            if idx == 0:
-                # 첫 번째 출력은 system prompt
-                print("System prompt loaded")
-                continue
-
-            # Handle structured content (list with images) - extract text only
-            if isinstance(output, list):
-                # Extract text parts from structured content
-                text_parts = [
-                    item["text"]
-                    for item in output
-                    if isinstance(item, dict) and item.get("type") == "text"
-                ]
-                if text_parts:
-                    full_response_parts.extend(text_parts)
-            elif isinstance(output, str):
-                full_response_parts.append(output)
-
-        # 전체 응답 조합
-        full_response = "\n".join(full_response_parts)
-
-        # solution 태그 추출
-        answer = extract_solution_from_response(full_response)
-
-        execution_time = time.time() - start_time
-
-        print(f"\n✅ Agent completed in {execution_time:.2f}s")
-        print(f"Answer length: {len(answer)} characters")
-
-        return answer, execution_time
-
-    except Exception as e:
-        execution_time = time.time() - start_time
-        print(f"\n❌ Agent failed after {execution_time:.2f}s: {e}")
-        import traceback
-
-        traceback.print_exc()
-        return f"Error: {str(e)}", execution_time
-
-
-def save_agent_output(
-    task_id: str, question: str, answer: str, output_dir: Path
-) -> Path:
-    """
-    AI agent의 출력을 저장
-
-    Args:
-        task_id: 태스크 ID
-        question: 질문 텍스트
-        answer: 답변 텍스트
-        output_dir: 출력 디렉토리
-
-    Returns:
-        저장된 답변 파일 경로
-    """
-    task_output_dir = output_dir / task_id
-    task_output_dir.mkdir(parents=True, exist_ok=True)
-
-    # 질문 저장
-    question_file = task_output_dir / "question.md"
-    question_file.write_text(question, encoding="utf-8")
-
-    # 답변 저장
-    answer_file = task_output_dir / "generated_answer.md"
-    answer_file.write_text(answer, encoding="utf-8")
-
-    # 이미지가 있으면 복사 (추후 구현 필요 시)
-    # TODO: agent가 생성한 이미지를 찾아서 task 폴더로 복사하는 로직
-
-    print(f"📁 Saved output to: {task_output_dir}")
-
-    return answer_file
-
-
-def evaluate_task(
-    task_id: str,
-    question: str,
-    ground_truth: str,
-    generated_answer: str,
-    ground_truth_task_dir: Path,
-    generated_task_dir: Path,
-    evaluator: Evaluator,
-    image_comparator: ImageComparator,
-    execution_time: float,
-) -> tuple:
-    """
-    태스크 평가 수행
-
-    Args:
-        task_id: 태스크 ID
-        question: 질문
-        ground_truth: 정답
-        generated_answer: 생성된 답변
-        ground_truth_task_dir: 정답 태스크 디렉토리
-        generated_task_dir: 생성된 태스크 디렉토리
-        evaluator: Evaluator 인스턴스
-        image_comparator: ImageComparator 인스턴스
-        execution_time: 실행 시간
-
-    Returns:
-        (evaluation_result, image_evaluation) 튜플
-    """
-    print(f"\n📊 Evaluating task: {task_id}")
-
-    # 텍스트 평가
-    evaluation_result = evaluator.evaluate_answer(
-        task_id, question, ground_truth, generated_answer
-    )
-
-    # 이미지 평가
-    image_evaluation = image_comparator.evaluate_images(
-        ground_truth_markdown=ground_truth,
-        generated_markdown=generated_answer,
-        ground_truth_task_dir=ground_truth_task_dir,
-        generated_task_dir=generated_task_dir,
-        compare_visually=True,
-    )
-
-    return evaluation_result, image_evaluation
-
-
-def run_qa_pipeline(
-    qa_manager: QAManager,
-    agent,
-    evaluator: Evaluator,
-    image_comparator: ImageComparator,
-    report_generator: ReportGenerator,
-    output_base_dir: Path,
-    task_ids: Optional[List[str]] = None,
-    category: Optional[str] = None,
-) -> List[Dict]:
-    """
-    전체 QA 파이프라인 실행
-
-    Args:
-        qa_manager: QAManager 인스턴스
-        agent: AI agent 인스턴스
-        evaluator: Evaluator 인스턴스
-        image_comparator: ImageComparator 인스턴스
-        report_generator: ReportGenerator 인스턴스
-        output_base_dir: 결과 저장 기본 디렉토리
-        task_ids: 실행할 태스크 ID 리스트 (None이면 전체)
-        category: 카테고리 필터
-
-    Returns:
-        모든 평가 결과 리스트
-    """
-    # 실행할 태스크 선택
-    if task_ids:
-        tasks = [
-            qa_manager.get_task(tid) for tid in task_ids if qa_manager.get_task(tid)
-        ]
-    else:
-        tasks = qa_manager.list_tasks(category=category)
-
-    if not tasks:
-        print("❌ No tasks to run!")
-        return []
-
-    print(f"\n🚀 Running QA pipeline on {len(tasks)} task(s)")
-
-    # 실행 ID 생성 (타임스탬프)
-    run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    run_output_dir = output_base_dir / run_id
-    run_output_dir.mkdir(parents=True, exist_ok=True)
-
-    print(f"📁 Output directory: {run_output_dir}")
-
-    all_results = []
-
-    for idx, task in enumerate(tasks, 1):
-        print(f"\n{'#'*60}")
-        print(f"Task {idx}/{len(tasks)}: {task.task_id}")
-        print(f"{'#'*60}")
-
-        try:
-            # 1. AI Agent 실행 (input data 정보 전달)
-            generated_answer, execution_time = run_agent_on_question(
-                agent, task.question, task.task_id, task.input_data
-            )
-
-            # 2. 출력 저장
-            task_output_dir = run_output_dir / task.task_id
-            save_agent_output(
-                task.task_id, task.question, generated_answer, run_output_dir
-            )
-
-            # 3. 평가 수행
-            ground_truth_task_dir = task.task_path if task.task_path else Path(".")
-            generated_task_dir = task_output_dir
-
-            evaluation_result, image_evaluation = evaluate_task(
-                task.task_id,
-                task.question,
-                task.answer,
-                generated_answer,
-                ground_truth_task_dir,
-                generated_task_dir,
-                evaluator,
-                image_comparator,
-                execution_time,
-            )
-
-            # 4. 개별 태스크 리포트 생성
-            report_path = task_output_dir / "evaluation.json"
-            report_generator.generate_task_report(
-                task.task_id,
-                evaluation_result,
-                image_evaluation,
-                execution_time,
-                report_path,
-            )
-
-            # 5. 결과 요약 출력
-            report_generator.print_task_summary(
-                report_generator.load_task_report(report_path)
-            )
-
-            # 결과 수집
-            all_results.append(report_generator.load_task_report(report_path))
-
-        except Exception as e:
-            print(f"❌ Error processing task {task.task_id}: {e}")
-            import traceback
-
-            traceback.print_exc()
-
-    # 6. 종합 리포트 생성
-    if all_results:
-        summary_report_path = run_output_dir / "summary_report.md"
-        report_generator.generate_summary_report(all_results, summary_report_path)
-
-        print(f"\n{'='*60}")
-        print(f"✅ QA Pipeline Completed!")
-        print(f"{'='*60}")
-        print(f"Total tasks: {len(all_results)}")
-        print(
-            f"Passed: {sum(1 for r in all_results if r['summary']['overall_passed'])}"
+        result = subprocess.run(
+            ["parallel", "--version"], capture_output=True, check=True, timeout=5
         )
-        print(f"Results saved to: {run_output_dir}")
+        return True
+    except (
+        subprocess.CalledProcessError,
+        FileNotFoundError,
+        subprocess.TimeoutExpired,
+    ):
+        return False
 
-    return all_results
+
+def generate_commands(
+    tasks: List,
+    num_repeats: int,
+    qa_datasets_dir: Path,
+    run_output_dir: Path,
+    pass_threshold: float,
+    ssim_threshold: float,
+) -> List[str]:
+    """모든 실행 커맨드 생성"""
+    commands = []
+    script_path = Path(__file__).parent / "qa_single_task.py"
+
+    for task in tasks:
+        for attempt_num in range(1, num_repeats + 1):
+            cmd = [
+                sys.executable,
+                str(script_path),
+                "--task-id",
+                task.task_id,
+                "--attempt",
+                str(attempt_num),
+                "--total-attempts",
+                str(num_repeats),
+                "--qa-datasets-dir",
+                str(qa_datasets_dir),
+                "--output-dir",
+                str(run_output_dir),
+                "--pass-threshold",
+                str(pass_threshold),
+                "--ssim-threshold",
+                str(ssim_threshold),
+            ]
+            commands.append(" ".join(cmd))
+
+    return commands
+
+
+def execute_parallel(commands: List[str], max_workers: int, commands_file: Path):
+    """GNU parallel 또는 xargs로 병렬 실행"""
+    use_parallel = check_parallel_available()
+
+    if max_workers > 1:
+        if use_parallel:
+            print(f"⚡ Running with GNU parallel (jobs={max_workers})...\n")
+            parallel_cmd = (
+                f"parallel --jobs {max_workers} --bar --halt never < {commands_file}"
+            )
+
+            subprocess.run(
+                parallel_cmd,
+                shell=True,
+            )
+        else:
+            print(f"⚠️  GNU parallel not found, using xargs (jobs={max_workers})...\n")
+            xargs_cmd = (
+                f"cat {commands_file} | xargs -P {max_workers} -I {{}} bash -c '{{}}'"
+            )
+
+            subprocess.run(
+                xargs_cmd,
+                shell=True,
+            )
+    else:
+        print(f"🔄 Running sequentially...\n")
+        # 순차 실행
+        with open(commands_file, "r") as f:
+            for line in f:
+                cmd = line.strip()
+                if cmd:
+                    subprocess.run(cmd, shell=True)
+
+
+def collect_results(
+    run_output_dir: Path,
+    tasks: List,
+    num_repeats: int,
+) -> List[Dict]:
+    """각 attempt의 결과를 수집하고 종합"""
+    print("\n📊 Collecting results...")
+
+    all_attempt_results = []
+    total_runs = len(tasks) * num_repeats
+
+    # 모든 evaluation.json 파일 수집
+    for task in tasks:
+        for attempt_num in range(1, num_repeats + 1):
+            eval_file = (
+                run_output_dir
+                / task.task_id
+                / f"attempt_{attempt_num}"
+                / "evaluation.json"
+            )
+
+            if eval_file.exists():
+                try:
+                    with open(eval_file, "r", encoding="utf-8") as f:
+                        result = json.load(f)
+                        result["task_id"] = task.task_id
+                        result["attempt_num"] = attempt_num
+                        all_attempt_results.append(result)
+                except Exception as e:
+                    print(f"⚠️  Failed to load {eval_file}: {e}")
+            else:
+                print(f"⚠️  Missing result: {task.task_id} attempt {attempt_num}")
+                all_attempt_results.append(
+                    {
+                        "task_id": task.task_id,
+                        "attempt_num": attempt_num,
+                        "summary": {
+                            "overall_passed": False,
+                            "error": "Result file not found",
+                        },
+                        "execution_time": 0,
+                    }
+                )
+
+    print(f"✅ Collected {len(all_attempt_results)}/{total_runs} results")
+
+    # 태스크별로 결과 집계
+    task_final_results = {}
+
+    for result in all_attempt_results:
+        task_id = result.get("task_id")
+        if task_id not in task_final_results:
+            task_final_results[task_id] = {
+                "task_id": task_id,
+                "attempts": [],
+                "all_passed": True,
+            }
+
+        task_final_results[task_id]["attempts"].append(result)
+        if not result.get("summary", {}).get("overall_passed", False):
+            task_final_results[task_id]["all_passed"] = False
+
+    # 최종 결과 생성
+    final_results = []
+    for task_id, task_result in task_final_results.items():
+        passed_count = sum(
+            1
+            for attempt in task_result["attempts"]
+            if attempt.get("summary", {}).get("overall_passed", False)
+        )
+        total_count = len(task_result["attempts"])
+
+        execution_times = [
+            attempt.get("execution_time", 0) for attempt in task_result["attempts"]
+        ]
+        avg_execution_time = (
+            sum(execution_times) / len(execution_times) if execution_times else 0
+        )
+
+        final_result = {
+            "task_id": task_id,
+            "num_attempts": total_count,
+            "passed_attempts": passed_count,
+            "all_attempts_passed": task_result["all_passed"],
+            "avg_execution_time": avg_execution_time,
+            "summary": {
+                "overall_passed": task_result["all_passed"],
+            },
+            "attempts": task_result["attempts"],
+        }
+        final_results.append(final_result)
+
+    return final_results
+
+
+def print_summary(
+    final_results: List[Dict],
+    run_id: str,
+    run_output_dir: Path,
+    num_repeats: int,
+    total_runs: int,
+    max_workers: int,
+    pass_threshold: float,
+    ssim_threshold: float,
+):
+    """예쁜 통계 출력"""
+    if not final_results:
+        return
+
+    total_tasks = len(final_results)
+    passed_tasks = sum(1 for r in final_results if r["all_attempts_passed"])
+    failed_tasks = total_tasks - passed_tasks
+    success_rate = (passed_tasks / total_tasks * 100) if total_tasks > 0 else 0
+
+    total_execution_time = sum(
+        sum(attempt.get("execution_time", 0) for attempt in r["attempts"])
+        for r in final_results
+    )
+    avg_time_per_task = total_execution_time / total_runs if total_runs > 0 else 0
+
+    print("\n")
+    print("╔" + "═" * 78 + "╗")
+    print("║" + " " * 25 + "QA PIPELINE SUMMARY" + " " * 34 + "║")
+    print("╠" + "═" * 78 + "╣")
+    print(f"║  📋 Run ID: {run_id:<62} ║")
+    print(f"║  📁 Output: {str(run_output_dir):<62} ║")
+    print("╠" + "═" * 78 + "╣")
+
+    # 실행 설정
+    print("║" + " " * 30 + "CONFIGURATION" + " " * 35 + "║")
+    print("╠" + "─" * 78 + "╣")
+    print(
+        f"║  Tasks: {total_tasks:<10} │ Repeats/Task: {num_repeats:<10} │ Total Runs: {total_runs:<20} ║"
+    )
+    print(
+        f"║  Max Workers: {max_workers:<10} │ Pass Threshold: {pass_threshold:<8}% │ SSIM: {ssim_threshold:<20} ║"
+    )
+    print("╠" + "═" * 78 + "╣")
+
+    # 결과 통계
+    print("║" + " " * 32 + "RESULTS" + " " * 39 + "║")
+    print("╠" + "─" * 78 + "╣")
+    print(
+        f"║  ✅ Passed: {passed_tasks}/{total_tasks} tasks"
+        + " " * (78 - 21 - len(str(passed_tasks)) - len(str(total_tasks)))
+        + "║"
+    )
+    print(
+        f"║  ❌ Failed: {failed_tasks}/{total_tasks} tasks"
+        + " " * (78 - 21 - len(str(failed_tasks)) - len(str(total_tasks)))
+        + "║"
+    )
+    print(
+        f"║  📊 Success Rate: {success_rate:.1f}%"
+        + " " * (78 - 23 - len(f"{success_rate:.1f}"))
+        + "║"
+    )
+    print("╠" + "─" * 78 + "╣")
+    print(
+        f"║  ⏱️  Total Time: {total_execution_time:.1f}s"
+        + " " * (78 - 20 - len(f"{total_execution_time:.1f}"))
+        + "║"
+    )
+    print(
+        f"║  ⚡ Avg Time/Run: {avg_time_per_task:.1f}s"
+        + " " * (78 - 21 - len(f"{avg_time_per_task:.1f}"))
+        + "║"
+    )
+    print("╠" + "═" * 78 + "╣")
+
+    # 태스크별 상세 결과
+    print("║" + " " * 28 + "TASK DETAILS" + " " * 38 + "║")
+    print("╠" + "─" * 78 + "╣")
+
+    for idx, result in enumerate(final_results, 1):
+        task_id = result["task_id"]
+        all_passed = result["all_attempts_passed"]
+        passed_count = result["passed_attempts"]
+        total_count = result["num_attempts"]
+        avg_time = result["avg_execution_time"]
+
+        status_icon = "✅" if all_passed else "❌"
+
+        task_line = f"║  {status_icon} {task_id:<25} │ {passed_count}/{total_count} passed │ {avg_time:>6.1f}s avg"
+        padding = 78 - len(task_line) + 1
+        print(task_line + " " * padding + "║")
+
+        if idx < len(final_results):
+            print("║" + " " * 78 + "║")
+
+    print("╚" + "═" * 78 + "╝")
+    print()
+
+    # 최종 상태 메시지
+    if passed_tasks == total_tasks:
+        print("🎉 " + "ALL TASKS PASSED!".center(76) + " 🎉")
+    elif passed_tasks > 0:
+        print("⚠️  " + "SOME TASKS FAILED".center(76) + " ⚠️ ")
+    else:
+        print("❌ " + "ALL TASKS FAILED".center(76) + " ❌")
+    print()
+
+
+def generate_report(
+    final_results: List[Dict],
+    run_id: str,
+    run_output_dir: Path,
+    num_repeats: int,
+    total_runs: int,
+    max_workers: int,
+    pass_threshold: float,
+    ssim_threshold: float,
+):
+    """마크다운 리포트 생성"""
+    summary_report_path = run_output_dir / "summary_report.md"
+
+    total_tasks = len(final_results)
+    passed_tasks = sum(1 for r in final_results if r["all_attempts_passed"])
+    failed_tasks = total_tasks - passed_tasks
+    success_rate = (passed_tasks / total_tasks * 100) if total_tasks > 0 else 0
+
+    total_execution_time = sum(
+        sum(attempt.get("execution_time", 0) for attempt in r["attempts"])
+        for r in final_results
+    )
+    avg_time_per_task = total_execution_time / total_runs if total_runs > 0 else 0
+
+    with open(summary_report_path, "w", encoding="utf-8") as f:
+        f.write(f"# QA Pipeline Summary Report\n\n")
+        f.write(f"## Configuration\n\n")
+        f.write(f"- **Run ID**: {run_id}\n")
+        f.write(f"- **Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"- **Total Tasks**: {len(final_results)}\n")
+        f.write(f"- **Repeats per Task**: {num_repeats}\n")
+        f.write(f"- **Total Runs**: {total_runs}\n")
+        f.write(f"- **Max Workers**: {max_workers}\n")
+        f.write(f"- **Pass Threshold**: {pass_threshold}%\n")
+        f.write(f"- **SSIM Threshold**: {ssim_threshold}\n\n")
+
+        f.write(f"## Overall Results\n\n")
+        f.write(f"| Metric | Value |\n")
+        f.write(f"|--------|-------|\n")
+        f.write(f"| ✅ Passed Tasks | {passed_tasks}/{total_tasks} |\n")
+        f.write(f"| ❌ Failed Tasks | {failed_tasks}/{total_tasks} |\n")
+        f.write(f"| 📊 Success Rate | {success_rate:.1f}% |\n")
+        f.write(f"| ⏱️  Total Execution Time | {total_execution_time:.1f}s |\n")
+        f.write(f"| ⚡ Avg Time per Run | {avg_time_per_task:.1f}s |\n\n")
+
+        f.write(f"## Task Details\n\n")
+        f.write(f"| Status | Task ID | Attempts Passed | Avg Time |\n")
+        f.write(f"|--------|---------|----------------|----------|\n")
+
+        for result in final_results:
+            task_id = result["task_id"]
+            all_passed = result["all_attempts_passed"]
+            passed_count = result["passed_attempts"]
+            total_count = result["num_attempts"]
+            avg_time = result["avg_execution_time"]
+
+            status = "✅ PASS" if all_passed else "❌ FAIL"
+            f.write(
+                f"| {status} | {task_id} | {passed_count}/{total_count} | {avg_time:.1f}s |\n"
+            )
+
+        f.write(f"\n## Individual Attempts\n\n")
+        for result in final_results:
+            task_id = result["task_id"]
+            all_passed = result["all_attempts_passed"]
+
+            status = "✅ PASS" if all_passed else "❌ FAIL"
+            f.write(f"### {task_id}: {status}\n\n")
+            f.write(f"**Summary**: All {result['num_attempts']} attempts must pass. ")
+            f.write(
+                f"Result: {result['passed_attempts']}/{result['num_attempts']} passed.\n\n"
+            )
+
+            for idx, attempt in enumerate(result["attempts"], 1):
+                attempt_passed = attempt.get("summary", {}).get("overall_passed", False)
+                attempt_time = attempt.get("execution_time", 0)
+                attempt_icon = "✅" if attempt_passed else "❌"
+                f.write(
+                    f"- {attempt_icon} Attempt {idx}: {'PASSED' if attempt_passed else 'FAILED'} ({attempt_time:.1f}s)\n"
+                )
+
+            f.write("\n")
+
+    print(f"📄 Detailed report saved: {summary_report_path}")
 
 
 def main():
     """메인 함수"""
-    parser = argparse.ArgumentParser(description="HITS AI Agent QA Runner")
+    parser = argparse.ArgumentParser(
+        description="HITS AI Agent QA Runner (Parallel Wrapper)"
+    )
 
     parser.add_argument(
         "--qa-datasets-dir",
@@ -377,15 +456,23 @@ def main():
     )
 
     parser.add_argument(
-        "--evaluation-prompt",
-        type=str,
-        help="Path to custom evaluation prompt file",
-    )
-
-    parser.add_argument(
         "--list-tasks",
         action="store_true",
         help="List all available tasks and exit",
+    )
+
+    parser.add_argument(
+        "--repeat",
+        type=int,
+        default=1,
+        help="Number of times to repeat each task (default: 1)",
+    )
+
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=1,
+        help="Maximum number of parallel workers (default: 1)",
     )
 
     args = parser.parse_args()
@@ -414,55 +501,84 @@ def main():
         print("❌ No tasks found! Please add tasks to the qa_datasets directory.")
         return
 
-    # AI Agent 초기화
-    print("\n🤖 Initializing AI Agent...")
-    try:
-        from biomni.agent.a1_hits import A1_HITS
+    # 실행할 태스크 선택
+    if args.tasks:
+        tasks = [
+            qa_manager.get_task(tid) for tid in args.tasks if qa_manager.get_task(tid)
+        ]
+    else:
+        tasks = qa_manager.list_tasks(category=args.category)
 
-        agent = A1_HITS()
-        print("✅ AI Agent initialized")
-    except Exception as e:
-        print(f"❌ Failed to initialize AI Agent: {e}")
-        import traceback
-
-        traceback.print_exc()
+    if not tasks:
+        print("❌ No tasks to run!")
         return
 
-    # Evaluator 초기화
-    print("\n📊 Initializing Evaluator...")
-    try:
-        from biomni.llm import get_llm
+    total_runs = len(tasks) * args.repeat
 
-        llm_client = get_llm(model=default_config.llm)
-        evaluator = Evaluator(llm_client, pass_threshold=args.pass_threshold)
-        print("✅ Evaluator initialized")
-    except Exception as e:
-        print(f"❌ Failed to initialize Evaluator: {e}")
-        import traceback
+    print(f"\n🚀 Running QA pipeline")
+    print(f"  - Tasks: {len(tasks)}")
+    print(f"  - Repeats per task: {args.repeat}")
+    print(f"  - Total runs: {total_runs}")
+    print(f"  - Max parallel workers: {args.max_workers}")
 
-        traceback.print_exc()
-        return
+    # 실행 ID 생성
+    run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    run_output_dir = output_dir / run_id
+    run_output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Image Comparator 초기화
-    print("\n🖼️  Initializing Image Comparator...")
-    image_comparator = ImageComparator(ssim_threshold=args.ssim_threshold)
-    print("✅ Image Comparator initialized")
+    print(f"📁 Output directory: {run_output_dir}")
 
-    # Report Generator 초기화
-    print("\n📄 Initializing Report Generator...")
-    report_generator = ReportGenerator()
-    print("✅ Report Generator initialized")
+    # 커맨드 생성
+    print("\n📝 Generating commands...")
+    commands = generate_commands(
+        tasks=tasks,
+        num_repeats=args.repeat,
+        qa_datasets_dir=qa_datasets_dir,
+        run_output_dir=run_output_dir,
+        pass_threshold=args.pass_threshold,
+        ssim_threshold=args.ssim_threshold,
+    )
 
-    # QA 파이프라인 실행
-    run_qa_pipeline(
-        qa_manager=qa_manager,
-        agent=agent,
-        evaluator=evaluator,
-        image_comparator=image_comparator,
-        report_generator=report_generator,
-        output_base_dir=output_dir,
-        task_ids=args.tasks,
-        category=args.category,
+    commands_file = run_output_dir / "commands.txt"
+    with open(commands_file, "w") as f:
+        for cmd in commands:
+            f.write(cmd + "\n")
+
+    print(f"✅ Generated {len(commands)} commands")
+    print(f"Commands saved to: {commands_file}")
+
+    # 병렬 실행
+    start_time = time.time()
+    execute_parallel(commands, args.max_workers, commands_file)
+    total_time = time.time() - start_time
+
+    print(f"\n✅ All tasks completed in {total_time:.1f}s")
+
+    # 결과 수집
+    final_results = collect_results(run_output_dir, tasks, args.repeat)
+
+    # 통계 출력
+    print_summary(
+        final_results=final_results,
+        run_id=run_id,
+        run_output_dir=run_output_dir,
+        num_repeats=args.repeat,
+        total_runs=total_runs,
+        max_workers=args.max_workers,
+        pass_threshold=args.pass_threshold,
+        ssim_threshold=args.ssim_threshold,
+    )
+
+    # 리포트 생성
+    generate_report(
+        final_results=final_results,
+        run_id=run_id,
+        run_output_dir=run_output_dir,
+        num_repeats=args.repeat,
+        total_runs=total_runs,
+        max_workers=args.max_workers,
+        pass_threshold=args.pass_threshold,
+        ssim_threshold=args.ssim_threshold,
     )
 
 
