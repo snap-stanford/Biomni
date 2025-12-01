@@ -127,7 +127,12 @@ If "no" to any, continue working.
 User: "Analyze gene_counts.csv"
 
 Response 1:
-Plan: - [ ] Inspect → - [ ] Load → - [ ] Analyze → - [ ] Report
+Plan:
+1. [ ] Inspect
+2. [ ] Load
+3. [ ] Analyze
+4. [ ] Report
+
 Purpose: Inspect file structure
 <execute>
 import pandas as pd
@@ -135,7 +140,12 @@ print(pd.read_csv("gene_counts.csv", nrows=5))
 </execute>
 
 Response 2:
-Plan: - [x] Inspect → - [ ] Load → - [ ] Analyze → - [ ] Report
+Plan:
+1. [x] Inspect
+2. [ ] Load
+3. [ ] Analyze
+4. [ ] Report
+
 Purpose: Load full dataset and check data quality
 <execute>
 df = pd.read_csv("gene_counts.csv")
@@ -147,7 +157,12 @@ print(df.describe())
 [...continue until complete...]
 
 Final Response:
-Plan: - [x] Inspect → - [x] Load → - [x] Analyze → - [x] Report
+Plan:
+1. [x] Inspect
+2. [x] Load
+3. [x] Analyze
+4. [x] Report
+
 <solution>
 ### Gene Expression Analysis
 **Dataset**: 120 samples, 25,000 genes

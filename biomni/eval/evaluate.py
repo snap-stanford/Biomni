@@ -3,12 +3,16 @@ import os
 import argparse
 import json
 import sys
+from pathlib import Path
 
-# Add Biomni_HITS to path to import BiomniEval1
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "Biomni_HITS"))
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 try:
     from biomni.eval import BiomniEval1
+    from biomni.task.lab_bench import lab_bench
+    from biomni.task.hle import humanity_last_exam
+    from biomni.task.biomni_eval1_task import biomni_eval1_task
 
     BIOMNI_EVAL1_AVAILABLE = True
 except ImportError:
@@ -34,6 +38,39 @@ BIOMNI_EVAL1_TASKS = [
 def is_biomni_eval1_task(dataset_name):
     """Check if the dataset is a BiomniEval1 task"""
     return dataset_name in BIOMNI_EVAL1_TASKS
+
+
+def get_total_questions(dataset_name):
+    """
+    Get the total number of questions in a benchmark dataset.
+
+    Args:
+        dataset_name: Name of the dataset/task
+
+    Returns:
+        int: Total number of questions, or None if cannot be determined
+    """
+    try:
+        if dataset_name == "HLE":
+            benchmark = humanity_last_exam(
+                path="/workdir_efs/jaechang/work2/biomni_hits_test/biomni_data/biomni_data//benchmark/",
+            )
+            return len(benchmark.query)
+        elif dataset_name in ["DbQA", "SeqQA"]:
+            benchmark = lab_bench(
+                path="/workdir_efs/jaechang/work2/biomni_hits_test/biomni_data/biomni_data/benchmark/",
+                dataset=dataset_name,
+            )
+            return len(benchmark.query)
+        elif is_biomni_eval1_task(dataset_name):
+            # Use BiomniEval1 task loader
+            benchmark = biomni_eval1_task(task_name=dataset_name, split="val")
+            return len(benchmark.df)
+        else:
+            return None
+    except Exception as e:
+        print(f"Warning: Could not load total questions for {dataset_name}: {e}")
+        return None
 
 
 def evaluate_answer(dataset_name, correct_answer, predicted_answer, evaluator=None):
@@ -229,9 +266,18 @@ def evaluate_directory(base_dir, show_errors=False, verbose=False):
             if is_biomni_eval1_task(dataset) and evaluator is not None:
                 print(f"[BiomniEval1 Task: using task-specific evaluation logic]")
 
+            # Get total questions from dataset
+            total_questions = get_total_questions(dataset)
+            answered = len(true)  # Number of ans_*.json files found
+
+            if total_questions is not None:
+                print(f"Total questions: {answered}/{total_questions} (answered/total)")
+            else:
+                # Fallback if we can't determine total
+                print(f"Total questions: {answered} (answered)")
+
             print(f"Number of correct predictions: {correct_count}")
             print(f"Number of no answer: {pred.count('')}")
-            print(f"Total predictions: {len(true)}")
             print(f"Accuracy: {correct_count / len(true):.2%}")
 
             if show_errors:
