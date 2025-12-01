@@ -4,6 +4,8 @@ import logging
 from typing import Literal, TypedDict, List
 from pydantic import BaseModel, Field
 import time
+import sys
+import os
 
 from langchain_core.messages import (
     AIMessage,
@@ -43,6 +45,30 @@ from biomni.config import default_config
 # tool_llm_model_id = "gemini-2.5-pro"
 tool_llm_model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 # tool_llm_model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+
+
+# AI 사고 과정을 녹색으로 출력하는 커스텀 핸들러
+class GreenColorHandler(logging.StreamHandler):
+    """녹색으로 출력하는 커스텀 핸들러"""
+    
+    def emit(self, record):
+        # ANSI 색상 코드: \033[32m = 녹색, \033[0m = 리셋
+        green_start = "\033[32m"
+        green_end = "\033[0m"
+        message = self.format(record)
+        self.stream.write(f"{green_start}{message}{green_end}\n")
+        self.flush()
+
+
+# AI 사고 과정 전용 로거 설정
+ai_thinking_logger = logging.getLogger("ai_thinking")
+ai_thinking_logger.setLevel(logging.INFO)
+ai_thinking_logger.propagate = False  # 부모 로거로 전파하지 않음
+
+# 녹색 핸들러 추가
+green_handler = GreenColorHandler()
+green_handler.setFormatter(logging.Formatter("%(message)s"))
+ai_thinking_logger.addHandler(green_handler)
 
 
 class A1_HITS(A1):
@@ -637,6 +663,24 @@ Output:
             execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL)
             answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL)
 
+            # AI 사고 과정을 녹색 디버깅 로그로 출력
+            if think_match:
+                thinking_content = think_match.group(1).strip()
+                if thinking_content:
+                    ai_thinking_logger.info(f"[AI THINKING]\n{thinking_content}\n")
+            
+            # Execute 태그 내용을 녹색 디버깅 로그로 출력
+            if execute_match:
+                execute_content = execute_match.group(1).strip()
+                if execute_content:
+                    ai_thinking_logger.info(f"[AI EXECUTE]\n{execute_content}\n")
+            
+            # Solution 태그 내용을 녹색 디버깅 로그로 출력
+            if answer_match:
+                solution_content = answer_match.group(1).strip()
+                if solution_content:
+                    ai_thinking_logger.info(f"[AI SOLUTION]\n{solution_content}\n")
+
             # Add the message to the state before checking for errors
             state["messages"].append(AIMessage(content=msg.strip()))
 
@@ -873,6 +917,9 @@ Output:
                     )
                 # observation = f"\n<observation>{result}</observation>"
                 observation = result
+                
+                # Execute 결과를 녹색 디버깅 로그로 출력
+                ai_thinking_logger.info(f"[EXECUTE RESULT]\n{observation}\n")
 
                 # Process newly created files and prepare message content
                 message_content = process_new_files(

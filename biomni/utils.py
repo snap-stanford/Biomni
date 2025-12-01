@@ -929,6 +929,7 @@ def read_module2api():
         "omics",
         "qc",
         "statistics",
+        "memory",
     ]
 
     module2api = {}

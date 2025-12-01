@@ -17,6 +17,7 @@ import random
 import string
 import base64
 from biomni.config import default_config
+from biomni.tool.memory import save_conversation
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from chainlit.data.storage_clients.base import BaseStorageClient
 from sqlalchemy import create_engine, event
@@ -521,6 +522,13 @@ async def _process_agent_response(agent_input: list, message_history: list):
         with open(f"conversion_history.txt", "a") as f:
             f.write(raw_full_message + "\n")
         message_history.append({"role": "assistant", "content": raw_full_message})
+
+        # Save conversation to memory
+        try:
+            user_message_content = message_history[-2]["content"] # The message before the one we just appended
+            save_conversation(user_message_content, final_message)
+        except Exception as e:
+            logger.error(f"Failed to save conversation to memory: {e}")
 
     except asyncio.CancelledError:
         # Handle stop button click
