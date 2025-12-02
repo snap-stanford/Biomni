@@ -1539,6 +1539,7 @@ class A1_HITS(A1):
             custom_tools: List of custom tools to highlight
             custom_data: List of custom data items to highlight
             custom_software: List of custom software items to highlight
+            know_how_docs: List of know-how documents with best practices and protocols
 
         Returns:
             The generated system prompt
@@ -1569,12 +1570,36 @@ class A1_HITS(A1):
             custom_tools, custom_data, custom_software
         )
 
+        # Format know-how documents - include FULL content (metadata already stripped)
+        know_how_formatted = []
+        if know_how_docs:
+            for doc in know_how_docs:
+                if isinstance(doc, dict):
+                    name = doc.get("name", "Unknown")
+                    content = doc.get("content", "")
+                    # Include full content in system prompt (metadata already removed)
+                    know_how_formatted.append(f"📚 {name}:\n{content}")
+
         # Load base prompt template
         prompt_modifier = self._load_prompt_template("base_system_prompt.md")
 
         # Build custom resources section
-        if any(custom_resources.values()):
+        has_custom_resources = any(custom_resources.values()) or know_how_formatted
+        if has_custom_resources:
             custom_sections = []
+
+            # Add know-how section first (highest priority)
+            if know_how_formatted:
+                custom_sections.append(
+                    "📚 KNOW-HOW DOCUMENTS (BEST PRACTICES & PROTOCOLS - ALREADY LOADED):\n"
+                    "{know_how_docs}\n\n"
+                    "IMPORTANT: These documents are ALREADY AVAILABLE in your context. You do NOT need to\n"
+                    "retrieve them or \"review\" them as a separate step. You can DIRECTLY reference and use\n"
+                    "the information from these documents to answer questions, provide protocols, suggest\n"
+                    "parameters, and offer troubleshooting guidance.\n\n"
+                    "These documents contain expert knowledge, protocols, and troubleshooting guidance.\n"
+                    "Reference them directly for experimental design, methodology, and problem-solving.\n"
+                )
 
             if custom_resources["tools"]:
                 custom_sections.append(
@@ -1656,6 +1681,8 @@ class A1_HITS(A1):
         }
 
         # Add custom resources to format dict
+        if know_how_formatted:
+            format_dict["know_how_docs"] = "\n\n".join(know_how_formatted)
         if custom_resources["tools"]:
             format_dict["custom_tools"] = "\n".join(custom_resources["tools"])
         if custom_resources["data"]:
