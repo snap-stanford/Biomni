@@ -1570,7 +1570,7 @@ class A1_HITS(A1):
         )
 
         # Load base prompt template
-        prompt_modifier = self._load_prompt_template("base_system_prompt.txt")
+        prompt_modifier = self._load_prompt_template("base_system_prompt.md")
 
         # Build custom resources section
         if any(custom_resources.values()):
@@ -1593,7 +1593,7 @@ class A1_HITS(A1):
 
             # Load custom resources template
             custom_resources_template = self._load_prompt_template(
-                "custom_resources_section.txt"
+                "custom_resources_section.md"
             )
             prompt_modifier += custom_resources_template.format(
                 custom_sections="\n".join(custom_sections)
@@ -1601,7 +1601,7 @@ class A1_HITS(A1):
 
         # Add environment resources section
         prompt_modifier += self._load_prompt_template(
-            "environment_resources_section.txt"
+            "environment_resources_section.md"
         )
 
         # Set appropriate text based on context
