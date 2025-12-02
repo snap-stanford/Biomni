@@ -38,10 +38,10 @@ def run_r_code(code: str) -> str:
 # Set up R library paths
 .libPaths(c("~/.local/lib/R/library", .libPaths()))
 """
-        
+
         # Combine library setup with user code
         full_code = library_setup + "\n" + code
-        
+
         # Create a temporary file to store the R code
         with tempfile.NamedTemporaryFile(suffix=".R", mode="w", delete=False) as f:
             f.write(full_code)

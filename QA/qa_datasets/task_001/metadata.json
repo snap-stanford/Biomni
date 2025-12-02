@@ -1,0 +1,9 @@
+{
+  "category": "genetics",
+  "difficulty": "easy",
+  "created_at": "2024-11-24T10:00:00",
+  "description": "Basic gene information retrieval task",
+  "tags": ["gene_search", "BRCA1", "cancer_genetics"],
+  "expected_tools": ["search_gene_info", "database_query"]
+}
+

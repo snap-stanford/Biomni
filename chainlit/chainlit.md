@@ -5,10 +5,10 @@ Welcome to **OmicsHorizon™** - Your AI-Powered Omics Analysis Platform! This i
 ## What You Can Do 🎯
 
 ### **Multi-Omics Analysis**
-- **Transcriptomics**: Analyze RNA-seq data, differential expression, pathway enrichment, and more
-- **Proteomics**: Process protein expression data, identify biomarkers, and perform network analysis
-- **Metabolomics**: Analyze metabolite profiles and metabolic pathways
-- **Microbiome**: Explore microbial community composition and diversity
+- **Transcriptomics**: Analyze RNA-seq data, differential expression, pathway enrichment, and more (fully supported)
+- **Proteomics**: Process protein expression data, identify biomarkers, and perform network analysis (under development)
+- **Metabolomics**: Future feature — Support for metabolite profiling and pathway analysis is planned.
+- **Microbiome**: Future feature — Microbiome data analysis capabilities are in the works.
 
 ### **Key Features**
 - **Interactive Data Analysis**: Upload your omics data files and get AI-assisted analysis

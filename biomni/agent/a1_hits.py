@@ -86,9 +86,13 @@ class A1_HITS(A1):
         resource_config = load_resource_filter_config(resource_filter_config_path)
         allowed_data_lake_items = resource_config.get("data_lake", None)
 
-        # Only apply filtering if resource.yaml has data_lake items defined
+        # Only apply filtering if resource.yaml has data_lake items defined (non-empty list)
         # and user didn't explicitly set expected_data_lake_files
-        if allowed_data_lake_items and "expected_data_lake_files" not in kwargs:
+        if (
+            allowed_data_lake_items
+            and len(allowed_data_lake_items) > 0
+            and "expected_data_lake_files" not in kwargs
+        ):
             # Determine commercial_mode to load correct data_lake_dict
             commercial_mode = kwargs.get("commercial_mode", None)
             if commercial_mode is None:
@@ -120,7 +124,15 @@ class A1_HITS(A1):
                 )
 
         super().__init__(*args, **kwargs)
-
+        self.llm = get_llm(
+            kwargs.get("llm", default_config.llm),
+            source=kwargs.get("source", default_config.source),
+            base_url=kwargs.get("base_url", default_config.base_url),
+            api_key=kwargs.get(
+                "api_key", default_config.api_key if default_config.api_key else "EMPTY"
+            ),
+            config=default_config,
+        )
         # Apply resource filters if available
         if (
             hasattr(self, "module2api")
@@ -228,10 +240,9 @@ Output:
             result = qa_chain.invoke(
                 {
                     "question": question,
-                    "chat_history": [],
-                    # "chat_history": state["error_fixing_history"][
-                    #     -1:
-                    # ],  # Use only the last message for error fixing
+                    "chat_history": state[
+                        "error_fixing_history"
+                    ],  # Use conversational history for error fixing
                 }
             )
             return result["answer"]
@@ -396,7 +407,9 @@ Output:
 
         return self.log, message
 
-    def go_stream(self, prompt, additional_system_prompt=None):
+    def go_stream(
+        self, prompt, additional_system_prompt=None, skip_generate_system_prompt=False
+    ):
         """Execute the agent with the given prompt.
 
         Args:
@@ -405,7 +418,7 @@ Output:
         """
         self.critic_count = 0
         self.user_task = prompt
-        if self.use_tool_retriever:
+        if self.use_tool_retriever and not skip_generate_system_prompt:
             # Gather all available resources
             # 1. Tools from the registry
             all_tools = (
@@ -510,7 +523,6 @@ Output:
                     text_prompt = content
             else:
                 text_prompt = str(prompt)
-            print(text_prompt)
             selected_resources = self.retriever.prompt_based_retrieval(
                 text_prompt, resources, llm=tool_llm
             )
@@ -624,13 +636,15 @@ Output:
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
             t1 = time.time()
-
+            if "chunk_messages" not in state:
+                state["chunk_messages"] = []
+            state["chunk_messages"].append("")  # dummy message
             # Process messages to keep only the most recent observation's images
-            processed_messages = remove_old_images_from_messages(state["messages"])
+            # processed_messages = remove_old_images_from_messages(state["messages"])
+            processed_messages = state["messages"]
             messages = [SystemMessage(content=self.system_prompt)] + processed_messages
             # response = self.llm.invoke(messages)
             # msg = str(response.content)
-
             msg = ""
             try:
                 for chunk in self.llm.stream(messages):
@@ -683,15 +697,15 @@ Output:
 
             # Add the message to the state before checking for errors
             state["messages"].append(AIMessage(content=msg.strip()))
-
-            if answer_match:
-                state["next_step"] = "end"
-            elif execute_match:
+            if execute_match:
                 state["next_step"] = "execute"
+            elif answer_match:
+                state["next_step"] = "end"
             elif think_match:
                 state["next_step"] = "generate"
             else:
                 print("parsing error...")
+
                 # Check if we already added an error message to avoid infinite loops
                 error_count = sum(
                     1
@@ -706,7 +720,7 @@ Output:
                     state["next_step"] = "end"
                     # Add a final message explaining the termination
                     state["messages"].append(
-                        HumanMessage(
+                        AIMessage(
                             content="Execution terminated due to repeated parsing errors. Please check your input and try again."
                         )
                     )
@@ -714,7 +728,7 @@ Output:
                     # Try to correct it
                     # Try to correct it
                     state["messages"].append(
-                        HumanMessage(
+                        AIMessage(
                             content="Each response must include thinking process followed by either <execute> or <solution> tag. But there are no tags in the current response. Please follow the instruction, fix and regenerate the response again."
                         )
                     )
@@ -728,6 +742,7 @@ Output:
             import os
             import base64
             from pathlib import Path
+            from PIL import Image
 
             # Get newly created files
             new_files = files_after - files_before
@@ -763,7 +778,21 @@ Output:
                 if new_images:
                     files_info += "\n**Images:**\n"
                     for img_path in new_images:
-                        files_info += f"- {os.path.basename(img_path)}: {img_path}\n"
+                        # Extract image resolution
+                        img_width, img_height = None, None
+                        try:
+                            with Image.open(img_path) as img:
+                                img_width, img_height = img.size
+                        except Exception as e:
+                            pass  # If we can't get dimensions, continue without them
+
+                        # Add image info with resolution
+                        if img_width and img_height:
+                            files_info += f"- {os.path.basename(img_path)}: {img_path} (resolution: {img_width}x{img_height} pixels)\n"
+                        else:
+                            files_info += (
+                                f"- {os.path.basename(img_path)}: {img_path}\n"
+                            )
 
                         # Read and encode image as base64
                         try:
@@ -1029,7 +1058,7 @@ Output:
 
                 # Add feedback as a new message
                 state["messages"].append(
-                    HumanMessage(
+                    AIMessage(
                         content=f"Wait... this is not enough to solve the task. Here are some feedbacks for improvement:\n{feedback.content}"
                     )
                 )
@@ -1078,6 +1107,29 @@ Output:
         self.checkpointer = MemorySaver()
         self.app.checkpointer = self.checkpointer
 
+    def _load_prompt_template(self, template_name):
+        """Load a prompt template file from the prompts directory.
+
+        Args:
+            template_name: Name of the template file (e.g., 'base_system_prompt.txt')
+
+        Returns:
+            str: Content of the template file
+        """
+        import os
+
+        template_path = os.path.join(
+            os.path.dirname(__file__), "prompts", template_name
+        )
+
+        try:
+            with open(template_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Prompt template '{template_name}' not found at {template_path}"
+            )
+
     def _generate_system_prompt(
         self,
         tool_desc,
@@ -1088,6 +1140,7 @@ Output:
         custom_tools=None,
         custom_data=None,
         custom_software=None,
+        know_how_docs=None,
     ):
         """Generate the system prompt based on the provided resources.
 
@@ -1095,7 +1148,7 @@ Output:
             tool_desc: Dictionary of tool descriptions
             data_lake_content: List of data lake items
             library_content_list: List of libraries
-            self_critic: Whether to include self-critic instructions
+            self_critic: Not used (kept for backward compatibility, feedback handling is always included in base prompt)
             is_retrieval: Whether this is for retrieval (True) or initial configuration (False)
             custom_tools: List of custom tools to highlight
             custom_data: List of custom data items to highlight
@@ -1415,72 +1468,35 @@ You may or may not receive feedbacks from human. If so, address the feedbacks by
         )
 
         if has_custom_resources:
-            prompt_modifier += """
+            custom_sections = []
 
-PRIORITY CUSTOM RESOURCES
-===============================
-IMPORTANT: The following custom resources have been specifically added for your use.
-PRIORITIZE using these resources as they are directly relevant to your task.
-Always consider these FIRST and in the meantime using default resources.
+            if custom_tools_formatted:
+                custom_sections.append(
+                    "🔧 CUSTOM TOOLS (USE THESE FIRST):\n{custom_tools}\n"
+                )
 
-        """
+            if custom_data_formatted:
+                custom_sections.append(
+                    "📊 CUSTOM DATA (PRIORITIZE THESE DATASETS):\n{custom_data}\n"
+                )
 
-        if custom_tools_formatted:
-            prompt_modifier += """
-CUSTOM TOOLS (USE THESE FIRST):
-{custom_tools}
+            if custom_software_formatted:
+                custom_sections.append(
+                    "⚙️ CUSTOM SOFTWARE (USE THESE LIBRARIES):\n{custom_software}\n"
+                )
 
-        """
-
-        if custom_data_formatted:
-            prompt_modifier += """
-CUSTOM DATA (PRIORITIZE THESE DATASETS):
-{custom_data}
-
-        """
-
-        if custom_software_formatted:
-            prompt_modifier += """
-⚙️ CUSTOM SOFTWARE (USE THESE LIBRARIES):
-{custom_software}
-
-        """
-
-        prompt_modifier += """===============================
-        """
+            # Load and format custom resources template
+            custom_resources_template = self._load_prompt_template(
+                "custom_resources_section.txt"
+            )
+            prompt_modifier += custom_resources_template.format(
+                custom_sections="\n".join(custom_sections)
+            )
 
         # Add environment resources
-        prompt_modifier += """
-
-Environment Resources:
-
-- Function Dictionary:
-{function_intro}
----
-{tool_desc}
----
-
-{import_instruction}
-
-- Biological data lake
-You can access a biological data lake at the following path: {data_lake_path}.
-{data_lake_intro}
-Each item is listed with its description to help you understand its contents.
-----
-{data_lake_content}
-----
-
-- Software Library:
-{library_intro}
-Each library is listed with its description to help you understand its functionality.
-----
-{library_content_formatted}
-----
-
-- Note on using R packages and Bash scripts:
-- R packages: Use subprocess.run(['Rscript', '-e', 'your R code here']) in Python, or use the #!R marker in your execute block.
-- Bash scripts and commands: Use the #!BASH marker in your execute block for both simple commands and complex shell scripts with variables, loops, conditionals, etc.
-        """
+        prompt_modifier += self._load_prompt_template(
+            "environment_resources_section.txt"
+        )
 
         # Set appropriate text based on whether this is initial configuration or after retrieval
         if is_retrieval:
@@ -1495,17 +1511,35 @@ Each library is listed with its description to help you understand its functiona
             import_instruction = ""
 
         # Format the content consistently for both initial and retrieval cases
-        library_content_formatted = "\n".join(libraries_formatted)
-        data_lake_content_formatted = "\n".join(data_lake_formatted)
+        library_content_formatted = (
+            "\n".join(libraries_formatted)
+            if libraries_formatted
+            else "No specific libraries have been pre-identified for this task.\nUse standard Python libraries (pandas, numpy, scipy, matplotlib, etc.) as needed."
+        )
+        data_lake_content_formatted = (
+            "\n".join(data_lake_formatted)
+            if data_lake_formatted
+            else f"No specific datasets have been pre-identified for this task.\nExplore the data lake directory if you need biological data: {self.path}/data_lake"
+        )
 
         # Format the prompt with the appropriate values
+        # Handle empty tool_desc
+        if isinstance(tool_desc, dict):
+            tool_desc_formatted = (
+                textify_api_dict(tool_desc)
+                if tool_desc
+                else "No specific functions have been pre-identified for this task.\nUse standard Python functions and methods as needed."
+            )
+        else:
+            tool_desc_formatted = (
+                tool_desc
+                if tool_desc
+                else "No specific functions have been pre-identified for this task.\nUse standard Python functions and methods as needed."
+            )
+
         format_dict = {
             "function_intro": function_intro,
-            "tool_desc": (
-                textify_api_dict(tool_desc)
-                if isinstance(tool_desc, dict)
-                else tool_desc
-            ),
+            "tool_desc": tool_desc_formatted,
             "import_instruction": import_instruction,
             "data_lake_path": self.path + "/data_lake",
             "data_lake_intro": data_lake_intro,
@@ -1523,5 +1557,4 @@ Each library is listed with its description to help you understand its functiona
             format_dict["custom_software"] = "\n".join(custom_software_formatted)
 
         formatted_prompt = prompt_modifier.format(**format_dict)
-
         return formatted_prompt

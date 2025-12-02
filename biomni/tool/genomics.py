@@ -2417,69 +2417,651 @@ def analyze_genomic_region_overlap(region_sets, output_prefix="overlap_analysis"
     return log
 
 
-# def get_gene_symbols_from_ensembl_ids(ensembl_ids):
-#     """
-#     Convert multiple Ensembl gene IDs to gene symbols using a single API call.
+def generate_embeddings_with_state(
+    adata_filename,
+    data_dir,
+    model_folder,
+    output_filename=None,
+    checkpoint=None,
+    embed_key="X_state",
+    protein_embeddings=None,
+    batch_size=500,
+):
+    """
+    Generate State embeddings for single-cell RNA-seq data using the SE-600M model.
 
-#     This function queries the Ensembl REST API to retrieve gene symbols (display names)
-#     for a list of Ensembl gene IDs. It uses a batch lookup approach to efficiently
-#     convert multiple IDs in a single HTTP request, which is more efficient than
-#     making individual requests for each ID.
+    This function downloads the SE-600M model from Hugging Face, installs required dependencies,
+    and generates embeddings for the input AnnData object.
 
-#     The function handles various Ensembl ID formats including:
-#     - ENSG IDs (e.g., ENSG00000139618)
-#     - Versioned IDs (e.g., ENSG00000139618.2)
+    Parameters:
+    -----------
+    adata_filename : str
+        Name of the input AnnData file (.h5ad format)
+    data_dir : str
+        Directory containing the input data file
+    model_folder : str
+        Directory where the SE-600M model will be downloaded and stored
+    output_filename : str, optional
+        Name of the output file. If None, will use input filename with '_state_embeddings' suffix
+    checkpoint : str, optional
+        Path to the specific model checkpoint. If None, uses the latest checkpoint in model_folder
+    embed_key : str, default="X_state"
+        Name of key to store embeddings in the output AnnData object
+    protein_embeddings : str, optional
+        Path to protein embeddings override (.pt). If omitted, auto-detects in model folder
+    batch_size : int, default=500
+        Batch size for embedding forward pass. Increase to use more VRAM and speed up embedding
 
-#     Args:
-#         ensembl_ids (list): List of Ensembl gene IDs to convert. Each ID should be
-#                            a string representing a valid Ensembl gene identifier.
-#                            Example: ['ENSG00000139618', 'ENSG00000141510']
+    Returns:
+    --------
+    str
+        Research log summarizing the steps performed and results
 
-#     Returns:
-#         dict: Dictionary mapping Ensembl IDs to their corresponding gene symbols.
-#               Keys are the input Ensembl IDs, values are gene symbols (display names).
-#               If a gene symbol cannot be found for an ID, the value will be
-#               "symbol not found".
-#               Example: {'ENSG00000139618': 'BRCA2', 'ENSG00000141510': 'TP53'}
+    Notes:
+    ------
+    - Requires 10GB+ GPU memory for model loading
+    - Downloads ~25GB model files from Hugging Face
+    - Installs git-lfs, uv, and arc-state if not already available
+    - Validates input h5ad file format (CSR matrix and gene_name column)
+    - Provides real-time streaming output for git clone and embedding generation
+    - Includes automatic retry with reduced batch size on failure
+    """
+    import os
+    import subprocess
 
-#     Raises:
-#         requests.exceptions.HTTPError: If the API request fails (non-200 status code)
-#         requests.exceptions.RequestException: For other request-related errors
+    # Initialize steps list for logging
+    steps = []
 
-#     Example:
-#         >>> ensembl_ids = ['ENSG00000139618', 'ENSG00000141510']
-#         >>> symbols = get_gene_symbols_from_ensembl_ids(ensembl_ids)
-#         >>> print(symbols)
-#         {'ENSG00000139618': 'BRCA2', 'ENSG00000141510': 'TP53'}
+    # Set up paths
+    input_path = os.path.join(data_dir, adata_filename)
+    if output_filename is None:
+        base_name = os.path.splitext(adata_filename)[0]
+        output_filename = f"{base_name}_state_embeddings.h5ad"
 
-#     Note:
-#         - This function requires an active internet connection to access the Ensembl API
-#         - The API has rate limits, so avoid making too many requests in quick succession
-#         - Invalid or obsolete Ensembl IDs will return "symbol not found"
-#     """
-#     server = "https://rest.ensembl.org"
-#     ext = "/lookup/id"
-#     headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    output_path = os.path.join(data_dir, "output", output_filename)
 
-#     # Prepare the data for POST request
-#     data = {"ids": ensembl_ids}
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    steps.append(f"Created output directory: {os.path.dirname(output_path)}")
 
-#     r = requests.post(server + ext, headers=headers, json=data)
+    # Validate h5ad file format
+    steps.append("Validating h5ad file format...")
+    try:
+        import scanpy as sc
 
-#     if not r.ok:
-#         r.raise_for_status()
-#         return {}
+        adata = sc.read_h5ad(input_path)
 
-#     decoded = r.json()
+        import warnings
 
-#     # Extract gene symbols from the response
-#     result = {}
-#     for ensembl_id in ensembl_ids:
-#         if ensembl_id in decoded:
-#             result[ensembl_id] = decoded[ensembl_id].get(
-#                 "display_name", "symbol not found"
-#             )
-#         else:
-#             result[ensembl_id] = "symbol not found"
+        if not hasattr(adata.X, "indices"):
+            warning_msg = "Input data is not in CSR (Compressed Sparse Row) matrix format. Proceeding, but this may cause issues."
+            warnings.warn(warning_msg, stacklevel=2)
+            steps.append(f"Warning: {warning_msg}")
 
-#     return result
+        if "gene_name" not in adata.var.columns:
+            warning_msg = "'gene_name' column is not present in the var dataframe. Proceeding, but this may cause issues."
+            warnings.warn(warning_msg, stacklevel=2)
+            steps.append(f"Warning: {warning_msg}")
+
+        steps.append(f"  - Matrix format: {type(adata.X).__name__}")
+        steps.append(f"  - Number of cells: {adata.n_obs}")
+        steps.append(f"  - Number of genes: {adata.n_vars}")
+        steps.append(f"  - Gene names available: {'gene_name' in adata.var.columns}")
+
+    except Exception as e:
+        error_msg = f"h5ad file validation failed: {e}"
+        steps.append(error_msg)
+        raise ValueError(error_msg) from e
+
+    # Check if git-lfs is installed
+    steps.append("Checking if git-lfs is installed...")
+    try:
+        subprocess.run(["git", "lfs", "version"], check=True, capture_output=True)
+        steps.append("git-lfs is available")
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        error_msg = (
+            "git-lfs is not installed or not found in PATH. "
+            "Please install git-lfs before running this function.\n"
+            "Run the following command with root privileges:\n"
+            "sudo apt-get install git-lfs\n"
+            "git lfs install"
+        )
+        steps.append(error_msg)
+        raise RuntimeError(error_msg) from e
+
+    steps.append("Downloading SE-600M model...")
+
+    # Check if model weights actually exist (not just the directory)
+    model_exists = False
+    if os.path.exists(model_folder):
+        # Check for SE-600M specific checkpoint files
+        checkpoint_indicators = [
+            "se600m_epoch16.ckpt",
+            "se600m_epoch4.ckpt",
+            "model.safetensors",
+            "config.yaml",
+        ]
+        model_exists = any(
+            os.path.exists(os.path.join(model_folder, indicator))
+            for indicator in checkpoint_indicators
+        )
+
+    if not model_exists:
+        os.makedirs(model_folder, exist_ok=True)
+        steps.append(f"Created model directory: {model_folder}")
+        try:
+            steps.append(f"Cloning SE-600M model to {model_folder}")
+            steps.append(
+                "This may take a while and final model weights are approx 25GB!..."
+            )
+            process = subprocess.Popen(
+                [
+                    "git",
+                    "clone",
+                    "https://huggingface.co/arcinstitute/SE-600M",
+                    model_folder,
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                universal_newlines=True,
+            )
+
+            for line in iter(process.stdout.readline, ""):
+                line = line.rstrip()
+                print(line)
+                steps.append(line)
+
+            process.wait()
+
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(
+                    process.returncode,
+                    [
+                        "git",
+                        "clone",
+                        "https://huggingface.co/arcinstitute/SE-600M",
+                        model_folder,
+                    ],
+                )
+            steps.append("SE-600M model downloaded successfully")
+        except subprocess.CalledProcessError as e:
+            error_msg = f"Error downloading model: {e}"
+            steps.append(error_msg)
+            raise
+    else:
+        steps.append(f"Model already downloaded: {model_folder}")
+
+    steps.append("Generating embeddings...")
+
+    if torch.cuda.is_available():
+        device_name = torch.cuda.get_device_name(0)
+        gpu_memory = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+        current_device = torch.cuda.current_device()
+        steps.append(f"✓ GPU detected: {device_name}")
+        steps.append(f"✓ GPU memory: {gpu_memory:.1f} GB")
+        steps.append(f"✓ Current CUDA device: {current_device}")
+        if gpu_memory < 10:
+            warning_msg = f"⚠️  WARNING: GPU has only {gpu_memory:.1f} GB memory. SE600 model requires 10GB+ GPU memory."
+            steps.append(warning_msg)
+    else:
+        steps.append(
+            "⚠️  WARNING: No GPU detected! This will run on CPU and be very slow."
+        )
+        steps.append(
+            "⚠️  SE600 model requires 10GB+ GPU memory for optimal performance."
+        )
+
+    cuda_visible = os.environ.get("CUDA_VISIBLE_DEVICES", "Not set")
+    steps.append(f"CUDA_VISIBLE_DEVICES: {cuda_visible}")
+
+    steps.append(f"PyTorch CUDA available: {torch.cuda.is_available()}")
+    if torch.cuda.is_available():
+        steps.append(f"PyTorch CUDA device count: {torch.cuda.device_count()}")
+        steps.append(f"PyTorch current device: {torch.cuda.current_device()}")
+
+    steps.append("embedding data can take a while...")
+    max_retries = 3
+    retries = 0
+    last_exception = None
+
+    while retries <= max_retries:
+        try:
+            cmd = [
+                "uv",
+                "run",
+                "state",
+                "emb",
+                "transform",
+                "--model-folder",
+                model_folder,
+                "--input",
+                input_path,
+                "--output",
+                output_path,
+            ]
+
+            if checkpoint:
+                cmd.extend(["--checkpoint", checkpoint])
+            if embed_key != "X_state":
+                cmd.extend(["--embed-key", embed_key])
+            if protein_embeddings:
+                cmd.extend(["--protein-embeddings", protein_embeddings])
+            if batch_size:
+                cmd.extend(["--batch-size", str(batch_size)])
+
+            steps.append(f"Running command: {' '.join(cmd)}")
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                universal_newlines=True,
+            )
+
+            for line in iter(process.stdout.readline, ""):
+                line = line.rstrip()
+                print(line)  # Print to console first
+                steps.append(line)  # Then add to steps list
+
+            process.wait()
+
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, cmd)
+
+            steps.append("Embeddings generated successfully!")
+            steps.append("Output Format and Location:")
+            steps.append("  Output format: .h5ad (AnnData format)")
+            steps.append("  Embeddings stored in: X_state layer (by default)")
+            steps.append("  Location: Specified by --output parameter")
+            steps.append(f"  In your code: Saved to {output_path}")
+            steps.append("")
+            return "\n".join(steps)
+
+        except subprocess.CalledProcessError as e:
+            error_msg = f"Error generating embeddings (attempt {retries + 1}): {e}"
+            steps.append(error_msg)
+            last_exception = e
+            if batch_size and retries < max_retries:
+                batch_size = max(1, batch_size // 2)
+                steps.append(f"Retrying with reduced batch size: {batch_size}")
+                retries += 1
+            else:
+                break
+
+    steps.append("Failed to generate embeddings after multiple attempts.")
+    if last_exception:
+        steps.append(f"Last exception: {last_exception}")
+        raise last_exception
+
+    return "\n".join(steps)
+
+
+def generate_transcriptformer_embeddings(
+    adata_filename: str,
+    data_dir: str,
+    output_filename: str = None,
+    model_type: str = "tf-sapiens",
+    checkpoint_path: str = None,
+    batch_size: int = 8,
+    precision: str = "16-mixed",
+    clip_counts: int = 30,
+    embedding_layer_index: int = -1,
+    num_gpus: int = 1,
+    n_data_workers: int = 0,
+    gene_col_name: str = "ensembl_id",
+    pretrained_embedding: str = None,
+    filter_to_vocabs: bool = True,
+    use_raw: str = "None",
+    emb_type: str = "cell",
+    remove_duplicate_genes: bool = False,
+    oom_dataloader: bool = False,
+) -> str:
+    """
+    Generate Transcriptformer embeddings for single-cell RNA-seq data.
+
+    Parameters:
+    -----------
+    adata_filename : str
+        Name of the input AnnData file (.h5ad format)
+    data_dir : str
+        Directory containing the input data file
+    output_filename : str, optional
+        Name of the output embeddings file. If None, will use input filename with '_transcriptformer_embeddings' suffix
+    model_type : str, optional
+        Type of transcriptformer model to download and use. Options: "tf-sapiens", "tf-exemplar", "tf-metazoa" (default: "tf-sapiens")
+    checkpoint_path : str, optional
+        Path to the transcriptformer checkpoint directory. If None, will use "./checkpoints/{model_type}" (default: None)
+    batch_size : int, optional
+        Batch size for inference (default: 8)
+    precision : str, optional
+        Precision for inference. Options: "16-mixed", "32" (default: "16-mixed")
+    clip_counts : int, optional
+        Maximum count value to clip to (default: 30)
+    embedding_layer_index : int, optional
+        Which layer to extract embeddings from (default: -1, last layer)
+    num_gpus : int, optional
+        Number of GPUs to use (default: 1)
+    n_data_workers : int, optional
+        Number of data loading workers (default: 0)
+    gene_col_name : str, optional
+        Column name in AnnData.var containing gene identifiers (default: "ensembl_id")
+    pretrained_embedding : str, optional
+        Path to pretrained embeddings for out-of-distribution species (default: None)
+    filter_to_vocabs : bool, optional
+        Whether to filter genes to only those in the vocabulary (default: True)
+    use_raw : str, optional
+        Whether to use raw counts from AnnData.raw.X (True), adata.X (False), or auto-detect (None/auto) (default: "None")
+    emb_type : str, optional
+        Type of embeddings to extract: 'cell' for mean-pooled cell embeddings or 'cge' for contextual gene embeddings (default: "cell")
+    remove_duplicate_genes : bool, optional
+        Remove duplicate genes if found instead of raising an error (default: False)
+    oom_dataloader : bool, optional
+        Use map-style out-of-memory DataLoader (DistributedSampler-friendly) (default: False)
+    Returns:
+    --------
+    str
+        Path to the generated embeddings file
+    """
+    import os
+    import subprocess
+
+    import pandas as pd
+    import scanpy as sc
+    import torch
+
+    if checkpoint_path is None:
+        checkpoint_path = f"./checkpoints/{model_type}"
+
+    input_path = os.path.join(data_dir, adata_filename)
+    if output_filename is None:
+        base_name = os.path.splitext(adata_filename)[0]
+        output_filename = f"{base_name}_transcriptformer_embeddings.h5ad"
+
+    output_path = os.path.join(data_dir, "output", output_filename)
+    temp_data_path = os.path.join(data_dir, "temp_transcriptformer_input.h5ad")
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    print("Checking GPU availability...")
+    if torch.cuda.is_available():
+        device_name = torch.cuda.get_device_name(0)
+        gpu_memory = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+        current_device = torch.cuda.current_device()
+        print(f"✓ GPU detected: {device_name}")
+        print(f"✓ GPU memory: {gpu_memory:.1f} GB")
+        print(f"✓ Current CUDA device: {current_device}")
+    else:
+        print("⚠️  WARNING: No GPU detected! This will run on CPU and be very slow.")
+        print("⚠️  Transcriptformer requires GPU for optimal performance.")
+
+    import os
+
+    cuda_visible = os.environ.get("CUDA_VISIBLE_DEVICES", "Not set")
+    print(f"CUDA_VISIBLE_DEVICES: {cuda_visible}")
+
+    print(f"PyTorch CUDA available: {torch.cuda.is_available()}")
+    if torch.cuda.is_available():
+        print(f"PyTorch CUDA device count: {torch.cuda.device_count()}")
+        print(f"PyTorch current device: {torch.cuda.current_device()}")
+
+    try:
+        os.makedirs(checkpoint_path, exist_ok=True)
+
+        def is_model_downloaded(checkpoint_path, model_type):
+            """Check if model is already downloaded by looking for key files"""
+            required_files = [
+                "config.yaml",
+                "pytorch_model.bin",
+            ]
+
+            for file_name in required_files:
+                file_path = os.path.join(checkpoint_path, file_name)
+                if not os.path.exists(file_path):
+                    return False
+
+            return True
+
+        if is_model_downloaded(checkpoint_path, model_type):
+            print(
+                f"✓ Model checkpoints for {model_type} already exist at: {checkpoint_path}"
+            )
+            print("✓ Skipping download...")
+        else:
+            print(f"Downloading transcriptformer model checkpoints for {model_type}...")
+            print("This may take a while and model checkpoints are several GB!...")
+            print(f"Model will be saved to: {checkpoint_path}")
+
+            try:
+                process = subprocess.Popen(
+                    ["transcriptformer", "download", model_type],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                    universal_newlines=True,
+                )
+
+                for line in iter(process.stdout.readline, ""):
+                    print(line.rstrip())
+
+                process.wait()
+
+                if process.returncode != 0:
+                    raise subprocess.CalledProcessError(
+                        process.returncode, ["transcriptformer", "download", model_type]
+                    )
+                print(f"✓ Model checkpoints for {model_type} downloaded successfully")
+            except subprocess.CalledProcessError as e:
+                print(f"Error downloading model checkpoints: {e}")
+                raise
+
+        print("Loading and preparing AnnData object...")
+        try:
+            adata = sc.read_h5ad(input_path)
+            print(f"✓ Loaded AnnData with {adata.n_obs} cells and {adata.n_vars} genes")
+
+            def check_ensembl_patterns(gene_index):
+                patterns = {
+                    "human_ensembl": r"^ENSG\d{11}(\.\d+)?$",
+                    "mouse_ensembl": r"^ENSMUSG\d{11}(\.\d+)?$",
+                    "zebrafish_ensembl": r"^ENSDARG\d{11}(\.\d+)?$",
+                    "fly_ensembl": r"^FBgn\d{7}$",
+                    "worm_ensembl": r"^WBGene\d{8}$",
+                    "yeast_ensembl": r"^Y[A-P][LR]\d{3}[WC]?$",
+                    "generic_ensembl": r"^ENS[A-Z]{3}G\d{11}(\.\d+)?$",
+                }
+
+                results = {}
+                for pattern_name, pattern in patterns.items():
+                    matches = gene_index.str.match(pattern, na=False)
+                    count = matches.sum()
+                    results[pattern_name] = {
+                        "count": count,
+                        "percentage": (count / len(gene_index)) * 100,
+                        "matches": (
+                            gene_index[matches].tolist()[:5] if count > 0 else []
+                        ),
+                    }
+
+                return results
+
+            print("Analyzing gene index for Ensembl ID patterns...")
+            ensembl_analysis = check_ensembl_patterns(adata.var.index)
+
+            for pattern_name, data in ensembl_analysis.items():
+                if data["count"] > 0:
+                    print(
+                        f"✓ {pattern_name}: {data['count']} genes ({data['percentage']:.1f}%)"
+                    )
+                    if data["matches"]:
+                        print(f"  Examples: {data['matches']}")
+
+            best_pattern = max(ensembl_analysis.items(), key=lambda x: x[1]["count"])
+            if best_pattern[1]["count"] > 0:
+                print(
+                    f"✓ Best match: {best_pattern[0]} with {best_pattern[1]['count']} genes"
+                )
+            else:
+                print("❌ ERROR: No clear Ensembl ID patterns detected in gene index")
+                print(f"  Gene index examples: {adata.var.index[:5].tolist()}")
+                print("  This dataset cannot be processed by transcriptformer.")
+                print("  Please ensure your data contains valid Ensembl gene IDs.")
+                raise ValueError(
+                    "No Ensembl ID patterns found in gene index. Cannot proceed with transcriptformer inference."
+                )
+
+            if "ensembl_id" not in adata.var.columns:
+                if "gene_ids" in adata.var.columns:
+                    print("✓ Found 'gene_ids' column, renaming to 'ensembl_id'")
+                    adata.var["ensembl_id"] = adata.var["gene_ids"]
+                elif best_pattern[1]["count"] > 0:
+                    adata.var["ensembl_id"] = adata.var.index
+                    print(
+                        f"✓ Using gene index as ensembl_id (detected {best_pattern[0]} pattern)"
+                    )
+                else:
+                    print(
+                        "❌ ERROR: No 'ensembl_id' column found and gene index doesn't match Ensembl patterns"
+                    )
+                    print("  This dataset cannot be processed by transcriptformer.")
+                    print("  Please ensure your data contains valid Ensembl gene IDs.")
+                    raise ValueError(
+                        "No valid Ensembl gene IDs found. Cannot proceed with transcriptformer inference."
+                    )
+
+            if adata.raw is None:
+                print(
+                    "⚠️  Warning: Transcriptformer expects raw (unnormalized) count data in adata.X."
+                )
+                if not pd.api.types.is_integer_dtype(adata.X.dtype):
+                    print(
+                        "⚠️  Warning: adata.X does not appear to be unnormalized counts (integer type not detected)."
+                    )
+                adata.raw = adata
+                print("✓ Set adata.raw to current adata")
+
+            if remove_duplicate_genes:
+                print(
+                    "Pre-processing: Removing duplicate genes to prevent dimension mismatch..."
+                )
+                adata.var["ensembl_id_clean"] = (
+                    adata.var["ensembl_id"].str.split(".").str[0]
+                )
+
+                duplicate_mask = adata.var["ensembl_id_clean"].duplicated(keep="first")
+                n_duplicates = duplicate_mask.sum()
+
+                if n_duplicates > 0:
+                    print(f"Found {n_duplicates} duplicate genes, removing them...")
+                    adata = adata[:, ~duplicate_mask].copy()
+                    print(
+                        f"✓ Removed {n_duplicates} duplicate genes. Remaining: {adata.n_vars} genes"
+                    )
+                else:
+                    print("✓ No duplicate genes found")
+
+                adata.var["ensembl_id"] = adata.var["ensembl_id_clean"]
+                adata.var.drop("ensembl_id_clean", axis=1, inplace=True)
+
+            adata.write(temp_data_path)
+            print(f"✓ Saved prepared AnnData to {temp_data_path}")
+
+        except Exception as e:
+            print(f"Error preparing AnnData object: {e}")
+            raise
+
+        print("Running transcriptformer inference...")
+        print("This may take a while depending on data size and GPU...")
+        try:
+            cmd = [
+                "transcriptformer",
+                "inference",
+                "--checkpoint-path",
+                checkpoint_path,
+                "--data-file",
+                temp_data_path,
+                "--output-path",
+                os.path.dirname(output_path),
+                "--output-filename",
+                os.path.basename(output_path),
+                "--batch-size",
+                str(batch_size),
+                "--gene-col-name",
+                gene_col_name,
+                "--precision",
+                precision,
+                "--clip-counts",
+                str(clip_counts),
+                "--model-type",
+                "transcriptformer",
+                "--use-raw",
+                use_raw,
+                "--emb-type",
+                emb_type,
+                "--num-gpus",
+                str(num_gpus),
+                "--n-data-workers",
+                str(n_data_workers),
+            ]
+
+            # Check if assay column exists in obs, if not create it
+            if "assay" not in adata.obs.columns:
+                print("✓ Creating 'assay' column in obs metadata with 'unknown' values")
+                adata.obs["assay"] = "unknown"
+                # Save the updated adata with assay column
+                adata.write(temp_data_path)
+                print(f"✓ Updated AnnData saved to {temp_data_path}")
+
+            if pretrained_embedding is not None:
+                cmd.extend(["--pretrained-embedding", pretrained_embedding])
+
+            if filter_to_vocabs:
+                cmd.append("--filter-to-vocabs")
+
+            if remove_duplicate_genes:
+                cmd.append("--remove-duplicate-genes")
+
+            if oom_dataloader:
+                cmd.append("--oom-dataloader")
+
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                universal_newlines=True,
+            )
+
+            for line in iter(process.stdout.readline, ""):
+                print(line.rstrip())
+
+            process.wait()
+
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, cmd)
+
+            print("✓ Transcriptformer inference completed successfully")
+            print(f"✓ Output saved to: {output_path}")
+
+        except subprocess.CalledProcessError as e:
+            print(f"Error running transcriptformer inference: {e}")
+            raise
+
+        try:
+            if os.path.exists(temp_data_path):
+                os.remove(temp_data_path)
+                print("✓ Cleaned up temporary files")
+        except Exception as e:
+            print(f"⚠️  Warning: Could not clean up temporary files: {e}")
+
+        print("✓ Transcriptformer embeddings generated successfully!")
+        print("\nOutput Format and Location:")
+        print("  Output format: .h5ad (AnnData format)")
+
+        return output_path
+
+    except Exception as e:
+        print(f"Fatal error in transcriptformer embedding generation: {e}")
+        raise

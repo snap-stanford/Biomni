@@ -24,40 +24,6 @@ def load_resource_filter_config(config_path: Optional[str] = None) -> Dict[str, 
         Dictionary with 'tools', 'data_lake', and 'libraries' keys.
         Returns empty dict if file not found or invalid.
     """
-    if config_path is None:
-        # Try to find resource_filter.yaml or resource.yaml in current directory and parent directories
-        current_dir = Path.cwd()
-        search_paths = [
-            current_dir / "resource_filter.yaml",
-            current_dir / "resource.yaml",
-            current_dir / "Biomni_HITS" / "resource_filter.yaml",
-            current_dir / "Biomni_HITS" / "resource.yaml",
-            current_dir / "chainlit" / "resource.yaml",
-        ]
-
-        # Add parent directories
-        for parent in list(current_dir.parents)[:5]:  # Check up to 5 levels up
-            search_paths.append(parent / "resource_filter.yaml")
-            search_paths.append(parent / "resource.yaml")
-            search_paths.append(parent / "Biomni_HITS" / "resource_filter.yaml")
-            search_paths.append(parent / "Biomni_HITS" / "resource.yaml")
-            search_paths.append(parent / "chainlit" / "resource.yaml")
-
-        # Also try relative to this file's location
-        try:
-            import biomni
-
-            biomni_path = Path(biomni.__file__).parent.parent
-            search_paths.append(biomni_path / "resource_filter.yaml")
-            search_paths.append(biomni_path / "resource.yaml")
-            search_paths.append(biomni_path / "chainlit" / "resource.yaml")
-        except:
-            pass
-
-        for potential_path in search_paths:
-            if potential_path.exists():
-                config_path = str(potential_path)
-                break
 
     if config_path is None or not os.path.exists(config_path):
         print(f"No resource filter configuration found. Using all resources.")

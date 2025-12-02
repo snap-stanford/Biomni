@@ -147,7 +147,44 @@ agent.go("Plan a CRISPR screen to identify genes that regulate T cell exhaustion
 agent.go("Perform scRNA-seq annotation at [PATH] and generate meaningful hypothesis")
 agent.go("Predict ADMET properties for this compound: CC(C)CC1=CC=C(C=C1)C(C)C(=O)O")
 ```
+
+#### Controlling Datalake Loading
+
+By default, Biomni automatically downloads the datalake files (~11GB) when you create an agent. You can control this behavior:
+
+```python
+# Skip automatic datalake download (faster initialization)
+agent = A1(path='./data', llm='claude-sonnet-4-20250514', expected_data_lake_files = [])
+```
+
+This is useful for:
+- Faster testing and development
+- Environments with limited storage or bandwidth
+- Cases where you only need specific tools that don't require datalake files
 If you plan on using Azure for your model, always prefix the model name with azure- (e.g. llm='azure-gpt-4o').
+
+### Gradio Interface
+
+Launch an interactive web UI for Biomni:
+
+```python
+from biomni.agent import A1
+
+agent = A1(path='./data', llm='claude-sonnet-4-20250514')
+agent.launch_gradio_demo()
+```
+
+**Installation:**
+```bash
+pip install gradio
+```
+
+**Options:**
+- `share=True` - Create a public shareable link
+- `server_name="127.0.0.1"` - Localhost only (default: "0.0.0.0")
+- `require_verification=True` - Require access code (default code: "Biomni2025")
+
+The interface will be available at `http://localhost:7860`
 
 ### Configuration Management
 
@@ -293,6 +330,29 @@ score = evaluator.evaluate('gwas_causal_gene_opentargets', 0, 'BRCA1')
 ```
 
 
+## 📚 Know-How Library
+
+Biomni includes a **Know-How Library** — a curated collection of best practices, protocols, and troubleshooting guides for biomedical techniques. These documents are automatically retrieved by the A1 agent when relevant to provide domain expertise and practical knowledge.
+
+**Features:**
+- Automatic retrieval based on query relevance
+- Metadata tracking (authors, affiliations, licensing, commercial use)
+- Compatible with commercial mode (filters non-commercial content)
+
+### 📝 Contributing Know-How Documents
+
+We're actively seeking community contributions to expand our Know-How Library! Share your expertise by contributing:
+
+- **Lab protocols** (cell culture, flow cytometry, western blotting, etc.)
+- **Analysis best practices** (NGS workflows, microscopy techniques, etc.)
+- **Troubleshooting guides** (common issues and solutions)
+- **Experimental design guidelines** (sample size, controls, validation)
+- **Domain-specific knowledge** (drug formulation, animal models, clinical trials, etc.)
+
+Know-how documents should be practical, succinct, and include proper attribution. Use [this know-how](know_how/single_cell_annotation.md) as an example.
+
+**To contribute:** Create a markdown file following our template and submit a pull request.
+
 ## 🤝 Contributing to Biomni
 
 Biomni is an open-science initiative that thrives on community contributions. We welcome:
@@ -301,6 +361,7 @@ Biomni is an open-science initiative that thrives on community contributions. We
 - **📊 Datasets**: Curated biomedical data and knowledge bases
 - **💻 Software**: Integration of existing biomedical software packages
 - **📋 Benchmarks**: Evaluation datasets and performance metrics
+- **📚 Know-How**: Best practices, protocols, and domain expertise
 - **📚 Misc**: Tutorials, examples, and use cases
 - **🔧 Update existing tools**: many current tools are not optimized - fix and replacements are welcome!
 

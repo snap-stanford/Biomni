@@ -50,7 +50,8 @@ def calculate_qc_metrics(
         - overall_metrics: Overall data quality metrics (dict)
         - correlation_matrix: Sample correlation matrix (DataFrame)
         - outlier_samples: List of potential outlier samples
-        - pca_variance: Variance explained by first 5 PCs
+        - pca_variance: Variance explained by first 5 PCs (dict)
+        - pca_coordinates: PCA coordinates for each sample (DataFrame)
     
     Examples
     --------
@@ -80,14 +81,27 @@ def calculate_qc_metrics(
     - Outliers are identified using isolation forest method
     - Correlation matrix uses Pearson correlation
     - For RNA-seq, data should be log-transformed counts
-    
-    References
-    ----------
-    [1] Conesa et al. "A survey of best practices for RNA-seq data 
-        analysis", Genome Biol, 2016.
     """
     from sklearn.ensemble import IsolationForest
     from sklearn.preprocessing import StandardScaler
+    
+    # Validate inputs
+    missing_samples = set(sample_columns) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All sample_columns must exist in data.columns. "
+            f"Available columns: {list(data.columns)[:10]}..."
+        )
+    
+    if metadata is not None:
+        missing_metadata_samples = set(sample_columns) - set(metadata.index)
+        if missing_metadata_samples:
+            raise ValueError(
+                f"Sample(s) not found in metadata.index: {missing_metadata_samples}. "
+                f"metadata.index must contain all sample_columns. "
+                f"Example: metadata = pd.DataFrame(..., index=sample_columns)"
+            )
     
     # Extract data matrix
     data_matrix = data[sample_columns].values.T  # Transpose to samples x features
@@ -212,164 +226,455 @@ def calculate_qc_metrics(
     return results
 
 
-def generate_qc_report(
-    qc_results: dict,
-    output_file: str = "qc_report.html",
-) -> str:
-    """
-    Generate an HTML QC report with plots and metrics.
+# def draw_pca(
+#     data: pd.DataFrame,
+#     sample_columns: list,
+#     metadata: pd.DataFrame = None,
+#     color_by: str = None,
+#     n_components: int = 2,
+#     show_loadings: bool = False,
+#     n_loadings: int = 10,
+#     output_file: str = "pca_plot.png",
+# ) -> str:
+#     """
+#     Create PCA visualization for quality control and sample relationship assessment.
     
-    Parameters
-    ----------
-    qc_results : dict
-        Results from calculate_qc_metrics()
-    output_file : str
-        Path to save HTML report
+#     Essential QC visualization tool for identifying sample relationships, batch effects,
+#     and outliers. Part of quality control workflow for omics data analysis.
     
-    Returns
-    -------
-    str
-        Path to saved report
-    """
-    # Create QC plots
-    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+#     Parameters
+#     ----------
+#     data : pd.DataFrame
+#         Data with features as rows, samples as columns
+#     sample_columns : list
+#         Sample names to include. All must exist in data.columns.
+#     metadata : pd.DataFrame, optional
+#         Sample metadata for coloring. Index must match sample_columns.
+#         Example: metadata = pd.DataFrame(..., index=sample_columns)
+#     color_by : str, optional
+#         Metadata column for coloring (e.g., 'batch', 'group', 'treatment')
+#     n_components : int, optional (default: 2)
+#         Number of PCs to compute (2 or 3 for visualization)
+#     show_loadings : bool, optional (default: False)
+#         Show feature loading vectors (not yet implemented)
+#     n_loadings : int, optional (default: 10)
+#         Number of loadings to show if show_loadings=True
+#     output_file : str, optional (default: "pca_plot.png")
+#         Output file path
     
-    sample_metrics = qc_results['sample_metrics']
+#     Returns
+#     -------
+#     str
+#         Path to saved plot
     
-    # 1. Total intensity distribution
-    axes[0, 0].bar(range(len(sample_metrics)), sample_metrics['total_intensity'])
-    axes[0, 0].set_xlabel('Sample Index')
-    axes[0, 0].set_ylabel('Total Intensity')
-    axes[0, 0].set_title('Total Intensity per Sample')
-    axes[0, 0].tick_params(axis='x', rotation=45)
+#     Examples
+#     --------
+#     >>> import pandas as pd
+#     >>> import numpy as np
+#     >>> 
+#     >>> # Create sample data
+#     >>> data = pd.DataFrame(np.random.randn(100, 6))
+#     >>> 
+#     >>> # Basic PCA plot
+#     >>> plot_path = draw_pca(data, data.columns.tolist())
+#     >>> 
+#     >>> # With metadata coloring
+#     >>> metadata = pd.DataFrame({
+#     ...     'batch': ['Batch1', 'Batch1', 'Batch2', 'Batch2', 'Batch3', 'Batch3']
+#     ... }, index=data.columns)
+#     >>> plot_path = draw_pca(data, data.columns.tolist(), metadata, color_by='batch')
     
-    # 2. Detection rate
-    axes[0, 1].bar(range(len(sample_metrics)), sample_metrics['detected_features'])
-    axes[0, 1].set_xlabel('Sample Index')
-    axes[0, 1].set_ylabel('Number of Detected Features')
-    axes[0, 1].set_title('Feature Detection per Sample')
-    axes[0, 1].tick_params(axis='x', rotation=45)
+#     Notes
+#     -----
+#     - Normalize and clean data before PCA
+#     - Missing values are automatically removed (features with any NaN are excluded)
+#     - Data is standardized (z-score) before PCA
+#     - Use this for QC to identify batch effects and outliers
+#     - For QC metrics calculation, use calculate_qc_metrics() which also performs PCA
+#     - This function focuses on visualization, while calculate_qc_metrics() focuses on metrics
     
-    # 3. Correlation heatmap
-    corr_matrix = qc_results['correlation_matrix']
-    im = axes[1, 0].imshow(corr_matrix, cmap='RdBu_r', vmin=-1, vmax=1, aspect='auto')
-    axes[1, 0].set_xticks(range(len(corr_matrix)))
-    axes[1, 0].set_yticks(range(len(corr_matrix)))
-    axes[1, 0].set_xticklabels(corr_matrix.columns, rotation=45, ha='right')
-    axes[1, 0].set_yticklabels(corr_matrix.index)
-    axes[1, 0].set_title('Sample Correlation Matrix')
-    plt.colorbar(im, ax=axes[1, 0])
+#     See Also
+#     --------
+#     calculate_qc_metrics : Calculate comprehensive QC metrics including PCA coordinates
+#     generate_qc_report : Generate HTML QC report with PCA plot included
+#     """
+#     from sklearn.decomposition import PCA
+#     from sklearn.preprocessing import StandardScaler
     
-    # 4. PCA plot
-    pca_coords = qc_results['pca_coordinates']
-    axes[1, 1].scatter(pca_coords['PC1'], pca_coords['PC2'], s=100, alpha=0.6)
+#     # Validate inputs
+#     missing_samples = set(sample_columns) - set(data.columns)
+#     if missing_samples:
+#         raise ValueError(
+#             f"Sample(s) not found in data.columns: {missing_samples}. "
+#             f"All sample_columns must exist in data.columns. "
+#             f"Available columns: {list(data.columns)[:10]}..."
+#         )
     
-    # Mark outliers
-    for sample in qc_results['outlier_samples']:
-        idx = pca_coords.index.get_loc(sample)
-        axes[1, 1].scatter(
-            pca_coords.loc[sample, 'PC1'],
-            pca_coords.loc[sample, 'PC2'],
-            s=150, c='red', marker='x', linewidths=3,
-            label='Outlier' if sample == qc_results['outlier_samples'][0] else ''
-        )
+#     if metadata is not None and color_by is not None:
+#         missing_metadata_samples = set(sample_columns) - set(metadata.index)
+#         if missing_metadata_samples:
+#             raise ValueError(
+#                 f"Sample(s) not found in metadata.index: {missing_metadata_samples}. "
+#                 f"metadata.index must contain all sample_columns. "
+#                 f"Example: metadata = pd.DataFrame(..., index=sample_columns)"
+#             )
     
-    # Add sample labels
-    for idx, sample in enumerate(pca_coords.index):
-        axes[1, 1].annotate(
-            sample,
-            (pca_coords.loc[sample, 'PC1'], pca_coords.loc[sample, 'PC2']),
-            xytext=(5, 5), textcoords='offset points', fontsize=8
-        )
+#     # Extract data
+#     data_matrix = data[sample_columns].values.T  # Transpose: samples x features
     
-    pca_var = qc_results['pca_variance']
-    axes[1, 1].set_xlabel(f"PC1 ({pca_var['PC1']*100:.1f}%)")
-    axes[1, 1].set_ylabel(f"PC2 ({pca_var['PC2']*100:.1f}%)")
-    axes[1, 1].set_title('PCA - Sample Overview')
-    if qc_results['outlier_samples']:
-        axes[1, 1].legend()
+#     # Remove missing values
+#     valid_features = ~np.any(np.isnan(data_matrix), axis=0)
+#     data_clean = data_matrix[:, valid_features]
     
-    plt.tight_layout()
+#     if data_clean.shape[1] == 0:
+#         raise ValueError("No valid features after removing missing values. Check data quality.")
     
-    # Save plot
-    plot_file = output_file.replace('.html', '_plots.png')
-    plt.savefig(plot_file, dpi=300, bbox_inches='tight')
-    plt.close()
+#     # Standardize
+#     scaler = StandardScaler()
+#     data_scaled = scaler.fit_transform(data_clean)
     
-    # Generate HTML report
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>QC Report</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 20px; }}
-            h1 {{ color: #333; }}
-            h2 {{ color: #666; margin-top: 30px; }}
-            table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
-            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-            th {{ background-color: #4CAF50; color: white; }}
-            .warning {{ color: #ff9800; font-weight: bold; }}
-            .good {{ color: #4CAF50; font-weight: bold; }}
-        </style>
-    </head>
-    <body>
-        <h1>Quality Control Report</h1>
+#     # Perform PCA
+#     pca = PCA(n_components=n_components)
+#     pca_result = pca.fit_transform(data_scaled)
+    
+#     # Calculate variance explained
+#     variance_explained = pca.explained_variance_ratio_ * 100
+    
+#     # Set style
+#     plt.style.use('seaborn-v0_8-whitegrid')
+#     sns.set_palette("husl")
+    
+#     # Create plot with enhanced styling
+#     if n_components == 2:
+#         fig, ax = plt.subplots(figsize=(12, 10))
+#         fig.patch.set_facecolor('white')
         
-        <h2>Overall Metrics</h2>
-        <table>
-            <tr><th>Metric</th><th>Value</th></tr>
-    """
-    
-    for key, value in qc_results['overall_metrics'].items():
-        if isinstance(value, float):
-            html_content += f"<tr><td>{key}</td><td>{value:.4f}</td></tr>\n"
-        else:
-            html_content += f"<tr><td>{key}</td><td>{value}</td></tr>\n"
-    
-    html_content += "</table>\n"
-    
-    # Outlier warnings
-    if qc_results['outlier_samples']:
-        html_content += f"""
-        <h2 class="warning">⚠️ Outlier Samples Detected</h2>
-        <p>The following samples were identified as potential outliers:</p>
-        <ul>
-        """
-        for sample in qc_results['outlier_samples']:
-            html_content += f"<li>{sample}</li>\n"
-        html_content += "</ul>\n"
-    else:
-        html_content += '<h2 class="good">✓ No Outlier Samples Detected</h2>\n'
-    
-    # Batch effect warning
-    if 'batch_effect_warning' in qc_results:
-        html_content += f"""
-        <h2>Batch Effect Assessment</h2>
-        <p>{qc_results['batch_effect_warning']}</p>
-        """
-    
-    # Add plots
-    html_content += f"""
-        <h2>Quality Control Plots</h2>
-        <img src="{plot_file}" style="width:100%; max-width:1200px;">
+#         # Color by metadata if provided
+#         if metadata is not None and color_by is not None:
+#             groups = metadata.loc[sample_columns, color_by]
+#             unique_groups = groups.unique()
+#             colors = sns.color_palette("husl", len(unique_groups))
+            
+#             for i, group in enumerate(unique_groups):
+#                 mask = groups == group
+#                 ax.scatter(
+#                     pca_result[mask, 0],
+#                     pca_result[mask, 1],
+#                     c=[colors[i]],
+#                     label=group,
+#                     s=150,
+#                     alpha=0.7,
+#                     edgecolors='white',
+#                     linewidths=2,
+#                     zorder=3
+#                 )
+            
+#             # Enhanced legend
+#             legend = ax.legend(title=color_by, loc='best', frameon=True,
+#                               fancybox=True, shadow=True,
+#                               fontsize=11, title_fontsize=12,
+#                               framealpha=0.95, edgecolor='gray', facecolor='white')
+#             legend.get_frame().set_linewidth(1.5)
+#         else:
+#             ax.scatter(
+#                 pca_result[:, 0],
+#                 pca_result[:, 1],
+#                 c='#3498DB',
+#                 s=150,
+#                 alpha=0.7,
+#                 edgecolors='white',
+#                 linewidths=2,
+#                 zorder=3
+#             )
         
-        <h2>Sample Metrics</h2>
-    """
+#         # Add sample labels with better styling
+#         for i, sample in enumerate(sample_columns):
+#             ax.annotate(
+#                 sample,
+#                 (pca_result[i, 0], pca_result[i, 1]),
+#                 xytext=(8, 8),
+#                 textcoords='offset points',
+#                 fontsize=9,
+#                 fontweight='bold',
+#                 alpha=0.8,
+#                 bbox=dict(boxstyle='round,pad=0.3', 
+#                         facecolor='white', 
+#                         alpha=0.7,
+#                         edgecolor='gray',
+#                         linewidth=0.5),
+#                 zorder=4
+#             )
+        
+#         # Enhanced labels with variance explained
+#         ax.set_xlabel(f'PC1 ({variance_explained[0]:.1f}% variance)', 
+#                      fontsize=14, fontweight='bold', color='#2C3E50')
+#         ax.set_ylabel(f'PC2 ({variance_explained[1]:.1f}% variance)', 
+#                      fontsize=14, fontweight='bold', color='#2C3E50')
+#         ax.set_title('Principal Component Analysis', fontsize=16, fontweight='bold', 
+#                     color='#2C3E50', pad=15)
+        
+#         # Enhanced grid
+#         ax.grid(True, alpha=0.3, linestyle='-', linewidth=0.5, color='gray')
+#         ax.set_axisbelow(True)
+#         ax.set_facecolor('#FAFAFA')
+        
+#         # Style spines
+#         ax.spines['top'].set_visible(False)
+#         ax.spines['right'].set_visible(False)
+#         ax.spines['left'].set_color('#7F8C8D')
+#         ax.spines['bottom'].set_color('#7F8C8D')
+#         ax.spines['left'].set_linewidth(1.5)
+#         ax.spines['bottom'].set_linewidth(1.5)
+        
+#     elif n_components == 3:
+#         from mpl_toolkits.mplot3d import Axes3D
+        
+#         fig = plt.figure(figsize=(12, 10))
+#         fig.patch.set_facecolor('white')
+#         ax = fig.add_subplot(111, projection='3d')
+        
+#         # Color by metadata if provided
+#         if metadata is not None and color_by is not None:
+#             groups = metadata.loc[sample_columns, color_by]
+#             unique_groups = groups.unique()
+#             colors = sns.color_palette("husl", len(unique_groups))
+            
+#             for i, group in enumerate(unique_groups):
+#                 mask = groups == group
+#                 ax.scatter(
+#                     pca_result[mask, 0],
+#                     pca_result[mask, 1],
+#                     pca_result[mask, 2],
+#                     c=[colors[i]],
+#                     label=group,
+#                     s=150,
+#                     alpha=0.7,
+#                     edgecolors='white',
+#                     linewidths=1.5
+#                 )
+            
+#             # Enhanced legend
+#             legend = ax.legend(title=color_by, loc='upper left', frameon=True,
+#                               fancybox=True, shadow=True,
+#                               fontsize=11, title_fontsize=12, framealpha=0.95)
+#             legend.get_frame().set_linewidth(1.5)
+#         else:
+#             ax.scatter(
+#                 pca_result[:, 0],
+#                 pca_result[:, 1],
+#                 pca_result[:, 2],
+#                 c='#3498DB',
+#                 s=150,
+#                 alpha=0.7,
+#                 edgecolors='white',
+#                 linewidths=1.5
+#             )
+        
+#         # Add sample labels
+#         for i, sample in enumerate(sample_columns):
+#             ax.text(
+#                 pca_result[i, 0],
+#                 pca_result[i, 1],
+#                 pca_result[i, 2],
+#                 sample,
+#                 fontsize=9,
+#                 fontweight='bold',
+#                 alpha=0.8,
+#                 bbox=dict(boxstyle='round,pad=0.3', 
+#                         facecolor='white', 
+#                         alpha=0.7,
+#                         edgecolor='gray')
+#             )
+        
+#         # Enhanced labels with variance explained
+#         ax.set_xlabel(f'PC1 ({variance_explained[0]:.1f}% variance)', 
+#                      fontsize=12, fontweight='bold', labelpad=10)
+#         ax.set_ylabel(f'PC2 ({variance_explained[1]:.1f}% variance)', 
+#                      fontsize=12, fontweight='bold', labelpad=10)
+#         ax.set_zlabel(f'PC3 ({variance_explained[2]:.1f}% variance)', 
+#                      fontsize=12, fontweight='bold', labelpad=10)
+#         ax.set_title('Principal Component Analysis (3D)', fontsize=16, fontweight='bold', pad=20)
+        
+#         # Style 3D axes
+#         ax.xaxis.pane.fill = False
+#         ax.yaxis.pane.fill = False
+#         ax.zaxis.pane.fill = False
+#         ax.xaxis.pane.set_edgecolor('gray')
+#         ax.yaxis.pane.set_edgecolor('gray')
+#         ax.zaxis.pane.set_edgecolor('gray')
+#         ax.xaxis.pane.set_alpha(0.1)
+#         ax.yaxis.pane.set_alpha(0.1)
+#         ax.zaxis.pane.set_alpha(0.1)
     
-    # Add sample metrics table
-    html_content += sample_metrics.to_html()
+#     else:
+#         raise ValueError("n_components must be 2 or 3 for visualization")
     
-    html_content += """
-    </body>
-    </html>
-    """
+#     plt.tight_layout()
+#     plt.savefig(output_file, dpi=300, bbox_inches='tight', 
+#                facecolor='white', edgecolor='none')
+#     plt.close()
     
-    # Write HTML file
-    with open(output_file, 'w') as f:
-        f.write(html_content)
+#     return output_file
+
+
+# def generate_qc_report(
+#     qc_results: dict,
+#     output_file: str = "qc_report.html",
+# ) -> str:
+#     """
+#     Generate an HTML QC report with plots and metrics.
     
-    return output_file
+#     Parameters
+#     ----------
+#     qc_results : dict
+#         Results from calculate_qc_metrics()
+#     output_file : str
+#         Path to save HTML report
+    
+#     Returns
+#     -------
+#     str
+#         Path to saved report
+#     """
+#     # Create QC plots
+#     fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+    
+#     sample_metrics = qc_results['sample_metrics']
+    
+#     # 1. Total intensity distribution
+#     axes[0, 0].bar(range(len(sample_metrics)), sample_metrics['total_intensity'])
+#     axes[0, 0].set_xlabel('Sample Index')
+#     axes[0, 0].set_ylabel('Total Intensity')
+#     axes[0, 0].set_title('Total Intensity per Sample')
+#     axes[0, 0].tick_params(axis='x', rotation=45)
+    
+#     # 2. Detection rate
+#     axes[0, 1].bar(range(len(sample_metrics)), sample_metrics['detected_features'])
+#     axes[0, 1].set_xlabel('Sample Index')
+#     axes[0, 1].set_ylabel('Number of Detected Features')
+#     axes[0, 1].set_title('Feature Detection per Sample')
+#     axes[0, 1].tick_params(axis='x', rotation=45)
+    
+#     # 3. Correlation heatmap
+#     corr_matrix = qc_results['correlation_matrix']
+#     im = axes[1, 0].imshow(corr_matrix, cmap='RdBu_r', vmin=-1, vmax=1, aspect='auto')
+#     axes[1, 0].set_xticks(range(len(corr_matrix)))
+#     axes[1, 0].set_yticks(range(len(corr_matrix)))
+#     axes[1, 0].set_xticklabels(corr_matrix.columns, rotation=45, ha='right')
+#     axes[1, 0].set_yticklabels(corr_matrix.index)
+#     axes[1, 0].set_title('Sample Correlation Matrix')
+#     plt.colorbar(im, ax=axes[1, 0])
+    
+#     # 4. PCA plot
+#     pca_coords = qc_results['pca_coordinates']
+#     axes[1, 1].scatter(pca_coords['PC1'], pca_coords['PC2'], s=100, alpha=0.6)
+    
+#     # Mark outliers
+#     for sample in qc_results['outlier_samples']:
+#         idx = pca_coords.index.get_loc(sample)
+#         axes[1, 1].scatter(
+#             pca_coords.loc[sample, 'PC1'],
+#             pca_coords.loc[sample, 'PC2'],
+#             s=150, c='red', marker='x', linewidths=3,
+#             label='Outlier' if sample == qc_results['outlier_samples'][0] else ''
+#         )
+    
+#     # Add sample labels
+#     for idx, sample in enumerate(pca_coords.index):
+#         axes[1, 1].annotate(
+#             sample,
+#             (pca_coords.loc[sample, 'PC1'], pca_coords.loc[sample, 'PC2']),
+#             xytext=(5, 5), textcoords='offset points', fontsize=8
+#         )
+    
+#     pca_var = qc_results['pca_variance']
+#     axes[1, 1].set_xlabel(f"PC1 ({pca_var['PC1']*100:.1f}%)")
+#     axes[1, 1].set_ylabel(f"PC2 ({pca_var['PC2']*100:.1f}%)")
+#     axes[1, 1].set_title('PCA - Sample Overview')
+#     if qc_results['outlier_samples']:
+#         axes[1, 1].legend()
+    
+#     plt.tight_layout()
+    
+#     # Save plot
+#     plot_file = output_file.replace('.html', '_plots.png')
+#     plt.savefig(plot_file, dpi=300, bbox_inches='tight')
+#     plt.close()
+    
+#     # Generate HTML report
+#     html_content = f"""
+#     <!DOCTYPE html>
+#     <html>
+#     <head>
+#         <title>QC Report</title>
+#         <style>
+#             body {{ font-family: Arial, sans-serif; margin: 20px; }}
+#             h1 {{ color: #333; }}
+#             h2 {{ color: #666; margin-top: 30px; }}
+#             table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
+#             th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+#             th {{ background-color: #4CAF50; color: white; }}
+#             .warning {{ color: #ff9800; font-weight: bold; }}
+#             .good {{ color: #4CAF50; font-weight: bold; }}
+#         </style>
+#     </head>
+#     <body>
+#         <h1>Quality Control Report</h1>
+        
+#         <h2>Overall Metrics</h2>
+#         <table>
+#             <tr><th>Metric</th><th>Value</th></tr>
+#     """
+    
+#     for key, value in qc_results['overall_metrics'].items():
+#         if isinstance(value, float):
+#             html_content += f"<tr><td>{key}</td><td>{value:.4f}</td></tr>\n"
+#         else:
+#             html_content += f"<tr><td>{key}</td><td>{value}</td></tr>\n"
+    
+#     html_content += "</table>\n"
+    
+#     # Outlier warnings
+#     if qc_results['outlier_samples']:
+#         html_content += f"""
+#         <h2 class="warning">⚠️ Outlier Samples Detected</h2>
+#         <p>The following samples were identified as potential outliers:</p>
+#         <ul>
+#         """
+#         for sample in qc_results['outlier_samples']:
+#             html_content += f"<li>{sample}</li>\n"
+#         html_content += "</ul>\n"
+#     else:
+#         html_content += '<h2 class="good">✓ No Outlier Samples Detected</h2>\n'
+    
+#     # Batch effect warning
+#     if 'batch_effect_warning' in qc_results:
+#         html_content += f"""
+#         <h2>Batch Effect Assessment</h2>
+#         <p>{qc_results['batch_effect_warning']}</p>
+#         """
+    
+#     # Add plots
+#     html_content += f"""
+#         <h2>Quality Control Plots</h2>
+#         <img src="{plot_file}" style="width:100%; max-width:1200px;">
+        
+#         <h2>Sample Metrics</h2>
+#     """
+    
+#     # Add sample metrics table
+#     html_content += sample_metrics.to_html()
+    
+#     html_content += """
+#     </body>
+#     </html>
+#     """
+    
+#     # Write HTML file
+#     with open(output_file, 'w') as f:
+#         f.write(html_content)
+    
+#     return output_file
 
 
 def correct_batch_effects(
@@ -397,7 +702,8 @@ def correct_batch_effects(
         Batch labels for each sample. Must have same length as sample_columns.
     covariates : pd.DataFrame, optional
         Biological covariates to preserve (e.g., treatment, disease status).
-        Index must match sample_columns.
+        Index must match sample_columns exactly (same length and same elements).
+        Example: covariates = pd.DataFrame(..., index=sample_columns)
     method : str, optional (default: "combat")
         Batch correction method:
         - "combat": ComBat (parametric, recommended for >2 batches)
@@ -437,13 +743,6 @@ def correct_batch_effects(
     - Covariates should include biological factors to preserve
     - Mean centering is simplest but less robust than ComBat
     - Run QC before and after to verify correction
-    
-    References
-    ----------
-    [1] Johnson et al. "Adjusting batch effects in microarray expression 
-        data using empirical Bayes methods", Biostatistics, 2007.
-    [2] Leek et al. "Tackling the widespread and critical impact of batch 
-        effects in high-throughput data", Nat Rev Genet, 2010.
     """
     result = data.copy()
     
@@ -455,6 +754,24 @@ def correct_batch_effects(
     
     if len(batch_array) != len(sample_columns):
         raise ValueError(f"Batch length ({len(batch_array)}) != sample_columns length ({len(sample_columns)})")
+    
+    # Validate sample_columns exist in data
+    missing_samples = set(sample_columns) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All sample_columns must exist in data.columns."
+        )
+    
+    # Validate covariates if provided
+    if covariates is not None:
+        missing_cov_samples = set(sample_columns) - set(covariates.index)
+        if missing_cov_samples:
+            raise ValueError(
+                f"Sample(s) not found in covariates.index: {missing_cov_samples}. "
+                f"covariates.index must match sample_columns exactly. "
+                f"Example: covariates = pd.DataFrame(..., index=sample_columns)"
+            )
     
     # Get data matrix
     data_matrix = data[sample_columns].values.astype(float)
@@ -611,6 +928,7 @@ def assess_technical_replicates(
     replicate_groups : dict
         Dictionary mapping group names to lists of replicate sample names.
         Format: {group_name: [sample1, sample2, sample3]}
+        All samples in replicate_groups must exist in data.columns.
     metrics : list, optional
         Metrics to calculate. Options:
         - "cv": Coefficient of variation
@@ -641,12 +959,20 @@ def assess_technical_replicates(
     - ICC > 0.75 indicates high reproducibility
     - High replicate variability may indicate technical problems
     - Compare biological vs technical variation
-    
-    References
-    ----------
-    [1] Koo & Li. "A Guideline of Selecting and Reporting Intraclass 
-        Correlation Coefficients for Reliability Research", J Chiropr Med, 2016.
     """
+    # Validate that all samples exist in data
+    all_replicate_samples = []
+    for sample_list in replicate_groups.values():
+        all_replicate_samples.extend(sample_list)
+    
+    missing_samples = set(all_replicate_samples) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All samples in replicate_groups must exist in data.columns. "
+            f"Available columns: {list(data.columns)[:10]}..."
+        )
+    
     results = []
     
     for group_name, sample_list in replicate_groups.items():
@@ -743,7 +1069,6 @@ def detect_outlier_features(
         Detection method:
         - "iqr": Interquartile range method
         - "zscore": Z-score method
-        - "grubbs": Grubbs' test for outliers
         - "mad": Median absolute deviation
     threshold : float, optional (default: 3.0)
         Threshold for outlier detection (interpretation depends on method)
@@ -766,7 +1091,19 @@ def detect_outlier_features(
     - Z-score: |z| > threshold (typically 3)
     - MAD: More robust to extreme outliers than z-score
     - Review outliers manually before removal
+    - This function DETECTS outlier features (returns list), does not remove them
+    - For filtering LOW expression/detection features (preprocessing), use filter_low_values() from omics module
+    - This is for QC purposes to identify problematic features, not for routine filtering
     """
+    # Validate that all samples exist in data
+    missing_samples = set(sample_columns) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All sample_columns must exist in data.columns. "
+            f"Available columns: {list(data.columns)[:10]}..."
+        )
+    
     data_matrix = data[sample_columns].values
     
     outlier_scores = {}
@@ -849,7 +1186,9 @@ def assess_missing_value_patterns(
     sample_columns : list
         Sample columns to analyze
     groups : pd.Series, optional
-        Group labels for each sample (to test if missingness is group-related)
+        Group labels for each sample (to test if missingness is group-related).
+        Index must match sample_columns exactly.
+        Example: groups = pd.Series(['Group1', 'Group1', 'Group2'], index=sample_columns)
     
     Returns
     -------
@@ -874,12 +1213,25 @@ def assess_missing_value_patterns(
     - MNAR: Missing Not At Random (related to unobserved values)
     - Proteomics often has MNAR (low abundance proteins not detected)
     - Use Little's MCAR test for formal testing
-    
-    References
-    ----------
-    [1] Lazar et al. "Accounting for the Multiple Natures of Missing Values",
-        J Proteome Res, 2016.
     """
+    # Validate inputs
+    missing_samples = set(sample_columns) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All sample_columns must exist in data.columns. "
+            f"Available columns: {list(data.columns)[:10]}..."
+        )
+    
+    if groups is not None:
+        missing_group_samples = set(sample_columns) - set(groups.index)
+        if missing_group_samples:
+            raise ValueError(
+                f"Sample(s) not found in groups.index: {missing_group_samples}. "
+                f"groups.index must match sample_columns exactly. "
+                f"Example: groups = pd.Series(['Group1', 'Group1', 'Group2'], index=sample_columns)"
+            )
+    
     data_matrix = data[sample_columns].values
     
     # Calculate missing percentages
@@ -968,7 +1320,7 @@ def test_normality(
     data : pd.DataFrame
         Data with features as rows and samples as columns
     sample_columns : list
-        Sample columns to test
+        Sample columns to test. All must exist in data.columns.
     test : str, optional (default: "shapiro")
         Normality test:
         - "shapiro": Shapiro-Wilk test (recommended for n<50)
@@ -999,6 +1351,15 @@ def test_normality(
     - Many omics features are NOT normally distributed
     - Consider log transformation if non-normal
     """
+    # Validate inputs
+    missing_samples = set(sample_columns) - set(data.columns)
+    if missing_samples:
+        raise ValueError(
+            f"Sample(s) not found in data.columns: {missing_samples}. "
+            f"All sample_columns must exist in data.columns. "
+            f"Available columns: {list(data.columns)[:10]}..."
+        )
+    
     # Sample features if too many
     if len(data) > sample_size:
         sampled_features = np.random.choice(data.index, sample_size, replace=False)

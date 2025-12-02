@@ -24,9 +24,8 @@ allowed_resources:
   tools:
     # Example: Allow specific tools by name
     # Uncomment and add tool names you want to allow:
-    - query_uniprot
-    - liftover_coordinates
-    # bio_image_processing
+    #- query_uniprot
+    #- liftover_coordinates
     
     # Example: Allow all tools from a specific Python file
     # - file: biomni/tool/genetics.py
@@ -50,15 +49,11 @@ allowed_resources:
   
   # Data lake items: list of allowed data lake item names
   # Uncomment and add data lake item names you want to allow:
+  # If data_lake section is empty or commented out, all data lake files will be downloaded
   data_lake:
-    - example_data_item_1
+    # - example_data_item_1
     # - example_data_item_2
   
   # Libraries: list of allowed library/software names
   # Uncomment and add library names you want to allow:
   libraries:
-    - pandas
-    - numpy
-    - scipy
-    - matplotlib
-
