@@ -2,20 +2,22 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import logging
+import mimetypes
 import os
 import re
 import time
 from datetime import datetime
-from typing import Iterable, List, Optional
-
-import base64
-import mimetypes
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import streamlit as st
-from langchain_core.messages import AIMessage, HumanMessage, BaseMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 MAX_OBSERVATION_DISPLAY_LENGTH = 2000
 
@@ -98,18 +100,14 @@ def _process_markdown_images(content: str) -> str:
     return re.sub(image_pattern, replace_image, content)
 
 
-def format_agent_output_for_display(
-    raw_text: str, max_observation_length: int = MAX_OBSERVATION_DISPLAY_LENGTH
-) -> str:
+def format_agent_output_for_display(raw_text: str, max_observation_length: int = MAX_OBSERVATION_DISPLAY_LENGTH) -> str:
     """Format agent's raw output into clean, readable Markdown."""
     formatted = raw_text
 
     # Process markdown images first (before other processing)
     formatted = _process_markdown_images(formatted)
 
-    incomplete_execute = re.search(
-        r"<execute>((?:(?!<execute>|</execute>).)*?)$", formatted, re.DOTALL
-    )
+    incomplete_execute = re.search(r"<execute>((?:(?!<execute>|</execute>).)*?)$", formatted, re.DOTALL)
     incomplete_code = None
 
     if incomplete_execute:
@@ -134,10 +132,7 @@ def format_agent_output_for_display(
             language = "python"
             lang_emoji = "🐍"
 
-        return (
-            f"\n\n---\n\n{lang_emoji} **코드 실행 #{execution_count[0]}:**\n"
-            f"```{language}\n{code}\n```\n"
-        )
+        return f"\n\n---\n\n{lang_emoji} **코드 실행 #{execution_count[0]}:**\n```{language}\n{code}\n```\n"
 
     formatted = re.sub(
         r"<execute>\s*(.*?)\s*</execute>",
@@ -148,22 +143,14 @@ def format_agent_output_for_display(
 
     def replace_observation_block(match: re.Match) -> str:
         result = match.group(1).strip()
-        is_error = any(
-            keyword in result
-            for keyword in ["Error", "Exception", "Traceback", "Failed"]
-        )
+        is_error = any(keyword in result for keyword in ["Error", "Exception", "Traceback", "Failed"])
 
         if is_error:
             return f"\n\n❌ **실행 오류:**\n```\n{result}\n```\n"
 
         if len(result) > max_observation_length:
             result_preview = result[:max_observation_length]
-            result = (
-                result_preview
-                + "\n\n... (출력이 길어 생략됨. 총 "
-                + str(len(result))
-                + "자)"
-            )
+            result = result_preview + "\n\n... (출력이 길어 생략됨. 총 " + str(len(result)) + "자)"
 
         return f"\n\n✅ **실행 성공:**\n```\n{result}\n```\n"
 
@@ -191,12 +178,8 @@ def format_agent_output_for_display(
         formatted,
         flags=re.MULTILINE,
     )
-    formatted = re.sub(
-        r"^(\s*\d+\.\s*)\[✗\](.+?)$", r"\1❌ \2", formatted, flags=re.MULTILINE
-    )
-    formatted = re.sub(
-        r"^(\s*\d+\.\s*)\[\s\](.+?)$", r"\1⬜ \2", formatted, flags=re.MULTILINE
-    )
+    formatted = re.sub(r"^(\s*\d+\.\s*)\[✗\](.+?)$", r"\1❌ \2", formatted, flags=re.MULTILINE)
+    formatted = re.sub(r"^(\s*\d+\.\s*)\[\s\](.+?)$", r"\1⬜ \2", formatted, flags=re.MULTILINE)
     formatted = re.sub(r"\n{3,}", "\n\n", formatted)
 
     if incomplete_code:
@@ -219,16 +202,14 @@ def format_agent_output_for_display(
             f"```{language}\n{code_text}\n```\n"
         )
 
-    incomplete_obs = re.search(
-        r"<observation>((?:(?!<observation>|</observation>).)*?)$", formatted, re.DOTALL
-    )
+    incomplete_obs = re.search(r"<observation>((?:(?!<observation>|</observation>).)*?)$", formatted, re.DOTALL)
     if incomplete_obs:
         obs_content = incomplete_obs.group(1).strip()
         formatted = formatted[: incomplete_obs.start()]
         if obs_content:
             formatted += f"\n\n⏳ **실행 중...**\n```\n{obs_content}\n```\n"
 
-    code_blocks: List[str] = []
+    code_blocks: list[str] = []
 
     def save_code_block(match: re.Match) -> str:
         idx = len(code_blocks)
@@ -238,7 +219,7 @@ def format_agent_output_for_display(
     formatted = re.sub(r"```[\s\S]*?```", save_code_block, formatted)
 
     lines = formatted.split("\n")
-    protected_lines: List[str] = []
+    protected_lines: list[str] = []
     for line in lines:
         stripped = line.lstrip()
         if stripped.startswith("#") and not stripped.startswith("##"):
@@ -332,8 +313,7 @@ def parse_step_progress(accumulated_text: str) -> dict:
         checkbox_dict[step_num] = {"status": status, "title": title.strip()}
 
     parsed_checkboxes = [
-        {"num": num, "status": data["status"], "title": data["title"]}
-        for num, data in sorted(checkbox_dict.items())
+        {"num": num, "status": data["status"], "title": data["title"]} for num, data in sorted(checkbox_dict.items())
     ]
 
     total_steps = len(parsed_checkboxes)
@@ -345,8 +325,8 @@ def parse_step_progress(accumulated_text: str) -> dict:
         re.IGNORECASE,
     )
 
-    current_step_num: Optional[int] = None
-    current_step_title: Optional[str] = None
+    current_step_num: int | None = None
+    current_step_title: str | None = None
 
     if current_marker:
         current_step_num = int(current_marker.group(1))
@@ -358,9 +338,7 @@ def parse_step_progress(accumulated_text: str) -> dict:
                 last_completed_num = max(last_completed_num, cb["num"])
 
         if last_completed_num > 0:
-            next_steps = [
-                cb for cb in parsed_checkboxes if cb["num"] > last_completed_num
-            ]
+            next_steps = [cb for cb in parsed_checkboxes if cb["num"] > last_completed_num]
             if next_steps:
                 next_steps.sort(key=lambda x: x["num"])
                 current_step_num = next_steps[0]["num"]
@@ -382,14 +360,8 @@ def parse_step_progress(accumulated_text: str) -> dict:
                         current_step_title = cb["title"]
                         break
 
-    is_executing = bool(
-        re.search(r"<execute>(?!.*</execute>)", accumulated_text, re.DOTALL)
-    )
-    is_thinking = bool(
-        re.search(
-            r"(?:thinking|analyzing|processing)", accumulated_text[-500:], re.IGNORECASE
-        )
-    )
+    is_executing = bool(re.search(r"<execute>(?!.*</execute>)", accumulated_text, re.DOTALL))
+    is_thinking = bool(re.search(r"(?:thinking|analyzing|processing)", accumulated_text[-500:], re.IGNORECASE))
 
     return {
         "total_steps": total_steps,
@@ -401,9 +373,7 @@ def parse_step_progress(accumulated_text: str) -> dict:
     }
 
 
-def process_with_agent(
-    prompt: str, show_process: bool = False, use_history: bool = False
-) -> str:
+def process_with_agent(prompt: str, show_process: bool = False, use_history: bool = False) -> str:
     """Execute the agent with progress feedback and optional streaming UI."""
     original_dir = os.getcwd()
     try:
@@ -411,7 +381,7 @@ def process_with_agent(
 
         if use_history:
             st.session_state.message_history.append({"role": "user", "content": prompt})
-            agent_input: List[BaseMessage] = []
+            agent_input: list[BaseMessage] = []
             for msg in st.session_state.message_history:
                 if msg["role"] == "user":
                     agent_input.append(HumanMessage(content=msg["content"]))
@@ -434,30 +404,20 @@ def process_with_agent(
                     node = chunk[1][1]["langgraph_node"]
                     chunk_data = chunk[1][0]
 
-                    if node in {"generate", "execute"} and hasattr(
-                        chunk_data, "content"
-                    ):
+                    if node in {"generate", "execute"} and hasattr(chunk_data, "content"):
                         result += chunk_data.content
                         formatted_result = format_agent_output_for_display(result)
                         process_container.markdown(formatted_result)
 
                         progress_info = parse_step_progress(result)
                         if progress_info["total_steps"] > 0:
-                            progress = (
-                                progress_info["completed_steps"]
-                                / progress_info["total_steps"]
-                            )
+                            progress = progress_info["completed_steps"] / progress_info["total_steps"]
                             progress_bar.progress(min(progress, 0.99))
                             completed = progress_info["completed_steps"]
                             total = progress_info["total_steps"]
 
-                            if (
-                                progress_info["current_step_num"]
-                                and progress_info["current_step_title"]
-                            ):
-                                status_emoji = (
-                                    "⚙️" if progress_info["is_executing"] else "🧠"
-                                )
+                            if progress_info["current_step_num"] and progress_info["current_step_title"]:
+                                status_emoji = "⚙️" if progress_info["is_executing"] else "🧠"
                                 step_info_container.markdown(
                                     f"{status_emoji} **In Progress: Step {progress_info['current_step_num']}/{total}** - "
                                     f"{progress_info['current_step_title']}"
@@ -492,18 +452,13 @@ def process_with_agent(
 
                 progress_info = parse_step_progress(result)
                 if progress_info["total_steps"] > 0:
-                    progress = (
-                        progress_info["completed_steps"] / progress_info["total_steps"]
-                    )
+                    progress = progress_info["completed_steps"] / progress_info["total_steps"]
                     progress_bar.progress(min(progress, 0.99))
 
                     completed = progress_info["completed_steps"]
                     total = progress_info["total_steps"]
 
-                    if (
-                        progress_info["current_step_num"]
-                        and progress_info["current_step_title"]
-                    ):
+                    if progress_info["current_step_num"] and progress_info["current_step_title"]:
                         status_emoji = "⚙️" if progress_info["is_executing"] else "🧠"
                         step_info_container.markdown(
                             f"{status_emoji} **In Progress: Step {progress_info['current_step_num']}/{total}** - "
@@ -526,15 +481,11 @@ def process_with_agent(
             status_container.empty()
 
             if use_history:
-                st.session_state.message_history.append(
-                    {"role": "assistant", "content": result}
-                )
+                st.session_state.message_history.append({"role": "assistant", "content": result})
             return result
 
         if use_history:
-            st.session_state.message_history.append(
-                {"role": "assistant", "content": result}
-            )
+            st.session_state.message_history.append({"role": "assistant", "content": result})
         return result
     finally:
         os.chdir(original_dir)
@@ -543,7 +494,7 @@ def process_with_agent(
 def add_chat_message(
     role: str,
     content: str,
-    files: Optional[Iterable[str]] = None,
+    files: Iterable[str] | None = None,
     timestamp: str | None = None,
 ) -> None:
     """Append a chat message to session history."""
@@ -560,21 +511,21 @@ def add_chat_message(
     st.session_state.message_history.append({"role": role, "content": content})
 
 
-def _normalize_file_list(files: Optional[Iterable[str]]) -> tuple[str, ...]:
+def _normalize_file_list(files: Iterable[str] | None) -> tuple[str, ...]:
     if not files:
         return ()
     normalized = {os.path.abspath(path) for path in files if path}
     return tuple(sorted(normalized))
 
 
-def _compute_digest(text: str, files: Optional[Iterable[str]] = None) -> str:
+def _compute_digest(text: str, files: Iterable[str] | None = None) -> str:
     digest_payload = text or ""
     if files:
         digest_payload += "||" + "|".join(_normalize_file_list(files))
     return hashlib.md5(digest_payload.encode("utf-8")).hexdigest()
 
 
-def _log_response_preview(content: str, files: Optional[Iterable[str]] = None) -> None:
+def _log_response_preview(content: str, files: Iterable[str] | None = None) -> None:
     if not _LOGGER:
         return
     normalized = " ".join((content or "").split())
@@ -590,9 +541,7 @@ def _log_response_preview(content: str, files: Optional[Iterable[str]] = None) -
     )
 
 
-def maybe_add_assistant_message(
-    content: str, files: Optional[Iterable[str]] = None
-) -> bool:
+def maybe_add_assistant_message(content: str, files: Iterable[str] | None = None) -> bool:
     """Add assistant message if it's not a duplicate of the last one."""
     if not content:
         return False
@@ -608,10 +557,10 @@ def maybe_add_assistant_message(
 
 
 def build_agent_input_from_history(
-    initial_prompt: Optional[str] = None, include_initial: bool = True
-) -> List[BaseMessage]:
+    initial_prompt: str | None = None, include_initial: bool = True
+) -> list[BaseMessage]:
     """Build agent input from chat history."""
-    agent_input: List[BaseMessage] = []
+    agent_input: list[BaseMessage] = []
     if include_initial and initial_prompt:
         agent_input.append(HumanMessage(content=initial_prompt))
 
@@ -624,7 +573,7 @@ def build_agent_input_from_history(
     return agent_input
 
 
-def display_chat_files(files: Optional[Iterable[str]]) -> None:
+def display_chat_files(files: Iterable[str] | None) -> None:
     """Display files attached to a chat message."""
     if not files:
         return

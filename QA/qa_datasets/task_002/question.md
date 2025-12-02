@@ -12,4 +12,3 @@ Use the provided data files or generate sample data if needed. Save the visualiz
 - Boxplot should be saved as `boxplot.png`
 - Include appropriate labels, titles, and formatting
 - Use Python with matplotlib or similar visualization library
-

@@ -52,7 +52,7 @@ dependencies:
   #- pyliftover     # <-- pip에서 이동
   #- pyscenic       # <-- pip에서 이동
   #- pytdc          # <-- pip에서 이동 (0.4.0 버전이 conda-forge에 있음)
-  
+
   # Data science core libraries
   - numpy          # <-- =1.26.4 버전 고정 해제 (매우 중요)
   - pandas
@@ -60,21 +60,21 @@ dependencies:
   - scipy
   - statsmodels
   - scikit-learn
-  
+
   # NLP/LLM tools
   - transformers
   - sentencepiece
-  
+
   # LangChain ecosystem
   #- langchain
   #- langgraph
   #- langchain-community
   #- langchain-openai
   #- langchain_aws  # <-- pip에서 이동
-  
+
   # UI frameworks
   - streamlit
-  
+
   # Utilities
   - tqdm
   - seaborn
@@ -95,11 +95,11 @@ dependencies:
   # Cloud/Infrastructure
   - boto3
   - botocore
-  
+
   # Other analysis tools
   - faiss-cpu
   - lifelines
-  
+
   # --- Pip ---
   # Conda에 정말 없거나, 특정 버전이 꼭 필요한 것들만 남김
   - pip:

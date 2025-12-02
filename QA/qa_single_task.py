@@ -13,13 +13,13 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 # Biomni HITS 모듈 import를 위한 경로 추가
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from biomni.config import default_config
 from biomni.agent import A1_HITS
+from biomni.config import default_config
 from biomni.llm import get_llm
 
 # default_config 설정
@@ -29,7 +29,7 @@ default_config.use_tool_retriever = True
 default_config.path = "/workdir_efs/jaechang/work2/biomni_hits_test/biomni_data"
 default_config.timeout_seconds = 3600
 
-from qa_core import QAManager, Evaluator, ImageComparator
+from qa_core import Evaluator, ImageComparator, QAManager
 
 
 def extract_solution_from_response(response: str) -> str:
@@ -64,7 +64,7 @@ def run_single_task(
     output_dir: Path,
     pass_threshold: float,
     ssim_threshold: float,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     단일 태스크 실행 및 평가
 
@@ -80,9 +80,9 @@ def run_single_task(
     Returns:
         평가 결과 딕셔너리
     """
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"🚀 Starting Task: {task_id} (Attempt {attempt_num}/{total_attempts})")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     start_time = time.time()
 
@@ -116,7 +116,7 @@ def run_single_task(
 
     # 2.1. Input data 파일들을 작업 디렉토리에 복사
     if task.input_data:
-        print(f"\n📥 Copying input data files...")
+        print("\n📥 Copying input data files...")
         for data_file in task.input_data:
             src_path = task.task_path / data_file
             dst_path = task_output_dir / data_file
@@ -148,7 +148,7 @@ def run_single_task(
         }
 
     # 4. 에이전트 실행 (작업 디렉토리를 task_output_dir로 변경)
-    print(f"\n🔄 Running agent with question...")
+    print("\n🔄 Running agent with question...")
     print(f"Question preview: {task.question[:200]}...")
 
     # 현재 디렉토리 저장 및 작업 디렉토리 변경
@@ -179,18 +179,12 @@ def run_single_task(
             # Handle structured content (list with images) - extract text only
             if isinstance(output, list):
                 # Extract text parts from structured content
-                text_parts = [
-                    item["text"]
-                    for item in output
-                    if isinstance(item, dict) and item.get("type") == "text"
-                ]
+                text_parts = [item["text"] for item in output if isinstance(item, dict) and item.get("type") == "text"]
                 if text_parts:
                     text_content = "\n".join(text_parts)
                     full_response_parts.extend(text_parts)
                     logs_content.append(text_content)
-                    logs_content.append(
-                        f"===================={idx}===================="
-                    )
+                    logs_content.append(f"===================={idx}====================")
             elif isinstance(output, str):
                 full_response_parts.append(output)
                 logs_content.append(output)
@@ -267,18 +261,14 @@ def run_single_task(
         print(f"📂 Restored working directory to: {original_dir}")
 
     # 5. LLM 기반 답변 평가
-    print(f"\n📊 Evaluating answer with LLM...")
+    print("\n📊 Evaluating answer with LLM...")
     try:
         llm_client = get_llm(model="gemini-3-pro-preview")
-        evaluation_prompt_path = (
-            Path(__file__).parent / "qa_config" / "evaluation_prompt.txt"
-        )
+        evaluation_prompt_path = Path(__file__).parent / "qa_config" / "evaluation_prompt.txt"
         evaluator = Evaluator(
             llm_client=llm_client,
             pass_threshold=pass_threshold,
-            evaluation_prompt_path=(
-                str(evaluation_prompt_path) if evaluation_prompt_path.exists() else None
-            ),
+            evaluation_prompt_path=(str(evaluation_prompt_path) if evaluation_prompt_path.exists() else None),
         )
 
         eval_result = evaluator.evaluate_answer(
@@ -288,7 +278,7 @@ def run_single_task(
             generated_answer=answer,
         )
 
-        print(f"✅ LLM Evaluation:")
+        print("✅ LLM Evaluation:")
         print(f"   Content Accuracy: {eval_result.scores['content_accuracy']:.1f}")
         print(f"   Completeness: {eval_result.scores['completeness']:.1f}")
         print(f"   Format Compliance: {eval_result.scores['format_compliance']:.1f}")
@@ -308,7 +298,7 @@ def run_single_task(
     # 6. 이미지 비교 (있는 경우)
     image_eval_result = None
     if task.images:
-        print(f"\n🖼️  Evaluating images...")
+        print("\n🖼️  Evaluating images...")
         try:
             # Vision-capable LLM 사용
             vision_llm = get_llm(model="gemini-3-pro-preview")
@@ -330,13 +320,11 @@ def run_single_task(
                 use_llm_comparison=True,
             )
 
-            print(f"✅ Image Evaluation:")
+            print("✅ Image Evaluation:")
             print(f"   Expected: {len(image_eval_result.expected_images)} images")
             print(f"   Found: {len(image_eval_result.found_images)} images")
             print(f"   Missing: {len(image_eval_result.missing_images)} images")
-            print(
-                f"   All Present: {'✅' if image_eval_result.all_images_present else '❌'}"
-            )
+            print(f"   All Present: {'✅' if image_eval_result.all_images_present else '❌'}")
 
             if image_eval_result.average_similarity is not None:
                 print(f"   Avg SSIM: {image_eval_result.average_similarity:.3f}")
@@ -388,9 +376,7 @@ def run_single_task(
         "attempt_num": attempt_num,
         "timestamp": datetime.now().isoformat(),
         "execution_time": execution_time,
-        "agent_execution_time": (
-            agent_execution_time if "agent_execution_time" in locals() else 0
-        ),
+        "agent_execution_time": (agent_execution_time if "agent_execution_time" in locals() else 0),
         "summary": {
             "overall_passed": overall_passed,
             "text_evaluation_passed": text_passed,
@@ -411,11 +397,9 @@ def run_single_task(
     with open(evaluation_file, "w", encoding="utf-8") as f:
         json.dump(final_result, f, indent=2, ensure_ascii=False)
 
-    print(f"\n{'='*80}")
-    print(
-        f"{'✅ PASSED' if overall_passed else '❌ FAILED'}: {task_id} (Attempt {attempt_num}/{total_attempts})"
-    )
-    print(f"{'='*80}")
+    print(f"\n{'=' * 80}")
+    print(f"{'✅ PASSED' if overall_passed else '❌ FAILED'}: {task_id} (Attempt {attempt_num}/{total_attempts})")
+    print(f"{'=' * 80}")
     print(f"⏱️  Execution Time: {execution_time:.1f}s")
     print(f"📄 Evaluation saved to: {evaluation_file}")
     print()

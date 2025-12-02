@@ -2,12 +2,12 @@ import json
 import os
 import pickle
 import time
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import requests
-from langchain_core.messages import HumanMessage, SystemMessage
 from Bio.Blast import NCBIWWW, NCBIXML
 from Bio.Seq import Seq
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from biomni.llm import get_llm
 from biomni.utils import parse_hpo_obo
@@ -36,14 +36,14 @@ def get_hpo_names(hpo_terms: list[str], data_lake_path: str) -> list[str]:
         ValueError: If the HPO terms list is empty or contains invalid formats.
 
     Examples:
-        >>> hpo_terms = ['HP:0001250', 'HP:0000707']
-        >>> data_path = '/path/to/data'
+        >>> hpo_terms = ["HP:0001250", "HP:0000707"]
+        >>> data_path = "/path/to/data"
         >>> names = get_hpo_names(hpo_terms, data_path)
         >>> print(names)
         ['Seizure', 'Abnormality of the nervous system']
 
         >>> # Handle unknown terms
-        >>> unknown_terms = ['HP:9999999']
+        >>> unknown_terms = ["HP:9999999"]
         >>> names = get_hpo_names(unknown_terms, data_path)
         >>> print(names)
         ['Unknown term: HP:9999999']
@@ -64,11 +64,11 @@ def get_hpo_names(hpo_terms: list[str], data_lake_path: str) -> list[str]:
 
 def _query_llm_for_api(
     prompt: str,
-    schema: Optional[Dict],
+    schema: dict | None,
     system_template: str,
-    api_key: Optional[str] = None,
+    api_key: str | None = None,
     model: str = "us.anthropic.claude-3-5-haiku-20241022-v1:0",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Generate API calls from natural language prompts using Large Language Models.
 
     This internal helper function translates natural language queries into structured
@@ -138,9 +138,7 @@ def _query_llm_for_api(
         try:
             from biomni.config import default_config
 
-            llm = get_llm(
-                model=model, temperature=0.0, api_key=api_key, config=default_config
-            )
+            llm = get_llm(model=model, temperature=0.0, api_key=api_key, config=default_config)
         except ImportError:
             llm = get_llm(model=model, temperature=0.0, api_key=api_key or "EMPTY")
         # Compose messages
@@ -179,11 +177,11 @@ def _query_llm_for_api(
 def _query_rest_api(
     endpoint: str,
     method: str = "GET",
-    params: Optional[Dict[str, Any]] = None,
-    headers: Optional[Dict[str, str]] = None,
-    json_data: Optional[Dict[str, Any]] = None,
-    description: Optional[str] = None,
-) -> Dict[str, Any]:
+    params: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
+    json_data: dict[str, Any] | None = None,
+    description: str | None = None,
+) -> dict[str, Any]:
     """Execute REST API requests with standardized error handling and response formatting.
 
     This internal helper function provides a unified interface for making HTTP requests
@@ -261,9 +259,7 @@ def _query_rest_api(
         if method.upper() == "GET":
             response = requests.get(endpoint, params=params, headers=headers)
         elif method.upper() == "POST":
-            response = requests.post(
-                endpoint, params=params, headers=headers, json=json_data
-            )
+            response = requests.post(endpoint, params=params, headers=headers, json=json_data)
         else:
             return {"error": f"Unsupported HTTP method: {method}"}
 
@@ -365,10 +361,7 @@ def _query_ncbi_database(
     search_data = search_response["result"]
 
     # If we have results, fetch the details
-    if (
-        "esearchresult" in search_data
-        and int(search_data["esearchresult"]["count"]) > 0
-    ):
+    if "esearchresult" in search_data and int(search_data["esearchresult"]["count"]) > 0:
         # Extract WebEnv and query_key from the search results
         webenv = search_data["esearchresult"].get("webenv", "")
         query_key = search_data["esearchresult"].get("querykey", "")
@@ -501,13 +494,9 @@ def _format_query_results(result, options=None):
         # Filter keys based on include/exclude options
         keys_to_process = d.keys()
         if depth == 0 and options["include_keys"]:  # Only apply at top level
-            keys_to_process = [
-                k for k in keys_to_process if k in options["include_keys"]
-            ]
+            keys_to_process = [k for k in keys_to_process if k in options["include_keys"]]
         elif depth == 0 and options["exclude_keys"]:  # Only apply at top level
-            keys_to_process = [
-                k for k in keys_to_process if k not in options["exclude_keys"]
-            ]
+            keys_to_process = [k for k in keys_to_process if k not in options["exclude_keys"]]
 
         # Process each key
         for key in keys_to_process:
@@ -537,9 +526,7 @@ def _format_query_results(result, options=None):
 
         # Sample a few items
         sample = lst[: min(3, len(lst))]
-        sample_formatted = [
-            _format_value(item, options["max_depth"], options) for item in sample
-        ]
+        sample_formatted = [_format_value(item, options["max_depth"], options) for item in sample]
 
         # For homogeneous lists, provide type info
         if len(lst) > 0:
@@ -611,9 +598,7 @@ def query_uniprot(
     # If using prompt, parse with Claude
     if prompt:
         # Load UniProt schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "uniprot.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "uniprot.pkl")
         with open(schema_path, "rb") as f:
             uniprot_schema = pickle.load(f)
 
@@ -670,9 +655,7 @@ def query_uniprot(
         description = "Direct query to provided endpoint"
 
     # Use the common REST API helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
     return api_result
 
@@ -722,9 +705,7 @@ def query_alphafold(
     # Validate endpoint
     valid_endpoints = ["prediction", "summary", "annotations"]
     if endpoint not in valid_endpoints:
-        return {
-            "error": f"Invalid endpoint. Must be one of: {', '.join(valid_endpoints)}"
-        }
+        return {"error": f"Invalid endpoint. Must be one of: {', '.join(valid_endpoints)}"}
 
     # Construct the API URL based on endpoint
     if endpoint == "prediction":
@@ -755,9 +736,7 @@ def query_alphafold(
 
             # Generate standard AlphaFold filename
             file_ext = file_format.lower()
-            filename = (
-                f"AF-{uniprot_id}-F{model_number}-model_{model_version}.{file_ext}"
-            )
+            filename = f"AF-{uniprot_id}-F{model_number}-model_{model_version}.{file_ext}"
             file_path = os.path.join(output_dir, filename)
 
             # Construct download URL
@@ -867,9 +846,7 @@ def query_interpro(
     # If using prompt, parse with Claude
     if prompt:
         # Load InterPro schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "interpro.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "interpro.pkl")
         with open(schema_path, "rb") as f:
             interpro_schema = pickle.load(f)
 
@@ -934,9 +911,7 @@ def query_interpro(
         params["format"] = format
 
     # Make the API request
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", params=params, description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", params=params, description=description)
 
     return api_result
 
@@ -1058,9 +1033,7 @@ def query_pdb(
     return api_result
 
 
-def query_pdb_identifiers(
-    identifiers, return_type="entry", download=False, attributes=None
-):
+def query_pdb_identifiers(identifiers, return_type="entry", download=False, attributes=None):
     """Retrieve detailed data and/or download files for PDB identifiers.
 
     Parameters
@@ -1104,9 +1077,7 @@ def query_pdb_identifiers(
                     entry_id, assembly_id = identifier.split("-")
                     data_url = f"https://data.rcsb.org/rest/v1/core/assembly/{entry_id}/{assembly_id}"
                 elif return_type == "mol_definition":
-                    data_url = (
-                        f"https://data.rcsb.org/rest/v1/core/chem_comp/{identifier}"
-                    )
+                    data_url = f"https://data.rcsb.org/rest/v1/core/chem_comp/{identifier}"
 
                 # Fetch data
                 data_response = requests.get(data_url)
@@ -1152,9 +1123,7 @@ def query_pdb_identifiers(
 
                     if pdb_response.status_code == 200:
                         # Create data directory if it doesn't exist
-                        data_dir = os.path.join(
-                            os.path.dirname(__file__), "data", "pdb"
-                        )
+                        data_dir = os.path.join(os.path.dirname(__file__), "data", "pdb")
                         os.makedirs(data_dir, exist_ok=True)
 
                         # Save PDB file
@@ -1164,15 +1133,11 @@ def query_pdb_identifiers(
 
                         # Add download information to results
                         for result in detailed_results:
-                            if result["identifier"] == identifier or result[
-                                "identifier"
-                            ].startswith(pdb_id):
+                            if result["identifier"] == identifier or result["identifier"].startswith(pdb_id):
                                 result["pdb_file_path"] = pdb_file_path
                 except Exception as e:
                     for result in detailed_results:
-                        if result["identifier"] == identifier or result[
-                            "identifier"
-                        ].startswith(pdb_id):
+                        if result["identifier"] == identifier or result["identifier"].startswith(pdb_id):
                             result["download_error"] = str(e)
 
         return {"detailed_results": detailed_results}
@@ -1181,9 +1146,7 @@ def query_pdb_identifiers(
         return {"error": f"Error retrieving PDB details: {str(e)}"}
 
 
-def query_kegg(
-    prompt: Optional[str] = None, endpoint: Optional[str] = None, verbose: bool = True
-) -> Dict[str, Any]:
+def query_kegg(prompt: str | None = None, endpoint: str | None = None, verbose: bool = True) -> dict[str, Any]:
     """Query the KEGG (Kyoto Encyclopedia of Genes and Genomes) database using natural language.
 
     This function provides access to the KEGG REST API, which contains information about
@@ -1324,16 +1287,9 @@ def query_kegg(
         description = "Direct query to KEGG API"
 
     # Execute the KEGG API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -1375,9 +1331,7 @@ def query_stringdb(
     # If using prompt, parse with Claude
     if prompt:
         # Load STRING schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "stringdb.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "stringdb.pkl")
         with open(schema_path, "rb") as f:
             stringdb_schema = pickle.load(f)
 
@@ -1501,16 +1455,9 @@ def query_stringdb(
             }
 
     # For non-image requests, use the REST API helper
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -1550,9 +1497,7 @@ def query_iucn(
 
     # Ensure we have a token
     if not token:
-        return {
-            "error": "IUCN API token is required. Get one at https://apiv3.iucnredlist.org/api/v3/token"
-        }
+        return {"error": "IUCN API token is required. Get one at https://apiv3.iucnredlist.org/api/v3/token"}
 
     # If using prompt, parse with Claude
     if prompt:
@@ -1606,33 +1551,20 @@ def query_iucn(
     else:
         # Process provided endpoint
         if not endpoint.startswith("http"):
-            endpoint = (
-                f"{base_url}{endpoint}"
-                if endpoint.startswith("/")
-                else f"{base_url}/{endpoint}"
-            )
+            endpoint = f"{base_url}{endpoint}" if endpoint.startswith("/") else f"{base_url}/{endpoint}"
         description = "Direct query to IUCN API"
 
     # Add token as query parameter
     params = {"token": token}
 
     # Execute the IUCN API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", params=params, description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", params=params, description=description)
 
     # For security, remove token from the results
     if "query_info" in api_result and "endpoint" in api_result["query_info"]:
-        api_result["query_info"]["endpoint"] = api_result["query_info"][
-            "endpoint"
-        ].replace(token, "TOKEN_HIDDEN")
+        api_result["query_info"]["endpoint"] = api_result["query_info"]["endpoint"].replace(token, "TOKEN_HIDDEN")
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -1723,11 +1655,7 @@ def query_paleobiology(
         # Process provided endpoint
         if not endpoint.startswith("http"):
             # Add base URL if it's just a path
-            endpoint = (
-                f"{base_url}/{endpoint}"
-                if not endpoint.startswith("/")
-                else f"{base_url}{endpoint}"
-            )
+            endpoint = f"{base_url}/{endpoint}" if not endpoint.startswith("/") else f"{base_url}{endpoint}"
 
         description = "Direct query to PBDB API"
 
@@ -1762,16 +1690,9 @@ def query_paleobiology(
             }
 
     # For non-image requests, use the REST API helper
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -1873,16 +1794,9 @@ def query_jaspar(
         description = "Direct query to JASPAR API"
 
     # Execute the JASPAR API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -1972,25 +1886,14 @@ def query_worms(
         # Process provided endpoint
         if not endpoint.startswith("http"):
             # Add base URL if it's just a path
-            endpoint = (
-                f"{base_url}/{endpoint}"
-                if not endpoint.startswith("/")
-                else f"{base_url}{endpoint}"
-            )
+            endpoint = f"{base_url}/{endpoint}" if not endpoint.startswith("/") else f"{base_url}{endpoint}"
 
         description = "Direct query to WoRMS API"
 
     # Execute the WoRMS API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -2029,9 +1932,7 @@ def query_cbioportal(
     # If using prompt, parse with Claude
     if prompt:
         # Load cBioPortal schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "cbioportal.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "cbioportal.pkl")
         with open(schema_path, "rb") as f:
             cbioportal_schema = pickle.load(f)
 
@@ -2092,26 +1993,19 @@ def query_cbioportal(
         description = "Direct query to cBioPortal API"
 
     # Execute the cBioPortal API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
 
 
 def query_clinvar(
-    prompt: Optional[str] = None,
-    search_term: Optional[str] = None,
+    prompt: str | None = None,
+    search_term: str | None = None,
     max_results: int = 3,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Query ClinVar database for genetic variant clinical significance information.
 
     ClinVar is NCBI's public database of genetic variants and their relationships to
@@ -2201,9 +2095,7 @@ def query_clinvar(
 
     if prompt:
         # Load ClinVar schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "clinvar.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "clinvar.pkl")
         with open(schema_path, "rb") as f:
             clinvar_schema = pickle.load(f)
 
@@ -2542,17 +2434,10 @@ def query_ucsc(
         description = "Direct query to UCSC Genome Browser API"
 
     # Execute the UCSC API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
     # Format the results if successful
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -2591,9 +2476,7 @@ def query_ensembl(
     # If using prompt, parse with Claude
     if prompt:
         # Load Ensembl schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "ensembl.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "ensembl.pkl")
         with open(schema_path, "rb") as f:
             ensembl_schema = pickle.load(f)
 
@@ -2674,12 +2557,7 @@ def query_ensembl(
     )
 
     # Format the results if successful
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -2723,9 +2601,7 @@ def query_opentarget_genetics(
     # If using prompt, parse with Claude
     if prompt:
         # Load OpenTargets schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "opentarget_genetics.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "opentarget_genetics.pkl")
         with open(schema_path, "rb") as f:
             opentarget_schema = pickle.load(f)
 
@@ -2786,12 +2662,7 @@ def query_opentarget_genetics(
     if not api_result["success"]:
         return api_result
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -2833,9 +2704,7 @@ def query_opentarget(
     # If using prompt, parse with Claude
     if prompt:
         # Load OpenTargets schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "opentarget.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "opentarget.pkl")
         with open(schema_path, "rb") as f:
             opentarget_schema = pickle.load(f)
 
@@ -2893,12 +2762,7 @@ def query_opentarget(
     )
 
     # Format the results if not verbose and successful
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
@@ -2937,9 +2801,7 @@ def query_monarch(
 
     # If using prompt, use Claude to generate the endpoint
     if prompt:
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "monarch.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "monarch.pkl")
         if os.path.exists(schema_path):
             with open(schema_path, "rb") as f:
                 monarch_schema = pickle.load(f)
@@ -2990,9 +2852,7 @@ def query_monarch(
             return llm_result
         query_info = llm_result["data"]
         endpoint = query_info.get("url", "")  # Changed from "full_url" to "url"
-        description = (
-            f"Monarch API query: {query_info.get('endpoint', 'unknown endpoint')}"
-        )
+        description = f"Monarch API query: {query_info.get('endpoint', 'unknown endpoint')}"
         if not endpoint:
             return {
                 "error": "Failed to generate a valid endpoint from the prompt",
@@ -3014,16 +2874,9 @@ def query_monarch(
     else:
         endpoint += f"?limit={max_results}"
 
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -3066,21 +2919,12 @@ def query_openfda(
     """
     base_url = "https://api.fda.gov"
 
-    if (
-        prompt is None
-        and endpoint is None
-        and search_params is None
-        and count_params is None
-    ):
-        return {
-            "error": "Either a prompt, endpoint, search_params, or count_params must be provided"
-        }
+    if prompt is None and endpoint is None and search_params is None and count_params is None:
+        return {"error": "Either a prompt, endpoint, search_params, or count_params must be provided"}
 
     # If using prompt, use LLM to generate the endpoint
     if prompt:
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "openfda.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "openfda.pkl")
         if os.path.exists(schema_path):
             with open(schema_path, "rb") as f:
                 openfda_schema = pickle.load(f)
@@ -3152,17 +2996,10 @@ def query_openfda(
     if prompt:
         description = f"OpenFDA API query for: {prompt}"
 
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
     # Format results based on verbose setting
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -3188,21 +3025,13 @@ def _format_clinicaltrials_text(aggregated_result: dict) -> str:
     results = []
     for study in studies:
         # Extract key information from each study
-        nct_id = (
-            study.get("protocolSection", {})
-            .get("identificationModule", {})
-            .get("nctId", "N/A")
-        )
-        title = study.get("protocolSection", {}).get("identificationModule", {}).get(
-            "officialTitle"
-        ) or study.get("protocolSection", {}).get("identificationModule", {}).get(
-            "briefTitle", "No title available"
-        )
+        nct_id = study.get("protocolSection", {}).get("identificationModule", {}).get("nctId", "N/A")
+        title = study.get("protocolSection", {}).get("identificationModule", {}).get("officialTitle") or study.get(
+            "protocolSection", {}
+        ).get("identificationModule", {}).get("briefTitle", "No title available")
 
         # Get study description/brief summary
-        description_module = study.get("protocolSection", {}).get(
-            "descriptionModule", {}
-        )
+        description_module = study.get("protocolSection", {}).get("descriptionModule", {})
         brief_summary = description_module.get("briefSummary", "No summary available")
         detailed_description = description_module.get("detailedDescription", "")
 
@@ -3212,21 +3041,15 @@ def _format_clinicaltrials_text(aggregated_result: dict) -> str:
         conditions_text = ", ".join(conditions) if conditions else "Not specified"
 
         # Get interventions
-        arms_interventions_module = study.get("protocolSection", {}).get(
-            "armsInterventionsModule", {}
-        )
+        arms_interventions_module = study.get("protocolSection", {}).get("armsInterventionsModule", {})
         interventions = arms_interventions_module.get("interventions", [])
         intervention_names = []
         for intervention in interventions:
             name = intervention.get("name", "")
             intervention_type = intervention.get("type", "")
             if name:
-                intervention_names.append(
-                    f"{name} ({intervention_type})" if intervention_type else name
-                )
-        interventions_text = (
-            ", ".join(intervention_names) if intervention_names else "Not specified"
-        )
+                intervention_names.append(f"{name} ({intervention_type})" if intervention_type else name)
+        interventions_text = ", ".join(intervention_names) if intervention_names else "Not specified"
 
         # Get status and phase
         status_module = study.get("protocolSection", {}).get("statusModule", {})
@@ -3237,17 +3060,11 @@ def _format_clinicaltrials_text(aggregated_result: dict) -> str:
         phase_text = ", ".join(phases) if phases else "Not specified"
 
         # Get sponsor information
-        sponsor_module = study.get("protocolSection", {}).get(
-            "sponsorCollaboratorsModule", {}
-        )
-        lead_sponsor = sponsor_module.get("leadSponsor", {}).get(
-            "name", "Not specified"
-        )
+        sponsor_module = study.get("protocolSection", {}).get("sponsorCollaboratorsModule", {})
+        lead_sponsor = sponsor_module.get("leadSponsor", {}).get("name", "Not specified")
 
         # Get locations if available
-        contacts_locations_module = study.get("protocolSection", {}).get(
-            "contactsLocationsModule", {}
-        )
+        contacts_locations_module = study.get("protocolSection", {}).get("contactsLocationsModule", {})
         locations = contacts_locations_module.get("locations", [])
         location_names = []
         for location in locations[:3]:  # Limit to first 3 locations
@@ -3261,9 +3078,7 @@ def _format_clinicaltrials_text(aggregated_result: dict) -> str:
                 if country:
                     loc_str += f", {country}"
                 location_names.append(loc_str)
-        locations_text = (
-            "; ".join(location_names) if location_names else "Not specified"
-        )
+        locations_text = "; ".join(location_names) if location_names else "Not specified"
 
         # Format the study information
         content = f"NCT ID: {nct_id}\n"
@@ -3381,9 +3196,7 @@ def query_clinicaltrials(
         elif not endpoint.startswith("http"):
             endpoint = f"{base_url}/{endpoint.lstrip('/')}"
 
-        api_result = _query_rest_api(
-            endpoint=endpoint, method="GET", description=description
-        )
+        api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
         return _format_clinicaltrials_text(api_result)
 
     # Otherwise build params for /studies
@@ -3431,9 +3244,7 @@ def query_clinicaltrials(
     pages_fetched = 0
     while pages_fetched < max_pages:
         params = build_params(current_token)
-        page_resp = _query_rest_api(
-            endpoint=url, method="GET", params=params, description=description
-        )
+        page_resp = _query_rest_api(endpoint=url, method="GET", params=params, description=description)
         if not page_resp.get("success"):
             return _format_clinicaltrials_text(page_resp)
 
@@ -3453,10 +3264,10 @@ def query_clinicaltrials(
 
 
 def query_gwas_catalog(
-    prompt: Optional[str] = None,
-    endpoint: Optional[str] = None,
+    prompt: str | None = None,
+    endpoint: str | None = None,
     max_results: int = 3,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Query the NHGRI-EBI GWAS Catalog for genome-wide association study data.
 
     The GWAS Catalog is a comprehensive database of published genome-wide association
@@ -3524,9 +3335,7 @@ def query_gwas_catalog(
     # If using prompt, parse with Claude
     if prompt:
         # Load GWAS Catalog schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "gwas_catalog.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "gwas_catalog.pkl")
         with open(schema_path, "rb") as f:
             gwas_schema = pickle.load(f)
 
@@ -3589,9 +3398,7 @@ def query_gwas_catalog(
     url = f"{base_url}/{endpoint}"
 
     # Execute the GWAS Catalog API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=url, method="GET", params=params, description=description
-    )
+    api_result = _query_rest_api(endpoint=url, method="GET", params=params, description=description)
 
     return api_result
 
@@ -3689,20 +3496,13 @@ def query_gnomad(
         description=description,
     )
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
 
 
-def blast_sequence(
-    sequence: str, database: str, program: str
-) -> Union[Dict[str, Union[str, float]], str]:
+def blast_sequence(sequence: str, database: str, program: str) -> dict[str, str | float] | str:
     """Identifies a DNA and amino acid sequence using NCBI BLAST. It Performs sequence similarity search using NCBI BLAST with comprehensive error handling.
 
     This function submits sequences to NCBI's BLAST web service to identify similar
@@ -3864,8 +3664,7 @@ def blast_sequence(
                             "hit_def": alignment.hit_def,
                             "accession": alignment.accession,
                             "e_value": hsp.expect,
-                            "identity": (hsp.identities / float(hsp.align_length))
-                            * 100,
+                            "identity": (hsp.identities / float(hsp.align_length)) * 100,
                             "coverage": len(hsp.query) / len(sequence) * 100,
                         }
             else:
@@ -3923,9 +3722,7 @@ def query_reactome(
     # If using prompt, parse with Claude
     if prompt:
         # Load Reactome schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "reactome.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "reactome.pkl")
         with open(schema_path, "rb") as f:
             reactome_schema = pickle.load(f)
 
@@ -3970,9 +3767,7 @@ def query_reactome(
         base = query_info.get("base", "content")  # Default to ContentService
         params = query_info.get("params", {})
         description = query_info.get("description", "")
-        should_download = query_info.get(
-            "download", download
-        )  # Override download if specified
+        should_download = query_info.get("download", download)  # Override download if specified
 
         if not endpoint:
             return {
@@ -4018,9 +3813,7 @@ def query_reactome(
     # --- ✅ END FIX ---
 
     # Execute the Reactome API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=url, method="GET", params=params, description=description
-    )
+    api_result = _query_rest_api(endpoint=url, method="GET", params=params, description=description)
 
     # Handle downloading pathway diagrams if requested
     if should_download and api_result.get("success") and "result" in api_result:
@@ -4047,12 +3840,7 @@ def query_reactome(
             except Exception as e:
                 api_result["diagram_error"] = f"Failed to download diagram: {str(e)}"
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
 
     return api_result
@@ -4086,9 +3874,7 @@ def query_regulomedb(
 
     # Ensure we have either a prompt, variant, or coordinates
     if prompt is None and endpoint is None:
-        return {
-            "error": "Either a prompt, variant ID, or genomic coordinates must be provided"
-        }
+        return {"error": "Either a prompt, variant ID, or genomic coordinates must be provided"}
 
     # If using prompt, parse with Claude
     if prompt and not endpoint:
@@ -4139,17 +3925,10 @@ def query_regulomedb(
     endpoint = endpoint
 
     # Execute the RegulomeDB API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", headers={"Accept": "application/json"}
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", headers={"Accept": "application/json"})
 
     # Format the results if not verbose and successful
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
@@ -4249,9 +4028,7 @@ def query_pride(
     description = "Direct query to provided endpoint"
 
     # Execute the PRIDE API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", params=params, description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", params=params, description=description)
 
     return api_result
 
@@ -4347,25 +4124,16 @@ def query_gtopdb(
     description = "Direct query to provided endpoint"
 
     # Execute the GtoPdb API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
     # Format the results if not verbose and successful
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
 
 
-def region_to_ccre_screen(
-    coord_chrom: str, coord_start: int, coord_end: int, assembly: str = "GRCh38"
-) -> str:
+def region_to_ccre_screen(coord_chrom: str, coord_start: int, coord_end: int, assembly: str = "GRCh38") -> str:
     """Given starting and ending coordinates, this function retrieves information of intersecting cCREs.
 
     Args:
@@ -4401,9 +4169,7 @@ def region_to_ccre_screen(
 
         # Check if the response is successful
         if not response.ok:
-            raise Exception(
-                f"Request failed with status code {response.status_code}. Response: {response.text}"
-            )
+            raise Exception(f"Request failed with status code {response.status_code}. Response: {response.text}")
 
         steps.append("Request executed successfully. Parsing the response...")
 
@@ -4415,9 +4181,7 @@ def region_to_ccre_screen(
         # Function to reduce and filter response data
         def reduce_tokens(res_json):
             # Remove unnecessary fields and round floats
-            res = sorted(
-                res_json["cres"], key=lambda x: x["dnase_zscore"], reverse=True
-            )
+            res = sorted(res_json["cres"], key=lambda x: x["dnase_zscore"], reverse=True)
             filtered_res = []
 
             for item in res:
@@ -4444,12 +4208,8 @@ def region_to_ccre_screen(
         filtered_data = reduce_tokens(response_json)
 
         if not filtered_data:
-            steps.append(
-                f"No intersecting cCREs found for coordinates: {coord_chrom}:{coord_start}-{coord_end}."
-            )
-            return "\n".join(
-                steps + ["No cCRE data available for this genomic region."]
-            )
+            steps.append(f"No intersecting cCREs found for coordinates: {coord_chrom}:{coord_start}-{coord_end}.")
+            return "\n".join(steps + ["No cCRE data available for this genomic region."])
 
         # Format the result into a readable string
         ccre_data_string = f"Intersecting cCREs for {coord_chrom}:{coord_start}-{coord_end} (Assembly: {assembly}):\n"
@@ -4472,9 +4232,7 @@ def region_to_ccre_screen(
                 f"  K27acmax: {ccre['k27acmax']}\n\n"
             )
 
-        steps.append(
-            f"cCRE data successfully retrieved and formatted for {coord_chrom}:{coord_start}-{coord_end}."
-        )
+        steps.append(f"cCRE data successfully retrieved and formatted for {coord_chrom}:{coord_start}-{coord_end}.")
         return "\n".join(steps + [ccre_data_string])
 
     except Exception as e:
@@ -4482,9 +4240,7 @@ def region_to_ccre_screen(
         return "\n".join(steps + [f"Error: {str(e)}"])
 
 
-def get_genes_near_ccre(
-    accession: str, assembly: str, chromosome: str, k: int = 10
-) -> str:
+def get_genes_near_ccre(accession: str, assembly: str, chromosome: str, k: int = 10) -> str:
     """Given a cCRE (Candidate cis-Regulatory Element), this function returns a string containing the
     steps it performs and the k nearest genes sorted by distance.
 
@@ -4500,7 +4256,9 @@ def get_genes_near_ccre(
     - str: Steps performed and the result.
 
     """
-    steps_log = f"Starting process with accession: {accession}, assembly: {assembly}, chromosome: {chromosome}, k: {k}\n"
+    steps_log = (
+        f"Starting process with accession: {accession}, assembly: {assembly}, chromosome: {chromosome}, k: {k}\n"
+    )
 
     url = "https://screen-beta-api.wenglab.org/dataws/re_detail/nearbyGenomic"
     data = {"accession": accession, "assembly": assembly, "coord_chrom": chromosome}
@@ -4633,17 +4391,10 @@ def query_remap(
     description = "Direct query to provided endpoint"
 
     # Execute the ReMap API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
     # Format the results if not verbose and successful
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
@@ -4741,17 +4492,10 @@ def query_mpd(
     description = "Direct query to provided endpoint"
 
     # Execute the MPD API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
     # Format the results if not verbose and successful
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
@@ -4853,17 +4597,10 @@ def query_emdb(
     description = "Direct query to provided endpoint"
 
     # Execute the EMDB API request using the helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", params=params, description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", params=params, description=description)
 
     # Format the results if not verbose and successful
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
@@ -4995,9 +4732,7 @@ def query_synapse(
             for hit in result_data["hits"]:
                 if "id" in hit:
                     # Check access requirements for this entity
-                    access_url = (
-                        f"{base_url}/repo/v1/entity/{hit['id']}/accessRequirement"
-                    )
+                    access_url = f"{base_url}/repo/v1/entity/{hit['id']}/accessRequirement"
                     access_result = _query_rest_api(
                         endpoint=access_url,
                         method="GET",
@@ -5052,9 +4787,7 @@ def query_pubchem(
     # If using prompt, parse with Claude
     if prompt:
         # Load PubChem schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "pubchem.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "pubchem.pkl")
         with open(schema_path, "rb") as f:
             pubchem_schema = pickle.load(f)
 
@@ -5117,16 +4850,9 @@ def query_pubchem(
     query_pubchem._last_request_time = time.time()
 
     # Use the common REST API helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
@@ -5170,22 +4896,16 @@ def query_chembl(
         endpoint = f"{base_url}/molecule/{chembl_id}.json"
         description = f"Direct lookup for ChEMBL ID: {chembl_id} (most reliable method)"
     elif smiles:
-        endpoint = (
-            f"{base_url}/similarity/{smiles}/80.json"  # Default similarity cutoff
-        )
+        endpoint = f"{base_url}/similarity/{smiles}/80.json"  # Default similarity cutoff
         description = f"Similarity search for SMILES: {smiles} with 80% cutoff"
     elif molecule_name:
-        endpoint = (
-            f"{base_url}/molecule/search.json?q={molecule_name}&limit={max_results}"
-        )
+        endpoint = f"{base_url}/molecule/search.json?q={molecule_name}&limit={max_results}"
         description = f"Search for molecule with name containing: {molecule_name}"
     elif prompt:
         # Try LLM-based parsing with fallback
         try:
             # Load ChEMBL schema
-            schema_path = os.path.join(
-                os.path.dirname(__file__), "schema_db", "chembl.pkl"
-            )
+            schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "chembl.pkl")
             with open(schema_path, "rb") as f:
                 chembl_schema = pickle.load(f)
 
@@ -5252,9 +4972,7 @@ def query_chembl(
                 else:
                     raise Exception("No endpoint generated from LLM")
             else:
-                raise Exception(
-                    f"LLM failed: {llm_result.get('error', 'Unknown error')}"
-                )
+                raise Exception(f"LLM failed: {llm_result.get('error', 'Unknown error')}")
 
         except Exception:
             # Fall back to generic endpoint mapping for common query types
@@ -5300,9 +5018,7 @@ def query_chembl(
                     len(word) > 4
                     and word.isalpha()
                     and word_lower not in common_words
-                    and not word_lower.startswith(
-                        "che"
-                    )  # Skip words starting with common prefixes
+                    and not word_lower.startswith("che")  # Skip words starting with common prefixes
                     and not word_lower.endswith("ing")
                 ):  # Skip gerunds
                     potential_molecule = word
@@ -5316,17 +5032,11 @@ def query_chembl(
                 else:
                     endpoint = f"{base_url}/activity.json?standard_type=IC50&limit={max_results}"
                     description = "Search for binding activities with IC50 values"
-            elif (
-                "molecule" in prompt_lower
-                or "compound" in prompt_lower
-                or "drug" in prompt_lower
-            ):
+            elif "molecule" in prompt_lower or "compound" in prompt_lower or "drug" in prompt_lower:
                 # Molecule search
                 if potential_molecule:
                     endpoint = f"{base_url}/molecule/search.json?q={potential_molecule}&limit={max_results}"
-                    description = (
-                        f"Search for molecule {potential_molecule} in ChEMBL database"
-                    )
+                    description = f"Search for molecule {potential_molecule} in ChEMBL database"
                 else:
                     endpoint = f"{base_url}/molecule/search.json?q=molecule&limit={max_results}"
                     description = "Search for molecules in ChEMBL database"
@@ -5346,9 +5056,7 @@ def query_chembl(
                 # Image search
                 if potential_molecule:
                     endpoint = f"{base_url}/molecule/search.json?q={potential_molecule}&limit={max_results}"
-                    description = (
-                        f"Search for {potential_molecule} images in ChEMBL database"
-                    )
+                    description = f"Search for {potential_molecule} images in ChEMBL database"
                 else:
                     endpoint = f"{base_url}/molecule/search.json?q=molecule&limit={max_results}"
                     description = "Search for molecule images in ChEMBL database"
@@ -5356,14 +5064,10 @@ def query_chembl(
                 # Generic search - use first meaningful word or fallback
                 if potential_molecule:
                     endpoint = f"{base_url}/molecule/search.json?q={potential_molecule}&limit={max_results}"
-                    description = (
-                        f"Generic search for {potential_molecule} in ChEMBL database"
-                    )
+                    description = f"Generic search for {potential_molecule} in ChEMBL database"
                 else:
                     endpoint = f"{base_url}/molecule/search.json?q=molecule&limit={max_results}"
-                    description = (
-                        f"Generic search in ChEMBL database for: {prompt[:50]}..."
-                    )
+                    description = f"Generic search in ChEMBL database for: {prompt[:50]}..."
     elif endpoint:
         # Use provided endpoint directly
         if endpoint.startswith("/"):
@@ -5386,16 +5090,9 @@ def query_chembl(
         endpoint += f"?limit={max_results}"
 
     # Use the common REST API helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
@@ -5433,9 +5130,7 @@ def query_unichem(
     # If using prompt, parse with Claude
     if prompt:
         # Load UniChem schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "unichem.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "unichem.pkl")
         with open(schema_path, "rb") as f:
             unichem_schema = pickle.load(f)
 
@@ -5507,16 +5202,9 @@ def query_unichem(
         description = "Direct query to provided endpoint"
 
     # Use the common REST API helper function
-    api_result = _query_rest_api(
-        endpoint=full_url, method=method, json_data=data, description=description
-    )
+    api_result = _query_rest_api(endpoint=full_url, method=method, json_data=data, description=description)
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
@@ -5553,9 +5241,7 @@ def query_clinicaltrials(
     # If using prompt, parse with Claude
     if prompt:
         # Load ClinicalTrials.gov schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "clinicaltrials.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "clinicaltrials.pkl")
         with open(schema_path, "rb") as f:
             clinicaltrials_schema = pickle.load(f)
 
@@ -5620,19 +5306,13 @@ def query_clinicaltrials(
         endpoint += f"{separator}pageSize={max_results}"
 
     # Use the common REST API helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
     # Handle API parameter errors with fallback for ClinicalTrials.gov
-    if not api_result.get("success", False) and "400" in str(
-        api_result.get("error", "")
-    ):
+    if not api_result.get("success", False) and "400" in str(api_result.get("error", "")):
         # Try simplified query without problematic filters
         if "filter.phase" in endpoint:
-            simplified_endpoint = endpoint.replace("&filter.phase=PHASE3", "").replace(
-                "filter.phase=PHASE3&", ""
-            )
+            simplified_endpoint = endpoint.replace("&filter.phase=PHASE3", "").replace("filter.phase=PHASE3&", "")
             if simplified_endpoint != endpoint:
                 api_result = _query_rest_api(
                     endpoint=simplified_endpoint,
@@ -5640,16 +5320,9 @@ def query_clinicaltrials(
                     description=f"{description} (simplified)",
                 )
                 if api_result.get("success", False):
-                    api_result["note"] = (
-                        "Query simplified due to API parameter restrictions"
-                    )
+                    api_result["note"] = "Query simplified due to API parameter restrictions"
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
@@ -5692,9 +5365,7 @@ def query_dailymed(
     # If using prompt, parse with Claude
     if prompt:
         # Load DailyMed schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "dailymed.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "dailymed.pkl")
         with open(schema_path, "rb") as f:
             dailymed_schema = pickle.load(f)
 
@@ -5749,24 +5420,13 @@ def query_dailymed(
         description = "Direct query to provided endpoint"
 
         # Add format extension if not present
-        if (
-            not endpoint.endswith(f".{format}")
-            and not endpoint.endswith(".json")
-            and not endpoint.endswith(".xml")
-        ):
+        if not endpoint.endswith(f".{format}") and not endpoint.endswith(".json") and not endpoint.endswith(".xml"):
             endpoint += f".{format}"
 
     # Use the common REST API helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
@@ -5814,9 +5474,7 @@ def query_quickgo(
     # If using prompt, parse with Claude
     if prompt:
         # Load QuickGO schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schema_db", "quickgo.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "quickgo.pkl")
         with open(schema_path, "rb") as f:
             quickgo_schema = pickle.load(f)
 
@@ -5880,16 +5538,9 @@ def query_quickgo(
         endpoint += f"{separator}limit={max_results}"
 
     # Use the common REST API helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
@@ -6013,28 +5664,18 @@ def query_encode(
     # Add limit parameter if not already specified and it's a search endpoint
     if "/search/" in endpoint and "limit=" not in endpoint:
         separator = "&" if "?" in endpoint else "?"
-        limit_value = (
-            "all" if max_results == "all" or max_results > 100 else max_results
-        )
+        limit_value = "all" if max_results == "all" or max_results > 100 else max_results
         endpoint += f"{separator}limit={limit_value}"
 
     # Use the common REST API helper function
-    api_result = _query_rest_api(
-        endpoint=endpoint, method="GET", description=description
-    )
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
     # Add data location information to the result
     if api_result.get("success", False):
         # Extract data_type and search_strategy from the query_info if available
-        data_type = (
-            query_info.get("data_type", "Unknown")
-            if "query_info" in locals()
-            else "Unknown"
-        )
+        data_type = query_info.get("data_type", "Unknown") if "query_info" in locals() else "Unknown"
         search_strategy = (
-            query_info.get("search_strategy", "Direct query")
-            if "query_info" in locals()
-            else "Direct query"
+            query_info.get("search_strategy", "Direct query") if "query_info" in locals() else "Direct query"
         )
 
         api_result["data_type"] = data_type
@@ -6047,9 +5688,7 @@ def query_encode(
         }
 
     # Handle API parameter errors with fallback for ENCODE
-    if not api_result.get("success", False) and "404" in str(
-        api_result.get("error", "")
-    ):
+    if not api_result.get("success", False) and "404" in str(api_result.get("error", "")):
         # Try simplified query with basic search
         if prompt and "transcription factor" in prompt.lower():
             simplified_endpoint = f"{base_url}/search/?type=Experiment&assay_title=ChIP-seq&searchTerm=transcription%20factor&format=json&limit={max_results}"
@@ -6061,12 +5700,7 @@ def query_encode(
             if api_result.get("success", False):
                 api_result["note"] = "Query simplified due to API endpoint restrictions"
 
-    if (
-        not verbose
-        and "success" in api_result
-        and api_result["success"]
-        and "result" in api_result
-    ):
+    if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result

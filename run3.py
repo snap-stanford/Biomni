@@ -1,11 +1,9 @@
-from biomni.agent import A1_HITS
 import os
-from datetime import datetime
-import pytz
 import time
-from langchain_core.messages import SystemMessage, HumanMessage
-from biomni.llm import get_llm
-import markdown
+from datetime import datetime
+
+import pytz
+from biomni.agent import A1_HITS
 
 os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
@@ -32,8 +30,8 @@ agent = A1_HITS(
     allow_resources=["proteomics", "support_tools", "bio"],
     use_tool_retriever=True,
 )
-user_command = """/workdir_efs/jaechang/work2/thermofisher/data/data_FC_WT_AD_simple.xlsx 파일은 정상 및 알츠하이머(5xFAD) Mouse Frontal Cortex의 Proteomics 분석 결과야. 
-파일을 생성하게 되면 모두 현재 폴더에 저장해줘. 
+user_command = """/workdir_efs/jaechang/work2/thermofisher/data/data_FC_WT_AD_simple.xlsx 파일은 정상 및 알츠하이머(5xFAD) Mouse Frontal Cortex의 Proteomics 분석 결과야.
+파일을 생성하게 되면 모두 현재 폴더에 저장해줘.
 이 데이터에 대해서 다음의 전처리 및 분석을 수행해줘.
 
 1. 데이터 전처리 (결측치 처리, 필터링 등):

@@ -10,4 +10,3 @@ Your response should include:
 2. **Key Steps**: Provide 3-5 essential, actionable steps (each step should be 1-2 sentences max)
 
 Be CONCISE, actionable, and practical. Focus ONLY on the most critical steps needed to process and analyze these files.
-

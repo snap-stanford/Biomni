@@ -6,4 +6,3 @@ Results section:
 {results_section}
 
 Analysis workflow (numbered list with brief descriptions):
-

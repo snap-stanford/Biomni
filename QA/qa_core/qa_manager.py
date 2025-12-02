@@ -3,11 +3,10 @@ QA Manager: QA 태스크 관리 및 로딩
 """
 
 import json
-import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -19,11 +18,11 @@ class QATask:
     answer: str
     category: str = "general"
     difficulty: str = "medium"
-    images: List[str] = field(default_factory=list)
-    input_data: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    created_at: Optional[datetime] = None
-    task_path: Optional[Path] = None
+    images: list[str] = field(default_factory=list)
+    input_data: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    created_at: datetime | None = None
+    task_path: Path | None = None
 
     def __post_init__(self):
         if self.created_at is None:
@@ -43,7 +42,7 @@ class QAManager:
             qa_datasets_dir: QA 데이터셋 디렉토리 경로
         """
         self.qa_datasets_dir = Path(qa_datasets_dir)
-        self.tasks: Dict[str, QATask] = {}
+        self.tasks: dict[str, QATask] = {}
         self.load_all_tasks()
 
     def load_all_tasks(self) -> None:
@@ -90,12 +89,24 @@ class QAManager:
         # 이미지 파일 찾기 (task 폴더 바로 아래)
         images = []
         image_extensions = [".png", ".jpg", ".jpeg", ".gif", ".svg"]
-        
+
         # input data 파일 찾기 (task 폴더 바로 아래)
         input_data = []
-        input_data_extensions = [".csv", ".txt", ".tsv", ".xlsx", ".fasta", ".fastq", ".bam", ".vcf", ".bed", ".json", ".xml"]
+        input_data_extensions = [
+            ".csv",
+            ".txt",
+            ".tsv",
+            ".xlsx",
+            ".fasta",
+            ".fastq",
+            ".bam",
+            ".vcf",
+            ".bed",
+            ".json",
+            ".xml",
+        ]
         excluded_files = ["question.md", "answer.md", "metadata.json"]
-        
+
         for item in sorted(task_dir.iterdir()):
             if item.is_file():
                 if item.suffix.lower() in image_extensions:
@@ -111,7 +122,7 @@ class QAManager:
         created_at = None
 
         if metadata_file.exists():
-            with open(metadata_file, "r", encoding="utf-8") as f:
+            with open(metadata_file, encoding="utf-8") as f:
                 metadata = json.load(f)
                 category = metadata.get("category", "general")
                 difficulty = metadata.get("difficulty", "medium")
@@ -132,7 +143,7 @@ class QAManager:
             task_path=task_dir,
         )
 
-    def get_task(self, task_id: str) -> Optional[QATask]:
+    def get_task(self, task_id: str) -> QATask | None:
         """
         특정 태스크 가져오기
 
@@ -144,9 +155,7 @@ class QAManager:
         """
         return self.tasks.get(task_id)
 
-    def list_tasks(
-        self, category: Optional[str] = None, difficulty: Optional[str] = None
-    ) -> List[QATask]:
+    def list_tasks(self, category: str | None = None, difficulty: str | None = None) -> list[QATask]:
         """
         태스크 목록 가져오기
 
@@ -170,11 +179,11 @@ class QAManager:
         """전체 태스크 개수 반환"""
         return len(self.tasks)
 
-    def get_categories(self) -> List[str]:
+    def get_categories(self) -> list[str]:
         """모든 카테고리 목록 반환"""
-        return sorted(set(task.category for task in self.tasks.values()))
+        return sorted({task.category for task in self.tasks.values()})
 
-    def get_task_statistics(self) -> Dict[str, Any]:
+    def get_task_statistics(self) -> dict[str, Any]:
         """태스크 통계 정보 반환"""
         categories = {}
         difficulties = {}
@@ -191,4 +200,3 @@ class QAManager:
 
     def __repr__(self) -> str:
         return f"QAManager(tasks={len(self.tasks)})"
-

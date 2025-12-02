@@ -1,7 +1,7 @@
-import glob
-import os
 import argparse
+import glob
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -10,9 +10,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 try:
     from biomni.eval import BiomniEval1
-    from biomni.task.lab_bench import lab_bench
-    from biomni.task.hle import humanity_last_exam
     from biomni.task.biomni_eval1_task import biomni_eval1_task
+    from biomni.task.hle import humanity_last_exam
+    from biomni.task.lab_bench import lab_bench
 
     BIOMNI_EVAL1_AVAILABLE = True
 except ImportError:
@@ -90,9 +90,7 @@ def evaluate_answer(dataset_name, correct_answer, predicted_answer, evaluator=No
     if is_biomni_eval1_task(dataset_name) and evaluator is not None:
         try:
             # BiomniEval1's _compute_reward returns 1.0 for correct, 0.0 for incorrect
-            score = evaluator._compute_reward(
-                dataset_name, predicted_answer, correct_answer
-            )
+            score = evaluator._compute_reward(dataset_name, predicted_answer, correct_answer)
             return score == 1.0
         except Exception as e:
             print(f"Warning: BiomniEval1 evaluation failed: {e}")
@@ -113,9 +111,7 @@ def evaluate_directory(base_dir, show_errors=False, verbose=False):
         verbose: If True, show detailed information about each error
     """
     # Find all dataset directories
-    datasets = [
-        d for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d))
-    ]
+    datasets = [d for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d))]
 
     if not datasets:
         print(f"No dataset directories found in {base_dir}")
@@ -155,9 +151,7 @@ def evaluate_directory(base_dir, show_errors=False, verbose=False):
         for ans_file in ans_files:
             filename = os.path.basename(ans_file)
             # Extract index from filename (e.g., ans_0.json -> 0)
-            idx_str = (
-                filename.replace("ans_", "").replace(".json", "").replace(".txt", "")
-            )
+            idx_str = filename.replace("ans_", "").replace(".json", "").replace(".txt", "")
             try:
                 idx = int(idx_str)
             except ValueError:
@@ -167,10 +161,10 @@ def evaluate_directory(base_dir, show_errors=False, verbose=False):
             if is_json:
                 # Read LLM from JSON content
                 try:
-                    with open(ans_file, "r", encoding="utf-8") as f:
+                    with open(ans_file, encoding="utf-8") as f:
                         data = json.load(f)
                         llm = data.get("llm", "unknown")
-                except (json.JSONDecodeError, IOError):
+                except (OSError, json.JSONDecodeError):
                     llm = "unknown"
             else:
                 # For old TXT format, assume default LLM
@@ -188,7 +182,7 @@ def evaluate_directory(base_dir, show_errors=False, verbose=False):
             for idx, ans_file in sorted(llm_files[llm]):
                 if is_json:
                     # Read JSON format
-                    with open(ans_file, "r", encoding="utf-8") as f:
+                    with open(ans_file, encoding="utf-8") as f:
                         try:
                             data = json.load(f)
                             correct = data.get("correct_answer", "")
@@ -224,7 +218,7 @@ def evaluate_directory(base_dir, show_errors=False, verbose=False):
                             continue
                 else:
                     # Read old TXT format
-                    with open(ans_file, "r") as f:
+                    with open(ans_file) as f:
                         values = f.read().split("\n")
                         if len(values) >= 2:
                             true.append(values[0])
@@ -236,7 +230,7 @@ def evaluate_directory(base_dir, show_errors=False, verbose=False):
             no_answer_indices = []
             correct_count = 0
 
-            for i, (t, p, idx) in enumerate(zip(true, pred, file_indices)):
+            for _i, (t, p, idx) in enumerate(zip(true, pred, file_indices, strict=False)):
                 if p == "":
                     no_answer_indices.append(idx)
                 elif evaluate_answer(dataset, t, p, evaluator):
@@ -250,9 +244,7 @@ def evaluate_directory(base_dir, show_errors=False, verbose=False):
             # Filter error_details to only include actual errors (using proper evaluation logic)
             filtered_error_details = []
             for error in error_details:
-                if not evaluate_answer(
-                    dataset, error["correct"], error["predicted"], evaluator
-                ):
+                if not evaluate_answer(dataset, error["correct"], error["predicted"], evaluator):
                     filtered_error_details.append(error)
             error_details = filtered_error_details
 
@@ -264,7 +256,7 @@ def evaluate_directory(base_dir, show_errors=False, verbose=False):
 
             # Indicate if using BiomniEval1 task-specific evaluation
             if is_biomni_eval1_task(dataset) and evaluator is not None:
-                print(f"[BiomniEval1 Task: using task-specific evaluation logic]")
+                print("[BiomniEval1 Task: using task-specific evaluation logic]")
 
             # Get total questions from dataset
             total_questions = get_total_questions(dataset)
@@ -290,9 +282,7 @@ def evaluate_directory(base_dir, show_errors=False, verbose=False):
             if verbose and show_errors:
                 # Show detailed error information for JSON format
                 if is_json and error_details:
-                    print(
-                        "\n--- Detailed Error Information (Incorrect Predictions) ---"
-                    )
+                    print("\n--- Detailed Error Information (Incorrect Predictions) ---")
                     print(f"Total errors: {len(error_details)}\n")
 
                     # Show all errors
@@ -303,9 +293,7 @@ def evaluate_directory(base_dir, show_errors=False, verbose=False):
 
                         # Show question
                         preview_length = 500
-                        q_preview = error["question"][:preview_length].replace(
-                            "\n", " "
-                        )
+                        q_preview = error["question"][:preview_length].replace("\n", " ")
                         if len(error["question"]) > preview_length:
                             q_preview += "..."
                         print(f"  Question: {q_preview}")
@@ -319,13 +307,11 @@ def evaluate_directory(base_dir, show_errors=False, verbose=False):
                     for no_ans in no_answer_details:
                         print(f"\nIndex {no_ans['index']}:")
                         print(f"  Correct: {no_ans['correct']}")
-                        print(f"  Predicted: (no answer)")
+                        print("  Predicted: (no answer)")
 
                         # Show question
                         preview_length = 500
-                        q_preview = no_ans["question"][:preview_length].replace(
-                            "\n", " "
-                        )
+                        q_preview = no_ans["question"][:preview_length].replace("\n", " ")
                         if len(no_ans["question"]) > preview_length:
                             q_preview += "..."
                         print(f"  Question: {q_preview}")

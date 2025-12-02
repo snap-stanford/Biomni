@@ -1,30 +1,23 @@
+import os
+from typing import Any
+
 from langchain_aws.embeddings.bedrock import BedrockEmbeddings
 from langchain_community.vectorstores import FAISS
-from typing import List, Tuple, Dict, Any
-import os
 
 
 class RAGDatabaseTester:
     """Test class for evaluating RAG database retrieval performance."""
 
     def __init__(self):
-        self.embeddings = BedrockEmbeddings(
-            normalize=True, region_name=os.getenv("AWS_REGION", "us-east-1")
-        )
+        self.embeddings = BedrockEmbeddings(normalize=True, region_name=os.getenv("AWS_REGION", "us-east-1"))
         self.databases = self._load_databases()
 
-    def _load_databases(self) -> Dict[str, FAISS]:
+    def _load_databases(self) -> dict[str, FAISS]:
         """Load all FAISS databases."""
         return {
-            "tool": FAISS.load_local(
-                "tool_index", self.embeddings, allow_dangerous_deserialization=True
-            ),
-            "data_lake": FAISS.load_local(
-                "data_lake_index", self.embeddings, allow_dangerous_deserialization=True
-            ),
-            "library": FAISS.load_local(
-                "library_index", self.embeddings, allow_dangerous_deserialization=True
-            ),
+            "tool": FAISS.load_local("tool_index", self.embeddings, allow_dangerous_deserialization=True),
+            "data_lake": FAISS.load_local("data_lake_index", self.embeddings, allow_dangerous_deserialization=True),
+            "library": FAISS.load_local("library_index", self.embeddings, allow_dangerous_deserialization=True),
         }
 
     def _create_biomedical_query(self, user_query: str) -> str:
@@ -47,9 +40,7 @@ IMPORTANT GUIDELINES:
 8. When in doubt about a database tool or molecular biology tool, include it rather than exclude it
 """
 
-    def _search_database(
-        self, db: FAISS, query: str, threshold: float, k: int = 30
-    ) -> List[Tuple[Any, float]]:
+    def _search_database(self, db: FAISS, query: str, threshold: float, k: int = 30) -> list[tuple[Any, float]]:
         """Search a single database with given parameters."""
         return db.similarity_search_with_relevance_scores(
             query,
@@ -57,9 +48,7 @@ IMPORTANT GUIDELINES:
             k=k,
         )
 
-    def _print_results(
-        self, db_name: str, results: List[Tuple[Any, float]], total_docs: int
-    ):
+    def _print_results(self, db_name: str, results: list[tuple[Any, float]], total_docs: int):
         """Print search results in a formatted way."""
         print(f"\n{db_name.upper()} DATABASE:")
         print(f"Found {len(results)} results out of {total_docs} total documents")

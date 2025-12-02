@@ -1,29 +1,30 @@
-from biomni.agent import A1_HITS
+import logging
 import os
 import shutil
-from datetime import datetime
-import pytz
 import time
-from langchain_core.messages import SystemMessage, HumanMessage
-from biomni.llm import get_llm
-import markdown
-import logging
+from datetime import datetime
+
+import pytz
+from biomni.agent import A1_HITS
+
 
 # Logger 설정 (시스템 프롬프트를 초록색으로 출력)
 class GreenFormatter(logging.Formatter):
     """초록색으로 로그를 출력하는 포맷터"""
-    GREEN = '\033[32m'
-    RESET = '\033[0m'
-    
+
+    GREEN = "\033[32m"
+    RESET = "\033[0m"
+
     def format(self, record):
         # 초록색으로 메시지 포맷팅
         record.msg = f"{self.GREEN}{record.msg}{self.RESET}"
         return super().format(record)
 
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
-handler.setFormatter(GreenFormatter('%(message)s'))
+handler.setFormatter(GreenFormatter("%(message)s"))
 logger.addHandler(handler)
 
 # LangSmith tracing (only enable if API key is set)
@@ -71,9 +72,9 @@ agent = A1_HITS(
     use_tool_retriever=True,
     resource_filter_config_path=os.path.join(original_dir, "chainlit", "resource.yaml"),
 )
-image_file = 'rep1_full.png'
+image_file = "rep1_full.png"
 user_command = f"""
-이 웨스턴블롯 이미지에서 맨 윗줄의 밴드의 세기를 정량화 해줘. control을 기준으로 정규화해서 상대적인 발현량을 계산해야해 
+이 웨스턴블롯 이미지에서 맨 윗줄의 밴드의 세기를 정량화 해줘. control을 기준으로 정규화해서 상대적인 발현량을 계산해야해
  - user uploaded data file: {image_file}
 """
 # user_command = f"""

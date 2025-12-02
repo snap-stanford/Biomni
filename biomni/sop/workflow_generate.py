@@ -3,14 +3,13 @@ Workflow generation module for workflow recommendations.
 This module contains methods for generating workflow recommendations from files and research papers.
 """
 
+import base64
 import os
 import re
-import base64
 from pathlib import Path
-from typing import List
 
-from pydantic import BaseModel, Field
 from langchain_core.messages import HumanMessage
+from pydantic import BaseModel, Field
 
 from biomni.llm import get_llm
 
@@ -18,10 +17,8 @@ from biomni.llm import get_llm
 class WorkflowRecommendation(BaseModel):
     """Schema for workflow recommendation output."""
 
-    workflow_title: str = Field(
-        description="A clear, concise title for the workflow (max 10-15 words)"
-    )
-    key_steps: List[str] = Field(
+    workflow_title: str = Field(description="A clear, concise title for the workflow (max 10-15 words)")
+    key_steps: list[str] = Field(
         description="Provide exactly 3-5 essential, actionable steps. Each step should be concise (1-2 sentences max)",
     )
 
@@ -78,9 +75,7 @@ class WorkflowGenerator:
         Args:
             prompts_dir: Directory containing prompt template files
         """
-        self.prompts_dir = prompts_dir or os.path.join(
-            os.path.dirname(__file__), "prompts"
-        )
+        self.prompts_dir = prompts_dir or os.path.join(os.path.dirname(__file__), "prompts")
 
     def _load_prompt_template(self, filename):
         """Load a prompt template from file.
@@ -92,7 +87,7 @@ class WorkflowGenerator:
             str: Prompt template content with format() capability
         """
         prompt_path = os.path.join(self.prompts_dir, filename)
-        with open(prompt_path, "r", encoding="utf-8") as f:
+        with open(prompt_path, encoding="utf-8") as f:
             return f.read()
 
     @staticmethod
@@ -174,11 +169,7 @@ class WorkflowGenerator:
             return file_info, image_data
 
         except Exception as e:
-            file_info = (
-                f"- {file_name} ({size_str})\n"
-                f"  Type: Image file (Error reading: {str(e)})\n"
-                f"  Path: {file_path}"
-            )
+            file_info = f"- {file_name} ({size_str})\n  Type: Image file (Error reading: {str(e)})\n  Path: {file_path}"
             return file_info, None
 
     def _process_excel_file(self, file_path, file_name, file_ext, file_size):
@@ -221,11 +212,7 @@ class WorkflowGenerator:
             )
 
         except Exception as e:
-            return (
-                f"- {file_name} ({size_str})\n"
-                f"  Type: Excel file (Error reading: {str(e)})\n"
-                f"  Path: {file_path}"
-            )
+            return f"- {file_name} ({size_str})\n  Type: Excel file (Error reading: {str(e)})\n  Path: {file_path}"
 
     def _process_text_file(self, file_path, file_name, file_ext, file_size):
         """Process text-readable file and return file info.
@@ -242,7 +229,7 @@ class WorkflowGenerator:
         size_str = self._format_file_size(file_size)
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 lines = []
                 char_count = 0
                 max_lines = 5
@@ -265,17 +252,9 @@ class WorkflowGenerator:
             )
 
         except UnicodeDecodeError:
-            return (
-                f"- {file_name} ({size_str})\n"
-                f"  Type: Binary file\n"
-                f"  Path: {file_path}"
-            )
+            return f"- {file_name} ({size_str})\n  Type: Binary file\n  Path: {file_path}"
         except Exception as e:
-            return (
-                f"- {file_name} ({size_str})\n"
-                f"  Type: Text file (Error reading: {str(e)})\n"
-                f"  Path: {file_path}"
-            )
+            return f"- {file_name} ({size_str})\n  Type: Text file (Error reading: {str(e)})\n  Path: {file_path}"
 
     def _analyze_files(self, file_paths):
         """Analyze files and return file information and image data.
@@ -305,23 +284,17 @@ class WorkflowGenerator:
 
             # Process different file types
             if file_ext in self.IMAGE_EXTENSIONS:
-                file_info, image_data = self._process_image_file(
-                    file_path, file_name, file_ext, file_size
-                )
+                file_info, image_data = self._process_image_file(file_path, file_name, file_ext, file_size)
                 files_info.append(file_info)
                 if image_data:
                     images_data.append(image_data)
 
             elif file_ext in self.EXCEL_EXTENSIONS:
-                file_info = self._process_excel_file(
-                    file_path, file_name, file_ext, file_size
-                )
+                file_info = self._process_excel_file(file_path, file_name, file_ext, file_size)
                 files_info.append(file_info)
 
             elif file_ext in self.TEXT_READABLE_EXTENSIONS:
-                file_info = self._process_text_file(
-                    file_path, file_name, file_ext, file_size
-                )
+                file_info = self._process_text_file(file_path, file_name, file_ext, file_size)
                 files_info.append(file_info)
 
             else:
@@ -349,9 +322,7 @@ class WorkflowGenerator:
         files_info, images_data = self._analyze_files(file_paths)
 
         # Load prompt template and format it
-        prompt_modifier = self._load_prompt_template(
-            "workflow_recommendation_prompt.txt"
-        )
+        prompt_modifier = self._load_prompt_template("workflow_recommendation_prompt.txt")
         files_info_text = "\n\n".join(files_info)
         formatted_prompt = prompt_modifier.format(files_info=files_info_text)
 
@@ -410,9 +381,7 @@ class WorkflowGenerator:
                 reader = PdfReader(pdf_path)
                 return "\n".join([page.extract_text() for page in reader.pages])
 
-    def _find_section_in_paper(
-        self, text, section_name, start_keywords, end_keywords, max_chars=15000
-    ):
+    def _find_section_in_paper(self, text, section_name, start_keywords, end_keywords, max_chars=15000):
         """Generic function to find and extract a section from paper text.
 
         Args:
@@ -537,33 +506,23 @@ class WorkflowGenerator:
             results_section = self.extract_results_section(text)
             methods_section = self.extract_methods_section(text)
 
-            prompt_template = self._load_prompt_template(
-                "paper_workflow_extraction_integrated.txt"
-            )
-            prompt = prompt_template.format(
-                results_section=results_section, methods_section=methods_section
-            )
+            prompt_template = self._load_prompt_template("paper_workflow_extraction_integrated.txt")
+            prompt = prompt_template.format(results_section=results_section, methods_section=methods_section)
 
         elif mode == "methods_only":
             methods_section = self.extract_methods_section(text)
 
-            prompt_template = self._load_prompt_template(
-                "paper_workflow_extraction_methods_only.txt"
-            )
+            prompt_template = self._load_prompt_template("paper_workflow_extraction_methods_only.txt")
             prompt = prompt_template.format(methods_section=methods_section)
 
         elif mode == "results_only":
             results_section = self.extract_results_section(text)
 
-            prompt_template = self._load_prompt_template(
-                "paper_workflow_extraction_results_only.txt"
-            )
+            prompt_template = self._load_prompt_template("paper_workflow_extraction_results_only.txt")
             prompt = prompt_template.format(results_section=results_section)
 
         else:
-            raise ValueError(
-                f"Invalid mode: {mode}. Must be 'integrated', 'methods_only', or 'results_only'"
-            )
+            raise ValueError(f"Invalid mode: {mode}. Must be 'integrated', 'methods_only', or 'results_only'")
 
         # Get workflow from LLM
         response = workflow_llm.invoke([HumanMessage(content=prompt)])
@@ -575,9 +534,7 @@ class WorkflowGenerator:
 
         return workflow
 
-    def generate_workflow_from_paper(
-        self, pdf_path, file_paths=None, mode="integrated", num_prompts=1
-    ):
+    def generate_workflow_from_paper(self, pdf_path, file_paths=None, mode="integrated", num_prompts=1):
         """Generate workflow recommendations based on research paper and optional data files.
 
         This method combines paper-based workflow extraction with data file analysis
@@ -599,7 +556,7 @@ class WorkflowGenerator:
         # Build context from paper
         paper_name = os.path.basename(pdf_path)
         context_parts = [
-            f"# Research Paper Analysis\n",
+            "# Research Paper Analysis\n",
             f"**Paper**: {paper_name}\n",
             f"\n## Extracted Workflow\n{workflow}\n",
         ]

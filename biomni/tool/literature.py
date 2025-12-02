@@ -68,9 +68,7 @@ def fetch_supplementary_info_from_doi(doi: str, output_dir: str = "supplementary
     response = requests.get(crossref_url, headers=headers)
 
     if response.status_code != 200:
-        log_message = (
-            f"Failed to resolve DOI: {doi}. Status Code: {response.status_code}"
-        )
+        log_message = f"Failed to resolve DOI: {doi}. Status Code: {response.status_code}"
         research_log.append(log_message)
         return {"log": research_log, "files": []}
 
@@ -203,15 +201,8 @@ def query_arxiv(query: str, max_papers: int = 10) -> str:
 
     try:
         client = arxiv.Client()
-        search = arxiv.Search(
-            query=query, max_results=max_papers, sort_by=arxiv.SortCriterion.Relevance
-        )
-        results = "\n\n".join(
-            [
-                f"Title: {paper.title}\nSummary: {paper.summary}"
-                for paper in client.results(search)
-            ]
-        )
+        search = arxiv.Search(query=query, max_results=max_papers, sort_by=arxiv.SortCriterion.Relevance)
+        results = "\n\n".join([f"Title: {paper.title}\nSummary: {paper.summary}" for paper in client.results(search)])
         return results if results else "No papers found on arXiv."
     except Exception as e:
         return f"Error querying arXiv: {e}"
@@ -419,9 +410,7 @@ def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
     from pymed import PubMed
 
     try:
-        pubmed = PubMed(
-            tool="MyTool", email="your-email@example.com"
-        )  # Update with a valid email address
+        pubmed = PubMed(tool="MyTool", email="your-email@example.com")  # Update with a valid email address
 
         # Initial attempt
         papers = list(pubmed.query(query, max_results=max_papers))
@@ -431,11 +420,7 @@ def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
         while not papers and retries < max_retries:
             retries += 1
             # Simplify query with each retry by removing the last word
-            simplified_query = (
-                " ".join(query.split()[:-retries])
-                if len(query.split()) > retries
-                else query
-            )
+            simplified_query = " ".join(query.split()[:-retries]) if len(query.split()) > retries else query
             time.sleep(1)  # Add delay between requests
             papers = list(pubmed.query(simplified_query, max_results=max_papers))
 
@@ -551,9 +536,7 @@ def search_google(query: str, num_results: int = 3, language: str = "en") -> str
         results_string = ""
         search_query = f"{query}"
 
-        print(
-            f"Searching for {search_query} with {num_results} results and {language} language"
-        )
+        print(f"Searching for {search_query} with {num_results} results and {language} language")
 
         for res in search(search_query, num=num_results, lang=language):
             print(f"Found result: {res.title}")
@@ -561,9 +544,7 @@ def search_google(query: str, num_results: int = 3, language: str = "en") -> str
             url = res.url
             description = res.description
 
-            results_string += (
-                f"Title: {title}\nURL: {url}\nDescription: {description}\n\n"
-            )
+            results_string += f"Title: {title}\nURL: {url}\nDescription: {description}\n\n"
 
         return results_string
 
@@ -672,16 +653,12 @@ def search_duckduckgo(query: str, num_results: int = 3, language: str = "en") ->
     try:
         results_string = ""
 
-        print(
-            f"Searching for '{query}' with {num_results} results and {language} language"
-        )
+        print(f"Searching for '{query}' with {num_results} results and {language} language")
 
         with DDGS() as ddgs:
             # Use region parameter for language (e.g., "wt-en" for worldwide English)
             region = f"wt-{language}" if language else "wt-en"
-            search_results = list(
-                ddgs.text(query, max_results=num_results, region=region)
-            )
+            search_results = list(ddgs.text(query, max_results=num_results, region=region))
 
             if not search_results:
                 return "No results found."
@@ -691,9 +668,9 @@ def search_duckduckgo(query: str, num_results: int = 3, language: str = "en") ->
                 url = result.get("href", "N/A")
                 description = result.get("body", "N/A")
 
-                print(f"Found result {idx+1}: {title}")
+                print(f"Found result {idx + 1}: {title}")
 
-                results_string += f"Result {idx+1}:\n"
+                results_string += f"Result {idx + 1}:\n"
                 results_string += f"Title: {title}\n"
                 results_string += f"URL: {url}\n"
                 results_string += f"Description: {description}\n\n"
@@ -789,8 +766,7 @@ def advanced_web_search_claude(
     New cytosine base editors with reduced off-target effects... (Citation: Science - https://www.science.org/doi/...)
 
     >>> response = advanced_web_search_claude(
-    ...     "How do different COVID-19 vaccine platforms compare in terms of efficacy and safety?",
-    ...     max_searches=3
+    ...     "How do different COVID-19 vaccine platforms compare in terms of efficacy and safety?", max_searches=3
     ... )
     >>> print(response)
     COVID-19 vaccines can be categorized into several platforms, each with distinct characteristics:
@@ -882,9 +858,7 @@ def advanced_web_search_claude(
                                     "cited_text": cite.cited_text,
                                 }
                             )
-                            formatted_response += (
-                                f"(Citation: {cite.title} - {cite.url})"
-                            )
+                            formatted_response += f"(Citation: {cite.title} - {cite.url})"
             return formatted_response
 
         except Exception as e:
@@ -998,9 +972,9 @@ def extract_url_content(url: str) -> str:
     response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
 
     # Check if the response is in text format
-    if "text/plain" in response.headers.get(
+    if "text/plain" in response.headers.get("Content-Type", "") or "application/json" in response.headers.get(
         "Content-Type", ""
-    ) or "application/json" in response.headers.get("Content-Type", ""):
+    ):
         return response.text.strip()  # Return plain text or JSON response directly
 
     # If it's HTML, use BeautifulSoup to parse
@@ -1010,9 +984,7 @@ def extract_url_content(url: str) -> str:
     content = soup.find("main") or soup.find("article") or soup.body
 
     # Remove unwanted elements
-    for element in content(
-        ["script", "style", "nav", "header", "footer", "aside", "iframe"]
-    ):
+    for element in content(["script", "style", "nav", "header", "footer", "aside", "iframe"]):
         element.decompose()
 
     # Extract text with better formatting
@@ -1152,11 +1124,7 @@ def extract_pdf_content(url: str) -> str:
                     if not pdf_links[0].startswith("http"):
                         # Handle relative URLs
                         base_url = "/".join(url.split("/")[:3])
-                        url = (
-                            base_url + pdf_links[0]
-                            if pdf_links[0].startswith("/")
-                            else base_url + "/" + pdf_links[0]
-                        )
+                        url = base_url + pdf_links[0] if pdf_links[0].startswith("/") else base_url + "/" + pdf_links[0]
                     else:
                         url = pdf_links[0]
                 else:
@@ -1167,12 +1135,8 @@ def extract_pdf_content(url: str) -> str:
 
         # Check if we actually got a PDF file (by checking content type or magic bytes)
         content_type = response.headers.get("Content-Type", "").lower()
-        if "application/pdf" not in content_type and not response.content.startswith(
-            b"%PDF"
-        ):
-            return (
-                f"The URL did not return a valid PDF file. Content type: {content_type}"
-            )
+        if "application/pdf" not in content_type and not response.content.startswith(b"%PDF"):
+            return f"The URL did not return a valid PDF file. Content type: {content_type}"
 
         pdf_file = BytesIO(response.content)
 

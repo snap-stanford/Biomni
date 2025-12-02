@@ -2,9 +2,7 @@ import os
 
 from biomni.tool.tool_description.statistics import get_description
 
-description = get_description(
-    os.path.dirname(os.path.abspath(__file__)) + "/../genomics.py"
-)
+description = get_description(os.path.dirname(os.path.abspath(__file__)) + "/../genomics.py")
 description = [
     {
         "description": "Annotate cell types based on gene markers and transferred "

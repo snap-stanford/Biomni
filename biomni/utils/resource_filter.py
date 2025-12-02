@@ -3,15 +3,14 @@ Resource filtering utilities for restricting tools, data lake, and libraries
 based on YAML configuration files.
 """
 
-import os
-import yaml
 import importlib
-import inspect
-from typing import Dict, List, Any, Optional, Set
-from pathlib import Path
+import os
+from typing import Any
+
+import yaml
 
 
-def load_resource_filter_config(config_path: Optional[str] = None) -> Dict[str, Any]:
+def load_resource_filter_config(config_path: str | None = None) -> dict[str, Any]:
     """
     Load resource filter configuration from YAML file.
 
@@ -26,11 +25,11 @@ def load_resource_filter_config(config_path: Optional[str] = None) -> Dict[str, 
     """
 
     if config_path is None or not os.path.exists(config_path):
-        print(f"No resource filter configuration found. Using all resources.")
+        print("No resource filter configuration found. Using all resources.")
         return {}
 
     try:
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             config = yaml.safe_load(f) or {}
 
         # Extract allowed_resources section
@@ -43,7 +42,7 @@ def load_resource_filter_config(config_path: Optional[str] = None) -> Dict[str, 
         return {}
 
 
-def _parse_tool_spec(spec: Any) -> Dict[str, Any]:
+def _parse_tool_spec(spec: Any) -> dict[str, Any]:
     """
     Parse a tool specification from YAML.
 
@@ -71,7 +70,7 @@ def _parse_tool_spec(spec: Any) -> Dict[str, Any]:
         return {"type": "name", "value": str(spec)}
 
 
-def _get_tools_from_module(module_name: str) -> Set[str]:
+def _get_tools_from_module(module_name: str) -> set[str]:
     """
     Get all tool names from a module by inspecting its description attribute.
 
@@ -84,18 +83,14 @@ def _get_tools_from_module(module_name: str) -> Set[str]:
     try:
         module = importlib.import_module(module_name)
         if hasattr(module, "description") and isinstance(module.description, list):
-            return {
-                tool.get("name")
-                for tool in module.description
-                if isinstance(tool, dict) and "name" in tool
-            }
+            return {tool.get("name") for tool in module.description if isinstance(tool, dict) and "name" in tool}
         return set()
     except Exception as e:
         print(f"Warning: Could not import module {module_name}: {e}")
         return set()
 
 
-def _get_tools_from_file(file_path: str, base_path: Optional[str] = None) -> Set[str]:
+def _get_tools_from_file(file_path: str, base_path: str | None = None) -> set[str]:
     """
     Get all function names from a Python file.
 
@@ -122,7 +117,7 @@ def _get_tools_from_file(file_path: str, base_path: Optional[str] = None) -> Set
             return set()
 
         # Read and parse the file
-        with open(resolved_path, "r", encoding="utf-8") as f:
+        with open(resolved_path, encoding="utf-8") as f:
             source = f.read()
 
         # Parse AST to find function definitions
@@ -141,8 +136,8 @@ def _get_tools_from_file(file_path: str, base_path: Optional[str] = None) -> Set
 
 
 def filter_module2api(
-    module2api: Dict[str, List[Dict]], allowed_tools: Optional[List[Any]] = None
-) -> Dict[str, List[Dict]]:
+    module2api: dict[str, list[dict]], allowed_tools: list[Any] | None = None
+) -> dict[str, list[dict]]:
     """
     Filter module2api dictionary based on allowed tools specification.
 
@@ -161,10 +156,10 @@ def filter_module2api(
         return module2api
 
     # Build set of allowed tool names
-    allowed_tool_names: Set[str] = set()
+    allowed_tool_names: set[str] = set()
 
     # Also track which modules/files are fully allowed
-    allowed_modules: Set[str] = set()
+    allowed_modules: set[str] = set()
 
     for spec in allowed_tools:
         parsed = _parse_tool_spec(spec)
@@ -241,9 +236,7 @@ def filter_module2api(
     return filtered_module2api
 
 
-def filter_data_lake_dict(
-    data_lake_dict: Dict[str, str], allowed_items: Optional[List[str]] = None
-) -> Dict[str, str]:
+def filter_data_lake_dict(data_lake_dict: dict[str, str], allowed_items: list[str] | None = None) -> dict[str, str]:
     """
     Filter data_lake_dict based on allowed items.
 
@@ -260,15 +253,13 @@ def filter_data_lake_dict(
     allowed_set = set(allowed_items)
     filtered = {k: v for k, v in data_lake_dict.items() if k in allowed_set}
 
-    print(
-        f"Filtered data lake: {len(filtered)} items (from {len(data_lake_dict)} total)"
-    )
+    print(f"Filtered data lake: {len(filtered)} items (from {len(data_lake_dict)} total)")
     return filtered
 
 
 def filter_library_content_dict(
-    library_content_dict: Dict[str, str], allowed_libraries: Optional[List[str]] = None
-) -> Dict[str, str]:
+    library_content_dict: dict[str, str], allowed_libraries: list[str] | None = None
+) -> dict[str, str]:
     """
     Filter library_content_dict based on allowed libraries.
 
@@ -285,18 +276,16 @@ def filter_library_content_dict(
     allowed_set = set(allowed_libraries)
     filtered = {k: v for k, v in library_content_dict.items() if k in allowed_set}
 
-    print(
-        f"Filtered libraries: {len(filtered)} libraries (from {len(library_content_dict)} total)"
-    )
+    print(f"Filtered libraries: {len(filtered)} libraries (from {len(library_content_dict)} total)")
     return filtered
 
 
 def apply_resource_filters(
-    module2api: Dict[str, List[Dict]],
-    data_lake_dict: Dict[str, str],
-    library_content_dict: Dict[str, str],
-    config_path: Optional[str] = None,
-) -> tuple[Dict[str, List[Dict]], Dict[str, str], Dict[str, str]]:
+    module2api: dict[str, list[dict]],
+    data_lake_dict: dict[str, str],
+    library_content_dict: dict[str, str],
+    config_path: str | None = None,
+) -> tuple[dict[str, list[dict]], dict[str, str], dict[str, str]]:
     """
     Apply all resource filters based on YAML configuration.
 
@@ -321,8 +310,6 @@ def apply_resource_filters(
 
     # Filter libraries
     allowed_libraries = config.get("libraries", None)
-    filtered_library_content_dict = filter_library_content_dict(
-        library_content_dict, allowed_libraries
-    )
+    filtered_library_content_dict = filter_library_content_dict(library_content_dict, allowed_libraries)
 
     return filtered_module2api, filtered_data_lake_dict, filtered_library_content_dict

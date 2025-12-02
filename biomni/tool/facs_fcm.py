@@ -11,29 +11,27 @@ Author: FlowKit Agent
 import os
 import warnings
 from pathlib import Path
-from typing import Union, List, Dict, Tuple, Optional, Any
-
-import numpy as np
-import pandas as pd
+from typing import Any
 
 # FlowKit imports
 import flowkit as fk
-from flowkit import Sample, Session, Workspace, GatingStrategy, Matrix
-from flowkit import gates, transforms
-from flowkit.exceptions import FlowKitException
-from flowkit._models.gating_results import GatingResults
+import numpy as np
+import pandas as pd
+from bokeh.layouts import gridplot
+from bokeh.models import Title
+from bokeh.palettes import Category10, Category20
 
 # Bokeh imports
 from bokeh.plotting import figure
-from bokeh.layouts import gridplot
-from bokeh.models import Title, Range1d
-from bokeh.palettes import Category10, Category20, Viridis256
+from flowkit import GatingStrategy, Matrix, Sample, Session, Workspace, gates, transforms
+from flowkit._models.gating_results import GatingResults
+from flowkit.exceptions import FlowKitException
 
 
 def load_fcs_file(
     file_path: str,
-    sample_id: Optional[str] = None,
-    compensation: Optional[Union[str, np.ndarray]] = None,
+    sample_id: str | None = None,
+    compensation: str | np.ndarray | None = None,
     subsample: int = 10000,
 ) -> Sample:
     """
@@ -58,7 +56,7 @@ def load_fcs_file(
         FlowKitException: If there's an error loading the FCS file
 
     Example:
-        >>> sample = load_fcs_file('data/sample001.fcs', sample_id='Sample_001')
+        >>> sample = load_fcs_file("data/sample001.fcs", sample_id="Sample_001")
         >>> print(f"Loaded {sample.event_count} events with {len(sample.pnn_labels)} channels")
     """
     try:
@@ -78,9 +76,7 @@ def load_fcs_file(
         raise FlowKitException(f"Error loading FCS file {file_path}: {str(e)}")
 
 
-def load_multiple_fcs_files(
-    directory_path: str, file_pattern: str = "*.fcs"
-) -> List[Sample]:
+def load_multiple_fcs_files(directory_path: str, file_pattern: str = "*.fcs") -> list[Sample]:
     """
     Load multiple FCS files from a directory.
 
@@ -98,7 +94,7 @@ def load_multiple_fcs_files(
         FileNotFoundError: If the directory doesn't exist
 
     Example:
-        >>> samples = load_multiple_fcs_files('data/', '*.fcs')
+        >>> samples = load_multiple_fcs_files("data/", "*.fcs")
         >>> print(f"Loaded {len(samples)} samples")
     """
     try:
@@ -110,12 +106,10 @@ def load_multiple_fcs_files(
         return samples
 
     except Exception as e:
-        raise FlowKitException(
-            f"Error loading FCS files from {directory_path}: {str(e)}"
-        )
+        raise FlowKitException(f"Error loading FCS files from {directory_path}: {str(e)}")
 
 
-def get_sample_info(sample: Sample) -> Dict[str, Any]:
+def get_sample_info(sample: Sample) -> dict[str, Any]:
     """
     Get comprehensive information about a flow cytometry sample.
 
@@ -150,15 +144,9 @@ def get_sample_info(sample: Sample) -> Dict[str, Any]:
             "pns_labels": sample.pns_labels,
             "fluoro_channels": [sample.pnn_labels[i] for i in sample.fluoro_indices],
             "scatter_channels": [sample.pnn_labels[i] for i in sample.scatter_indices],
-            "time_channel": (
-                sample.pnn_labels[sample.time_index]
-                if sample.time_index is not None
-                else None
-            ),
-            "has_compensation": hasattr(sample, "_comp_events")
-            and sample._comp_events is not None,
-            "has_transformation": hasattr(sample, "_transformed_events")
-            and sample._transformed_events is not None,
+            "time_channel": (sample.pnn_labels[sample.time_index] if sample.time_index is not None else None),
+            "has_compensation": hasattr(sample, "_comp_events") and sample._comp_events is not None,
+            "has_transformation": hasattr(sample, "_transformed_events") and sample._transformed_events is not None,
             "version": sample.version,
             "metadata_keys": list(sample.metadata.keys()),
         }
@@ -178,9 +166,7 @@ def get_sample_info(sample: Sample) -> Dict[str, Any]:
         raise FlowKitException(f"Error getting sample info: {str(e)}")
 
 
-def apply_compensation(
-    sample: Sample, compensation_matrix: Optional[Union[str, np.ndarray]] = None
-) -> Sample:
+def apply_compensation(sample: Sample, compensation_matrix: str | np.ndarray | None = None) -> Sample:
     """
     Apply compensation to a flow cytometry sample.
 
@@ -205,7 +191,7 @@ def apply_compensation(
     Example:
         >>> compensated_sample = apply_compensation(sample)
         >>> # Or with custom matrix
-        >>> compensated_sample = apply_compensation(sample, 'compensation.csv')
+        >>> compensated_sample = apply_compensation(sample, "compensation.csv")
     """
     try:
         sample.apply_compensation(compensation_matrix)
@@ -217,7 +203,7 @@ def apply_compensation(
 
 def apply_logicle_transform(
     sample: Sample,
-    channels: Optional[List[str]] = None,
+    channels: list[str] | None = None,
     t: float = 262144.0,
     w: float = 0.5,
     m: float = 4.5,
@@ -249,13 +235,10 @@ def apply_logicle_transform(
         >>> # Apply logicle transformation to all fluorescent channels
         >>> transformed_sample = apply_logicle_transform(sample)
         >>> # Apply with custom parameters to specific channels
-        >>> transformed_sample = apply_logicle_transform(sample,
-        ...     channels=['FITC-A', 'PE-A'], t=100000, w=0.3, m=4.0)
+        >>> transformed_sample = apply_logicle_transform(sample, channels=["FITC-A", "PE-A"], t=100000, w=0.3, m=4.0)
     """
     try:
-        transform = transforms.LogicleTransform(
-            param_t=t, param_w=w, param_m=m, param_a=a
-        )
+        transform = transforms.LogicleTransform(param_t=t, param_w=w, param_m=m, param_a=a)
 
         # Apply transformation
         if channels is not None:
@@ -265,7 +248,7 @@ def apply_logicle_transform(
                 if channel in sample.pnn_labels:
                     transform_dict[channel] = transform
                 else:
-                    warnings.warn(f"Channel {channel} not found in sample")
+                    warnings.warn(f"Channel {channel} not found in sample", stacklevel=2)
 
             if transform_dict:
                 sample.apply_transform(transform_dict)
@@ -281,7 +264,7 @@ def apply_logicle_transform(
 
 def apply_asinh_transform(
     sample: Sample,
-    channels: Optional[List[str]] = None,
+    channels: list[str] | None = None,
     cofactor: float = 5.0,
 ) -> Sample:
     """
@@ -308,8 +291,7 @@ def apply_asinh_transform(
         >>> # Apply asinh transformation to all fluorescent channels
         >>> transformed_sample = apply_asinh_transform(sample)
         >>> # Apply with custom cofactor to specific channels
-        >>> transformed_sample = apply_asinh_transform(sample,
-        ...     channels=['FITC-A', 'PE-A'], cofactor=10.0)
+        >>> transformed_sample = apply_asinh_transform(sample, channels=["FITC-A", "PE-A"], cofactor=10.0)
     """
     try:
         transform = transforms.AsinhTransform(cofactor=cofactor)
@@ -322,7 +304,7 @@ def apply_asinh_transform(
                 if channel in sample.pnn_labels:
                     transform_dict[channel] = transform
                 else:
-                    warnings.warn(f"Channel {channel} not found in sample")
+                    warnings.warn(f"Channel {channel} not found in sample", stacklevel=2)
 
             if transform_dict:
                 sample.apply_transform(transform_dict)
@@ -338,7 +320,7 @@ def apply_asinh_transform(
 
 def apply_log_transform(
     sample: Sample,
-    channels: Optional[List[str]] = None,
+    channels: list[str] | None = None,
     base: float = 10.0,
     offset: float = 1.0,
 ) -> Sample:
@@ -366,8 +348,7 @@ def apply_log_transform(
         >>> # Apply log transformation to all fluorescent channels
         >>> transformed_sample = apply_log_transform(sample)
         >>> # Apply with custom parameters to specific channels
-        >>> transformed_sample = apply_log_transform(sample,
-        ...     channels=['FITC-A', 'PE-A'], base=2.0, offset=0.1)
+        >>> transformed_sample = apply_log_transform(sample, channels=["FITC-A", "PE-A"], base=2.0, offset=0.1)
     """
     try:
         transform = transforms.LogTransform(base=base, offset=offset)
@@ -380,7 +361,7 @@ def apply_log_transform(
                 if channel in sample.pnn_labels:
                     transform_dict[channel] = transform
                 else:
-                    warnings.warn(f"Channel {channel} not found in sample")
+                    warnings.warn(f"Channel {channel} not found in sample", stacklevel=2)
 
             if transform_dict:
                 sample.apply_transform(transform_dict)
@@ -396,7 +377,7 @@ def apply_log_transform(
 
 def apply_linear_transform(
     sample: Sample,
-    channels: Optional[List[str]] = None,
+    channels: list[str] | None = None,
     scale: float = 1.0,
     offset: float = 0.0,
 ) -> Sample:
@@ -424,8 +405,7 @@ def apply_linear_transform(
         >>> # Apply linear transformation to all fluorescent channels
         >>> transformed_sample = apply_linear_transform(sample)
         >>> # Apply with custom scaling to specific channels
-        >>> transformed_sample = apply_linear_transform(sample,
-        ...     channels=['FSC-A', 'SSC-A'], scale=0.001, offset=0.0)
+        >>> transformed_sample = apply_linear_transform(sample, channels=["FSC-A", "SSC-A"], scale=0.001, offset=0.0)
     """
     try:
         transform = transforms.LinearTransform(scale=scale, offset=offset)
@@ -438,7 +418,7 @@ def apply_linear_transform(
                 if channel in sample.pnn_labels:
                     transform_dict[channel] = transform
                 else:
-                    warnings.warn(f"Channel {channel} not found in sample")
+                    warnings.warn(f"Channel {channel} not found in sample", stacklevel=2)
 
             if transform_dict:
                 sample.apply_transform(transform_dict)
@@ -454,7 +434,7 @@ def apply_linear_transform(
 
 def apply_hyperlog_transform(
     sample: Sample,
-    channels: Optional[List[str]] = None,
+    channels: list[str] | None = None,
     t: float = 262144.0,
     w: float = 0.5,
     m: float = 4.5,
@@ -486,8 +466,7 @@ def apply_hyperlog_transform(
         >>> # Apply hyperlog transformation to all fluorescent channels
         >>> transformed_sample = apply_hyperlog_transform(sample)
         >>> # Apply with custom parameters to specific channels
-        >>> transformed_sample = apply_hyperlog_transform(sample,
-        ...     channels=['FITC-A', 'PE-A'], t=100000, w=0.3, m=4.0)
+        >>> transformed_sample = apply_hyperlog_transform(sample, channels=["FITC-A", "PE-A"], t=100000, w=0.3, m=4.0)
     """
     try:
         transform = transforms.HyperlogTransform(t=t, w=w, m=m, a=a)
@@ -500,7 +479,7 @@ def apply_hyperlog_transform(
                 if channel in sample.pnn_labels:
                     transform_dict[channel] = transform
                 else:
-                    warnings.warn(f"Channel {channel} not found in sample")
+                    warnings.warn(f"Channel {channel} not found in sample", stacklevel=2)
 
             if transform_dict:
                 sample.apply_transform(transform_dict)
@@ -514,9 +493,7 @@ def apply_hyperlog_transform(
         raise FlowKitException(f"Error applying Hyperlog transformation: {str(e)}")
 
 
-def create_rectangle_gate(
-    gate_name: str, dimensions: List[Dict[str, Any]]
-) -> gates.RectangleGate:
+def create_rectangle_gate(gate_name: str, dimensions: list[dict[str, Any]]) -> gates.RectangleGate:
     """
     Create a rectangular gate for flow cytometry analysis.
 
@@ -539,11 +516,8 @@ def create_rectangle_gate(
 
     Example:
         >>> # Create a 2D rectangle gate
-        >>> dims = [
-        ...     {'id': 'FSC-A', 'min': 10000, 'max': 250000},
-        ...     {'id': 'SSC-A', 'min': 5000, 'max': 200000}
-        ... ]
-        >>> gate = create_rectangle_gate('Cells', dims)
+        >>> dims = [{"id": "FSC-A", "min": 10000, "max": 250000}, {"id": "SSC-A", "min": 5000, "max": 200000}]
+        >>> gate = create_rectangle_gate("Cells", dims)
     """
     try:
         gate_dimensions = []
@@ -568,7 +542,7 @@ def create_rectangle_gate(
 
 
 def create_polygon_gate(
-    gate_name: str, channel_x: str, channel_y: str, vertices: List[Tuple[float, float]]
+    gate_name: str, channel_x: str, channel_y: str, vertices: list[tuple[float, float]]
 ) -> gates.PolygonGate:
     """
     Create a polygon gate for flow cytometry analysis.
@@ -592,7 +566,7 @@ def create_polygon_gate(
     Example:
         >>> # Create a triangular gate around lymphocytes
         >>> vertices = [(20000, 10000), (80000, 15000), (50000, 60000)]
-        >>> gate = create_polygon_gate('Lymphocytes', 'FSC-A', 'SSC-A', vertices)
+        >>> gate = create_polygon_gate("Lymphocytes", "FSC-A", "SSC-A", vertices)
     """
     try:
         if len(vertices) < 3:
@@ -611,7 +585,7 @@ def create_ellipsoid_gate(
     gate_name: str,
     channel_x: str,
     channel_y: str,
-    center: Tuple[float, float],
+    center: tuple[float, float],
     covariance_matrix: np.ndarray,
     distance_square: float,
 ) -> gates.EllipsoidGate:
@@ -635,14 +609,12 @@ def create_ellipsoid_gate(
     Example:
         >>> center = (50000, 30000)
         >>> cov_matrix = np.array([[1000, 500], [500, 800]])
-        >>> gate = create_ellipsoid_gate('Cells', 'FSC-A', 'SSC-A', center, cov_matrix, 2.0)
+        >>> gate = create_ellipsoid_gate("Cells", "FSC-A", "SSC-A", center, cov_matrix, 2.0)
     """
     try:
         dimensions = [fk.Dimension(channel_x), fk.Dimension(channel_y)]
 
-        gate = gates.EllipsoidGate(
-            gate_name, dimensions, center, covariance_matrix, distance_square
-        )
+        gate = gates.EllipsoidGate(gate_name, dimensions, center, covariance_matrix, distance_square)
         return gate
 
     except Exception as e:
@@ -662,7 +634,7 @@ def create_gating_strategy() -> GatingStrategy:
     Example:
         >>> strategy = create_gating_strategy()
         >>> # Add gates to the strategy
-        >>> strategy.add_gate(cells_gate, ('root',))
+        >>> strategy.add_gate(cells_gate, ("root",))
     """
     try:
         return GatingStrategy()
@@ -672,15 +644,9 @@ def create_gating_strategy() -> GatingStrategy:
 
 def add_gate_to_strategy(
     strategy: GatingStrategy,
-    gate: Union[
-        gates.RectangleGate,
-        gates.PolygonGate,
-        gates.EllipsoidGate,
-        gates.QuadrantGate,
-        gates.BooleanGate,
-    ],
-    gate_path: Tuple[str, ...],
-    sample_id: Optional[str] = None,
+    gate: gates.RectangleGate | gates.PolygonGate | gates.EllipsoidGate | gates.QuadrantGate | gates.BooleanGate,
+    gate_path: tuple[str, ...],
+    sample_id: str | None = None,
 ):
     """
     Add a gate to an existing gating strategy.
@@ -709,12 +675,12 @@ def add_gate_to_strategy(
     Example:
         >>> strategy = create_gating_strategy()
         >>> # Create and add a top-level gate for cell identification
-        >>> cells_gate = create_rectangle_gate('Cells', [{'id': 'FSC-A', 'min': 10000}])
-        >>> add_gate_to_strategy(strategy, cells_gate, ('root',))
+        >>> cells_gate = create_rectangle_gate("Cells", [{"id": "FSC-A", "min": 10000}])
+        >>> add_gate_to_strategy(strategy, cells_gate, ("root",))
         >>>
         >>> # Add a child gate for live cells
-        >>> live_gate = create_rectangle_gate('Live', [{'id': 'PI-A', 'max': 1000}])
-        >>> add_gate_to_strategy(strategy, live_gate, ('root', 'Cells'))
+        >>> live_gate = create_rectangle_gate("Live", [{"id": "PI-A", "max": 1000}])
+        >>> add_gate_to_strategy(strategy, live_gate, ("root", "Cells"))
     """
     try:
         strategy.add_gate(gate, gate_path, sample_id=sample_id)
@@ -722,9 +688,7 @@ def add_gate_to_strategy(
         raise FlowKitException(f"Error adding gate to strategy: {str(e)}")
 
 
-def apply_gating_strategy(
-    sample: Sample, strategy: GatingStrategy, cache_events: bool = False
-) -> GatingResults:
+def apply_gating_strategy(sample: Sample, strategy: GatingStrategy, cache_events: bool = False) -> GatingResults:
     """
     Apply a gating strategy to a flow cytometry sample.
 
@@ -775,7 +739,7 @@ def get_gating_report(gating_results: GatingResults) -> pd.DataFrame:
 
     Example:
         >>> report = get_gating_report(gating_results)
-        >>> print(report[['gate', 'count', 'absolute_percent']])
+        >>> print(report[["gate", "count", "absolute_percent"]])
     """
     try:
         return gating_results.get_report()
@@ -787,7 +751,7 @@ def get_gate_events(
     sample: Sample,
     gating_results: GatingResults,
     gate_name: str,
-    gate_path: Optional[Tuple[str, ...]] = None,
+    gate_path: tuple[str, ...] | None = None,
 ) -> pd.DataFrame:
     """
     Extract events that fall within a specific gate.
@@ -808,7 +772,7 @@ def get_gate_events(
         FlowKitException: If gate is not found or extraction fails
 
     Example:
-        >>> lymph_events = get_gate_events(sample, results, 'Lymphocytes')
+        >>> lymph_events = get_gate_events(sample, results, "Lymphocytes")
         >>> print(f"Found {len(lymph_events)} lymphocyte events")
     """
     try:
@@ -820,9 +784,7 @@ def get_gate_events(
         raise FlowKitException(f"Error extracting gate events: {str(e)}")
 
 
-def calculate_population_statistics(
-    events: pd.DataFrame, channels: List[str]
-) -> Dict[str, Dict[str, float]]:
+def calculate_population_statistics(events: pd.DataFrame, channels: list[str]) -> dict[str, dict[str, float]]:
     """
     Calculate statistical measures for cell populations.
 
@@ -839,7 +801,7 @@ def calculate_population_statistics(
             - Second level: statistic names (mean, median, std, min, max, count)
 
     Example:
-        >>> stats = calculate_population_statistics(lymph_events, ['FITC-A', 'PE-A'])
+        >>> stats = calculate_population_statistics(lymph_events, ["FITC-A", "PE-A"])
         >>> print(f"FITC-A mean: {stats['FITC-A']['mean']:.2f}")
     """
     try:
@@ -859,7 +821,7 @@ def calculate_population_statistics(
                     "q75": float(channel_data.quantile(0.75)),
                 }
             else:
-                warnings.warn(f"Channel {channel} not found in events data")
+                warnings.warn(f"Channel {channel} not found in events data", stacklevel=2)
 
         return statistics
 
@@ -867,7 +829,7 @@ def calculate_population_statistics(
         raise FlowKitException(f"Error calculating population statistics: {str(e)}")
 
 
-def create_session(samples: List[Sample]) -> Session:
+def create_session(samples: list[Sample]) -> Session:
     """
     Create a FlowKit Session for multi-sample analysis.
 
@@ -881,7 +843,7 @@ def create_session(samples: List[Sample]) -> Session:
         Session: FlowKit Session object
 
     Example:
-        >>> samples = load_multiple_fcs_files('data/')
+        >>> samples = load_multiple_fcs_files("data/")
         >>> session = create_session(samples)
         >>> # Add gating strategy and analyze all samples
     """
@@ -916,7 +878,7 @@ def analyze_session(
     Example:
         >>> report = analyze_session(session, strategy)
         >>> # Group by gate to see population statistics across samples
-        >>> summary = report.groupby('gate')['count'].agg(['mean', 'std'])
+        >>> summary = report.groupby("gate")["count"].agg(["mean", "std"])
     """
     try:
         session.gating_strategy = gating_strategy
@@ -945,7 +907,7 @@ def load_workspace(wsp_file_path: str, fcs_directory: str) -> Workspace:
         FileNotFoundError: If workspace file or FCS directory doesn't exist
 
     Example:
-        >>> workspace = load_workspace('analysis.wsp', 'data/')
+        >>> workspace = load_workspace("analysis.wsp", "data/")
         >>> sample_ids = workspace.get_sample_ids()
         >>> print(f"Loaded workspace with {len(sample_ids)} samples")
     """
@@ -989,8 +951,7 @@ def export_gated_events(
         FlowKitException: If export fails
 
     Example:
-        >>> output_file = export_gated_events(sample, results, 'Lymphocytes',
-        ...                                  'lymphocytes.csv', 'csv')
+        >>> output_file = export_gated_events(sample, results, "Lymphocytes", "lymphocytes.csv", "csv")
         >>> print(f"Exported events to {output_file}")
     """
     try:
@@ -1015,8 +976,8 @@ def export_gated_events(
 
 
 def compare_populations(
-    events1: pd.DataFrame, events2: pd.DataFrame, channels: List[str]
-) -> Dict[str, Dict[str, float]]:
+    events1: pd.DataFrame, events2: pd.DataFrame, channels: list[str]
+) -> dict[str, dict[str, float]]:
     """
     Compare statistical measures between two cell populations.
 
@@ -1037,7 +998,7 @@ def compare_populations(
             - effect_size: Cohen's d effect size
 
     Example:
-        >>> comparison = compare_populations(treated_cells, control_cells, ['FITC-A'])
+        >>> comparison = compare_populations(treated_cells, control_cells, ["FITC-A"])
         >>> print(f"Fold change: {comparison['FITC-A']['fold_change']:.2f}")
     """
     try:
@@ -1054,8 +1015,7 @@ def compare_populations(
 
                 # Calculate effect size (Cohen's d)
                 pooled_std = np.sqrt(
-                    ((len(data1) - 1) * std1**2 + (len(data2) - 1) * std2**2)
-                    / (len(data1) + len(data2) - 2)
+                    ((len(data1) - 1) * std1**2 + (len(data2) - 1) * std2**2) / (len(data1) + len(data2) - 2)
                 )
                 effect_size = (mean2 - mean1) / pooled_std if pooled_std > 0 else 0
 
@@ -1070,7 +1030,7 @@ def compare_populations(
                     "pop2_count": len(data2),
                 }
             else:
-                warnings.warn(f"Channel {channel} not found in one or both populations")
+                warnings.warn(f"Channel {channel} not found in one or both populations", stacklevel=2)
 
         return comparison_results
 
@@ -1078,9 +1038,7 @@ def compare_populations(
         raise FlowKitException(f"Error comparing populations: {str(e)}")
 
 
-def generate_analysis_summary(
-    samples: List[Sample], gating_results_list: List[GatingResults]
-) -> Dict[str, Any]:
+def generate_analysis_summary(samples: list[Sample], gating_results_list: list[GatingResults]) -> dict[str, Any]:
     """
     Generate a comprehensive summary of flow cytometry analysis results.
 
@@ -1148,9 +1106,7 @@ def generate_analysis_summary(
         summary = {
             "total_samples": total_samples,
             "total_events": total_events,
-            "average_events_per_sample": (
-                total_events / total_samples if total_samples > 0 else 0
-            ),
+            "average_events_per_sample": (total_events / total_samples if total_samples > 0 else 0),
             "gate_summary": gate_summary,
             "sample_info": sample_info,
             "analysis_timestamp": pd.Timestamp.now().isoformat(),
@@ -1167,19 +1123,11 @@ def generate_analysis_summary(
 
 def auto_gate_populations(
     sample: Sample,
-    channels: List[str],
+    channels: list[str],
     method: str = "kmeans",
     n_clusters: int = 2,
     **kwargs,
-) -> List[
-    Union[
-        gates.RectangleGate,
-        gates.PolygonGate,
-        gates.EllipsoidGate,
-        gates.QuadrantGate,
-        gates.BooleanGate,
-    ]
-]:
+) -> list[gates.RectangleGate | gates.PolygonGate | gates.EllipsoidGate | gates.QuadrantGate | gates.BooleanGate]:
     """
     Automatically generate gates for cell populations using clustering algorithms.
 
@@ -1204,15 +1152,14 @@ def auto_gate_populations(
 
     Example:
         >>> # Auto-gate lymphocytes and monocytes based on scatter
-        >>> auto_gates = auto_gate_populations(sample, ['FSC-A', 'SSC-A'],
-        ...                                   method='kmeans', n_clusters=3)
+        >>> auto_gates = auto_gate_populations(sample, ["FSC-A", "SSC-A"], method="kmeans", n_clusters=3)
         >>> print(f"Generated {len(auto_gates)} automatic gates")
     """
     try:
-        from sklearn.cluster import KMeans, DBSCAN
+        from scipy.spatial import ConvexHull
+        from sklearn.cluster import DBSCAN, KMeans
         from sklearn.mixture import GaussianMixture
         from sklearn.preprocessing import StandardScaler
-        from scipy.spatial import ConvexHull
 
         # Get events data
         events_df = sample.as_dataframe(source="xform")
@@ -1257,13 +1204,10 @@ def auto_gate_populations(
                 try:
                     hull = ConvexHull(cluster_points.values)
                     vertices = [
-                        (cluster_points.iloc[vertex, 0], cluster_points.iloc[vertex, 1])
-                        for vertex in hull.vertices
+                        (cluster_points.iloc[vertex, 0], cluster_points.iloc[vertex, 1]) for vertex in hull.vertices
                     ]
 
-                    gate = create_polygon_gate(
-                        f"AutoGate_Cluster_{i+1}", channels[0], channels[1], vertices
-                    )
+                    gate = create_polygon_gate(f"AutoGate_Cluster_{i + 1}", channels[0], channels[1], vertices)
                     gates_list.append(gate)
                 except:
                     # Fallback to rectangle gate if convex hull fails
@@ -1276,7 +1220,7 @@ def auto_gate_populations(
                                 "max": float(cluster_points[ch].max()),
                             }
                         )
-                    gate = create_rectangle_gate(f"AutoGate_Cluster_{i+1}", dims)
+                    gate = create_rectangle_gate(f"AutoGate_Cluster_{i + 1}", dims)
                     gates_list.append(gate)
             else:
                 # Multi-dimensional rectangle gate
@@ -1289,22 +1233,20 @@ def auto_gate_populations(
                             "max": float(cluster_points[ch].max()),
                         }
                     )
-                gate = create_rectangle_gate(f"AutoGate_Cluster_{i+1}", dims)
+                gate = create_rectangle_gate(f"AutoGate_Cluster_{i + 1}", dims)
                 gates_list.append(gate)
 
         return gates_list
 
     except ImportError:
-        raise ImportError(
-            "scikit-learn is required for automatic gating. Install with: pip install scikit-learn"
-        )
+        raise ImportError("scikit-learn is required for automatic gating. Install with: pip install scikit-learn")
     except Exception as e:
         raise FlowKitException(f"Error in automatic gating: {str(e)}")
 
 
 def detect_outliers(
     events: pd.DataFrame,
-    channels: List[str],
+    channels: list[str],
     method: str = "isolation_forest",
     contamination: float = 0.1,
 ) -> np.ndarray:
@@ -1328,16 +1270,15 @@ def detect_outliers(
         FlowKitException: If outlier detection fails
 
     Example:
-        >>> outliers = detect_outliers(events_df, ['FSC-A', 'SSC-A'],
-        ...                           method='isolation_forest', contamination=0.05)
+        >>> outliers = detect_outliers(events_df, ["FSC-A", "SSC-A"], method="isolation_forest", contamination=0.05)
         >>> clean_events = events_df[~outliers]
         >>> print(f"Removed {outliers.sum()} outlier events")
     """
     try:
         from sklearn.ensemble import IsolationForest
-        from sklearn.svm import OneClassSVM
         from sklearn.neighbors import LocalOutlierFactor
         from sklearn.preprocessing import StandardScaler
+        from sklearn.svm import OneClassSVM
 
         # Extract data for specified channels
         outlier_data = events[channels].dropna()
@@ -1373,16 +1314,12 @@ def detect_outliers(
         return full_outliers
 
     except ImportError:
-        raise ImportError(
-            "scikit-learn is required for outlier detection. Install with: pip install scikit-learn"
-        )
+        raise ImportError("scikit-learn is required for outlier detection. Install with: pip install scikit-learn")
     except Exception as e:
         raise FlowKitException(f"Error in outlier detection: {str(e)}")
 
 
-def calculate_mfi_comparison(
-    populations: Dict[str, pd.DataFrame], channels: List[str]
-) -> pd.DataFrame:
+def calculate_mfi_comparison(populations: dict[str, pd.DataFrame], channels: list[str]) -> pd.DataFrame:
     """
     Calculate and compare Mean Fluorescence Intensity (MFI) across multiple populations.
 
@@ -1398,12 +1335,8 @@ def calculate_mfi_comparison(
         pd.DataFrame: DataFrame with MFI values and statistics for each population and channel
 
     Example:
-        >>> populations = {
-        ...     'CD4+ T cells': cd4_events,
-        ...     'CD8+ T cells': cd8_events,
-        ...     'B cells': b_cell_events
-        ... }
-        >>> mfi_results = calculate_mfi_comparison(populations, ['FITC-A', 'PE-A'])
+        >>> populations = {"CD4+ T cells": cd4_events, "CD8+ T cells": cd8_events, "B cells": b_cell_events}
+        >>> mfi_results = calculate_mfi_comparison(populations, ["FITC-A", "PE-A"])
         >>> print(mfi_results)
     """
     try:
@@ -1423,9 +1356,7 @@ def calculate_mfi_comparison(
                                 "median_fi": float(channel_data.median()),
                                 "std_fi": float(channel_data.std()),
                                 "cv": (
-                                    float(channel_data.std() / channel_data.mean())
-                                    if channel_data.mean() > 0
-                                    else 0
+                                    float(channel_data.std() / channel_data.mean()) if channel_data.mean() > 0 else 0
                                 ),
                                 "count": len(channel_data),
                                 "q25": float(channel_data.quantile(0.25)),
@@ -1433,9 +1364,7 @@ def calculate_mfi_comparison(
                             }
                         )
                 else:
-                    warnings.warn(
-                        f"Channel {channel} not found in population {pop_name}"
-                    )
+                    warnings.warn(f"Channel {channel} not found in population {pop_name}", stacklevel=2)
 
         return pd.DataFrame(results)
 
@@ -1445,7 +1374,7 @@ def calculate_mfi_comparison(
 
 def perform_dimensionality_reduction(
     events: pd.DataFrame,
-    channels: List[str],
+    channels: list[str],
     method: str = "umap",
     n_components: int = 2,
     **kwargs,
@@ -1472,9 +1401,7 @@ def perform_dimensionality_reduction(
 
     Example:
         >>> # Reduce 10D data to 2D for visualization
-        >>> reduced_coords = perform_dimensionality_reduction(
-        ...     events_df, fluoro_channels, method='umap', n_components=2
-        ... )
+        >>> reduced_coords = perform_dimensionality_reduction(events_df, fluoro_channels, method="umap", n_components=2)
         >>> # Plot the results
         >>> plt.scatter(reduced_coords[:, 0], reduced_coords[:, 1])
     """
@@ -1503,9 +1430,7 @@ def perform_dimensionality_reduction(
                 reducer = umap.UMAP(n_components=n_components, **kwargs)
                 reduced_data = reducer.fit_transform(scaled_data)
             except ImportError:
-                raise ImportError(
-                    "umap-learn is required for UMAP. Install with: pip install umap-learn"
-                )
+                raise ImportError("umap-learn is required for UMAP. Install with: pip install umap-learn")
         elif method.lower() == "tsne":
             try:
                 from sklearn.manifold import TSNE
@@ -1523,7 +1448,7 @@ def perform_dimensionality_reduction(
         raise FlowKitException(f"Error in dimensionality reduction: {str(e)}")
 
 
-def quality_control_metrics(sample: Sample) -> Dict[str, Any]:
+def quality_control_metrics(sample: Sample) -> dict[str, Any]:
     """
     Calculate quality control metrics for flow cytometry data.
 
@@ -1555,9 +1480,7 @@ def quality_control_metrics(sample: Sample) -> Dict[str, Any]:
             time_channel = sample.pnn_labels[sample.time_index]
             if time_channel in events_df.columns:
                 time_data = events_df[time_channel]
-                total_time = (
-                    time_data.max() - time_data.min()
-                ) / 100  # Convert to seconds (assuming centiseconds)
+                total_time = (time_data.max() - time_data.min()) / 100  # Convert to seconds (assuming centiseconds)
                 if total_time > 0:
                     metrics["event_rate"] = sample.event_count / total_time
                 else:
@@ -1570,26 +1493,15 @@ def quality_control_metrics(sample: Sample) -> Dict[str, Any]:
         # Signal stability (CV over time bins)
         if sample.time_index is not None and len(sample.fluoro_indices) > 0:
             time_channel = sample.pnn_labels[sample.time_index]
-            fluoro_channel = sample.pnn_labels[
-                sample.fluoro_indices[0]
-            ]  # Use first fluoro channel
+            fluoro_channel = sample.pnn_labels[sample.fluoro_indices[0]]  # Use first fluoro channel
 
-            if (
-                time_channel in events_df.columns
-                and fluoro_channel in events_df.columns
-            ):
+            if time_channel in events_df.columns and fluoro_channel in events_df.columns:
                 # Divide data into time bins
-                n_bins = min(
-                    10, sample.event_count // 1000
-                )  # At least 1000 events per bin
+                n_bins = min(10, sample.event_count // 1000)  # At least 1000 events per bin
                 if n_bins > 1:
                     time_bins = pd.cut(events_df[time_channel], bins=n_bins)
                     bin_means = events_df.groupby(time_bins)[fluoro_channel].mean()
-                    cv = (
-                        bin_means.std() / bin_means.mean()
-                        if bin_means.mean() > 0
-                        else 0
-                    )
+                    cv = bin_means.std() / bin_means.mean() if bin_means.mean() > 0 else 0
                     metrics["signal_stability"] = float(cv)
                 else:
                     metrics["signal_stability"] = None
@@ -1608,9 +1520,7 @@ def quality_control_metrics(sample: Sample) -> Dict[str, Any]:
 
         if negative_counts:
             total_negative = max(negative_counts)
-            metrics["negative_events_percent"] = (
-                total_negative / sample.event_count
-            ) * 100
+            metrics["negative_events_percent"] = (total_negative / sample.event_count) * 100
         else:
             metrics["negative_events_percent"] = 0
 
@@ -1627,12 +1537,8 @@ def quality_control_metrics(sample: Sample) -> Dict[str, Any]:
                 fsc_threshold = fsc_data.quantile(0.1)
                 ssc_threshold = ssc_data.quantile(0.1)
 
-                debris_events = (
-                    (fsc_data < fsc_threshold) & (ssc_data < ssc_threshold)
-                ).sum()
-                metrics["debris_events_percent"] = (
-                    debris_events / sample.event_count
-                ) * 100
+                debris_events = ((fsc_data < fsc_threshold) & (ssc_data < ssc_threshold)).sum()
+                metrics["debris_events_percent"] = (debris_events / sample.event_count) * 100
             else:
                 metrics["debris_events_percent"] = None
         else:
@@ -1652,10 +1558,7 @@ def quality_control_metrics(sample: Sample) -> Dict[str, Any]:
             fsc_a_channel = sample.pnn_labels[fsc_a_idx]
             fsc_w_channel = sample.pnn_labels[fsc_w_idx]
 
-            if (
-                fsc_a_channel in events_df.columns
-                and fsc_w_channel in events_df.columns
-            ):
+            if fsc_a_channel in events_df.columns and fsc_w_channel in events_df.columns:
                 fsc_a_data = events_df[fsc_a_channel]
                 fsc_w_data = events_df[fsc_w_channel]
 
@@ -1667,9 +1570,7 @@ def quality_control_metrics(sample: Sample) -> Dict[str, Any]:
                     # Define doublets as events with ratio > 95th percentile
                     doublet_threshold = ratio.quantile(0.95)
                     doublet_events = (ratio > doublet_threshold).sum()
-                    metrics["doublet_events_percent"] = (
-                        doublet_events / len(ratio)
-                    ) * 100
+                    metrics["doublet_events_percent"] = (doublet_events / len(ratio)) * 100
                 else:
                     metrics["doublet_events_percent"] = None
             else:
@@ -1683,9 +1584,7 @@ def quality_control_metrics(sample: Sample) -> Dict[str, Any]:
         raise FlowKitException(f"Error calculating QC metrics: {str(e)}")
 
 
-def create_compensation_matrix_from_controls(
-    control_samples: Dict[str, Sample], channels: List[str]
-) -> Matrix:
+def create_compensation_matrix_from_controls(control_samples: dict[str, Sample], channels: list[str]) -> Matrix:
     """
     Create a compensation matrix from single-stain control samples.
 
@@ -1705,19 +1604,12 @@ def create_compensation_matrix_from_controls(
         ValueError: If control samples are insufficient
 
     Example:
-        >>> controls = {
-        ...     'FITC': fitc_control_sample,
-        ...     'PE': pe_control_sample,
-        ...     'APC': apc_control_sample
-        ... }
-        >>> comp_matrix = create_compensation_matrix_from_controls(controls,
-        ...                                                       ['FITC-A', 'PE-A', 'APC-A'])
+        >>> controls = {"FITC": fitc_control_sample, "PE": pe_control_sample, "APC": apc_control_sample}
+        >>> comp_matrix = create_compensation_matrix_from_controls(controls, ["FITC-A", "PE-A", "APC-A"])
     """
     try:
         if len(control_samples) < 2:
-            raise ValueError(
-                "At least 2 control samples are required for compensation matrix calculation"
-            )
+            raise ValueError("At least 2 control samples are required for compensation matrix calculation")
 
         # Initialize compensation matrix
         n_channels = len(channels)
@@ -1726,9 +1618,7 @@ def create_compensation_matrix_from_controls(
         # Calculate spillover for each control
         for i, (fluorochrome, control_sample) in enumerate(control_samples.items()):
             if i >= n_channels:
-                warnings.warn(
-                    f"More control samples than channels. Skipping {fluorochrome}"
-                )
+                warnings.warn(f"More control samples than channels. Skipping {fluorochrome}", stacklevel=2)
                 continue
 
             # Get positive population (top 50% of primary channel)
@@ -1736,9 +1626,7 @@ def create_compensation_matrix_from_controls(
             primary_channel = channels[i]
 
             if primary_channel not in events_df.columns:
-                warnings.warn(
-                    f"Primary channel {primary_channel} not found in {fluorochrome} control"
-                )
+                warnings.warn(f"Primary channel {primary_channel} not found in {fluorochrome} control", stacklevel=2)
                 continue
 
             # Define positive population as top 50% of primary channel
@@ -1746,7 +1634,7 @@ def create_compensation_matrix_from_controls(
             positive_events = events_df[events_df[primary_channel] > threshold]
 
             if len(positive_events) == 0:
-                warnings.warn(f"No positive events found in {fluorochrome} control")
+                warnings.warn(f"No positive events found in {fluorochrome} control", stacklevel=2)
                 continue
 
             # Calculate median fluorescence for each channel in positive population
@@ -1771,17 +1659,17 @@ def create_compensation_matrix_from_controls(
 
 def plot_channel(
     sample: Sample,
-    channel_label_or_number: Union[str, int],
+    channel_label_or_number: str | int,
     source: str = "xform",
     subsample: bool = True,
     color_density: bool = True,
     bin_width: int = 4,
-    event_mask: Optional[np.ndarray] = None,
-    highlight_mask: Optional[np.ndarray] = None,
-    x_min: Optional[float] = None,
-    x_max: Optional[float] = None,
-    y_min: Optional[float] = None,
-    y_max: Optional[float] = None,
+    event_mask: np.ndarray | None = None,
+    highlight_mask: np.ndarray | None = None,
+    x_min: float | None = None,
+    x_max: float | None = None,
+    y_min: float | None = None,
+    y_max: float | None = None,
     plot_width: int = 1000,
     plot_height: int = 400,
 ) -> figure:
@@ -1826,7 +1714,7 @@ def plot_channel(
         FlowKitException: If plotting fails
 
     Example:
-        >>> fig = plot_channel(sample, 'FSC-A', source='xform')
+        >>> fig = plot_channel(sample, "FSC-A", source="xform")
         >>> show(fig)
     """
     try:
@@ -1857,16 +1745,16 @@ def plot_channel(
 
 def plot_contour(
     sample: Sample,
-    x_label_or_number: Union[str, int],
-    y_label_or_number: Union[str, int],
+    x_label_or_number: str | int,
+    y_label_or_number: str | int,
     source: str = "xform",
     subsample: bool = True,
     plot_events: bool = False,
     fill: bool = False,
-    x_min: Optional[float] = None,
-    x_max: Optional[float] = None,
-    y_min: Optional[float] = None,
-    y_max: Optional[float] = None,
+    x_min: float | None = None,
+    x_max: float | None = None,
+    y_min: float | None = None,
+    y_max: float | None = None,
     plot_width: int = 600,
     plot_height: int = 600,
 ) -> figure:
@@ -1904,7 +1792,7 @@ def plot_contour(
         FlowKitException: If plotting fails
 
     Example:
-        >>> fig = plot_contour(sample, 'FSC-A', 'SSC-A', source='xform')
+        >>> fig = plot_contour(sample, "FSC-A", "SSC-A", source="xform")
         >>> show(fig)
     """
     try:
@@ -1934,18 +1822,18 @@ def plot_contour(
 
 def plot_scatter(
     sample: Sample,
-    x_label_or_number: Union[str, int],
-    y_label_or_number: Union[str, int],
+    x_label_or_number: str | int,
+    y_label_or_number: str | int,
     source: str = "xform",
     subsample: bool = True,
     color_density: bool = True,
     bin_width: int = 4,
-    event_mask: Optional[np.ndarray] = None,
-    highlight_mask: Optional[np.ndarray] = None,
-    x_min: Optional[float] = None,
-    x_max: Optional[float] = None,
-    y_min: Optional[float] = None,
-    y_max: Optional[float] = None,
+    event_mask: np.ndarray | None = None,
+    highlight_mask: np.ndarray | None = None,
+    x_min: float | None = None,
+    x_max: float | None = None,
+    y_min: float | None = None,
+    y_max: float | None = None,
     plot_width: int = 600,
     plot_height: int = 600,
 ) -> figure:
@@ -1989,7 +1877,7 @@ def plot_scatter(
         FlowKitException: If plotting fails
 
     Example:
-        >>> fig = plot_scatter(sample, 'FSC-A', 'SSC-A', source='xform')
+        >>> fig = plot_scatter(sample, "FSC-A", "SSC-A", source="xform")
         >>> show(fig)
     """
     try:
@@ -2021,11 +1909,11 @@ def plot_scatter(
 
 def plot_scatter_matrix(
     sample: Sample,
-    channel_labels_or_numbers: Optional[List[Union[str, int]]] = None,
+    channel_labels_or_numbers: list[str | int] | None = None,
     source: str = "xform",
     subsample: bool = True,
-    event_mask: Optional[np.ndarray] = None,
-    highlight_mask: Optional[np.ndarray] = None,
+    event_mask: np.ndarray | None = None,
+    highlight_mask: np.ndarray | None = None,
     color_density: bool = False,
     plot_height: int = 256,
     plot_width: int = 256,
@@ -2061,7 +1949,7 @@ def plot_scatter_matrix(
         FlowKitException: If plotting fails
 
     Example:
-        >>> grid = plot_scatter_matrix(sample, ['FSC-A', 'SSC-A', 'FITC-A'], source='xform')
+        >>> grid = plot_scatter_matrix(sample, ["FSC-A", "SSC-A", "FITC-A"], source="xform")
         >>> show(grid)
     """
     try:
@@ -2085,13 +1973,13 @@ def plot_scatter_matrix(
 
 def plot_histogram(
     sample: Sample,
-    channel_label_or_number: Union[str, int],
+    channel_label_or_number: str | int,
     source: str = "xform",
     subsample: bool = False,
-    bins: Optional[Union[int, str]] = None,
-    data_min: Optional[float] = None,
-    data_max: Optional[float] = None,
-    x_range: Optional[Tuple[float, float]] = None,
+    bins: int | str | None = None,
+    data_min: float | None = None,
+    data_max: float | None = None,
+    x_range: tuple[float, float] | None = None,
     plot_width: int = 600,
     plot_height: int = 400,
 ) -> figure:
@@ -2123,7 +2011,7 @@ def plot_histogram(
         FlowKitException: If plotting fails
 
     Example:
-        >>> fig = plot_histogram(sample, 'FSC-A', source='xform')
+        >>> fig = plot_histogram(sample, "FSC-A", source="xform")
         >>> show(fig)
     """
     try:
@@ -2150,16 +2038,16 @@ def plot_histogram(
 
 def plot_gate_overlay(
     sample: Sample,
-    gate_id: Tuple[str, Tuple[str, ...]],
+    gate_id: tuple[str, tuple[str, ...]],
     gating_strategy: fk.GatingStrategy,
     source: str = "xform",
     subsample_count: int = 10000,
     random_seed: int = 1,
-    event_mask: Optional[np.ndarray] = None,
-    x_min: Optional[float] = None,
-    x_max: Optional[float] = None,
-    y_min: Optional[float] = None,
-    y_max: Optional[float] = None,
+    event_mask: np.ndarray | None = None,
+    x_min: float | None = None,
+    x_max: float | None = None,
+    y_min: float | None = None,
+    y_max: float | None = None,
     color_density: bool = True,
     bin_width: int = 4,
     plot_width: int = 600,
@@ -2202,7 +2090,7 @@ def plot_gate_overlay(
         FlowKitException: If plotting fails
 
     Example:
-        >>> fig = plot_gate_overlay(sample, ('Cells', ('root',)), strategy)
+        >>> fig = plot_gate_overlay(sample, ("Cells", ("root",)), strategy)
         >>> show(fig)
     """
     try:
@@ -2236,9 +2124,9 @@ def plot_gate_overlay(
 
 
 def plot_population_comparison(
-    samples: List[Sample],
-    channel_x: Union[str, int],
-    channel_y: Union[str, int],
+    samples: list[Sample],
+    channel_x: str | int,
+    channel_y: str | int,
     source: str = "xform",
     subsample: bool = True,
     color_density: bool = True,
@@ -2268,7 +2156,7 @@ def plot_population_comparison(
         FlowKitException: If plotting fails
 
     Example:
-        >>> fig = plot_population_comparison([sample1, sample2], 'FSC-A', 'SSC-A')
+        >>> fig = plot_population_comparison([sample1, sample2], "FSC-A", "SSC-A")
         >>> show(fig)
     """
     try:
@@ -2287,12 +2175,8 @@ def plot_population_comparison(
             x_index = sample.get_channel_index(channel_x)
             y_index = sample.get_channel_index(channel_y)
 
-            x_data = sample.get_channel_events(
-                x_index, source=source, subsample=subsample
-            )
-            y_data = sample.get_channel_events(
-                y_index, source=source, subsample=subsample
-            )
+            x_data = sample.get_channel_events(x_index, source=source, subsample=subsample)
+            y_data = sample.get_channel_events(y_index, source=source, subsample=subsample)
 
             # Create scatter plot for this sample
             fig.circle(
@@ -2310,9 +2194,7 @@ def plot_population_comparison(
         fig.xaxis.axis_label = x_label
         fig.yaxis.axis_label = y_label
 
-        fig.title = Title(
-            text=f"Population Comparison: {x_label} vs {y_label}", align="center"
-        )
+        fig.title = Title(text=f"Population Comparison: {x_label} vs {y_label}", align="center")
 
         return fig
 
@@ -2322,7 +2204,7 @@ def plot_population_comparison(
 
 def plot_channel_statistics(
     sample: Sample,
-    channels: List[Union[str, int]],
+    channels: list[str | int],
     source: str = "xform",
     subsample: bool = True,
     plot_width: int = 800,
@@ -2348,7 +2230,7 @@ def plot_channel_statistics(
         FlowKitException: If plotting fails
 
     Example:
-        >>> fig = plot_channel_statistics(sample, ['FSC-A', 'SSC-A', 'FITC-A'])
+        >>> fig = plot_channel_statistics(sample, ["FSC-A", "SSC-A", "FITC-A"])
         >>> show(fig)
     """
     try:
@@ -2360,9 +2242,7 @@ def plot_channel_statistics(
 
         for channel in channels:
             channel_index = sample.get_channel_index(channel)
-            channel_data = sample.get_channel_events(
-                channel_index, source=source, subsample=subsample
-            )
+            channel_data = sample.get_channel_events(channel_index, source=source, subsample=subsample)
 
             channel_names.append(sample.pnn_labels[channel_index])
             means.append(float(np.mean(channel_data)))
@@ -2415,11 +2295,7 @@ if __name__ == "__main__":
     # Get all functions defined in this module
     import inspect
 
-    functions = [
-        name
-        for name, obj in globals().items()
-        if inspect.isfunction(obj) and not name.startswith("_")
-    ]
+    functions = [name for name, obj in globals().items() if inspect.isfunction(obj) and not name.startswith("_")]
 
     for func_name in sorted(functions):
         func = globals()[func_name]

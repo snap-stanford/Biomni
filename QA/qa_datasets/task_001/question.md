@@ -7,4 +7,3 @@ Please retrieve detailed information about the BRCA1 gene, including:
 - Key functions and pathways
 
 Provide a comprehensive summary of this gene's role in human biology and disease.
-

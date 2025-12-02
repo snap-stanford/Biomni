@@ -15,7 +15,6 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 # Biomni HITS 모듈 import를 위한 경로 추가
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -29,15 +28,13 @@ default_config.use_tool_retriever = True
 default_config.path = "/workdir_efs/jaechang/work2/biomni_hits_test/biomni_data"
 default_config.timeout_seconds = 3600
 
-from qa_core import QAManager, ReportGenerator
+from qa_core import QAManager
 
 
 def check_parallel_available():
     """GNU parallel 사용 가능 여부 확인"""
     try:
-        result = subprocess.run(
-            ["parallel", "--version"], capture_output=True, check=True, timeout=5
-        )
+        subprocess.run(["parallel", "--version"], capture_output=True, check=True, timeout=5)
         return True
     except (
         subprocess.CalledProcessError,
@@ -48,13 +45,13 @@ def check_parallel_available():
 
 
 def generate_commands(
-    tasks: List,
+    tasks: list,
     num_repeats: int,
     qa_datasets_dir: Path,
     run_output_dir: Path,
     pass_threshold: float,
     ssim_threshold: float,
-) -> List[str]:
+) -> list[str]:
     """모든 실행 커맨드 생성"""
     commands = []
     script_path = Path(__file__).parent / "qa_single_task.py"
@@ -84,16 +81,14 @@ def generate_commands(
     return commands
 
 
-def execute_parallel(commands: List[str], max_workers: int, commands_file: Path):
+def execute_parallel(commands: list[str], max_workers: int, commands_file: Path):
     """GNU parallel 또는 xargs로 병렬 실행"""
     use_parallel = check_parallel_available()
 
     if max_workers > 1:
         if use_parallel:
             print(f"⚡ Running with GNU parallel (jobs={max_workers})...\n")
-            parallel_cmd = (
-                f"parallel --jobs {max_workers} --bar --halt never < {commands_file}"
-            )
+            parallel_cmd = f"parallel --jobs {max_workers} --bar --halt never < {commands_file}"
 
             subprocess.run(
                 parallel_cmd,
@@ -101,18 +96,16 @@ def execute_parallel(commands: List[str], max_workers: int, commands_file: Path)
             )
         else:
             print(f"⚠️  GNU parallel not found, using xargs (jobs={max_workers})...\n")
-            xargs_cmd = (
-                f"cat {commands_file} | xargs -P {max_workers} -I {{}} bash -c '{{}}'"
-            )
+            xargs_cmd = f"cat {commands_file} | xargs -P {max_workers} -I {{}} bash -c '{{}}'"
 
             subprocess.run(
                 xargs_cmd,
                 shell=True,
             )
     else:
-        print(f"🔄 Running sequentially...\n")
+        print("🔄 Running sequentially...\n")
         # 순차 실행
-        with open(commands_file, "r") as f:
+        with open(commands_file) as f:
             for line in f:
                 cmd = line.strip()
                 if cmd:
@@ -121,9 +114,9 @@ def execute_parallel(commands: List[str], max_workers: int, commands_file: Path)
 
 def collect_results(
     run_output_dir: Path,
-    tasks: List,
+    tasks: list,
     num_repeats: int,
-) -> List[Dict]:
+) -> list[dict]:
     """각 attempt의 결과를 수집하고 종합"""
     print("\n📊 Collecting results...")
 
@@ -133,16 +126,11 @@ def collect_results(
     # 모든 evaluation.json 파일 수집
     for task in tasks:
         for attempt_num in range(1, num_repeats + 1):
-            eval_file = (
-                run_output_dir
-                / task.task_id
-                / f"attempt_{attempt_num}"
-                / "evaluation.json"
-            )
+            eval_file = run_output_dir / task.task_id / f"attempt_{attempt_num}" / "evaluation.json"
 
             if eval_file.exists():
                 try:
-                    with open(eval_file, "r", encoding="utf-8") as f:
+                    with open(eval_file, encoding="utf-8") as f:
                         result = json.load(f)
                         result["task_id"] = task.task_id
                         result["attempt_num"] = attempt_num
@@ -185,18 +173,12 @@ def collect_results(
     final_results = []
     for task_id, task_result in task_final_results.items():
         passed_count = sum(
-            1
-            for attempt in task_result["attempts"]
-            if attempt.get("summary", {}).get("overall_passed", False)
+            1 for attempt in task_result["attempts"] if attempt.get("summary", {}).get("overall_passed", False)
         )
         total_count = len(task_result["attempts"])
 
-        execution_times = [
-            attempt.get("execution_time", 0) for attempt in task_result["attempts"]
-        ]
-        avg_execution_time = (
-            sum(execution_times) / len(execution_times) if execution_times else 0
-        )
+        execution_times = [attempt.get("execution_time", 0) for attempt in task_result["attempts"]]
+        avg_execution_time = sum(execution_times) / len(execution_times) if execution_times else 0
 
         final_result = {
             "task_id": task_id,
@@ -215,7 +197,7 @@ def collect_results(
 
 
 def print_summary(
-    final_results: List[Dict],
+    final_results: list[dict],
     run_id: str,
     run_output_dir: Path,
     num_repeats: int,
@@ -234,8 +216,7 @@ def print_summary(
     success_rate = (passed_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
     total_execution_time = sum(
-        sum(attempt.get("execution_time", 0) for attempt in r["attempts"])
-        for r in final_results
+        sum(attempt.get("execution_time", 0) for attempt in r["attempts"]) for r in final_results
     )
     avg_time_per_task = total_execution_time / total_runs if total_runs > 0 else 0
 
@@ -289,7 +270,7 @@ def print_summary(
     print("║" + " " * 30 + "TASK DETAILS" + " " * 36 + "║")
     print("╠" + "─" * 78 + "╣")
 
-    for idx, result in enumerate(final_results, 1):
+    for _idx, result in enumerate(final_results, 1):
         task_id = result["task_id"]
         all_passed = result["all_attempts_passed"]
         passed_count = result["passed_attempts"]
@@ -324,7 +305,7 @@ def print_summary(
 
 
 def generate_report(
-    final_results: List[Dict],
+    final_results: list[dict],
     run_id: str,
     run_output_dir: Path,
     num_repeats: int,
@@ -342,14 +323,13 @@ def generate_report(
     success_rate = (passed_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
     total_execution_time = sum(
-        sum(attempt.get("execution_time", 0) for attempt in r["attempts"])
-        for r in final_results
+        sum(attempt.get("execution_time", 0) for attempt in r["attempts"]) for r in final_results
     )
     avg_time_per_task = total_execution_time / total_runs if total_runs > 0 else 0
 
     with open(summary_report_path, "w", encoding="utf-8") as f:
-        f.write(f"# QA Pipeline Summary Report\n\n")
-        f.write(f"## Configuration\n\n")
+        f.write("# QA Pipeline Summary Report\n\n")
+        f.write("## Configuration\n\n")
         f.write(f"- **Run ID**: {run_id}\n")
         f.write(f"- **Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"- **Total Tasks**: {len(final_results)}\n")
@@ -359,18 +339,18 @@ def generate_report(
         f.write(f"- **Pass Threshold**: {pass_threshold}%\n")
         f.write(f"- **SSIM Threshold**: {ssim_threshold}\n\n")
 
-        f.write(f"## Overall Results\n\n")
-        f.write(f"| Metric | Value |\n")
-        f.write(f"|--------|-------|\n")
+        f.write("## Overall Results\n\n")
+        f.write("| Metric | Value |\n")
+        f.write("|--------|-------|\n")
         f.write(f"| ✅ Passed Tasks | {passed_tasks}/{total_tasks} |\n")
         f.write(f"| ❌ Failed Tasks | {failed_tasks}/{total_tasks} |\n")
         f.write(f"| 📊 Success Rate | {success_rate:.1f}% |\n")
         f.write(f"| ⏱️  Total Execution Time | {total_execution_time:.1f}s |\n")
         f.write(f"| ⚡ Avg Time per Run | {avg_time_per_task:.1f}s |\n\n")
 
-        f.write(f"## Task Details\n\n")
-        f.write(f"| Status | Task ID | Attempts Passed | Avg Time |\n")
-        f.write(f"|--------|---------|----------------|----------|\n")
+        f.write("## Task Details\n\n")
+        f.write("| Status | Task ID | Attempts Passed | Avg Time |\n")
+        f.write("|--------|---------|----------------|----------|\n")
 
         for result in final_results:
             task_id = result["task_id"]
@@ -380,11 +360,9 @@ def generate_report(
             avg_time = result["avg_execution_time"]
 
             status = "✅ PASS" if all_passed else "❌ FAIL"
-            f.write(
-                f"| {status} | {task_id} | {passed_count}/{total_count} | {avg_time:.1f}s |\n"
-            )
+            f.write(f"| {status} | {task_id} | {passed_count}/{total_count} | {avg_time:.1f}s |\n")
 
-        f.write(f"\n## Individual Attempts\n\n")
+        f.write("\n## Individual Attempts\n\n")
         for result in final_results:
             task_id = result["task_id"]
             all_passed = result["all_attempts_passed"]
@@ -392,9 +370,7 @@ def generate_report(
             status = "✅ PASS" if all_passed else "❌ FAIL"
             f.write(f"### {task_id}: {status}\n\n")
             f.write(f"**Summary**: All {result['num_attempts']} attempts must pass. ")
-            f.write(
-                f"Result: {result['passed_attempts']}/{result['num_attempts']} passed.\n\n"
-            )
+            f.write(f"Result: {result['passed_attempts']}/{result['num_attempts']} passed.\n\n")
 
             for idx, attempt in enumerate(result["attempts"], 1):
                 attempt_passed = attempt.get("summary", {}).get("overall_passed", False)
@@ -411,9 +387,7 @@ def generate_report(
 
 def main():
     """메인 함수"""
-    parser = argparse.ArgumentParser(
-        description="HITS AI Agent QA Runner (Parallel Wrapper)"
-    )
+    parser = argparse.ArgumentParser(description="HITS AI Agent QA Runner (Parallel Wrapper)")
 
     parser.add_argument(
         "--qa-datasets-dir",
@@ -489,12 +463,10 @@ def main():
 
     if args.list_tasks:
         print("\n📋 Available Tasks:")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         for task in qa_manager.list_tasks():
-            print(
-                f"  - {task.task_id} (Category: {task.category}, Difficulty: {task.difficulty})"
-            )
-        print(f"{'='*60}")
+            print(f"  - {task.task_id} (Category: {task.category}, Difficulty: {task.difficulty})")
+        print(f"{'=' * 60}")
         print(f"Total: {qa_manager.get_task_count()} tasks")
         return
 
@@ -504,9 +476,7 @@ def main():
 
     # 실행할 태스크 선택
     if args.tasks:
-        tasks = [
-            qa_manager.get_task(tid) for tid in args.tasks if qa_manager.get_task(tid)
-        ]
+        tasks = [qa_manager.get_task(tid) for tid in args.tasks if qa_manager.get_task(tid)]
     else:
         tasks = qa_manager.list_tasks(category=args.category)
 
@@ -516,7 +486,7 @@ def main():
 
     total_runs = len(tasks) * args.repeat
 
-    print(f"\n🚀 Running QA pipeline")
+    print("\n🚀 Running QA pipeline")
     print(f"  - Tasks: {len(tasks)}")
     print(f"  - Repeats per task: {args.repeat}")
     print(f"  - Total runs: {total_runs}")

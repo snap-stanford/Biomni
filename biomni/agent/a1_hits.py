@@ -8,16 +8,16 @@ This module provides a refactored version of the A1_HITS agent with improved:
 - Better testability
 """
 
-import glob
-import re
-import os
-import time
 import base64
-from typing import Literal, TypedDict, List, Dict, Any, Set
+import glob
+import os
+import re
+import time
 from pathlib import Path
-from pydantic import BaseModel, Field
-from PIL import Image
+from typing import Literal
 
+from langchain_aws import BedrockEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain_core.messages import (
     AIMessage,
     AIMessageChunk,
@@ -26,34 +26,31 @@ from langchain_core.messages import (
 )
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
-from langchain_aws import BedrockEmbeddings
-from biomni.env_desc import data_lake_dict, library_content_dict
+from PIL import Image
+
+from biomni.agent.a1 import A1
+from biomni.llm import get_llm
 from biomni.tool.support_tools import run_python_repl
 from biomni.utils import (
-    pretty_print,
     run_bash_script,
     run_r_code,
     run_with_timeout,
     textify_api_dict,
 )
-from biomni.agent.a1 import A1
+
 from .a1 import AgentState
-from biomni.llm import get_llm
-from langchain_community.vectorstores import FAISS
 
 try:
     from langchain.chains import ConversationalRetrievalChain
 except:
     from langchain_classic.chains import ConversationalRetrievalChain
 
-from biomni.model.retriever import ToolRetrieverByRAG
+from biomni.config import default_config
 from biomni.utils.resource_filter import (
     apply_resource_filters,
-    load_resource_filter_config,
     filter_data_lake_dict,
+    load_resource_filter_config,
 )
-from biomni.config import default_config
-
 
 # ============================================================================
 # CONSTANTS AND CONFIGURATION
@@ -157,9 +154,7 @@ class PromptExtractor:
         if isinstance(content, list):
             # Extract text parts only (filter out images)
             text_parts = [
-                item.get("text", "")
-                for item in content
-                if isinstance(item, dict) and item.get("type") == "text"
+                item.get("text", "") for item in content if isinstance(item, dict) and item.get("type") == "text"
             ]
             return "\n".join(text_parts) if text_parts else ""
 
@@ -181,7 +176,7 @@ class ResourceCollector:
         """
         self.agent = agent
 
-    def gather_all_resources(self) -> Dict[str, List]:
+    def gather_all_resources(self) -> dict[str, list]:
         """
         Gather all available resources including tools, data lake, and libraries.
 
@@ -194,13 +189,13 @@ class ResourceCollector:
             "libraries": self._get_library_descriptions(),
         }
 
-    def _get_tools(self) -> List:
+    def _get_tools(self) -> list:
         """Get all available tools from the registry."""
         if hasattr(self.agent, "tool_registry"):
             return self.agent.tool_registry.tools
         return []
 
-    def _get_data_lake_descriptions(self) -> List[Dict[str, str]]:
+    def _get_data_lake_descriptions(self) -> list[dict[str, str]]:
         """Get data lake items with their descriptions."""
         descriptions = []
 
@@ -213,15 +208,12 @@ class ResourceCollector:
             data_lake_items = [
                 os.path.basename(x)
                 for x in data_lake_content
-                if os.path.isfile(x)
-                and os.path.basename(x) in self.agent.data_lake_dict
+                if os.path.isfile(x) and os.path.basename(x) in self.agent.data_lake_dict
             ]
 
             # Create descriptions
             for item in data_lake_items:
-                description = self.agent.data_lake_dict.get(
-                    item, f"Data lake item: {item}"
-                )
+                description = self.agent.data_lake_dict.get(item, f"Data lake item: {item}")
                 descriptions.append({"name": item, "description": description})
 
         # Add custom data items
@@ -245,7 +237,7 @@ class ResourceCollector:
 
         return data_lake_path
 
-    def _get_library_descriptions(self) -> List[Dict[str, str]]:
+    def _get_library_descriptions(self) -> list[dict[str, str]]:
         """Get library items with their descriptions."""
         descriptions = []
 
@@ -258,14 +250,12 @@ class ResourceCollector:
             for name, info in self.agent._custom_software.items():
                 # Avoid duplicates
                 if not any(lib["name"] == name for lib in descriptions):
-                    descriptions.append(
-                        {"name": name, "description": info["description"]}
-                    )
+                    descriptions.append({"name": name, "description": info["description"]})
 
         return descriptions
 
     @staticmethod
-    def process_selected_resources(selected_resources: Dict) -> Dict[str, List[str]]:
+    def process_selected_resources(selected_resources: dict) -> dict[str, list[str]]:
         """
         Process selected resources to extract just the names.
 
@@ -306,9 +296,7 @@ class FileProcessor:
     """Handles file processing including new file detection and content extraction."""
 
     @staticmethod
-    def process_new_files(
-        files_before: Set[Path], files_after: Set[Path], observation: str
-    ) -> List[Dict]:
+    def process_new_files(files_before: set[Path], files_after: set[Path], observation: str) -> list[dict]:
         """
         Process newly created files and prepare message content.
 
@@ -354,7 +342,7 @@ class FileProcessor:
         return message_content
 
     @staticmethod
-    def _process_images(image_paths: List[str], message_content: List[Dict]) -> str:
+    def _process_images(image_paths: list[str], message_content: list[dict]) -> str:
         """Process image files and add them to message content."""
         files_info = "\n**Images:**\n"
 
@@ -364,7 +352,9 @@ class FileProcessor:
 
             # Add image info
             if img_width and img_height:
-                files_info += f"- {os.path.basename(img_path)}: {img_path} (resolution: {img_width}x{img_height} pixels)\n"
+                files_info += (
+                    f"- {os.path.basename(img_path)}: {img_path} (resolution: {img_width}x{img_height} pixels)\n"
+                )
             else:
                 files_info += f"- {os.path.basename(img_path)}: {img_path}\n"
 
@@ -383,7 +373,7 @@ class FileProcessor:
             return None, None
 
     @staticmethod
-    def _add_image_to_message(img_path: str, message_content: List[Dict]):
+    def _add_image_to_message(img_path: str, message_content: list[dict]):
         """Encode image as base64 and add to message content."""
         try:
             with open(img_path, "rb") as img_file:
@@ -410,12 +400,12 @@ class FileProcessor:
                         "image_url": {"url": f"data:{mime_type};base64,{base64_image}"},
                     }
                 )
-        except Exception as e:
+        except Exception:
             # Error is handled in the calling function
             pass
 
     @staticmethod
-    def _process_text_files(file_paths: List[str]) -> str:
+    def _process_text_files(file_paths: list[str]) -> str:
         """Process text files and read their contents."""
         files_info = "\n**Other files:**\n"
 
@@ -437,7 +427,7 @@ class FileProcessor:
     @staticmethod
     def _read_file_preview(file_path: str) -> str:
         """Read a preview of a text file (first few lines)."""
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             lines = []
             line_count = 0
 
@@ -461,7 +451,7 @@ class MessageProcessor:
     """Handles message processing and transformations."""
 
     @staticmethod
-    def remove_old_images_from_messages(messages: List) -> List:
+    def remove_old_images_from_messages(messages: list) -> list:
         """
         Remove images from all HumanMessages except the most recent one.
 
@@ -483,9 +473,7 @@ class MessageProcessor:
         # Process each message
         for i, msg in enumerate(messages):
             if isinstance(msg, HumanMessage) and i != last_human_msg_idx:
-                processed_messages.append(
-                    MessageProcessor._remove_images_from_message(msg)
-                )
+                processed_messages.append(MessageProcessor._remove_images_from_message(msg))
             else:
                 # For AIMessages and the most recent HumanMessage, keep as is
                 processed_messages.append(msg)
@@ -497,15 +485,10 @@ class MessageProcessor:
         """Remove images from a single HumanMessage."""
         if isinstance(msg.content, list):
             # Filter out image_url content, keep only text
-            text_only_content = [
-                item for item in msg.content if item.get("type") != "image_url"
-            ]
+            text_only_content = [item for item in msg.content if item.get("type") != "image_url"]
 
             # If only one text item remains, convert to simple string
-            if (
-                len(text_only_content) == 1
-                and text_only_content[0].get("type") == "text"
-            ):
+            if len(text_only_content) == 1 and text_only_content[0].get("type") == "text":
                 return HumanMessage(content=text_only_content[0]["text"])
             else:
                 return HumanMessage(content=text_only_content)
@@ -514,7 +497,7 @@ class MessageProcessor:
             return msg
 
     @staticmethod
-    def create_observation_message(message_content: List[Dict]) -> HumanMessage:
+    def create_observation_message(message_content: list[dict]) -> HumanMessage:
         """
         Create an observation message from message content.
 
@@ -526,14 +509,10 @@ class MessageProcessor:
         """
         if len(message_content) == 1:
             # Only text, use simple string content
-            return HumanMessage(
-                content=f"<observation>{message_content[0]['text']}</observation>"
-            )
+            return HumanMessage(content=f"<observation>{message_content[0]['text']}</observation>")
         else:
             # Text + images, use structured content
-            message_content[0][
-                "text"
-            ] = f"<observation>{message_content[0]['text']}</observation>"
+            message_content[0]["text"] = f"<observation>{message_content[0]['text']}</observation>"
             return HumanMessage(content=message_content)
 
 
@@ -573,9 +552,7 @@ class WorkflowNodes:
 
         # Process messages
         processed_messages = state["messages"]
-        messages = [
-            SystemMessage(content=self.agent.system_prompt)
-        ] + processed_messages
+        messages = [SystemMessage(content=self.agent.system_prompt)] + processed_messages
 
         # Stream LLM response
         msg = ""
@@ -632,9 +609,7 @@ class WorkflowNodes:
 
         # Check if we already added an error message to avoid infinite loops
         error_count = sum(
-            1
-            for m in state["messages"]
-            if isinstance(m, AIMessage) and "there are no tags" in m.content.lower()
+            1 for m in state["messages"] if isinstance(m, AIMessage) and "there are no tags" in m.content.lower()
         )
 
         if error_count >= Config.MAX_PARSING_ERROR_COUNT:
@@ -699,23 +674,18 @@ class WorkflowNodes:
             observation = self._prepare_observation(result)
 
             # Process newly created files
-            message_content = FileProcessor.process_new_files(
-                files_before, files_after, observation
-            )
+            message_content = FileProcessor.process_new_files(files_before, files_after, observation)
 
             # Add error fixing guide if needed
             if self._should_add_error_fixing(observation, code):
                 error_fixing_guide = self.error_fixing(code, result, state)
                 if len(error_fixing_guide) > 0:
                     message_content[0]["text"] += (
-                        f"\n\nPlease refer the following for fixing the error above:\n\n "
-                        f"{error_fixing_guide}"
+                        f"\n\nPlease refer the following for fixing the error above:\n\n {error_fixing_guide}"
                     )
 
             # Add observation message
-            state["messages"].append(
-                MessageProcessor.create_observation_message(message_content)
-            )
+            state["messages"].append(MessageProcessor.create_observation_message(message_content))
 
         # Update timer
         t2 = time.time()
@@ -776,22 +746,15 @@ class WorkflowNodes:
         if len(result) > Config.MAX_OUTPUT_LENGTH:
             result = (
                 f"The output is too long to be added to context. "
-                f"Here are the first {Config.MAX_OUTPUT_LENGTH} characters...\n"
-                + result[: Config.MAX_OUTPUT_LENGTH]
+                f"Here are the first {Config.MAX_OUTPUT_LENGTH} characters...\n" + result[: Config.MAX_OUTPUT_LENGTH]
             )
         return result
 
     @staticmethod
     def _should_add_error_fixing(observation: str, code: str) -> bool:
         """Check if error fixing guide should be added."""
-        has_error_markers = (
-            "Error Type" in observation and "Error Message" in observation
-        )
-        has_error_in_output = (
-            "error" in observation.lower()
-            and "try:" in code.lower()
-            and "except" in code.lower()
-        )
+        has_error_markers = "Error Type" in observation and "Error Message" in observation
+        has_error_in_output = "error" in observation.lower() and "try:" in code.lower() and "except" in code.lower()
         return has_error_markers or has_error_in_output
 
     def error_fixing(self, code: str, output: str, state: AgentState) -> str:
@@ -815,9 +778,7 @@ class WorkflowNodes:
         # Set up retrieval components
         retriever = self._setup_error_fixing_retriever()
         llm = get_llm(model=Config.ERROR_FIXING_LLM_MODEL_ID)
-        qa_chain = ConversationalRetrievalChain.from_llm(
-            llm, retriever, response_if_no_docs_found=""
-        )
+        qa_chain = ConversationalRetrievalChain.from_llm(llm, retriever, response_if_no_docs_found="")
 
         # Generate and execute query
         question = self._create_error_fixing_prompt(code, output)
@@ -843,9 +804,7 @@ class WorkflowNodes:
     @staticmethod
     def _setup_error_fixing_retriever():
         """Set up and return the FAISS retriever for error fixing."""
-        embeddings = BedrockEmbeddings(
-            normalize=True, region_name=os.getenv("AWS_REGION", RAGConfig.AWS_REGION)
-        )
+        embeddings = BedrockEmbeddings(normalize=True, region_name=os.getenv("AWS_REGION", RAGConfig.AWS_REGION))
 
         db = FAISS.load_local(
             RAGConfig.get_rag_db_path(),
@@ -905,9 +864,7 @@ Output:
             Think hard what are missing to solve the task.
             No question asked, just feedbacks.
             """
-            feedback = self.agent.llm.invoke(
-                messages + [HumanMessage(content=feedback_prompt)]
-            )
+            feedback = self.agent.llm.invoke(messages + [HumanMessage(content=feedback_prompt)])
 
             # Add feedback message
             state["messages"].append(
@@ -990,7 +947,7 @@ class PromptGenerator:
             return f"{name}: {description}"
 
     @staticmethod
-    def _wrap_description(description: str, max_line_length: int) -> List[str]:
+    def _wrap_description(description: str, max_line_length: int) -> list[str]:
         """Wrap long description into multiple lines."""
         wrapped_desc = []
         words = description.split()
@@ -1013,10 +970,10 @@ class PromptGenerator:
 
     def separate_custom_and_default_resources(
         self,
-        data_lake_content: List,
-        library_content_list: List,
-        custom_data: List = None,
-        custom_software: List = None,
+        data_lake_content: list,
+        library_content_list: list,
+        custom_data: list = None,
+        custom_software: list = None,
     ) -> tuple:
         """
         Separate custom and default resources.
@@ -1028,28 +985,18 @@ class PromptGenerator:
         custom_software_names = set()
 
         if custom_data:
-            custom_data_names = {
-                item.get("name") if isinstance(item, dict) else item
-                for item in custom_data
-            }
+            custom_data_names = {item.get("name") if isinstance(item, dict) else item for item in custom_data}
         if custom_software:
-            custom_software_names = {
-                item.get("name") if isinstance(item, dict) else item
-                for item in custom_software
-            }
+            custom_software_names = {item.get("name") if isinstance(item, dict) else item for item in custom_software}
 
         # Separate default data lake items
         default_data_lake_content = [
-            item
-            for item in data_lake_content
-            if self._get_item_name(item) not in custom_data_names
+            item for item in data_lake_content if self._get_item_name(item) not in custom_data_names
         ]
 
         # Separate default library items
         default_library_content_list = [
-            lib
-            for lib in library_content_list
-            if self._get_item_name(lib) not in custom_software_names
+            lib for lib in library_content_list if self._get_item_name(lib) not in custom_software_names
         ]
 
         return (
@@ -1066,26 +1013,18 @@ class PromptGenerator:
             return item.get("name", "")
         return item
 
-    def format_data_lake_content(self, data_lake_content: List) -> List[str]:
+    def format_data_lake_content(self, data_lake_content: list) -> list[str]:
         """Format data lake content with descriptions."""
-        if isinstance(data_lake_content, list) and all(
-            isinstance(item, str) for item in data_lake_content
-        ):
+        if isinstance(data_lake_content, list) and all(isinstance(item, str) for item in data_lake_content):
             # Simple list of strings
-            return self._format_string_list(
-                data_lake_content, self.agent.data_lake_dict, "Data lake item"
-            )
+            return self._format_string_list(data_lake_content, self.agent.data_lake_dict, "Data lake item")
         else:
             # List with descriptions
-            return self._format_dict_list(
-                data_lake_content, self.agent.data_lake_dict, "Data lake item"
-            )
+            return self._format_dict_list(data_lake_content, self.agent.data_lake_dict, "Data lake item")
 
-    def format_library_content(self, library_content_list: List) -> List[str]:
+    def format_library_content(self, library_content_list: list) -> list[str]:
         """Format library content with descriptions."""
-        if isinstance(library_content_list, list) and all(
-            isinstance(item, str) for item in library_content_list
-        ):
+        if isinstance(library_content_list, list) and all(isinstance(item, str) for item in library_content_list):
             if (
                 len(library_content_list) > 0
                 and isinstance(library_content_list[0], str)
@@ -1108,9 +1047,7 @@ class PromptGenerator:
                 "Software library",
             )
 
-    def _format_string_list(
-        self, items: List[str], description_dict: Dict, default_prefix: str
-    ) -> List[str]:
+    def _format_string_list(self, items: list[str], description_dict: dict, default_prefix: str) -> list[str]:
         """Format a list of string items with descriptions."""
         formatted = []
         for item in items:
@@ -1121,9 +1058,7 @@ class PromptGenerator:
                 formatted.append(self.format_item_with_description(item, description))
         return formatted
 
-    def _format_dict_list(
-        self, items: List, description_dict: Dict, default_prefix: str
-    ) -> List[str]:
+    def _format_dict_list(self, items: list, description_dict: dict, default_prefix: str) -> list[str]:
         """Format a list of dict items with descriptions."""
         formatted = []
         for item in items:
@@ -1140,10 +1075,10 @@ class PromptGenerator:
 
     def format_custom_resources(
         self,
-        custom_tools: List = None,
-        custom_data: List = None,
-        custom_software: List = None,
-    ) -> Dict[str, List[str]]:
+        custom_tools: list = None,
+        custom_data: list = None,
+        custom_software: list = None,
+    ) -> dict[str, list[str]]:
         """Format custom resources with highlighting."""
         result = {"tools": [], "data": [], "software": []}
 
@@ -1162,30 +1097,20 @@ class PromptGenerator:
                 if isinstance(item, dict):
                     name = item.get("name", "Unknown")
                     desc = item.get("description", "")
-                    result["data"].append(
-                        f"📊 {self.format_item_with_description(name, desc)}"
-                    )
+                    result["data"].append(f"📊 {self.format_item_with_description(name, desc)}")
                 else:
                     desc = self.agent.data_lake_dict.get(item, f"Custom data: {item}")
-                    result["data"].append(
-                        f"📊 {self.format_item_with_description(item, desc)}"
-                    )
+                    result["data"].append(f"📊 {self.format_item_with_description(item, desc)}")
 
         if custom_software:
             for item in custom_software:
                 if isinstance(item, dict):
                     name = item.get("name", "Unknown")
                     desc = item.get("description", "")
-                    result["software"].append(
-                        f"⚙️ {self.format_item_with_description(name, desc)}"
-                    )
+                    result["software"].append(f"⚙️ {self.format_item_with_description(name, desc)}")
                 else:
-                    desc = self.agent.library_content_dict.get(
-                        item, f"Custom software: {item}"
-                    )
-                    result["software"].append(
-                        f"⚙️ {self.format_item_with_description(item, desc)}"
-                    )
+                    desc = self.agent.library_content_dict.get(item, f"Custom software: {item}")
+                    result["software"].append(f"⚙️ {self.format_item_with_description(item, desc)}")
 
         return result
 
@@ -1218,9 +1143,7 @@ class A1_HITS(A1):
             kwargs.get("llm", default_config.llm),
             source=kwargs.get("source", default_config.source),
             base_url=kwargs.get("base_url", default_config.base_url),
-            api_key=kwargs.get(
-                "api_key", default_config.api_key if default_config.api_key else "EMPTY"
-            ),
+            api_key=kwargs.get("api_key", default_config.api_key if default_config.api_key else "EMPTY"),
             config=default_config,
         )
 
@@ -1236,11 +1159,7 @@ class A1_HITS(A1):
         allowed_data_lake_items = resource_config.get("data_lake", None)
 
         # Only apply filtering if resource.yaml has data_lake items defined
-        if (
-            allowed_data_lake_items
-            and len(allowed_data_lake_items) > 0
-            and "expected_data_lake_files" not in kwargs
-        ):
+        if allowed_data_lake_items and len(allowed_data_lake_items) > 0 and "expected_data_lake_files" not in kwargs:
             # Determine commercial_mode
             commercial_mode = kwargs.get("commercial_mode", None)
             if commercial_mode is None:
@@ -1253,9 +1172,7 @@ class A1_HITS(A1):
                 from biomni.env_desc import data_lake_dict as full_data_lake_dict
 
             # Filter data_lake_dict based on resource.yaml
-            filtered_data_lake_dict = filter_data_lake_dict(
-                full_data_lake_dict, allowed_data_lake_items
-            )
+            filtered_data_lake_dict = filter_data_lake_dict(full_data_lake_dict, allowed_data_lake_items)
 
             # Pass filtered file list to parent
             filtered_files = list(filtered_data_lake_dict.keys())
@@ -1275,11 +1192,7 @@ class A1_HITS(A1):
 
     def _apply_resource_filters_after_init(self, resource_filter_config_path):
         """Apply resource filters after parent initialization."""
-        if (
-            hasattr(self, "module2api")
-            and hasattr(self, "data_lake_dict")
-            and hasattr(self, "library_content_dict")
-        ):
+        if hasattr(self, "module2api") and hasattr(self, "data_lake_dict") and hasattr(self, "library_content_dict"):
             (
                 filtered_module2api,
                 filtered_data_lake_dict,
@@ -1336,9 +1249,7 @@ class A1_HITS(A1):
         yield self.system_prompt
 
         # Stream execution
-        for s in self.app.stream(
-            inputs, stream_mode="messages", config=config, subgraphs=True
-        ):
+        for s in self.app.stream(inputs, stream_mode="messages", config=config, subgraphs=True):
             # Handle message chunks and complete messages
             if type(s[1][0]) == AIMessageChunk:
                 print(s[1][0].content, end="")
@@ -1347,9 +1258,7 @@ class A1_HITS(A1):
 
                 # Extract text from structured content
                 if isinstance(message, list):
-                    text_parts = [
-                        item["text"] for item in message if item.get("type") == "text"
-                    ]
+                    text_parts = [item["text"] for item in message if item.get("type") == "text"]
                     text_message = "\n".join(text_parts) if text_parts else ""
 
                     if type(s[1][0]) == HumanMessage:
@@ -1364,9 +1273,7 @@ class A1_HITS(A1):
 
         return self.log, message
 
-    def go_stream(
-        self, prompt, additional_system_prompt=None, skip_generate_system_prompt=False
-    ):
+    def go_stream(self, prompt, additional_system_prompt=None, skip_generate_system_prompt=False):
         """
         Execute the agent with the given prompt (streaming).
 
@@ -1400,10 +1307,7 @@ class A1_HITS(A1):
         self.log = [self.system_prompt]
 
         # Stream execution
-        for s in self.app.stream(
-            inputs, stream_mode="messages", config=config, subgraphs=True
-        ):
-            yield s
+        yield from self.app.stream(inputs, stream_mode="messages", config=config, subgraphs=True)
 
     def _perform_tool_retrieval(self, prompt):
         """Perform tool retrieval and update system prompt."""
@@ -1418,17 +1322,13 @@ class A1_HITS(A1):
 
         # Perform retrieval
         tool_llm = get_llm(model=Config.TOOL_LLM_MODEL_ID)
-        selected_resources = self.retriever.prompt_based_retrieval(
-            text_prompt, resources, llm=tool_llm
-        )
+        selected_resources = self.retriever.prompt_based_retrieval(text_prompt, resources, llm=tool_llm)
 
         print("end tool retrieval")
         print("Using prompt-based RAG retrieval with the agent's LLM")
 
         # Process selected resources
-        selected_resources_names = ResourceCollector.process_selected_resources(
-            selected_resources
-        )
+        selected_resources_names = ResourceCollector.process_selected_resources(selected_resources)
 
         # Update system prompt
         self.update_system_prompt_with_selected_resources(selected_resources_names)
@@ -1441,9 +1341,7 @@ class A1_HITS(A1):
             self_critic: Enable self-critic mode
             test_time_scale_round: Number of self-critic rounds
         """
-        super().configure(
-            self_critic=self_critic, test_time_scale_round=test_time_scale_round
-        )
+        super().configure(self_critic=self_critic, test_time_scale_round=test_time_scale_round)
 
         # Create workflow nodes
         nodes = WorkflowNodes(self)
@@ -1503,17 +1401,13 @@ class A1_HITS(A1):
         Returns:
             Content of the template file
         """
-        template_path = os.path.join(
-            os.path.dirname(__file__), "prompts", template_name
-        )
+        template_path = os.path.join(os.path.dirname(__file__), "prompts", template_name)
 
         try:
-            with open(template_path, "r", encoding="utf-8") as f:
+            with open(template_path, encoding="utf-8") as f:
                 return f.read()
         except FileNotFoundError:
-            raise FileNotFoundError(
-                f"Prompt template '{template_name}' not found at {template_path}"
-            )
+            raise FileNotFoundError(f"Prompt template '{template_name}' not found at {template_path}")
 
     def _generate_system_prompt(
         self,
@@ -1558,17 +1452,11 @@ class A1_HITS(A1):
         )
 
         # Format default resources
-        data_lake_formatted = generator.format_data_lake_content(
-            default_data_lake_content
-        )
-        libraries_formatted = generator.format_library_content(
-            default_library_content_list
-        )
+        data_lake_formatted = generator.format_data_lake_content(default_data_lake_content)
+        libraries_formatted = generator.format_library_content(default_library_content_list)
 
         # Format custom resources
-        custom_resources = generator.format_custom_resources(
-            custom_tools, custom_data, custom_software
-        )
+        custom_resources = generator.format_custom_resources(custom_tools, custom_data, custom_software)
 
         # Format know-how documents - include FULL content (metadata already stripped)
         know_how_formatted = []
@@ -1594,7 +1482,7 @@ class A1_HITS(A1):
                     "📚 KNOW-HOW DOCUMENTS (BEST PRACTICES & PROTOCOLS - ALREADY LOADED):\n"
                     "{know_how_docs}\n\n"
                     "IMPORTANT: These documents are ALREADY AVAILABLE in your context. You do NOT need to\n"
-                    "retrieve them or \"review\" them as a separate step. You can DIRECTLY reference and use\n"
+                    'retrieve them or "review" them as a separate step. You can DIRECTLY reference and use\n'
                     "the information from these documents to answer questions, provide protocols, suggest\n"
                     "parameters, and offer troubleshooting guidance.\n\n"
                     "These documents contain expert knowledge, protocols, and troubleshooting guidance.\n"
@@ -1602,38 +1490,28 @@ class A1_HITS(A1):
                 )
 
             if custom_resources["tools"]:
-                custom_sections.append(
-                    "🔧 CUSTOM TOOLS (USE THESE FIRST):\n{custom_tools}\n"
-                )
+                custom_sections.append("🔧 CUSTOM TOOLS (USE THESE FIRST):\n{custom_tools}\n")
 
             if custom_resources["data"]:
-                custom_sections.append(
-                    "📊 CUSTOM DATA (PRIORITIZE THESE DATASETS):\n{custom_data}\n"
-                )
+                custom_sections.append("📊 CUSTOM DATA (PRIORITIZE THESE DATASETS):\n{custom_data}\n")
 
             if custom_resources["software"]:
-                custom_sections.append(
-                    "⚙️ CUSTOM SOFTWARE (USE THESE LIBRARIES):\n{custom_software}\n"
-                )
+                custom_sections.append("⚙️ CUSTOM SOFTWARE (USE THESE LIBRARIES):\n{custom_software}\n")
 
             # Load custom resources template
-            custom_resources_template = self._load_prompt_template(
-                "custom_resources_section.md"
-            )
-            prompt_modifier += custom_resources_template.format(
-                custom_sections="\n".join(custom_sections)
-            )
+            custom_resources_template = self._load_prompt_template("custom_resources_section.md")
+            prompt_modifier += custom_resources_template.format(custom_sections="\n".join(custom_sections))
 
         # Add environment resources section
-        prompt_modifier += self._load_prompt_template(
-            "environment_resources_section.md"
-        )
+        prompt_modifier += self._load_prompt_template("environment_resources_section.md")
 
         # Set appropriate text based on context
         if is_retrieval:
             function_intro = "Based on your query, I've identified the following most relevant functions that you can use in your code:"
             data_lake_intro = "Based on your query, I've identified the following most relevant datasets:"
-            library_intro = "Based on your query, I've identified the following most relevant libraries that you can use:"
+            library_intro = (
+                "Based on your query, I've identified the following most relevant libraries that you can use:"
+            )
             import_instruction = "IMPORTANT: When using any function, you MUST first import it from its module. For example:\nfrom [module_name] import [function_name]"
         else:
             function_intro = "In your code, you will need to import the function location using the following dictionary of functions:"

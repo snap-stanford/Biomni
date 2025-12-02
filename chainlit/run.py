@@ -1,36 +1,38 @@
-import chainlit as cl
-import sys
 import os
+import sys
+
+import chainlit as cl
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from biomni.agent import A1_HITS
-from langchain_core.messages import (
-    AIMessage,
-    AIMessageChunk,
-    HumanMessage,
-    SystemMessage,
-)
+import asyncio
+import base64
+import concurrent.futures
+import logging
 import os
+import random
 import re
 import shutil
-import random
 import string
-import base64
-from PIL import Image
+
+from biomni.agent import A1_HITS
 from biomni.config import default_config
 from biomni.tool.memory import save_conversation
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from chainlit.data.storage_clients.base import BaseStorageClient
-from sqlalchemy import create_engine, event
+from langchain_core.messages import (
+    AIMessage,
+    AIMessageChunk,
+    HumanMessage,
+)
+from PIL import Image
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
+    create_async_engine,
 )
-import asyncio
-import logging
-import concurrent.futures
 
 CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -140,9 +142,7 @@ def add_thread_log_handler(thread_id: str):
     # Add new handler for this thread
     _thread_log_handler = logging.FileHandler(thread_log_path, mode="a")
     _thread_log_handler.setLevel(logging.INFO)
-    _thread_log_handler.setFormatter(
-        logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    )
+    _thread_log_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
     logger.addHandler(_thread_log_handler)
 
     logger.info(f"Thread-specific log handler added for thread: {thread_id}")
@@ -276,9 +276,7 @@ def get_data_layer():
     # 스토리지 클라이언트 초기화 (파일 저장용)
     storage_provider = LocalStorageClient()
 
-    return CustomSQLAlchemyDataLayer(
-        conninfo=conninfo, storage_provider=storage_provider, show_logger=False
-    )
+    return CustomSQLAlchemyDataLayer(conninfo=conninfo, storage_provider=storage_provider, show_logger=False)
 
 
 @cl.password_auth_callback
@@ -320,8 +318,6 @@ async def start_chat():
     logger.info(f"Chat session started for thread: {dir_name}")
     cl.user_session.set("message_history", [])
     cl.user_session.set("uploaded_files", [])
-
-    files = None
 
     # # Wait for the user to upload a file
     # while files == None:
@@ -370,17 +366,17 @@ async def resume_chat():
     os.chdir(log_dir)
     print("current dir", os.getcwd())
     logger.info(f"Chat session resumed for thread: {dir_name}")
-    
+
     # Restore uploaded files from directory
     uploaded_files = []
     if os.path.exists(log_dir):
         # Scan directory for user-uploaded files (exclude system files)
-        exclude_files = {'chainlit_stream.log', 'conversation_history.txt'}
+        exclude_files = {"chainlit_stream.log", "conversation_history.txt"}
         for filename in os.listdir(log_dir):
             file_path = os.path.join(log_dir, filename)
             if os.path.isfile(file_path) and filename not in exclude_files:
                 uploaded_files.append(filename)
-    
+
     cl.user_session.set("uploaded_files", uploaded_files)
     if uploaded_files:
         logger.info(f"Restored {len(uploaded_files)} uploaded files: {', '.join(uploaded_files)}")
@@ -429,7 +425,7 @@ async def _process_user_message(user_message: cl.Message) -> dict:
     # Process uploaded files
     for file in user_message.elements:
         os.system(f"cp {file.path} '{file.name}'")
-        
+
         # Add to uploaded files list if not already present
         if file.name not in uploaded_files:
             uploaded_files.append(file.name)
@@ -463,13 +459,13 @@ async def _process_user_message(user_message: cl.Message) -> dict:
                 }
                 mime_type = mime_type_map.get(file_ext, "image/jpeg")
 
-                images.append(
-                    {"name": file.name, "data": f"data:{mime_type};base64,{image_data}"}
-                )
+                images.append({"name": file.name, "data": f"data:{mime_type};base64,{image_data}"})
 
                 # Add image info with resolution to prompt
                 if img_width and img_height:
-                    user_prompt += f"\n - user uploaded image file: {file.name} (resolution: {img_width}x{img_height} pixels)\n"
+                    user_prompt += (
+                        f"\n - user uploaded image file: {file.name} (resolution: {img_width}x{img_height} pixels)\n"
+                    )
                 else:
                     user_prompt += f"\n - user uploaded image file: {file.name}\n"
             except Exception as e:
@@ -518,9 +514,7 @@ def _convert_to_agent_format(message_history: list) -> list:
                 # Create content as a list with text and images
                 content = [{"type": "text", "text": message["content"]}]
                 for img in images:
-                    content.append(
-                        {"type": "image_url", "image_url": {"url": img["data"]}}
-                    )
+                    content.append({"type": "image_url", "image_url": {"url": img["data"]}})
                 agent_input.append(HumanMessage(content=content))
             else:
                 # Text only
@@ -578,7 +572,7 @@ def _extract_text_from_content(content):
 async def _process_agent_response(agent_input: list, message_history: list):
     """Process agent response and handle streaming."""
 
-    with open(f"conversation_history.txt", "a") as f:
+    with open("conversation_history.txt", "a") as f:
         user_content_text = _extract_text_from_content(agent_input[-1].content)
         f.write(user_content_text + "\n")
 
@@ -602,13 +596,13 @@ async def _process_agent_response(agent_input: list, message_history: list):
         print(os.getcwd())
         print(final_message)
 
-        with open(f"conversation_history.txt", "a") as f:
+        with open("conversation_history.txt", "a") as f:
             f.write(raw_full_message + "\n")
         message_history.append({"role": "assistant", "content": raw_full_message})
 
         # Save conversation to memory
         try:
-            user_message_content = message_history[-2]["content"] # The message before the one we just appended
+            user_message_content = message_history[-2]["content"]  # The message before the one we just appended
             save_conversation(user_message_content, final_message)
         except Exception as e:
             logger.error(f"Failed to save conversation to memory: {e}")
@@ -619,9 +613,7 @@ async def _process_agent_response(agent_input: list, message_history: list):
         # await cl.Message(
         #     content="⏹️ **실행 중지됨**: 사용자가 실행을 중지했습니다."
         # ).send()
-        message_history.append(
-            {"role": "assistant", "content": "실행이 사용자에 의해 중지되었습니다."}
-        )
+        message_history.append({"role": "assistant", "content": "실행이 사용자에 의해 중지되었습니다."})
         raise  # Re-raise to properly propagate cancellation
     except TimeoutError as e:
         error_message = str(e)
@@ -631,9 +623,7 @@ async def _process_agent_response(agent_input: list, message_history: list):
             f"최대 대기 시간({STREAMING_MAX_TIMEOUT}초)이 초과되었습니다. "
             "더 작은 작업으로 나누어 다시 시도해주세요."
         ).send()
-        message_history.append(
-            {"role": "assistant", "content": f"타임아웃 발생: {error_message}"}
-        )
+        message_history.append({"role": "assistant", "content": f"타임아웃 발생: {error_message}"})
     except Exception as e:
         error_message = f"스트리밍 처리 중 오류 발생: {str(e)}"
         logger.error(error_message, exc_info=True)
@@ -658,9 +648,7 @@ async def _handle_message_stream(message_stream, chainlit_step, sync_generator):
     current_step = 1
     last_formatted_text = ""
     image_cache = {}
-    last_chunk_time = [
-        asyncio.get_event_loop().time()
-    ]  # Mutable to share with heartbeat
+    last_chunk_time = [asyncio.get_event_loop().time()]  # Mutable to share with heartbeat
     stream_done = [False]  # Mutable flag to stop heartbeat
     last_heartbeat_msg = [""]  # Mutable to share with main loop
 
@@ -686,9 +674,7 @@ async def _handle_message_stream(message_stream, chainlit_step, sync_generator):
                 heartbeat_count += 1
                 elapsed_int = int(elapsed)
 
-                logger.info(
-                    f"[HEARTBEAT #{heartbeat_count}] Showing working message (elapsed: {elapsed_int}s)"
-                )
+                logger.info(f"[HEARTBEAT #{heartbeat_count}] Showing working message (elapsed: {elapsed_int}s)")
 
                 # Create new heartbeat message
                 new_msg = f"\n\n_⏳ Still working... ({elapsed_int} seconds elapsed)_"
@@ -698,23 +684,19 @@ async def _handle_message_stream(message_stream, chainlit_step, sync_generator):
                     current_output = chainlit_step.output or last_formatted_text
 
                     # Remove old heartbeat if present
-                    if last_heartbeat_msg[0] and current_output.endswith(
-                        last_heartbeat_msg[0]
-                    ):
+                    if last_heartbeat_msg[0] and current_output.endswith(last_heartbeat_msg[0]):
                         current_output = current_output[: -len(last_heartbeat_msg[0])]
 
                     # Set new output with heartbeat
                     chainlit_step.output = current_output + new_msg
                     await chainlit_step.update()  # UI 업데이트 필수!
                     last_heartbeat_msg[0] = new_msg
-                    logger.debug(f"[HEARTBEAT] Updated output with message")
+                    logger.debug("[HEARTBEAT] Updated output with message")
                 except Exception as e:
                     logger.warning(f"[HEARTBEAT] Failed to update: {e}")
             else:
                 # Silent heartbeat for debugging
-                logger.debug(
-                    f"[HEARTBEAT] Check (elapsed: {elapsed:.1f}s, waiting for 5s)"
-                )
+                logger.debug(f"[HEARTBEAT] Check (elapsed: {elapsed:.1f}s, waiting for 5s)")
 
     # Start heartbeat task
     heartbeat_task = asyncio.create_task(heartbeat())
@@ -752,9 +734,7 @@ async def _handle_message_stream(message_stream, chainlit_step, sync_generator):
 
             # Format and detect images
             formatted_text = _modify_chunk(raw_full_message)
-            formatted_text = _detect_image_name_and_move_to_public(
-                formatted_text, image_cache
-            )
+            formatted_text = _detect_image_name_and_move_to_public(formatted_text, image_cache)
 
             # Only stream if changed
             if formatted_text != last_formatted_text:
@@ -786,16 +766,13 @@ async def _handle_message_stream(message_stream, chainlit_step, sync_generator):
 
         # Final formatting
         full_formatted = _modify_chunk(raw_full_message)
-        full_formatted = _detect_image_name_and_move_to_public(
-            full_formatted, image_cache
-        )
+        full_formatted = _detect_image_name_and_move_to_public(full_formatted, image_cache)
 
         # Final update if needed
         if full_formatted != last_formatted_text:
             remaining_delta = (
                 full_formatted[len(last_formatted_text) :]
-                if last_formatted_text
-                and full_formatted.startswith(last_formatted_text)
+                if last_formatted_text and full_formatted.startswith(last_formatted_text)
                 else full_formatted
             )
             if remaining_delta:
@@ -863,9 +840,7 @@ def _extract_final_message(step_message: str) -> str:
         step_message += "</solution>"
 
     # Find all solution tag matches
-    solution_matches = list(
-        re.finditer(r"<solution>(.*?)</solution>", step_message, re.DOTALL)
-    )
+    solution_matches = list(re.finditer(r"<solution>(.*?)</solution>", step_message, re.DOTALL))
 
     # Return content from the last match, or original message if no match found
     if solution_matches:
@@ -931,9 +906,7 @@ def _detect_code_type(code: str) -> str:
 
     # Count pattern matches
     r_score = sum(1 for pattern in r_patterns if re.search(pattern, code_stripped))
-    bash_score = sum(
-        1 for pattern in bash_patterns if re.search(pattern, code_stripped)
-    )
+    bash_score = sum(1 for pattern in bash_patterns if re.search(pattern, code_stripped))
 
     # Determine code type based on scores
     if r_score > 0 and r_score >= bash_score:
@@ -973,8 +946,7 @@ def _modify_chunk(chunk: str) -> str:
 
         # Check if observation contains file listings (CSV or other files)
         has_file_listings = (
-            "**Newly created files:**" in observation_content
-            or "**Other files:**" in observation_content
+            "**Newly created files:**" in observation_content or "**Other files:**" in observation_content
         )
 
         if has_file_listings:
@@ -1005,9 +977,7 @@ def _modify_chunk(chunk: str) -> str:
 
                 for line in file_lines:
                     # Check if line looks like CSV data (starts with comma or has many commas)
-                    is_csv_line = line.strip().startswith(",") or (
-                        "," in line and line.count(",") >= 3
-                    )
+                    is_csv_line = line.strip().startswith(",") or ("," in line and line.count(",") >= 3)
 
                     if is_csv_line:
                         if not in_csv_block:
@@ -1022,9 +992,7 @@ def _modify_chunk(chunk: str) -> str:
                                 if len(csv_block_lines) > 10:
                                     csv_lines.append("... (truncated: more lines)")
                                 csv_content = "\n".join(csv_lines)
-                                formatted_file_lines.append(
-                                    f"```csv\n{csv_content}\n```"
-                                )
+                                formatted_file_lines.append(f"```csv\n{csv_content}\n```")
                                 csv_block_lines = []
                             in_csv_block = False
                         formatted_file_lines.append(line)
@@ -1095,9 +1063,7 @@ def _replace_code_type_placeholders(content: str) -> str:
         code_type = _detect_code_type(code_content)
         return f"```{code_type}\n{code_content}"
 
-    content = re.sub(
-        open_code_pattern, replace_open_code_type, content, flags=re.DOTALL
-    )
+    content = re.sub(open_code_pattern, replace_open_code_type, content, flags=re.DOTALL)
 
     return content
 
@@ -1122,9 +1088,7 @@ def _replace_biomni(content: str) -> str:
             return f"```\n{modified_code}```"
 
     # Apply replacement to all code blocks
-    content = re.sub(
-        code_block_pattern, replace_imports_in_code, content, flags=re.DOTALL
-    )
+    content = re.sub(code_block_pattern, replace_imports_in_code, content, flags=re.DOTALL)
 
     # Additional replacements for text outside code blocks:
     # 1. Replace 'biomni.' pattern (e.g., biomni.tool.omics -> hits.tool.omics)
@@ -1138,9 +1102,7 @@ def _replace_biomni(content: str) -> str:
     return content
 
 
-def _detect_image_name_and_move_to_public(
-    content: str, image_cache: dict = None
-) -> str:
+def _detect_image_name_and_move_to_public(content: str, image_cache: dict = None) -> str:
     """
     Detect images in markdown text, move them to public folder with random prefix.
 
@@ -1158,9 +1120,7 @@ def _detect_image_name_and_move_to_public(
     os.makedirs(public_dir, exist_ok=True)
 
     # Pattern to find markdown images, excluding those already with download functionality
-    image_pattern = (
-        r'(?<!\[)!\[([^\]]*)\]\(([^)]+?)(?:\s+"[^"]*")?\)(?!\]\([^\)]*\)<br>)'
-    )
+    image_pattern = r'(?<!\[)!\[([^\]]*)\]\(([^)]+?)(?:\s+"[^"]*")?\)(?!\]\([^\)]*\)<br>)'
 
     def replace_image(match):
         alt_text = match.group(1)
@@ -1174,9 +1134,7 @@ def _detect_image_name_and_move_to_public(
         if image_path.startswith(("./public/", "public/", "/public/")):
             # Normalize to absolute path
             if not image_path.startswith("/public/"):
-                image_path = "/public/" + image_path.replace("./public/", "").replace(
-                    "public/", ""
-                )
+                image_path = "/public/" + image_path.replace("./public/", "").replace("public/", "")
             file_name = os.path.basename(image_path)
             return (
                 f"[![{alt_text}]({image_path})]({image_path})<br>"
@@ -1185,25 +1143,25 @@ def _detect_image_name_and_move_to_public(
 
         # Check if file exists
         if not os.path.exists(image_path):
-             # Try to find it relative to the current working directory (chainlit_logs/thread_id)
-             # or relative to the project root (CURRENT_ABS_DIR)
-            
+            # Try to find it relative to the current working directory (chainlit_logs/thread_id)
+            # or relative to the project root (CURRENT_ABS_DIR)
+
             # 1. Check relative to CWD (already done by exists check if path is relative, but explicit check for absolute path construction might be needed)
             cwd_path = os.path.abspath(image_path)
             if os.path.exists(cwd_path):
                 image_path = cwd_path
             else:
                 # 2. Check relative to CURRENT_ABS_DIR (project root where run.py is, or parent of it)
-                # Note: CURRENT_ABS_DIR in this file is chainlit/ directory. 
-                # But the agent execution happens in chainlit_logs/{thread_id}. 
+                # Note: CURRENT_ABS_DIR in this file is chainlit/ directory.
+                # But the agent execution happens in chainlit_logs/{thread_id}.
                 # Sometimes paths are relative to project root.
-                
+
                 # Try relative to project root (parent of chainlit dir)
                 project_root = os.path.dirname(CURRENT_ABS_DIR)
                 root_path = os.path.join(project_root, image_path)
                 if os.path.exists(root_path):
                     image_path = root_path
-                
+
         if not os.path.exists(image_path):
             return match.group(0)
 
@@ -1217,9 +1175,7 @@ def _detect_image_name_and_move_to_public(
             )
 
         # Generate random prefix and new filename
-        random_prefix = "".join(
-            random.choices(string.ascii_lowercase + string.digits, k=6)
-        )
+        random_prefix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
         file_name = os.path.basename(image_path)
         new_file_name = f"{random_prefix}_{file_name}"
         new_file_path = os.path.join(public_dir, new_file_name)

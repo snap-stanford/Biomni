@@ -153,7 +153,7 @@ main() {
     conda_env_name="biomni_hits2"
     # Step 1: Create base conda environment
     echo -e "\n${YELLOW}Step 1: Creating base environment from environment.yml...${NC}"
-    
+
     # Check if conda environment already exists
     if conda env list | grep -q "^$conda_env_name "; then
         echo -e "${GREEN}Conda environment '$conda_env_name' already exists. Skipping creation.${NC}"

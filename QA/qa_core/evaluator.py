@@ -6,7 +6,7 @@ import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 @dataclass
@@ -15,13 +15,13 @@ class EvaluationResult:
 
     task_id: str
     timestamp: datetime
-    scores: Dict[str, float]  # content_accuracy, completeness, format_compliance
+    scores: dict[str, float]  # content_accuracy, completeness, format_compliance
     overall_score: float
     llm_feedback: str
     passed: bool
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """딕셔너리로 변환"""
         return {
             "task_id": self.task_id,
@@ -37,7 +37,7 @@ class EvaluationResult:
 class Evaluator:
     """LLM 기반 답변 평가 클래스"""
 
-    def __init__(self, llm_client, pass_threshold: float = 70.0, evaluation_prompt_path: Optional[str] = None):
+    def __init__(self, llm_client, pass_threshold: float = 70.0, evaluation_prompt_path: str | None = None):
         """
         Evaluator 초기화
 
@@ -50,11 +50,11 @@ class Evaluator:
         self.pass_threshold = pass_threshold
         self.evaluation_prompt_template = self._load_evaluation_prompt(evaluation_prompt_path)
 
-    def _load_evaluation_prompt(self, prompt_path: Optional[str]) -> str:
+    def _load_evaluation_prompt(self, prompt_path: str | None) -> str:
         """평가 프롬프트 로딩"""
         if prompt_path:
             try:
-                with open(prompt_path, "r", encoding="utf-8") as f:
+                with open(prompt_path, encoding="utf-8") as f:
                     return f.read()
             except Exception as e:
                 print(f"Warning: Could not load evaluation prompt from {prompt_path}: {e}")
@@ -124,23 +124,24 @@ Respond in the following JSON format ONLY:
         # LLM 호출
         try:
             # LangChain의 invoke 메서드 사용 (최신 방식)
-            if hasattr(self.llm_client, 'invoke'):
+            if hasattr(self.llm_client, "invoke"):
                 llm_response = self.llm_client.invoke(evaluation_prompt)
             else:
                 llm_response = self.llm_client(evaluation_prompt)
-            
+
             # 응답 타입에 따라 처리
             if isinstance(llm_response, str):
                 response_text = llm_response
-            elif hasattr(llm_response, 'content'):
+            elif hasattr(llm_response, "content"):
                 response_text = llm_response.content
             else:
                 response_text = str(llm_response)
-            
+
             scores, feedback = self._parse_llm_response(response_text)
         except Exception as e:
             print(f"Error calling LLM for evaluation: {e}")
             import traceback
+
             traceback.print_exc()
             # 폴백: 기본 점수 반환
             scores = {"content_accuracy": 0.0, "completeness": 0.0, "format_compliance": 0.0}
@@ -148,9 +149,7 @@ Respond in the following JSON format ONLY:
 
         # 전체 점수 계산 (가중 평균)
         overall_score = (
-            scores["content_accuracy"] * 0.5
-            + scores["completeness"] * 0.3
-            + scores["format_compliance"] * 0.2
+            scores["content_accuracy"] * 0.5 + scores["completeness"] * 0.3 + scores["format_compliance"] * 0.2
         )
 
         # 통과 여부 판단
@@ -166,7 +165,7 @@ Respond in the following JSON format ONLY:
             metadata={"question_length": len(question), "answer_length": len(generated_answer)},
         )
 
-    def _parse_llm_response(self, response: str) -> tuple[Dict[str, float], str]:
+    def _parse_llm_response(self, response: str) -> tuple[dict[str, float], str]:
         """
         LLM 응답 파싱
 
@@ -199,7 +198,7 @@ Respond in the following JSON format ONLY:
             # 폴백: 텍스트에서 숫자 추출 시도
             return self._fallback_parse(response)
 
-    def _fallback_parse(self, response: str) -> tuple[Dict[str, float], str]:
+    def _fallback_parse(self, response: str) -> tuple[dict[str, float], str]:
         """
         폴백 파싱: 텍스트에서 숫자 패턴 추출
 
@@ -227,7 +226,7 @@ Respond in the following JSON format ONLY:
 
         return scores, feedback
 
-    def compare_markdown_structure(self, ground_truth: str, generated: str) -> Dict[str, Any]:
+    def compare_markdown_structure(self, ground_truth: str, generated: str) -> dict[str, Any]:
         """
         마크다운 구조 비교 (간단한 통계 기반)
 
@@ -252,4 +251,3 @@ Respond in the following JSON format ONLY:
             "code_blocks": {"ground_truth": gt_code_blocks // 2, "generated": gen_code_blocks // 2},
             "lists": {"ground_truth": gt_lists, "generated": gen_lists},
         }
-

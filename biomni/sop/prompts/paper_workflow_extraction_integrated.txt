@@ -28,4 +28,3 @@ EXAMPLE:
    - Purpose: Filter low-quality reads before downstream analysis
 
 Keep each step concise but include all essential information. Focus on computational/statistical analyses, not wet-lab procedures.
-

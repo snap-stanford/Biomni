@@ -1,12 +1,11 @@
-"\"\"\"Primary data/method panels for Omics Horizon UI.\"\"\""
+'"""Primary data/method panels for Omics Horizon UI."""'
 
 from __future__ import annotations
 
 import os
-from typing import Callable
+from collections.abc import Callable
 
 import streamlit as st
-
 
 SaveFileFn = Callable[[any], str]
 AnalyzeDataFn = Callable[[list[str]], str]
@@ -32,9 +31,7 @@ def _render_lims_data_panel(t) -> None:
 
     if st.session_state.data_files:
         has_any_content = True
-        md_parts.append(
-            f"✅ Loaded {len(st.session_state.data_files)} file(s) from LIMS:"
-        )
+        md_parts.append(f"✅ Loaded {len(st.session_state.data_files)} file(s) from LIMS:")
         for filename in st.session_state.data_files:
             md_parts.append(f"- {filename}")
         md_parts.append("")
@@ -59,9 +56,7 @@ def _render_lims_data_panel(t) -> None:
 
             rendered_html = _md.markdown(full_md, extensions=["extra"])  # type: ignore
             scroll_html = (
-                '<div style="max-height: 320px; overflow-y: auto; padding-right: 8px;">'
-                + rendered_html
-                + "</div>"
+                '<div style="max-height: 320px; overflow-y: auto; padding-right: 8px;">' + rendered_html + "</div>"
             )
             st.markdown(scroll_html, unsafe_allow_html=True)
         except Exception:
@@ -70,9 +65,7 @@ def _render_lims_data_panel(t) -> None:
         st.warning("⚠️ No data files loaded from LIMS")
 
 
-def _render_local_data_panel(
-    t, save_uploaded_file: SaveFileFn, analyze_data_direct: AnalyzeDataFn
-) -> None:
+def _render_local_data_panel(t, save_uploaded_file: SaveFileFn, analyze_data_direct: AnalyzeDataFn) -> None:
     """Render upload controls when running standalone (not from LIMS)."""
     st.markdown(
         f'<div class="panel-header">{t("panel1_title")}</div>',
@@ -140,15 +133,11 @@ def _render_paper_panel(
                 ),
                 (
                     "methods_only",
-                    "📋 Methods만"
-                    if st.session_state.language == "ko"
-                    else "📋 Methods Only",
+                    "📋 Methods만" if st.session_state.language == "ko" else "📋 Methods Only",
                 ),
                 (
                     "results_only",
-                    "📊 Results만"
-                    if st.session_state.language == "ko"
-                    else "📊 Results Only",
+                    "📊 Results만" if st.session_state.language == "ko" else "📊 Results Only",
                 ),
             ],
             format_func=lambda x: x[1],
@@ -173,9 +162,7 @@ def _render_paper_panel(
                 "results_only": "📖 Extracting analysis sequence from Results section...",
             }
             with st.spinner(spinner_text[mode]):
-                result = extract_workflow_from_paper(
-                    os.path.join(st.session_state.work_dir, file_name), mode=mode
-                )
+                result = extract_workflow_from_paper(os.path.join(st.session_state.work_dir, file_name), mode=mode)
                 st.session_state.analysis_method = result
                 # Initialize editor content with extracted result
                 st.session_state.method_editor_content = result
@@ -184,9 +171,7 @@ def _render_paper_panel(
 
     uploaded_md_parts: list[str] = []
     if "paper_files" in st.session_state and st.session_state.paper_files:
-        uploaded_md_parts.append(
-            f"**Uploaded Paper Files:** ({len(st.session_state.paper_files)} file(s))"
-        )
+        uploaded_md_parts.append(f"**Uploaded Paper Files:** ({len(st.session_state.paper_files)} file(s))")
         for filename in st.session_state.paper_files:
             uploaded_md_parts.append(f"- {filename}")
         uploaded_md_parts.append("")
@@ -198,9 +183,7 @@ def _render_paper_panel(
 
             rendered_html = _md.markdown(full_md, extensions=["extra"])  # type: ignore
             scroll_html = (
-                '<div style="max-height: 400px; overflow-y: auto; padding-right: 8px;">'
-                + rendered_html
-                + "</div>"
+                '<div style="max-height: 400px; overflow-y: auto; padding-right: 8px;">' + rendered_html + "</div>"
             )
             st.markdown(scroll_html, unsafe_allow_html=True)
         except Exception:
@@ -216,11 +199,7 @@ def _render_paper_panel(
                 method_md_parts.extend(uploaded_md_parts)
             method_md_parts.append("### 🔬 Extracted Analysis Steps")
             method_md_parts.append("")
-            method_md_parts.append(
-                clean_method
-                if clean_method
-                else "*No method extracted. Please edit to add steps.*"
-            )
+            method_md_parts.append(clean_method if clean_method else "*No method extracted. Please edit to add steps.*")
 
             full_md = "\n".join(method_md_parts)
             try:
@@ -228,9 +207,7 @@ def _render_paper_panel(
 
                 rendered_html = _md.markdown(full_md, extensions=["extra"])  # type: ignore
                 scroll_html = (
-                    '<div style="max-height: 400px; overflow-y: auto; padding-right: 8px;">'
-                    + rendered_html
-                    + "</div>"
+                    '<div style="max-height: 400px; overflow-y: auto; padding-right: 8px;">' + rendered_html + "</div>"
                 )
                 st.markdown(scroll_html, unsafe_allow_html=True)
             except Exception:
@@ -244,7 +221,7 @@ def _render_paper_panel(
             elif not st.session_state.method_editor_content and clean_method:
                 # If editor is empty but we have extracted content, use extracted content
                 st.session_state.method_editor_content = clean_method
-            
+
             edited_method = st.text_area(
                 "Analysis Steps",
                 value=st.session_state.method_editor_content,

@@ -4,7 +4,7 @@
 #
 # Usage:
 # 1. Place this file as 'resource_filter.yaml' in the Biomni_HITS directory
-# 2. Or specify the path when initializing A1_HITS: 
+# 2. Or specify the path when initializing A1_HITS:
 #    agent = A1_HITS(..., resource_filter_config_path="path/to/resource_filter.yaml")
 #
 # If no configuration is found, all resources will be available (no filtering).
@@ -20,25 +20,25 @@ allowed_resources:
   # 3. By module name (dict with "module" key): all tools in that module
   #    Example: - module: biomni.tool.genetics
   #    or:      - module: biomni.tool.tool_description.genetics
-  
+
   tools:
     # Example: Allow specific tools by name
     # Uncomment and add tool names you want to allow:
     #- query_uniprot
     #- liftover_coordinates
-    
+
     # Example: Allow all tools from a specific Python file
     # - file: biomni/tool/genetics.py
-    
+
     - module: biomni.tool.bio_image_processing
     - module: biomni.tool.immunology
     - module: biomni.tool.microbiology
     # Example: Allow all tools from genetics module
     # - module: biomni.tool.genetics
-    
+
     # Example: Allow all tools from database module
     - module: biomni.tool.database
-    
+
     # Universal omics analysis modules
     - module: biomni.tool.omics
     - module: biomni.tool.qc
@@ -46,14 +46,14 @@ allowed_resources:
 
     # Extra tools
     - module: biomni.tool.memory
-  
+
   # Data lake items: list of allowed data lake item names
   # Uncomment and add data lake item names you want to allow:
   # If data_lake section is empty or commented out, all data lake files will be downloaded
   data_lake:
     # - example_data_item_1
     # - example_data_item_2
-  
+
   # Libraries: list of allowed library/software names
   # Uncomment and add library names you want to allow:
   libraries:

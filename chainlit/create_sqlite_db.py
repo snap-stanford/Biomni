@@ -16,8 +16,8 @@ Note: SQLite adaptations made:
 - TEXT[] arrays become TEXT (will store as comma-separated or JSON)
 """
 
-import sqlite3
 import os
+import sqlite3
 import sys
 from datetime import datetime
 
@@ -175,7 +175,7 @@ def create_database(db_path: str = "chainlit.db"):
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = cursor.fetchall()
 
-        print(f"\nDatabase created successfully!")
+        print("\nDatabase created successfully!")
         print(f"Location: {os.path.abspath(db_path)}")
         print(f"Tables created: {[table[0] for table in tables]}")
 
@@ -223,10 +223,8 @@ def main():
 
     if success:
         print(f"\n✅ Database '{db_name}' created successfully!")
-        print(f"\nYou can now use this database with your Chainlit application.")
-        print(
-            f"Make sure to update your Chainlit configuration to use: {os.path.abspath(db_name)}"
-        )
+        print("\nYou can now use this database with your Chainlit application.")
+        print(f"Make sure to update your Chainlit configuration to use: {os.path.abspath(db_name)}")
     else:
         print(f"\n❌ Failed to create database '{db_name}'")
         sys.exit(1)

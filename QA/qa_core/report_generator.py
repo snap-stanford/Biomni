@@ -5,7 +5,7 @@ Report Generator: 평가 결과 리포트 생성
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from .evaluator import EvaluationResult
 from .image_comparator import ImageEvaluationResult
@@ -40,7 +40,7 @@ class ReportGenerator:
         llm_image_passed = True
         llm_evals = image_evaluation.llm_image_evaluations
         expected_images = image_evaluation.expected_images
-        
+
         # 이미지가 필요한 태스크인 경우에만 LLM 평가 체크
         if expected_images:
             if not llm_evals:
@@ -57,11 +57,11 @@ class ReportGenerator:
                     llm_image_passed = False
             else:
                 # 개별 이미지 비교: 하나라도 실패하면 전체 실패
-                for img_name, llm_result in llm_evals.items():
+                for _img_name, llm_result in llm_evals.items():
                     if "error" in llm_result or not llm_result.get("passed", False):
                         llm_image_passed = False
                         break
-        
+
         report = {
             "task_id": task_id,
             "timestamp": evaluation_result.timestamp.isoformat(),
@@ -76,9 +76,7 @@ class ReportGenerator:
             "image_evaluation": image_evaluation.to_dict(),
             "summary": {
                 "overall_passed": (
-                    evaluation_result.passed 
-                    and image_evaluation.all_images_present 
-                    and llm_image_passed
+                    evaluation_result.passed and image_evaluation.all_images_present and llm_image_passed
                 ),
                 "text_score": evaluation_result.overall_score,
                 "images_present": image_evaluation.all_images_present,
@@ -94,9 +92,7 @@ class ReportGenerator:
 
         print(f"Task report saved to: {output_path}")
 
-    def generate_summary_report(
-        self, all_results: List[Dict[str, Any]], output_path: Path
-    ) -> None:
+    def generate_summary_report(self, all_results: list[dict[str, Any]], output_path: Path) -> None:
         """
         전체 태스크 종합 리포트 생성 (Markdown)
 
@@ -119,7 +115,7 @@ class ReportGenerator:
             "",
             f"**생성 일시**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             f"**총 태스크 수**: {total_tasks}",
-            f"**통과 태스크**: {passed_tasks}/{total_tasks} ({passed_tasks/total_tasks*100:.1f}%)",
+            f"**통과 태스크**: {passed_tasks}/{total_tasks} ({passed_tasks / total_tasks * 100:.1f}%)",
             f"**평균 점수**: {avg_score:.2f}/100",
             "",
             "---",
@@ -144,7 +140,7 @@ class ReportGenerator:
 
             status_icon = "✅" if passed else "❌"
             content_icon = "✅" if content_present else "❌"
-            
+
             # LLM 이미지 점수 표시
             llm_display = f"{avg_llm:.0f}" if avg_llm is not None else "N/A"
 
@@ -199,9 +195,7 @@ class ReportGenerator:
         )
 
         report_lines.append(f"- **이미지 필요 태스크**: {tasks_with_images}개")
-        report_lines.append(
-            f"- **모든 내용 포함 (LLM 판단)**: {tasks_all_content_present}/{tasks_with_images}개"
-        )
+        report_lines.append(f"- **모든 내용 포함 (LLM 판단)**: {tasks_all_content_present}/{tasks_with_images}개")
 
         # LLM 이미지 평가 평균
         llm_scores = [
@@ -212,7 +206,7 @@ class ReportGenerator:
         if llm_scores:
             avg_llm_score = sum(llm_scores) / len(llm_scores)
             report_lines.append(f"- **평균 LLM 이미지 점수**: {avg_llm_score:.1f}/100")
-        
+
         # SSIM은 참고용으로만
         ssim_scores = [
             r.get("image_evaluation", {}).get("average_similarity")
@@ -223,7 +217,7 @@ class ReportGenerator:
             avg_ssim = sum(ssim_scores) / len(ssim_scores)
             report_lines.append(f"- **참고: SSIM (파일명 매칭시)**: {avg_ssim:.3f}")
 
-        report_lines.extend(["", "---", "", f"*리포트 생성: HITS AI Agent QA System*", ""])
+        report_lines.extend(["", "---", "", "*리포트 생성: HITS AI Agent QA System*", ""])
 
         # 파일로 저장
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -232,7 +226,7 @@ class ReportGenerator:
 
         print(f"Summary report saved to: {output_path}")
 
-    def load_task_report(self, report_path: Path) -> Dict[str, Any]:
+    def load_task_report(self, report_path: Path) -> dict[str, Any]:
         """
         태스크 리포트 로드
 
@@ -242,22 +236,22 @@ class ReportGenerator:
         Returns:
             리포트 딕셔너리
         """
-        with open(report_path, "r", encoding="utf-8") as f:
+        with open(report_path, encoding="utf-8") as f:
             return json.load(f)
 
-    def print_task_summary(self, report: Dict[str, Any]) -> None:
+    def print_task_summary(self, report: dict[str, Any]) -> None:
         """
         태스크 리포트 요약 출력
 
         Args:
             report: 리포트 딕셔너리
         """
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Task: {report['task_id']}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         text_eval = report.get("text_evaluation", {})
-        print(f"\n📊 Text Evaluation:")
+        print("\n📊 Text Evaluation:")
         print(f"  - Overall Score: {text_eval.get('overall_score', 0):.1f}/100")
         print(f"  - Content Accuracy: {text_eval.get('scores', {}).get('content_accuracy', 0):.1f}")
         print(f"  - Completeness: {text_eval.get('scores', {}).get('completeness', 0):.1f}")
@@ -265,34 +259,30 @@ class ReportGenerator:
         print(f"  - Passed: {'✅ Yes' if text_eval.get('passed', False) else '❌ No'}")
 
         img_eval = report.get("image_evaluation", {})
-        print(f"\n🖼️  Image Evaluation:")
-        
+        print("\n🖼️  Image Evaluation:")
+
         # LLM 기반 평가 (주 평가)
         if img_eval.get("average_llm_score") is not None:
-            print(f"\n  [LLM Content-Based Evaluation - Primary]")
+            print("\n  [LLM Content-Based Evaluation - Primary]")
             print(f"  - LLM Score: {img_eval.get('average_llm_score', 0):.1f}/100")
-            print(
-                f"  - All Content Present: {'✅ Yes' if img_eval.get('all_images_present', False) else '❌ No'}"
-            )
+            print(f"  - All Content Present: {'✅ Yes' if img_eval.get('all_images_present', False) else '❌ No'}")
         else:
-            print(f"\n  [Basic Check]")
+            print("\n  [Basic Check]")
             print(f"  - Expected Images (by name): {len(img_eval.get('expected_images', []))}")
             print(f"  - Found Images: {len(img_eval.get('found_images', []))}")
-            print(
-                f"  - All Images Present: {'✅ Yes' if img_eval.get('all_images_present', False) else '❌ No'}"
-            )
-        
+            print(f"  - All Images Present: {'✅ Yes' if img_eval.get('all_images_present', False) else '❌ No'}")
+
         # 참고 정보
-        print(f"\n  [Reference Info]")
+        print("\n  [Reference Info]")
         print(f"  - Expected filenames: {img_eval.get('expected_images', [])}")
         print(f"  - Generated filenames: {img_eval.get('found_images', [])}")
         if img_eval.get("average_similarity") is not None:
             print(f"  - SSIM (if name matched): {img_eval.get('average_similarity', 0):.3f}")
-            
+
         # LLM 이미지 평가 세부 내용
         llm_evals = img_eval.get("llm_image_evaluations", {})
         if llm_evals:
-            print(f"\n  📊 LLM Image Content Comparison:")
+            print("\n  📊 LLM Image Content Comparison:")
             # "overall" 키가 있으면 다중 이미지 비교 결과
             if "overall" in llm_evals:
                 llm_result = llm_evals["overall"]
@@ -304,14 +294,14 @@ class ReportGenerator:
                     all_content = llm_result.get("all_content_present", False)
                     status = "✅" if passed else "❌"
                     content_status = "✅" if all_content else "❌"
-                    
+
                     print(f"    • Overall Score: {status} {score:.1f}/100")
                     print(f"    • All Content Present: {content_status}")
-                    
+
                     matching = llm_result.get("matching_details", "")
                     if matching:
                         print(f"    • Matching: {matching}")
-                    
+
                     feedback = llm_result.get("feedback", "")
                     if feedback:
                         # 피드백을 짧게 출력 (첫 150자)
@@ -333,16 +323,16 @@ class ReportGenerator:
                             short_feedback = feedback[:100] + "..." if len(feedback) > 100 else feedback
                             print(f"      → {short_feedback}")
 
-        print(f"\n💬 LLM Feedback:")
+        print("\n💬 LLM Feedback:")
         print(f"  {text_eval.get('llm_feedback', 'No feedback')}")
 
         summary = report.get("summary", {})
         overall_passed = summary.get("overall_passed", False)
         llm_image_passed = summary.get("llm_image_passed", True)
-        
-        print(f"\n{'='*60}")
+
+        print(f"\n{'=' * 60}")
         print(f"Overall Result: {'✅ PASSED' if overall_passed else '❌ FAILED'}")
-        
+
         # 실패 원인 표시
         if not overall_passed:
             reasons = []
@@ -354,6 +344,5 @@ class ReportGenerator:
                 reasons.append("LLM image evaluation failed/error")
             if reasons:
                 print(f"Failure reasons: {', '.join(reasons)}")
-        
-        print(f"{'='*60}\n")
 
+        print(f"{'=' * 60}\n")

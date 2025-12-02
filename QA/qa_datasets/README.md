@@ -16,7 +16,7 @@ task_XXX/
 └── image2.png
 ```
 
-**주의**: 
+**주의**:
 - 모든 파일(이미지, input data 등)은 별도 폴더가 아닌 **task 폴더 바로 아래**에 위치시킵니다.
 - Input data 파일은 CSV, TXT, FASTA 등 다양한 형식 가능합니다.
 
@@ -159,4 +159,3 @@ EOF
 ---
 
 더 자세한 내용은 [README.md](../README.md)를 참고하세요.
-

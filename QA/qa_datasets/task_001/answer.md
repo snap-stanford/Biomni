@@ -29,4 +29,3 @@
 
 ## Clinical Significance
 BRCA1 mutations are associated with significantly increased cancer risk, and genetic testing is recommended for individuals with a family history of breast or ovarian cancer.
-

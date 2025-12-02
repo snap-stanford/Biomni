@@ -849,18 +849,18 @@ install_cli_tools() {
 install_tool_by_name() {
     local tool_name="$1"
     local num_tools=$(jq '.tools | length' "$CONFIG_FILE")
-    
+
     echo -e "${BLUE}=== Searching for tool: $tool_name ===${NC}"
-    
+
     # Search for the tool by name
     for (( i=0; i<$num_tools; i++ )); do
         local current_tool_name=$(jq -r ".tools[$i].name" "$CONFIG_FILE")
-        
+
         # Case-insensitive comparison
         if [[ "${current_tool_name,,}" == "${tool_name,,}" ]]; then
             echo -e "${GREEN}Found tool: $current_tool_name${NC}"
             install_tool_from_config "$i" 1
-            
+
             if [ $? -eq 0 ]; then
                 echo -e "${GREEN}Tool '$current_tool_name' installed successfully!${NC}"
                 return 0
@@ -870,7 +870,7 @@ install_tool_by_name() {
             fi
         fi
     done
-    
+
     echo -e "${RED}Tool '$tool_name' not found in configuration.${NC}"
     echo -e "${YELLOW}Available tools:${NC}"
     for (( i=0; i<$num_tools; i++ )); do
@@ -917,14 +917,14 @@ elif [ "$1" = "--tool" ] && [ -n "$2" ]; then
     add_path_to_profile
     install_tool_by_name "$2"
     exit_code=$?
-    
+
     if [ $exit_code -eq 0 ]; then
         echo -e "\n${GREEN}Tool installation completed!${NC}"
         echo -e "The tool is installed in: ${YELLOW}$TOOLS_DIR${NC}"
         echo -e "Binary is symlinked in: ${YELLOW}$TOOLS_DIR/bin${NC}"
         echo -e "Tool has been added to your PATH for the current session."
     fi
-    
+
     exit $exit_code
 elif [ "$1" = "--auto" ]; then
     # Set BIOMNI_AUTO_INSTALL if it's not already set

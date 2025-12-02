@@ -1,9 +1,8 @@
-"\"\"\"Static resources (translations, CSS, logos) for Omics Horizon.\"\"\""
+'"""Static resources (translations, CSS, logos) for Omics Horizon."""'
 
 from __future__ import annotations
 
 import base64
-from typing import Dict
 
 import streamlit as st
 
@@ -110,7 +109,7 @@ GLOBAL_CSS_TEMPLATE = """
 """
 
 
-TRANSLATIONS: Dict[str, Dict[str, str]] = {
+TRANSLATIONS: dict[str, dict[str, str]] = {
     "en": {
         "app_title": "OmicsHorizon™-Transcriptome",
         "app_subtitle": "AI-Powered Transcriptomic Analysis Platform",

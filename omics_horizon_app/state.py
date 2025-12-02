@@ -1,16 +1,19 @@
-"\"\"\"Session state helper utilities for Omics Horizon.\"\"\""
+'"""Session state helper utilities for Omics Horizon."""'
 
 from __future__ import annotations
 
 import os
 from datetime import datetime
-from typing import Any, Dict, Iterable
+from typing import TYPE_CHECKING, Any
 
 import streamlit as st
 
 from .config import WORKSPACE_PATH
 
-DEFAULT_STATE: Dict[str, Any] = {
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+DEFAULT_STATE: dict[str, Any] = {
     "language": "en",
     "data_files": [],
     "data_briefing": "",

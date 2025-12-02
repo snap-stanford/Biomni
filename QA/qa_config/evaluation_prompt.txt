@@ -46,4 +46,3 @@ IMPORTANT: Respond ONLY in the following JSON format:
 ```
 
 Do not include any other text outside the JSON block.
-

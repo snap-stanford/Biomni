@@ -5,8 +5,8 @@ This package re-exports all functions from biomni.utils.py to maintain
 backward compatibility when biomni.utils is imported as a package.
 """
 
-import os
 import importlib.util
+import os
 
 # Get the path to the parent utils.py file
 _current_dir = os.path.dirname(os.path.abspath(__file__))

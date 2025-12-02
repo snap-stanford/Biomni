@@ -9,4 +9,3 @@ Methods section:
 {methods_section}
 
 Analysis workflow (numbered list):
-

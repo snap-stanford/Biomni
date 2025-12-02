@@ -17,9 +17,7 @@ class lab_bench(base_task):
             raise ValueError("dataset must be one of 'DbQA', 'SeqQA'")
 
         self.dataset = dataset  # Store dataset type
-        df = pd.read_parquet(
-            path + "/" + dataset + "/train-00000-of-00001_test.parquet"
-        )
+        df = pd.read_parquet(path + "/" + dataset + "/train-00000-of-00001_test.parquet")
 
         self.prompt = """The following is a multiple choice question about biology.
 Please answer by responding with the letter of the correct answer.
@@ -38,16 +36,12 @@ We require this because we use automatic parsing.
         np.random.seed(42)
         df["options"] = df.apply(
             lambda x: shuffle(
-                x.distractors.tolist()
-                + [x.ideal]
-                + ["Insufficient information to answer the question."]
+                x.distractors.tolist() + [x.ideal] + ["Insufficient information to answer the question."]
             ),
             axis=1,
         )
         df["options_letters"] = df.options.apply(
-            lambda x: "\n".join(
-                [chr(ord("A") + i) + "." + item for i, item in enumerate(x)]
-            )
+            lambda x: "\n".join([chr(ord("A") + i) + "." + item for i, item in enumerate(x)])
         )
         df["letter_answer"] = df.apply(
             lambda x: chr(ord("A") + np.where(np.array(x.options) == x.ideal)[0][0]),
@@ -55,11 +49,7 @@ We require this because we use automatic parsing.
         )
         df["letter_refrain"] = df.apply(
             lambda x: chr(
-                ord("A")
-                + np.where(
-                    np.array(x.options)
-                    == "Insufficient information to answer the question."
-                )[0][0]
+                ord("A") + np.where(np.array(x.options) == "Insufficient information to answer the question.")[0][0]
             ),
             axis=1,
         )
@@ -87,9 +77,7 @@ We require this because we use automatic parsing.
             }
         else:
             return {
-                "prompt": self.prompt.format(
-                    question=self.query[index], options=self.options[index]
-                ),
+                "prompt": self.prompt.format(question=self.query[index], options=self.options[index]),
                 "answer": self.answer[index],
             }
 

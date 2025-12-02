@@ -1,4 +1,4 @@
-"\"\"\"UI helper package for Omics Horizon.\"\"\""
+'"""UI helper package for Omics Horizon."""'
 
 from .control_panel import render_control_panel
 

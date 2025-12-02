@@ -4,39 +4,40 @@ Test script for the Integrated LIMS & Analysis Platform
 Tests core functionality without requiring Streamlit
 """
 
+import importlib.util
 import os
 import sys
-import importlib.util
 import types
-from pathlib import Path
-from datetime import datetime
 
 # Add current directory to path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
-streamlit_dir = os.path.join(current_dir, 'streamlit')
+streamlit_dir = os.path.join(current_dir, "streamlit")
+
 
 def ensure_streamlit_app_stub():
     """Provide a lightweight stub for streamlit_app import during tests."""
-    if 'streamlit_app' not in sys.modules:
-        stub = types.ModuleType('streamlit_app')
+    if "streamlit_app" not in sys.modules:
+        stub = types.ModuleType("streamlit_app")
 
         def _not_implemented(*args, **kwargs):
             raise RuntimeError("streamlit_app stub invoked during tests")
 
         stub.run_omicshorizon_app = _not_implemented
-        sys.modules['streamlit_app'] = stub
+        sys.modules["streamlit_app"] = stub
+
 
 def load_main_app_module():
     """Dynamically load the relocated main_app module."""
     ensure_streamlit_app_stub()
-    module_path = os.path.join(streamlit_dir, 'main_app.py')
+    module_path = os.path.join(streamlit_dir, "main_app.py")
     spec = importlib.util.spec_from_file_location("main_app", module_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
 
 def test_data_manager():
     """Test DataManager functionality"""
@@ -53,15 +54,15 @@ def test_data_manager():
         if files:
             print("📁 Sample files:")
             for file_info in files[:3]:  # Show first 3
-                size_mb = file_info['size'] / (1024 * 1024)
+                size_mb = file_info["size"] / (1024 * 1024)
                 print(f"  - {file_info['name']} ({size_mb:.1f} MB, {file_info['extension']})")
 
         # Test workspace copying
         if files:
-            workspace_path = os.path.join(current_dir, 'test_workspace')
+            workspace_path = os.path.join(current_dir, "test_workspace")
             os.makedirs(workspace_path, exist_ok=True)
 
-            test_file = files[0]['path']
+            test_file = files[0]["path"]
             copied = dm.copy_files_to_workspace([test_file], workspace_path)
 
             if copied:
@@ -78,6 +79,7 @@ def test_data_manager():
         print(f"❌ DataManager test failed: {e}")
         return False
 
+
 def test_app_registry():
     """Test analysis apps registry"""
     print("\n🧪 Testing App Registry...")
@@ -88,8 +90,8 @@ def test_app_registry():
 
         print(f"✅ Found {len(analysis_apps)} analysis apps")
 
-        for app_id, app_info in analysis_apps.items():
-            status = "✅" if app_info['enabled'] else "❌"
+        for _app_id, app_info in analysis_apps.items():
+            status = "✅" if app_info["enabled"] else "❌"
             print(f"  {status} {app_info['name']} ({app_info['icon']})")
             print(f"    - Description: {app_info['description']}")
             print(f"    - Data types: {', '.join(app_info['data_types'])}")
@@ -101,32 +103,28 @@ def test_app_registry():
         print(f"❌ App Registry test failed: {e}")
         return False
 
+
 def test_omics_horizon_import():
     """Test OmicsHorizon app import (without executing)"""
     print("\n🧪 Testing OmicsHorizon Import...")
 
     try:
         # Test basic import without streamlit
-        import ast
-        import inspect
 
         # Read the streamlit_app.py file
-        streamlit_app_path = os.path.join('streamlit', 'streamlit_app.py')
-        with open(streamlit_app_path, 'r', encoding='utf-8') as f:
+        streamlit_app_path = os.path.join("streamlit", "streamlit_app.py")
+        with open(streamlit_app_path, encoding="utf-8") as f:
             content = f.read()
 
         # Check if run_omicshorizon_app function exists
-        if 'def run_omicshorizon_app(' in content:
+        if "def run_omicshorizon_app(" in content:
             print("✅ run_omicshorizon_app function found")
         else:
             print("❌ run_omicshorizon_app function not found")
             return False
 
         # Check for required imports (without actually importing)
-        required_imports = [
-            'from biomni.agent import A1_HITS',
-            'from biomni.config import default_config'
-        ]
+        required_imports = ["from biomni.agent import A1_HITS", "from biomni.config import default_config"]
 
         for imp in required_imports:
             if imp in content:
@@ -140,14 +138,15 @@ def test_omics_horizon_import():
         print(f"❌ OmicsHorizon import test failed: {e}")
         return False
 
+
 def test_directory_structure():
     """Test required directory structure"""
     print("\n🧪 Testing Directory Structure...")
 
-    required_dirs = ['data', 'workspace', 'biomni_data']
+    required_dirs = ["data", "workspace", "biomni_data"]
     required_files = [
-        os.path.join('streamlit', 'main_app.py'),
-        os.path.join('streamlit', 'streamlit_app.py'),
+        os.path.join("streamlit", "main_app.py"),
+        os.path.join("streamlit", "streamlit_app.py"),
     ]
 
     all_good = True
@@ -167,6 +166,7 @@ def test_directory_structure():
             all_good = False
 
     return all_good
+
 
 def run_full_test():
     """Run all tests"""
@@ -201,6 +201,7 @@ def run_full_test():
     else:
         print("⚠️  Some tests failed. Please check the issues above.")
         return False
+
 
 if __name__ == "__main__":
     success = run_full_test()

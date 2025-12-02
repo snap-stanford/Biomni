@@ -27,4 +27,3 @@ qa_config/custom_*.txt
 # 가상환경
 venv/
 env/
-

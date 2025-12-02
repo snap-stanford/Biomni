@@ -12,9 +12,7 @@ def shuffle(x):
 
 
 class humanity_last_exam(base_task):
-    def __init__(
-        self, path="./data", category="Biology/Medicine", answer_type="multipleChoice"
-    ):
+    def __init__(self, path="./data", category="Biology/Medicine", answer_type="multipleChoice"):
         if category not in [
             "Other",
             "Humanities/Social Science",
@@ -29,9 +27,7 @@ class humanity_last_exam(base_task):
                 "category must be one of ['Other', 'Humanities/Social Science', 'Math', 'Physics', 'Computer Science/AI', 'Biology/Medicine', 'Chemistry', 'Engineering']"
             )
         if answer_type not in ["exactMatch", "multipleChoice"]:
-            raise ValueError(
-                "answer_type must be one of ['exactMatch' or 'multipleChoice']"
-            )
+            raise ValueError("answer_type must be one of ['exactMatch' or 'multipleChoice']")
 
         self.dataset = category  # Store dataset type
         self.answer_type = answer_type
@@ -103,7 +99,7 @@ class humanity_last_exam(base_task):
         self.answer = df.letter_answer.values
 
         self.prompt = """Question: {question}
-        
+
 You MUST include the letter of the correct answer within the following tags:
 [ANSWER] and [/ANSWER]. For example, '[ANSWER]<answer>[/ANSWER]',
 where <answer> is the correct letter. Always answer in exactly this format

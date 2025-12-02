@@ -5,11 +5,10 @@ from __future__ import annotations
 import glob
 import os
 import re
-from typing import Iterable
+from typing import TYPE_CHECKING
 
 import streamlit as st
 from langchain_core.messages import HumanMessage
-
 from omics_horizon_app import CURRENT_ABS_DIR
 from omics_horizon_app.agent_runtime import (
     add_chat_message,
@@ -18,6 +17,9 @@ from omics_horizon_app.agent_runtime import (
     format_agent_output_for_display,
     maybe_add_assistant_message,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 CHAT_ATTACHMENT_PATTERNS: tuple[str, ...] = (
     "*.png",
@@ -70,13 +72,13 @@ def _sanitize_solution_text(text: str) -> str:
 
 def _remove_prompt_artifacts(text: str, prompt: str = "") -> str:
     """Remove prompt artifacts from agent output.
-    
+
     Args:
         text: The text to clean
         prompt: The actual prompt text to remove (if provided, removes it directly)
     """
     cleaned = text
-    
+
     # First, remove the actual prompt if provided (most reliable method)
     if prompt:
         # Remove the prompt text directly
@@ -85,17 +87,17 @@ def _remove_prompt_artifacts(text: str, prompt: str = "") -> str:
         cleaned = cleaned.replace(prompt.strip(), "")
         # Remove prompt if it appears at the start
         if cleaned.startswith(prompt):
-            cleaned = cleaned[len(prompt):]
+            cleaned = cleaned[len(prompt) :]
         if cleaned.startswith(prompt.strip()):
-            cleaned = cleaned[len(prompt.strip()):]
-    
+            cleaned = cleaned[len(prompt.strip()) :]
+
     # Remove common boilerplate patterns that might appear
     cleaned = re.sub(r"^\s*Here is my plan.*?$", "", cleaned, flags=re.MULTILINE | re.IGNORECASE | re.DOTALL)
     cleaned = re.sub(r"^\s*I will now proceed.*?$", "", cleaned, flags=re.MULTILINE | re.IGNORECASE | re.DOTALL)
-    
+
     # Clean up multiple consecutive newlines
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
-    
+
     return cleaned.strip()
 
 
@@ -119,9 +121,7 @@ def _extract_final_response(raw_text: str) -> str:
             #         cleaned = cleaned + "\n\n" + text_after_solution
             return cleaned
 
-    observation_matches = re.findall(
-        r"<observation>(.*?)</observation>", raw_text, re.DOTALL
-    )
+    observation_matches = re.findall(r"<observation>(.*?)</observation>", raw_text, re.DOTALL)
     if observation_matches:
         # Get the last observation block
         candidate = observation_matches[-1]
@@ -130,7 +130,7 @@ def _extract_final_response(raw_text: str) -> str:
             # Also include any figure tokens that appear after the observation block
             observation_end_pos = raw_text.rfind("</observation>")
             if observation_end_pos > 0:
-                text_after_observation = raw_text[observation_end_pos + len("</observation>"):].strip()
+                text_after_observation = raw_text[observation_end_pos + len("</observation>") :].strip()
                 # Check if there are figure tokens after the observation block
                 if "[[FIGURE::" in text_after_observation:
                     # Append figures after the cleaned observation content
@@ -163,19 +163,13 @@ def render_analysis_conversation2() -> None:
         return
 
     if not st.session_state.chat_history:
-        with st.chat_message(
-            "assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"
-        ):
+        with st.chat_message("assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"):
             st.markdown("👋 **Hi! I am OmicsHorizon, your bioinformatics assistant.**")
 
     for message in st.session_state.chat_history:
         with st.chat_message(
             message["role"],
-            avatar=(
-                f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"
-                if message["role"] == "assistant"
-                else None
-            ),
+            avatar=(f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png" if message["role"] == "assistant" else None),
         ):
             if message["role"] == "assistant":
                 st.markdown(
@@ -211,12 +205,8 @@ DATA BRIEFING:
 
 """
 
-        has_assistant_history = any(
-            msg.get("role") == "assistant" for msg in st.session_state.chat_history
-        )
-        agent_input = build_agent_input_from_history(
-            initial_prompt=prompt, include_initial=not has_assistant_history
-        )
+        has_assistant_history = any(msg.get("role") == "assistant" for msg in st.session_state.chat_history)
+        agent_input = build_agent_input_from_history(initial_prompt=prompt, include_initial=not has_assistant_history)
 
         st.session_state.is_streaming = True
         attachments: list[str] = []
@@ -228,27 +218,24 @@ DATA BRIEFING:
         prompt_to_remove = prompt.strip()
         # Store prompt in session state for use after streaming completes
         st.session_state.last_prompt = prompt_to_remove
-        
 
         def _compute_delta(node_id: str, new_text: str) -> str:
             previous = last_node_text.get(node_id, "")
-            
+
             if previous:
                 if new_text.startswith(previous):
                     # Incremental: only return the new part
                     delta = new_text[len(previous) :]
                 else:
-                    delta = new_text[len(previous):] if previous in new_text else new_text
+                    delta = new_text[len(previous) :] if previous in new_text else new_text
 
             else:
                 delta = new_text
-            
+
             last_node_text[node_id] = new_text
             return delta
 
-        with st.chat_message(
-            "assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"
-        ):
+        with st.chat_message("assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"):
             message_placeholder = st.empty()
             baseline_files = _collect_workspace_artifacts(CHAT_ATTACHMENT_PATTERNS)
             with st.spinner("AI is performing the analysis..."):
@@ -257,18 +244,14 @@ DATA BRIEFING:
                     for chunk in message_stream:
                         node = chunk[1][1]["langgraph_node"]
                         chunk_data = chunk[1][0]
-                        if node not in {"generate", "execute"} or not hasattr(
-                            chunk_data, "content"
-                        ):
+                        if node not in {"generate", "execute"} or not hasattr(chunk_data, "content"):
                             continue
                         content = chunk_data.content
                         if isinstance(content, list):
-                            chunk_text = "".join(
-                                item for item in content if isinstance(item, str)
-                            )
+                            chunk_text = "".join(item for item in content if isinstance(item, str))
                         else:
                             chunk_text = content if isinstance(content, str) else ""
-                        
+
                         # Simple accumulation: just append chunks to result_text in order
                         # We'll only update display when a block completes (closing tag appears)
                         if chunk_text:
@@ -276,39 +259,30 @@ DATA BRIEFING:
                             delta_text = _compute_delta(node, chunk_text)
                             if not delta_text:
                                 continue
-                                
-                            if len(delta_text)>400:
-                                if "<execute>" in result_text:
-                                    result_text += '</execute>'
-                                if "<observation>" in result_text:
-                                    result_text += '</observation>'
-                                if "<solution>" in result_text:
-                                    result_text += '</solution>'
-                                continue
-                            
-                            result_text += delta_text
-                            
-                            if result_text != last_text:
 
-                                cleaned_result = _remove_prompt_artifacts(
-                                    result_text, prompt_to_remove
-                                )
-                                
+                            if len(delta_text) > 400:
+                                if "<execute>" in result_text:
+                                    result_text += "</execute>"
+                                if "<observation>" in result_text:
+                                    result_text += "</observation>"
+                                if "<solution>" in result_text:
+                                    result_text += "</solution>"
+                                continue
+
+                            result_text += delta_text
+
+                            if result_text != last_text:
+                                cleaned_result = _remove_prompt_artifacts(result_text, prompt_to_remove)
+
                                 # Render the full formatted content into the placeholder (replace)
-                                full_formatted_text = format_agent_output_for_display(
-                                    cleaned_result
-                                )
+                                full_formatted_text = format_agent_output_for_display(cleaned_result)
 
                                 # Remove prompt artifacts from formatted text as well (belt-and-suspenders)
-                                full_formatted_text = _remove_prompt_artifacts(
-                                    full_formatted_text, prompt_to_remove
-                                )
-                            
-                                message_placeholder.markdown(
-                                    full_formatted_text, unsafe_allow_html=True
-                                )
+                                full_formatted_text = _remove_prompt_artifacts(full_formatted_text, prompt_to_remove)
+
+                                message_placeholder.markdown(full_formatted_text, unsafe_allow_html=True)
                                 last_text = result_text
-                            
+
                 except Exception as exc:  # pragma: no cover - UI fallback
                     st.error(f"Agent execution failed: {exc}")
                 finally:
@@ -326,7 +300,7 @@ DATA BRIEFING:
         os.chdir(original_dir)
 
     st.session_state.should_run_agent = False
-    
+
     # Insert figure tokens into observation/solution blocks before extracting final response
     # This ensures figures are included in the extracted content
     if attachments:
@@ -340,18 +314,18 @@ DATA BRIEFING:
             figure_tokens.append(figure_token)
             # Store creation time for sorting
             attachment_times[figure_token] = os.path.getmtime(abs_path)
-        
+
         # Check if figure tokens are already in result_text
         has_figure_tokens_in_text = any(
-            f"[[FIGURE::{os.path.abspath(path)}]]" in result_text 
-            for path in attachments 
+            f"[[FIGURE::{os.path.abspath(path)}]]" in result_text
+            for path in attachments
             if os.path.isfile(os.path.abspath(path))
         )
-        
+
         if not has_figure_tokens_in_text and figure_tokens:
             # Sort figures by creation time (oldest first)
             sorted_figures = sorted(figure_tokens, key=lambda x: attachment_times.get(x, 0))
-            
+
             # Try to insert figures inside solution blocks (preferred) or after observation blocks
             # Note: Don't insert into observation blocks because they get converted to code blocks
             # which would prevent figure rendering
@@ -364,7 +338,11 @@ DATA BRIEFING:
                 solution_end = last_solution.end()
                 # Insert figures before closing tag
                 new_solution_content = solution_content + "\n\n" + "\n\n".join(sorted_figures)
-                result_text = result_text[:solution_start] + f"<solution>{new_solution_content}</solution>" + result_text[solution_end:]
+                result_text = (
+                    result_text[:solution_start]
+                    + f"<solution>{new_solution_content}</solution>"
+                    + result_text[solution_end:]
+                )
             else:
                 # If no solution blocks, insert after observation blocks (not inside!)
                 observation_matches = list(re.finditer(r"<observation>(.*?)</observation>", result_text, re.DOTALL))
@@ -377,18 +355,19 @@ DATA BRIEFING:
                 else:
                     # No blocks found, append to result_text (will be included in final extraction)
                     result_text = result_text + "\n\n" + "\n\n".join(sorted_figures)
-    
+
     final_text = _extract_final_response(result_text)
 
     if final_text:
         # Store the full result_text (including code execution, observations, etc.)
         # instead of just the final answer, so the analysis process is preserved
         cleaned_result = _remove_prompt_artifacts(result_text, prompt_to_remove)
-        
+
         # Don't display again now (already streamed). Persist full content for chat history.
         maybe_add_assistant_message(cleaned_result, files=attachments)
     st.rerun()
-    
+
+
 def render_analysis_conversation() -> None:
     """Display the conversational analysis interface."""
     st.session_state.setdefault("chat_history", [])
@@ -412,19 +391,13 @@ def render_analysis_conversation() -> None:
         return
 
     if not st.session_state.chat_history:
-        with st.chat_message(
-            "assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"
-        ):
+        with st.chat_message("assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"):
             st.markdown("👋 **Hi! I am OmicsHorizon, your bioinformatics assistant.**")
 
     for message in st.session_state.chat_history:
         with st.chat_message(
             message["role"],
-            avatar=(
-                f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"
-                if message["role"] == "assistant"
-                else None
-            ),
+            avatar=(f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png" if message["role"] == "assistant" else None),
         ):
             if message["role"] == "assistant":
                 st.markdown(
@@ -460,12 +433,8 @@ DATA BRIEFING:
 
 """
 
-        has_assistant_history = any(
-            msg.get("role") == "assistant" for msg in st.session_state.chat_history
-        )
-        agent_input = build_agent_input_from_history(
-            initial_prompt=prompt, include_initial=not has_assistant_history
-        )
+        has_assistant_history = any(msg.get("role") == "assistant" for msg in st.session_state.chat_history)
+        agent_input = build_agent_input_from_history(initial_prompt=prompt, include_initial=not has_assistant_history)
 
         st.session_state.is_streaming = True
         attachments: list[str] = []
@@ -482,11 +451,11 @@ DATA BRIEFING:
 
         def _compute_delta(node_id: str, new_text: str) -> str:
             previous = last_node_text.get(node_id, "")
-            
+
             # Logging for debugging duplicate output
             prev_len = len(previous) if previous else 0
             new_len = len(new_text) if new_text else 0
-            
+
             if previous:
                 if new_text.startswith(previous):
                     # Incremental: only return the new part
@@ -506,34 +475,34 @@ DATA BRIEFING:
                     print(f"  prev_len: {prev_len}, new_len: {new_len}")
                     print(f"  prev_tail: ...{previous[-100:] if prev_len > 100 else previous}")
                     print(f"  new_tail: ...{new_text[-100:] if new_len > 100 else new_text}")
-                    
+
                     # Check if this is just a duplicate of what we already have
-                    if len(new_text) <= len(previous) and new_text == previous[:len(new_text)]:
+                    if len(new_text) <= len(previous) and new_text == previous[: len(new_text)]:
                         # Shorter version of previous - skip
-                        print(f"  → SHORTER VERSION - SKIPPED")
+                        print("  → SHORTER VERSION - SKIPPED")
                         return ""
-                    
+
                     # Full replacement - only add if it's truly different
                     # Usually this means node restarted, so take it as new
-                    delta = new_text[len(previous):] if previous in new_text else new_text
+                    delta = new_text[len(previous) :] if previous in new_text else new_text
                     print(f"  delta_len: {len(delta)}")
                     print(f"  previous in new_text: {previous in new_text}")
                     if previous in new_text:
                         print(f"  delta: {delta[:200] if len(delta) > 200 else delta}...")
                     else:
-                        print(f"  FULL REPLACEMENT (node restarted?): {new_text[:200] if new_len > 200 else new_text}...")
+                        print(
+                            f"  FULL REPLACEMENT (node restarted?): {new_text[:200] if new_len > 200 else new_text}..."
+                        )
             else:
                 delta = new_text
                 print(f"\n[DELTA] {node_id}: FIRST CHUNK")
                 print(f"  new_len: {new_len}")
                 print(f"  new_text: {new_text[:200] if new_len > 200 else new_text}...")
-            
+
             last_node_text[node_id] = new_text
             return delta
 
-        with st.chat_message(
-            "assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"
-        ):
+        with st.chat_message("assistant", avatar=f"{CURRENT_ABS_DIR}/logo/AI_assistant_logo.png"):
             message_placeholder = st.empty()
             baseline_files = _collect_workspace_artifacts(CHAT_ATTACHMENT_PATTERNS)
             with st.spinner("AI is performing the analysis..."):
@@ -542,18 +511,14 @@ DATA BRIEFING:
                     for chunk in message_stream:
                         node = chunk[1][1]["langgraph_node"]
                         chunk_data = chunk[1][0]
-                        if node not in {"generate", "execute"} or not hasattr(
-                            chunk_data, "content"
-                        ):
+                        if node not in {"generate", "execute"} or not hasattr(chunk_data, "content"):
                             continue
                         content = chunk_data.content
                         if isinstance(content, list):
-                            chunk_text = "".join(
-                                item for item in content if isinstance(item, str)
-                            )
+                            chunk_text = "".join(item for item in content if isinstance(item, str))
                         else:
                             chunk_text = content if isinstance(content, str) else ""
-                        
+
                         # Simple accumulation: just append chunks to result_text in order
                         # We'll only update display when a block completes (closing tag appears)
                         if chunk_text:
@@ -596,27 +561,19 @@ DATA BRIEFING:
                             # Only update display if a block just completed and count increased
                             if block_completed and completed_block_count > last_completed_block_count:
                                 # Remove prompt artifacts from result_text before formatting
-                                cleaned_result = _remove_prompt_artifacts(
-                                    result_text, prompt_to_remove
-                                )
+                                cleaned_result = _remove_prompt_artifacts(result_text, prompt_to_remove)
 
                                 # Render the full formatted content into the placeholder (replace)
-                                full_formatted_text = format_agent_output_for_display(
-                                    cleaned_result
-                                )
+                                full_formatted_text = format_agent_output_for_display(cleaned_result)
 
                                 # Remove prompt artifacts from formatted text as well (belt-and-suspenders)
-                                full_formatted_text = _remove_prompt_artifacts(
-                                    full_formatted_text, prompt_to_remove
-                                )
+                                full_formatted_text = _remove_prompt_artifacts(full_formatted_text, prompt_to_remove)
 
                                 if full_formatted_text != last_displayed_text:
-                                    message_placeholder.markdown(
-                                        full_formatted_text, unsafe_allow_html=True
-                                    )
+                                    message_placeholder.markdown(full_formatted_text, unsafe_allow_html=True)
                                     last_displayed_text = full_formatted_text
                                     last_completed_block_count = completed_block_count
-                            
+
                 except Exception as exc:  # pragma: no cover - UI fallback
                     st.error(f"Agent execution failed: {exc}")
                 finally:
@@ -634,7 +591,7 @@ DATA BRIEFING:
         os.chdir(original_dir)
 
     st.session_state.should_run_agent = False
-    
+
     # Insert figure tokens into observation/solution blocks before extracting final response
     # This ensures figures are included in the extracted content
     if attachments:
@@ -648,18 +605,18 @@ DATA BRIEFING:
             figure_tokens.append(figure_token)
             # Store creation time for sorting
             attachment_times[figure_token] = os.path.getmtime(abs_path)
-        
+
         # Check if figure tokens are already in result_text
         has_figure_tokens_in_text = any(
-            f"[[FIGURE::{os.path.abspath(path)}]]" in result_text 
-            for path in attachments 
+            f"[[FIGURE::{os.path.abspath(path)}]]" in result_text
+            for path in attachments
             if os.path.isfile(os.path.abspath(path))
         )
-        
+
         if not has_figure_tokens_in_text and figure_tokens:
             # Sort figures by creation time (oldest first)
             sorted_figures = sorted(figure_tokens, key=lambda x: attachment_times.get(x, 0))
-            
+
             # Try to insert figures inside solution blocks (preferred) or after observation blocks
             # Note: Don't insert into observation blocks because they get converted to code blocks
             # which would prevent figure rendering
@@ -672,7 +629,11 @@ DATA BRIEFING:
                 solution_end = last_solution.end()
                 # Insert figures before closing tag
                 new_solution_content = solution_content + "\n\n" + "\n\n".join(sorted_figures)
-                result_text = result_text[:solution_start] + f"<solution>{new_solution_content}</solution>" + result_text[solution_end:]
+                result_text = (
+                    result_text[:solution_start]
+                    + f"<solution>{new_solution_content}</solution>"
+                    + result_text[solution_end:]
+                )
             else:
                 # If no solution blocks, insert after observation blocks (not inside!)
                 observation_matches = list(re.finditer(r"<observation>(.*?)</observation>", result_text, re.DOTALL))
@@ -685,16 +646,16 @@ DATA BRIEFING:
                 else:
                     # No blocks found, append to result_text (will be included in final extraction)
                     result_text = result_text + "\n\n" + "\n\n".join(sorted_figures)
-    
+
     final_text = _extract_final_response(result_text)
 
     if final_text:
         # Store the full result_text (including code execution, observations, etc.)
         # instead of just the final answer, so the analysis process is preserved
         # Remove prompt artifacts but keep the full analysis process
-        prompt_to_remove = getattr(st.session_state, 'last_prompt', "")
+        prompt_to_remove = getattr(st.session_state, "last_prompt", "")
         cleaned_result = _remove_prompt_artifacts(result_text, prompt_to_remove)
-        
+
         # Don't display again now (already streamed). Persist full content for chat history.
         maybe_add_assistant_message(cleaned_result, files=attachments)
     st.rerun()
@@ -713,9 +674,7 @@ def get_analysis_context(max_messages: int = 5) -> str:
         context_parts.append(st.session_state.analysis_method[:1000])
 
     assistant_messages = [
-        msg["content"]
-        for msg in st.session_state.chat_history
-        if msg.get("role") == "assistant" and msg.get("content")
+        msg["content"] for msg in st.session_state.chat_history if msg.get("role") == "assistant" and msg.get("content")
     ]
     if assistant_messages:
         context_parts.append("=== RECENT ANALYSIS RESPONSES ===")

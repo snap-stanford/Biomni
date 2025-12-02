@@ -22,4 +22,3 @@ The boxplot displays:
 - Statistical summary information
 
 Both visualizations have been saved in the current directory and are ready for use in reports or presentations.
-

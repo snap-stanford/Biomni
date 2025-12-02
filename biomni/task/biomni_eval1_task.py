@@ -1,8 +1,7 @@
 import numpy as np
-import pandas as pd
 
-from biomni.task.base_task import base_task
 from biomni.eval import BiomniEval1
+from biomni.task.base_task import base_task
 
 np.random.seed(42)
 
@@ -45,9 +44,7 @@ class biomni_eval1_task(base_task):
         self.df = self.evaluator.get_instances_by_task(task_name, split)
 
         if len(self.df) == 0:
-            raise ValueError(
-                f"No instances found for task {task_name} with split {split}"
-            )
+            raise ValueError(f"No instances found for task {task_name} with split {split}")
 
         # Sort by task_instance_id to ensure consistent ordering
         self.df = self.df.sort_values("task_instance_id").reset_index(drop=True)
@@ -151,9 +148,7 @@ We require this because we use automatic parsing."""
             index = np.random.randint(len(self.df))
 
         if index < 0 or index >= len(self.df):
-            raise ValueError(
-                f"Index {index} out of range for task {self.task_name} (max: {len(self.df)-1})"
-            )
+            raise ValueError(f"Index {index} out of range for task {self.task_name} (max: {len(self.df) - 1})")
 
         row = self.df.iloc[index]
 

@@ -1,13 +1,12 @@
 import contextlib
-import re
 import os
+import re
+import warnings
 
+from langchain_aws.embeddings.bedrock import BedrockEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
-from langchain_community.vectorstores import FAISS
-from langchain_aws.embeddings.bedrock import BedrockEmbeddings
-
-import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -118,9 +117,7 @@ IMPORTANT GUIDELINES:
         # Get the selected resources
         selected_resources = {
             "tools": [
-                resources["tools"][i]
-                for i in selected_indices.get("tools", [])
-                if i < len(resources.get("tools", []))
+                resources["tools"][i] for i in selected_indices.get("tools", []) if i < len(resources.get("tools", []))
             ],
             "data_lake": [
                 resources["data_lake"][i]
@@ -193,28 +190,20 @@ IMPORTANT GUIDELINES:
         tools_match = re.search(r"TOOLS:\s*\[(.*?)\]", response, re.IGNORECASE)
         if tools_match and tools_match.group(1).strip():
             with contextlib.suppress(ValueError):
-                selected_indices["tools"] = [
-                    int(idx.strip())
-                    for idx in tools_match.group(1).split(",")
-                    if idx.strip()
-                ]
+                selected_indices["tools"] = [int(idx.strip()) for idx in tools_match.group(1).split(",") if idx.strip()]
 
         data_lake_match = re.search(r"DATA_LAKE:\s*\[(.*?)\]", response, re.IGNORECASE)
         if data_lake_match and data_lake_match.group(1).strip():
             with contextlib.suppress(ValueError):
                 selected_indices["data_lake"] = [
-                    int(idx.strip())
-                    for idx in data_lake_match.group(1).split(",")
-                    if idx.strip()
+                    int(idx.strip()) for idx in data_lake_match.group(1).split(",") if idx.strip()
                 ]
 
         libraries_match = re.search(r"LIBRARIES:\s*\[(.*?)\]", response, re.IGNORECASE)
         if libraries_match and libraries_match.group(1).strip():
             with contextlib.suppress(ValueError):
                 selected_indices["libraries"] = [
-                    int(idx.strip())
-                    for idx in libraries_match.group(1).split(",")
-                    if idx.strip()
+                    int(idx.strip()) for idx in libraries_match.group(1).split(",") if idx.strip()
                 ]
 
         # Extract know-how indices
@@ -222,9 +211,7 @@ IMPORTANT GUIDELINES:
         if know_how_match and know_how_match.group(1).strip():
             with contextlib.suppress(ValueError):
                 selected_indices["know_how"] = [
-                    int(idx.strip())
-                    for idx in know_how_match.group(1).split(",")
-                    if idx.strip()
+                    int(idx.strip()) for idx in know_how_match.group(1).split(",") if idx.strip()
                 ]
 
         return selected_indices
@@ -271,9 +258,7 @@ IMPORTANT GUIDELINES:
 9. If some library is useful for completing the only some part of the task, include it.
 """
 
-        embeddings = BedrockEmbeddings(
-            normalize=True, region_name=os.getenv("AWS_REGION", "us-east-1")
-        )
+        embeddings = BedrockEmbeddings(normalize=True, region_name=os.getenv("AWS_REGION", "us-east-1"))
         rag_db_path = os.path.dirname(os.path.abspath(__file__))
         rag_db_path = os.path.join(rag_db_path, "../rag_db/system_prompt/")
         databases = {
@@ -298,7 +283,6 @@ IMPORTANT GUIDELINES:
         selected_resources = {}
         for db_name, db in databases.items():
             threshold = thresholds[db_name]
-            total_docs = db.index.ntotal
             results = db.similarity_search_with_relevance_scores(
                 rag_query,
                 score_threshold=threshold,

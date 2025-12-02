@@ -1,6 +1,8 @@
-import os
 import ast
+import os
+
 from docstring_parser import parse
+
 
 def get_description(filepath):
     """
@@ -17,7 +19,7 @@ def get_description(filepath):
         print(f"Error: File '{filepath}' not found.")
         return {}
 
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         source_code = f.read()
 
     tree = ast.parse(source_code)
@@ -50,6 +52,4 @@ def get_description(filepath):
     return description
 
 
-description = get_description(
-    os.path.dirname(os.path.abspath(__file__)) + "/../statistics.py"
-)
+description = get_description(os.path.dirname(os.path.abspath(__file__)) + "/../statistics.py")

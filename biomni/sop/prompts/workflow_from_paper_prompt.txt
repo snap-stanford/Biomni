@@ -16,4 +16,3 @@ IMPORTANT:
 - Each step should be 1-2 sentences maximum
 
 Focus on creating a workflow that bridges the paper's methodology with practical implementation.
-

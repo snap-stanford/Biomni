@@ -48,9 +48,7 @@ def run_r_code(code: str) -> str:
             temp_file = f.name
 
         # Run the R code using Rscript
-        result = subprocess.run(
-            ["Rscript", temp_file], capture_output=True, text=True, check=False
-        )
+        result = subprocess.run(["Rscript", temp_file], capture_output=True, text=True, check=False)
         # Clean up the temporary file
         os.unlink(temp_file)
 
@@ -215,9 +213,7 @@ def run_with_timeout(func, args=None, kwargs=None, timeout=600):
             result_queue.put(("error", str(e)))
 
     # Start a separate thread
-    thread = threading.Thread(
-        target=thread_func, args=(func, args, kwargs, result_queue)
-    )
+    thread = threading.Thread(target=thread_func, args=(func, args, kwargs, result_queue))
     thread.daemon = True  # Set as daemon so it will be killed when main thread exits
     thread.start()
 
@@ -237,14 +233,10 @@ def run_with_timeout(func, args=None, kwargs=None, timeout=600):
             if thread_id:
                 # This is a bit dangerous and not 100% reliable
                 # It attempts to raise a SystemExit exception in the thread
-                res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
-                    ctypes.c_long(thread_id), ctypes.py_object(SystemExit)
-                )
+                res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), ctypes.py_object(SystemExit))
                 if res > 1:
                     # Oops, we raised too many exceptions
-                    ctypes.pythonapi.PyThreadState_SetAsyncExc(
-                        ctypes.c_long(thread_id), None
-                    )
+                    ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), None)
         except Exception as e:
             print(f"Error trying to terminate thread: {e}")
 
@@ -318,21 +310,15 @@ def get_all_functions_from_file(file_path):
 
     # Walk through the AST nodes
     for node in tree.body:  # Only consider top-level nodes in the body
-        if isinstance(
-            node, ast.FunctionDef
-        ):  # Check if the node is a function definition
+        if isinstance(node, ast.FunctionDef):  # Check if the node is a function definition
             # Skip if function name starts with underscore
             if node.name.startswith("_"):
                 continue
 
             start_line = node.lineno - 1  # Get the starting line of the function
-            end_line = (
-                node.end_lineno
-            )  # Get the ending line of the function (only available in Python 3.8+)
+            end_line = node.end_lineno  # Get the ending line of the function (only available in Python 3.8+)
             func_code = file_content.splitlines()[start_line:end_line]
-            functions.append(
-                "\n".join(func_code)
-            )  # Join lines of the function and add to the list
+            functions.append("\n".join(func_code))  # Join lines of the function and add to the list
 
     return functions
 
@@ -350,9 +336,7 @@ def write_python_code(request: str):
     ```python
     ....
     ```"""
-    prompt = ChatPromptTemplate.from_messages(
-        [("system", template), ("human", "{input}")]
-    )
+    prompt = ChatPromptTemplate.from_messages([("system", template), ("human", "{input}")])
 
     def _sanitize_output(text: str):
         _, after = text.split("```python")
@@ -369,9 +353,7 @@ def execute_graphql_query(
 ) -> dict:
     """Executes a GraphQL query with variables and returns the data as a dictionary."""
     headers = {"Content-Type": "application/json"}
-    response = requests.post(
-        api_address, json={"query": query, "variables": variables}, headers=headers
-    )
+    response = requests.post(api_address, json={"query": query, "variables": variables}, headers=headers)
     if response.status_code == 200:
         return response.json()
     else:
@@ -467,9 +449,7 @@ def pretty_print(message, printout=True):
     if isinstance(message, tuple):
         title = message
     elif isinstance(message.content, list):
-        title = get_msg_title_repr(
-            message.type.title().upper() + " Message", bold=is_interactive_env()
-        )
+        title = get_msg_title_repr(message.type.title().upper() + " Message", bold=is_interactive_env())
         if message.name is not None:
             title += f"\nName: {message.name}"
 
@@ -482,9 +462,7 @@ def pretty_print(message, printout=True):
         if printout:
             print(f"{title}")
     else:
-        title = get_msg_title_repr(
-            message.type.title() + " Message", bold=is_interactive_env()
-        )
+        title = get_msg_title_repr(message.type.title() + " Message", bold=is_interactive_env())
         if message.name is not None:
             title += f"\nName: {message.name}"
         title += f"\n\n{message.content}"
@@ -513,9 +491,7 @@ class CustomBaseModel(BaseModel):
 
             error_msg = "Required Parameters:\n"
             for param in cls.api_schema["required_parameters"]:
-                error_msg += (
-                    f"- {param['name']} ({param['type']}): {param['description']}\n"
-                )
+                error_msg += f"- {param['name']} ({param['type']}): {param['description']}\n"
 
             error_msg += "\nErrors:\n"
             for err in e.errors():
@@ -529,9 +505,7 @@ class CustomBaseModel(BaseModel):
                 for key, value in obj.items():
                     error_msg += f"- {key}: {value}\n"
 
-                missing_params = {
-                    param["name"] for param in cls.api_schema["required_parameters"]
-                } - set(obj.keys())
+                missing_params = {param["name"] for param in cls.api_schema["required_parameters"]} - set(obj.keys())
                 if missing_params:
                     error_msg += "\nMissing Parameters:\n"
                     for param in missing_params:
@@ -565,9 +539,7 @@ def safe_execute_decorator(func):
 
 def api_schema_to_langchain_tool(api_schema, mode="generated_tool", module_name=None):
     if mode == "generated_tool":
-        module = importlib.import_module(
-            "biomni.tool.generated_tool." + api_schema["tool_name"] + ".api"
-        )
+        module = importlib.import_module("biomni.tool.generated_tool." + api_schema["tool_name"] + ".api")
     elif mode == "custom_tool":
         module = importlib.import_module(module_name)
 
@@ -603,15 +575,10 @@ def api_schema_to_langchain_tool(api_schema, mode="generated_tool", module_name=
                 # Default to Any for unknown types
                 annotations[param["name"]] = Any
 
-    fields = {
-        param["name"]: Field(description=param["description"])
-        for param in api_schema["required_parameters"]
-    }
+    fields = {param["name"]: Field(description=param["description"]) for param in api_schema["required_parameters"]}
 
     # Create the ApiInput class dynamically
-    ApiInput = type(
-        "Input", (CustomBaseModel,), {"__annotations__": annotations, **fields}
-    )
+    ApiInput = type("Input", (CustomBaseModel,), {"__annotations__": annotations, **fields})
     # Set the api_schema
     ApiInput.set_api_schema(api_schema)
 
@@ -630,9 +597,7 @@ def api_schema_to_langchain_tool(api_schema, mode="generated_tool", module_name=
 class ID(enum.Enum):
     ENTREZ = "Entrez"
     ENSEMBL = "Ensembl without version"  # e.g. ENSG00000123374
-    ENSEMBL_W_VERSION = (
-        "Ensembl with version"  # e.g. ENSG00000123374.10 (needed for GTEx)
-    )
+    ENSEMBL_W_VERSION = "Ensembl with version"  # e.g. ENSG00000123374.10 (needed for GTEx)
 
 
 def get_gene_id(gene_symbol: str, id_type: ID):
@@ -727,11 +692,7 @@ class PromptLogger(BaseCallbackHandler):
 
 class NodeLogger(BaseCallbackHandler):
     def on_llm_end(self, response, **kwargs):  # response of type LLMResult
-        for (
-            generations
-        ) in (
-            response.generations
-        ):  # response.generations of type List[List[Generations]] becuase "each input could have multiple candidate generations"
+        for generations in response.generations:  # response.generations of type List[List[Generations]] becuase "each input could have multiple candidate generations"
             for generation in generations:
                 generated_text = generation.message.content
                 # token_usage = generation.message.response_metadata["token_usage"]
@@ -790,16 +751,10 @@ def langchain_to_gradio_message(message):
                     gradio_message["metadata"]["title"] = "🛠️ Writing code..."
                     # input = "```python {code_block}```\n".format(code_block=item['input']["command"])
                     gradio_message["metadata"]["log"] = "Executing Code block..."
-                    gradio_message["content"] = (
-                        f"##### Code: \n ```python \n {item['input']['command']} \n``` \n"
-                    )
+                    gradio_message["content"] = f"##### Code: \n ```python \n {item['input']['command']} \n``` \n"
                 else:
-                    gradio_message["metadata"][
-                        "title"
-                    ] = f"🛠️ Used tool ```{item['name']}```"
-                    to_print = ";".join(
-                        [i + ": " + str(j) for i, j in item["input"].items()]
-                    )
+                    gradio_message["metadata"]["title"] = f"🛠️ Used tool ```{item['name']}```"
+                    to_print = ";".join([i + ": " + str(j) for i, j in item["input"].items()])
                     gradio_message["metadata"]["log"] = f"🔍 Input -- {to_print}\n"
                 gradio_message["metadata"]["status"] = "pending"
                 gradio_messages.append(gradio_message)
@@ -865,9 +820,7 @@ def textify_api_dict(api_dict):
         lines.append("=" * (len("Import file: ") + len(category)))
         for method in methods:
             lines.append(f"Method: {method.get('name', 'N/A')}")
-            lines.append(
-                f"  Description: {method.get('description', 'No description provided.')}"
-            )
+            lines.append(f"  Description: {method.get('description', 'No description provided.')}")
 
             # Process required parameters
             req_params = method.get("required_parameters", [])
@@ -878,9 +831,7 @@ def textify_api_dict(api_dict):
                     param_type = param.get("type", "N/A")
                     param_desc = param.get("description", "No description")
                     param_default = param.get("default", "None")
-                    lines.append(
-                        f"    - {param_name} ({param_type}): {param_desc} [Default: {param_default}]"
-                    )
+                    lines.append(f"    - {param_name} ({param_type}): {param_desc} [Default: {param_default}]")
 
             # Process optional parameters
             opt_params = method.get("optional_parameters", [])
@@ -891,9 +842,7 @@ def textify_api_dict(api_dict):
                     param_type = param.get("type", "N/A")
                     param_desc = param.get("description", "No description")
                     param_default = param.get("default", "None")
-                    lines.append(
-                        f"    - {param_name} ({param_type}): {param_desc} [Default: {param_default}]"
-                    )
+                    lines.append(f"    - {param_name} ({param_type}): {param_desc} [Default: {param_default}]")
             if method.get("return"):
                 lines.append(f"  Returns: {method.get('return')}")
             lines.append("")  # Empty line between methods
@@ -1013,9 +962,7 @@ def check_and_download_s3_files(
 
             with open(file_path, "wb") as f:
                 if total_size > 0:
-                    with tqdm.tqdm(
-                        total=total_size, unit="B", unit_scale=True, desc=desc, ncols=80
-                    ) as pbar:
+                    with tqdm.tqdm(total=total_size, unit="B", unit_scale=True, desc=desc, ncols=80) as pbar:
                         for chunk in response.iter_content(chunk_size=8192):
                             if chunk:
                                 f.write(chunk)
@@ -1127,8 +1074,7 @@ def should_skip_message(clean_output: str) -> bool:
         important feedback to users about conversation flow issues.
     """
     return (
-        clean_output.strip()
-        in ["", "None", "null", "undefined"]
+        clean_output.strip() in ["", "None", "null", "undefined"]
         # Don't skip parsing error messages - they should be displayed and increment step counter
         # or "There are no tags" in clean_output
         # or "Execution terminated due to repeated parsing errors" in clean_output
@@ -1148,11 +1094,7 @@ def has_execution_results(clean_output: str, execution_results) -> bool:
     Returns:
         True if the message contains <execute> tags and has execution results available
     """
-    return (
-        "<execute>" in clean_output
-        and execution_results is not None
-        and execution_results
-    )
+    return "<execute>" in clean_output and execution_results is not None and execution_results
 
 
 def find_matching_execution(clean_output: str, execution_results) -> dict | None:
@@ -1175,10 +1117,7 @@ def find_matching_execution(clean_output: str, execution_results) -> dict | None
         is contained in the current output or vice versa to handle partial matches.
     """
     for exec_result in execution_results:
-        if (
-            exec_result["triggering_message"] in clean_output
-            or clean_output in exec_result["triggering_message"]
-        ):
+        if exec_result["triggering_message"] in clean_output or clean_output in exec_result["triggering_message"]:
             return exec_result
     return None
 
@@ -1205,9 +1144,7 @@ def create_parsing_error_html() -> str:
 """
 
 
-def parse_tool_calls_from_code(
-    code: str, module2api: dict, custom_functions: dict = None
-) -> list[str]:
+def parse_tool_calls_from_code(code: str, module2api: dict, custom_functions: dict = None) -> list[str]:
     """Parse code to detect imported tools by analyzing import statements.
 
     This function analyzes Python code to identify which tools/functions are being
@@ -1228,15 +1165,11 @@ def parse_tool_calls_from_code(
         >>> parse_tool_calls_from_code(code, module2api)
         ['analyze_data', 'pandas']
     """
-    tool_module_pairs = parse_tool_calls_with_modules(
-        code, module2api, custom_functions
-    )
+    tool_module_pairs = parse_tool_calls_with_modules(code, module2api, custom_functions)
     return sorted({pair[0] for pair in tool_module_pairs})
 
 
-def parse_tool_calls_with_modules(
-    code: str, module2api: dict, custom_functions: dict = None
-) -> list[tuple[str, str]]:
+def parse_tool_calls_with_modules(code: str, module2api: dict, custom_functions: dict = None) -> list[tuple[str, str]]:
     """Parse code to detect imported tools and their associated modules.
 
     This function performs detailed analysis of Python code to identify which
@@ -1297,9 +1230,7 @@ def parse_tool_calls_with_modules(
                     # Check if this tool exists in any module
                     if tool in all_tools:
                         # Find the best matching module
-                        best_module = find_best_module_match(
-                            module_name, all_tools[tool]
-                        )
+                        best_module = find_best_module_match(module_name, all_tools[tool])
                         detected_tools.add((tool, best_module))
                     # Also check if it's a module.function pattern
                     elif "." in tool:
@@ -1307,9 +1238,7 @@ def parse_tool_calls_with_modules(
                         if len(parts) == 2:
                             module_part, func_part = parts
                             if func_part in all_tools:
-                                best_module = find_best_module_match(
-                                    module_part, all_tools[func_part]
-                                )
+                                best_module = find_best_module_match(module_part, all_tools[func_part])
                                 detected_tools.add((func_part, best_module))
 
             elif len(match) == 1:  # import module
@@ -1400,9 +1329,7 @@ def inject_custom_functions_to_repl(custom_functions: dict):
         builtins._biomni_custom_functions.update(custom_functions)
 
 
-def format_execute_tags_in_content(
-    content: str, parse_tool_calls_with_modules_func
-) -> str:
+def format_execute_tags_in_content(content: str, parse_tool_calls_with_modules_func) -> str:
     """Format execute tags in content by extracting code and creating highlighted tool call blocks.
 
     This function processes content that contains <execute>...</execute> tags and
@@ -1436,15 +1363,11 @@ def format_execute_tags_in_content(
         detected_tool_modules = parse_tool_calls_with_modules_func(code_content)
 
         # Create the formatted block
-        formatted_block = create_tool_call_block(
-            code_content, language, tool_name, detected_tool_modules
-        )
+        formatted_block = create_tool_call_block(code_content, language, tool_name, detected_tool_modules)
         return formatted_block
 
     # Replace all execute tags with formatted tool call blocks
-    formatted_content = re.sub(
-        execute_pattern, replace_execute_tag, content, flags=re.DOTALL
-    )
+    formatted_content = re.sub(execute_pattern, replace_execute_tag, content, flags=re.DOTALL)
 
     # Also format solution tags
     formatted_content = format_solution_tags_in_content(formatted_content)
@@ -1473,11 +1396,7 @@ def detect_code_language_and_tool(code_content: str) -> tuple[str, str]:
         >>> detect_code_language_and_tool("#!BASH\necho 'hello'")
         ("bash", "Bash Script")
     """
-    if (
-        code_content.startswith("#!R")
-        or code_content.startswith("# R code")
-        or code_content.startswith("# R script")
-    ):
+    if code_content.startswith("#!R") or code_content.startswith("# R code") or code_content.startswith("# R script"):
         return "r", "R REPL"
     elif code_content.startswith("#!BASH") or code_content.startswith("# Bash script"):
         return "bash", "Bash Script"
@@ -1512,18 +1431,14 @@ def clean_code_content(code_content: str, language: str) -> str:
     if language == "r":
         return re.sub(r"^#!R|^# R code|^# R script", "", code_content, count=1).strip()
     elif language == "bash":
-        if code_content.startswith("#!BASH") or code_content.startswith(
-            "# Bash script"
-        ):
+        if code_content.startswith("#!BASH") or code_content.startswith("# Bash script"):
             return re.sub(r"^#!BASH|^# Bash script", "", code_content, count=1).strip()
         elif code_content.startswith("#!CLI"):
             return re.sub(r"^#!CLI", "", code_content, count=1).strip()
     return code_content
 
 
-def create_tool_call_block(
-    code_content: str, language: str, tool_name: str, detected_tool_modules: list
-) -> str:
+def create_tool_call_block(code_content: str, language: str, tool_name: str, detected_tool_modules: list) -> str:
     """Create the HTML block for tool call highlighting.
 
     This function generates a styled HTML block that displays code execution
@@ -1595,9 +1510,7 @@ def format_detected_tools(detected_tool_modules: list) -> str:
             tool_descriptions.append("Bash Script")
         else:
             # Extract the last part of the module name for display
-            display_module = (
-                module_name.split(".")[-1] if "." in module_name else module_name
-            )
+            display_module = module_name.split(".")[-1] if "." in module_name else module_name
             tool_descriptions.append(f"{display_module} → {tool_name}")
 
     return ", ".join(sorted(tool_descriptions))
@@ -1679,9 +1592,7 @@ def format_solution_tags_in_content(content: str) -> str:
 </div>"""
 
     # Replace all solution tags with formatted solution blocks
-    formatted_content = re.sub(
-        solution_pattern, replace_solution_tag, content, flags=re.DOTALL
-    )
+    formatted_content = re.sub(solution_pattern, replace_solution_tag, content, flags=re.DOTALL)
 
     return formatted_content
 
@@ -1718,9 +1629,7 @@ def format_observation_as_terminal(content: str) -> str | None:
         observation_content = observation_match.group(1).strip()
     else:
         # Fallback if no observation tags found - check if content is meaningful
-        if not (
-            content.strip() and content.strip() not in ["", "None", "null", "undefined"]
-        ):
+        if not (content.strip() and content.strip() not in ["", "None", "null", "undefined"]):
             return None
         observation_content = content.strip()
 

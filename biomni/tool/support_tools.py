@@ -35,7 +35,7 @@ def run_python_repl(command: str) -> str:
             # Capture any matplotlib plots that were generated
             # _capture_matplotlib_plots()
 
-        except Exception as e:
+        except Exception:
             # Get the output that was generated before the error
             partial_output = mystdout.getvalue()
 
@@ -254,7 +254,7 @@ def get_error_line_info(command: str) -> str:
         if not output:
             output = "Code executed successfully (no output)"
 
-    except Exception as e:
+    except Exception:
         # Get exception details
         exc_type, exc_value, exc_traceback = sys.exc_info()
 

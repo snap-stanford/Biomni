@@ -10,16 +10,16 @@ Author: JHJeon
 Date: 2025
 """
 
-import streamlit as st
-import pandas as pd
 import os
-import yaml
-import sys
-from datetime import datetime
-import tempfile
 import shutil
-from pathlib import Path
+import sys
 from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
+
+import pandas as pd
+import streamlit as st
+import yaml
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -65,13 +65,11 @@ def _load_config_paths():
     """Load path settings from project-level config.yaml if present."""
     try:
         # project root: .../Biomni_HITS/streamlit/ -> .../Biomni_HITS -> repo root
-        repo_root = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
+        repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         config_path = os.path.join(repo_root, "config.yaml")
         print(config_path)
         if os.path.isfile(config_path):
-            with open(config_path, "r", encoding="utf-8") as f:
+            with open(config_path, encoding="utf-8") as f:
                 cfg = yaml.safe_load(f) or {}
         else:
             cfg = {}
@@ -363,9 +361,7 @@ class DataManager:
 
                 if len(parts) > 1:
                     instrument = parts[0]
-                    remainder = (
-                        Path(*parts[1:-1]) if len(parts) > 2 else Path()
-                    )
+                    remainder = Path(*parts[1:-1]) if len(parts) > 2 else Path()
                 else:
                     instrument = "General"
                     remainder = Path()
@@ -448,6 +444,7 @@ def render_sidebar(router, data_manager):
         # Export to PDF (chat history + workflow + briefing)
         try:
             from omics_horizon_app.utils.pdf_export import export_to_pdf_button
+
             export_to_pdf_button()
         except Exception:
             pass
@@ -515,24 +512,16 @@ def render_lims_dashboard(router, data_manager):
         for file_info in data_files:
             grouped_files[file_info["instrument"]].append(file_info)
 
-        st.markdown(
-            f"**{len(data_files)} files available across {len(grouped_files)} instrument folders**"
-        )
+        st.markdown(f"**{len(data_files)} files available across {len(grouped_files)} instrument folders**")
 
-        selected_keys = {
-            f["relative_path"] for f in st.session_state.selected_data_files
-        }
+        selected_keys = {f["relative_path"] for f in st.session_state.selected_data_files}
         selected_files: list[dict] = []
 
         for instrument in sorted(grouped_files.keys()):
             instrument_files = grouped_files[instrument]
-            instrument_label = (
-                f"{instrument}" if instrument != "General" else "General Files"
-            )
+            instrument_label = f"{instrument}" if instrument != "General" else "General Files"
 
-            with st.expander(
-                f"{instrument_label} ({len(instrument_files)} files)", expanded=True
-            ):
+            with st.expander(f"{instrument_label} ({len(instrument_files)} files)", expanded=True):
                 rows = []
                 for info in instrument_files:
                     display_folder = info["relative_folder"] or "-"
@@ -560,16 +549,10 @@ def render_lims_dashboard(router, data_manager):
                         "Select": st.column_config.CheckboxColumn("Select"),
                         "Folder": st.column_config.TextColumn("Folder", disabled=True),
                         "File": st.column_config.TextColumn("File", disabled=True),
-                        "Size (MB)": st.column_config.NumberColumn(
-                            "Size (MB)", disabled=True, format="%.1f"
-                        ),
+                        "Size (MB)": st.column_config.NumberColumn("Size (MB)", disabled=True, format="%.1f"),
                         "Type": st.column_config.TextColumn("Type", disabled=True),
-                        "Modified": st.column_config.TextColumn(
-                            "Modified", disabled=True
-                        ),
-                        "Path": st.column_config.TextColumn(
-                            "Relative Path", disabled=True, width="medium"
-                        ),
+                        "Modified": st.column_config.TextColumn("Modified", disabled=True),
+                        "Path": st.column_config.TextColumn("Relative Path", disabled=True, width="medium"),
                     },
                 )
 
@@ -592,12 +575,8 @@ def render_lims_dashboard(router, data_manager):
             # Show selected files summary
             with st.expander("📋 Selected Files Summary", expanded=False):
                 for file_info in selected_files:
-                    instrument_label = (
-                        f"{file_info['instrument']} / " if file_info["instrument"] != "General" else ""
-                    )
-                    st.markdown(
-                        f"- **{instrument_label}{file_info['relative_path']}** ({file_info['extension']})"
-                    )
+                    instrument_label = f"{file_info['instrument']} / " if file_info["instrument"] != "General" else ""
+                    st.markdown(f"- **{instrument_label}{file_info['relative_path']}** ({file_info['extension']})")
 
         st.markdown("---")
 
@@ -617,15 +596,13 @@ def render_lims_dashboard(router, data_manager):
         for idx, (app_id, app_info) in enumerate(enabled_apps.items()):
             with cols[idx % 3]:
                 # App card
-                selected_class = (
-                    "selected" if st.session_state.selected_data_files else ""
-                )
+                selected_class = "selected" if st.session_state.selected_data_files else ""
                 st.markdown(
                     f"""
                 <div class="app-card {selected_class}">
-                    <div class="app-icon">{app_info['icon']}</div>
-                    <div class="app-name">{app_info['name']}</div>
-                    <div class="app-description">{app_info['description']}</div>
+                    <div class="app-icon">{app_info["icon"]}</div>
+                    <div class="app-name">{app_info["name"]}</div>
+                    <div class="app-description">{app_info["description"]}</div>
                 </div>
                 """,
                     unsafe_allow_html=True,
@@ -633,16 +610,12 @@ def render_lims_dashboard(router, data_manager):
 
                 # Check if app can handle selected data types
                 if st.session_state.selected_data_files:
-                    selected_extensions = [
-                        f["extension"] for f in st.session_state.selected_data_files
-                    ]
-                    selected_filenames = [
-                        f["name"] for f in st.session_state.selected_data_files
-                    ]
+                    selected_extensions = [f["extension"] for f in st.session_state.selected_data_files]
+                    selected_filenames = [f["name"] for f in st.session_state.selected_data_files]
 
                     # Check compatibility with more flexible logic
                     compatible = False
-                    for ext, filename in zip(selected_extensions, selected_filenames):
+                    for ext, filename in zip(selected_extensions, selected_filenames, strict=False):
                         # Direct extension match
                         if ext in app_info["data_types"]:
                             compatible = True
@@ -678,28 +651,22 @@ def render_lims_dashboard(router, data_manager):
                             type="primary",
                         ):
                             # Copy selected files to app workspace
-                            file_paths = [
-                                f["path"] for f in st.session_state.selected_data_files
-                            ]
-                            copied_files = data_manager.copy_files_to_workspace(
-                                file_paths, st.session_state.app_workspace
-                            )
+                            file_paths = [f["path"] for f in st.session_state.selected_data_files]
+                            data_manager.copy_files_to_workspace(file_paths, st.session_state.app_workspace)
 
                             # Navigate to app
                             router.navigate_to(app_id, app_id)
                     else:
                         st.button(
-                            f"❌ Incompatible Data Types",
+                            "❌ Incompatible Data Types",
                             key=f"incompatible_{app_id}",
                             use_container_width=True,
                             disabled=True,
                         )
-                        st.caption(
-                            "Selected files are not compatible with this analysis app."
-                        )
+                        st.caption("Selected files are not compatible with this analysis app.")
                 else:
                     st.button(
-                        f"📁 Select Data First",
+                        "📁 Select Data First",
                         key=f"select_data_{app_id}",
                         use_container_width=True,
                         disabled=True,
@@ -716,9 +683,7 @@ def render_analysis_app(app_id, app_info):
     # Render the analysis app with LIMS integration
     try:
         # Pass from_lims=True and workspace path to indicate this is launched from LIMS
-        app_info["function"](
-            from_lims=True, workspace_path=st.session_state.app_workspace
-        )
+        app_info["function"](from_lims=True, workspace_path=st.session_state.app_workspace)
     except Exception as e:
         st.error(f"Error running {app_info['name']}: {str(e)}")
         st.exception(e)

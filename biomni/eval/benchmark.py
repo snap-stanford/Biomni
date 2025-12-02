@@ -2,12 +2,11 @@
 """
 Benchmark runner using GNU parallel/xargs for stable parallel execution
 """
-import os
-import sys
-import subprocess
-import time
-import json
+
 import argparse
+import subprocess
+import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -28,9 +27,7 @@ default_config.timeout_seconds = 100
 def check_parallel_available():
     """Check if GNU parallel is available"""
     try:
-        subprocess.run(
-            ["parallel", "--version"], capture_output=True, check=True, timeout=5
-        )
+        subprocess.run(["parallel", "--version"], capture_output=True, check=True, timeout=5)
         return True
     except (
         subprocess.CalledProcessError,
@@ -80,22 +77,18 @@ def execute_parallel(commands, max_workers, commands_file):
         if use_parallel:
             print(f"⚡ Running with GNU parallel (jobs={max_workers})...\n")
             # Use --eta instead of --bar for batch environments (no /dev/tty)
-            parallel_cmd = (
-                f"parallel --jobs {max_workers} --eta --halt never < {commands_file}"
-            )
+            parallel_cmd = f"parallel --jobs {max_workers} --eta --halt never < {commands_file}"
 
             subprocess.run(parallel_cmd, shell=True)
         else:
             print(f"⚠️  GNU parallel not found, using xargs (jobs={max_workers})...\n")
-            xargs_cmd = (
-                f"cat {commands_file} | xargs -P {max_workers} -I {{}} bash -c '{{}}'"
-            )
+            xargs_cmd = f"cat {commands_file} | xargs -P {max_workers} -I {{}} bash -c '{{}}'"
 
             subprocess.run(xargs_cmd, shell=True)
     else:
-        print(f"🔄 Running sequentially...\n")
+        print("🔄 Running sequentially...\n")
         # Sequential execution
-        with open(commands_file, "r") as f:
+        with open(commands_file) as f:
             for line in f:
                 cmd = line.strip()
                 if cmd:
@@ -129,7 +122,7 @@ def parse_indices(indices_str):
             # Handle single index
             indices.add(int(part))
 
-    return sorted(list(indices))
+    return sorted(indices)
 
 
 if __name__ == "__main__":
@@ -141,40 +134,40 @@ if __name__ == "__main__":
 Examples:
   # Run all datasets (including all BiomniEval1 tasks)
   python benchmark.py
-  
+
   # Run specific dataset (original tasks)
   python benchmark.py -d DbQA
   python benchmark.py -d SeqQA
   python benchmark.py -d HLE
-  
+
   # Run multiple datasets at once
   python benchmark.py -d DbQA SeqQA HLE
   python benchmark.py -d gwas_causal_gene_opentargets gwas_causal_gene_pharmaprojects
-  
+
   # Run specific BiomniEval1 task
   python benchmark.py -d gwas_causal_gene_opentargets
   python benchmark.py -d gwas_causal_gene_gwas_catalog
   python benchmark.py -d rare_disease_diagnosis
   python benchmark.py -d crispr_delivery
-  
+
   # Run specific indices
   python benchmark.py -d DbQA -i "0,5,10"
-  
+
   # Run range of indices
   python benchmark.py -d gwas_variant_prioritization -i "0-10"
-  
+
   # Run mixed indices and ranges
   python benchmark.py -d SeqQA -i "0,5-10,15,20-25"
-  
+
   # Run with custom folder name
   python benchmark.py -d patient_gene_detection -f tmp
-  
+
   # Skip tests where ans_* already exists
   python benchmark.py -d DbQA -s
-  
+
   # Run with specific LLM model
   python benchmark.py -d DbQA -l gemini-2.5-flash
-  
+
   # Combine options (multiple datasets with indices)
   python benchmark.py -d screen_gene_retrieval patient_gene_detection -f tmp -s -i "0-10"
         """,
@@ -271,7 +264,7 @@ Examples:
         print("📊 Running all indices")
     print(f"⚡ Using {args.max_workers} parallel workers")
     if args.skip_existing:
-        print(f"⏭️  Skip existing: Enabled (will skip tests where ans_* exists)")
+        print("⏭️  Skip existing: Enabled (will skip tests where ans_* exists)")
     print()
 
     # Create directory for outputs
@@ -319,8 +312,7 @@ Examples:
             indices_to_run = [i for i in selected_indices if i < max_index]
             if len(selected_indices) != len(indices_to_run):
                 print(
-                    f"  ⚠️  Warning: Some indices are out of range for {dataset} "
-                    f"(max: {max_index-1}), skipping them."
+                    f"  ⚠️  Warning: Some indices are out of range for {dataset} (max: {max_index - 1}), skipping them."
                 )
         else:
             indices_to_run = range(max_index)

@@ -36,7 +36,7 @@ Rules:
   - [ ] Step 2 retry with different approach
   - [ ] Step 3 pending
   </plan>
-  
+
   <execute>
   # code here
   </execute>
@@ -298,4 +298,3 @@ All analysis steps have been completed successfully. The data has been thoroughl
 - Validate before finalizing: Check against all 5 validation criteria
 - Answer in user's language
 </final_reminders>
-

@@ -1,31 +1,28 @@
+import asyncio
+import logging
+import os
+import random
+import re
+import shutil
+import string
+import time
+
 import chainlit as cl
 from biomni.agent import A1_HITS
+from biomni.config import default_config
+from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from langchain_core.messages import (
     AIMessage,
     AIMessageChunk,
     HumanMessage,
-    SystemMessage,
 )
-import os
-import re
-from datetime import datetime
-import pytz
-import shutil
-import random
-import string
-from biomni.config import default_config
-from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
-import time
-from sqlalchemy import create_engine, event, text
-from sqlalchemy.pool import StaticPool, QueuePool
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
+    create_async_engine,
 )
-import asyncio
-import logging
 
 # from chainlit.data.base import BaseStorageClient
 
@@ -143,9 +140,7 @@ def auth_callback(username: str, password: str):
     ]
 
     if (username, password) in valid_logins:
-        return cl.User(
-            identifier="admin", metadata={"role": "admin", "provider": "credentials"}
-        )
+        return cl.User(identifier="admin", metadata={"role": "admin", "provider": "credentials"})
     else:
         return None
 
@@ -160,8 +155,6 @@ async def start_chat():
     os.chdir(log_dir)
     print("current dir", os.getcwd())
     cl.user_session.set("message_history", [])
-
-    files = None
 
     # # Wait for the user to upload a file
     # while files == None:
@@ -228,7 +221,6 @@ async def _process_user_message(user_message: cl.Message) -> str:
     user_prompt = user_message.content.strip()
 
     # Process uploaded files
-    step_message = ""
     for file in user_message.elements:
         os.system(f"cp {file.path} '{file.name}'")
         user_prompt += f"\n - user uploaded data file: {file.name}\n"
@@ -259,16 +251,14 @@ def _convert_to_agent_format(message_history: list) -> list:
 async def _process_agent_response(agent_input: list, message_history: list):
     """Process agent response and handle streaming."""
 
-    with open(f"conversion_history.txt", "a") as f:
+    with open("conversion_history.txt", "a") as f:
         f.write(agent_input[-1].content + "\n")
 
     try:
         async with cl.Step(name="Plan and execute") as chainlit_step:
             await chainlit_step.update()
             message_stream = agent.go_stream(agent_input)
-            full_message, step_message, raw_full_message = await _handle_message_stream(
-                message_stream, chainlit_step
-            )
+            full_message, step_message, raw_full_message = await _handle_message_stream(message_stream, chainlit_step)
 
         final_message = _extract_final_message(raw_full_message)
         final_message = _detect_image_name_and_move_to_public(final_message)
@@ -278,7 +268,7 @@ async def _process_agent_response(agent_input: list, message_history: list):
         print(os.getcwd())
         print(final_message)
 
-        with open(f"conversion_history.txt", "a") as f:
+        with open("conversion_history.txt", "a") as f:
             f.write(raw_full_message + "\n")
         message_history.append({"role": "assistant", "content": raw_full_message})
 
@@ -288,9 +278,7 @@ async def _process_agent_response(agent_input: list, message_history: list):
         # await cl.Message(
         #     content="⏹️ **실행 중지됨**: 사용자가 실행을 중지했습니다."
         # ).send()
-        message_history.append(
-            {"role": "assistant", "content": "실행이 사용자에 의해 중지되었습니다."}
-        )
+        message_history.append({"role": "assistant", "content": "실행이 사용자에 의해 중지되었습니다."})
         raise  # Re-raise to properly propagate cancellation
     except TimeoutError as e:
         error_message = str(e)
@@ -300,9 +288,7 @@ async def _process_agent_response(agent_input: list, message_history: list):
             f"최대 대기 시간({STREAMING_MAX_TIMEOUT}초)이 초과되었습니다. "
             "더 작은 작업으로 나누어 다시 시도해주세요."
         ).send()
-        message_history.append(
-            {"role": "assistant", "content": f"타임아웃 발생: {error_message}"}
-        )
+        message_history.append({"role": "assistant", "content": f"타임아웃 발생: {error_message}"})
     except Exception as e:
         error_message = f"스트리밍 처리 중 오류 발생: {str(e)}"
         logger.error(error_message, exc_info=True)
@@ -349,9 +335,7 @@ async def _handle_message_stream(message_stream, chainlit_step):
                 # Send a zero-width space to keep connection alive without visible effect
                 try:
                     await chainlit_step.stream_token("\u200b")  # Zero-width space
-                    logger.debug(
-                        f"Heartbeat sent (last chunk: {time_since_last_chunk:.1f}s ago)"
-                    )
+                    logger.debug(f"Heartbeat sent (last chunk: {time_since_last_chunk:.1f}s ago)")
                 except (asyncio.CancelledError, Exception) as e:
                     logger.warning(f"Failed to send heartbeat: {e}")
                     break
@@ -379,8 +363,7 @@ async def _handle_message_stream(message_stream, chainlit_step):
             if elapsed_time > STREAMING_MAX_TIMEOUT:
                 logger.warning(f"Streaming timeout after {elapsed_time:.1f}s")
                 raise TimeoutError(
-                    f"스트리밍이 최대 대기 시간({STREAMING_MAX_TIMEOUT}초)을 초과했습니다. "
-                    "연결이 끊어졌을 수 있습니다."
+                    f"스트리밍이 최대 대기 시간({STREAMING_MAX_TIMEOUT}초)을 초과했습니다. 연결이 끊어졌을 수 있습니다."
                 )
 
             last_chunk_time = time.time()  # Update last chunk time
@@ -409,9 +392,7 @@ async def _handle_message_stream(message_stream, chainlit_step):
                 # Stream only the delta (new portion) to avoid duplicates
                 if formatted_text != last_formatted_text:
                     # Calculate delta: what's new since last display
-                    if last_formatted_text and formatted_text.startswith(
-                        last_formatted_text
-                    ):
+                    if last_formatted_text and formatted_text.startswith(last_formatted_text):
                         # Incremental: only stream the new part
                         delta = formatted_text[len(last_formatted_text) :]
                     else:
@@ -434,8 +415,7 @@ async def _handle_message_stream(message_stream, chainlit_step):
         if full_formatted != last_formatted_text:
             remaining_delta = (
                 full_formatted[len(last_formatted_text) :]
-                if last_formatted_text
-                and full_formatted.startswith(last_formatted_text)
+                if last_formatted_text and full_formatted.startswith(last_formatted_text)
                 else full_formatted
             )
             if remaining_delta:
@@ -544,9 +524,7 @@ def _detect_code_type(code: str) -> str:
 
     # Count pattern matches
     r_score = sum(1 for pattern in r_patterns if re.search(pattern, code_stripped))
-    bash_score = sum(
-        1 for pattern in bash_patterns if re.search(pattern, code_stripped)
-    )
+    bash_score = sum(1 for pattern in bash_patterns if re.search(pattern, code_stripped))
 
     # Determine code type based on scores
     if r_score > 0 and r_score >= bash_score:
@@ -605,9 +583,7 @@ def _replace_code_type_placeholders(content: str) -> str:
         code_type = _detect_code_type(code_content)
         return f"```{code_type}\n{code_content}"
 
-    content = re.sub(
-        open_code_pattern, replace_open_code_type, content, flags=re.DOTALL
-    )
+    content = re.sub(open_code_pattern, replace_open_code_type, content, flags=re.DOTALL)
 
     return content
 
@@ -630,9 +606,7 @@ def _replace_biomni_imports(content: str) -> str:
             return f"```\n{modified_code}```"
 
     # Apply replacement to all code blocks
-    content = re.sub(
-        code_block_pattern, replace_imports_in_code, content, flags=re.DOTALL
-    )
+    content = re.sub(code_block_pattern, replace_imports_in_code, content, flags=re.DOTALL)
 
     return content
 
@@ -665,21 +639,15 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
         if image_path.startswith(("./public/", "public/", "/public/")):
             # Normalize to absolute path
             if not image_path.startswith("/public/"):
-                image_path = "/public/" + image_path.replace("./public/", "").replace(
-                    "public/", ""
-                )
-            return (
-                f"[![{alt_text}]({image_path})]({image_path})[Download]({image_path})"
-            )
+                image_path = "/public/" + image_path.replace("./public/", "").replace("public/", "")
+            return f"[![{alt_text}]({image_path})]({image_path})[Download]({image_path})"
 
         # Check if file exists
         if not os.path.exists(image_path):
             return match.group(0)
 
         # Generate random prefix and new filename
-        random_prefix = "".join(
-            random.choices(string.ascii_lowercase + string.digits, k=6)
-        )
+        random_prefix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
         file_name = os.path.basename(image_path)
         new_file_name = f"{random_prefix}_{file_name}"
         new_file_path = os.path.join(public_dir, new_file_name)
@@ -687,7 +655,9 @@ def _detect_image_name_and_move_to_public(content: str) -> str:
         try:
             shutil.copy2(image_path, new_file_path)
             print("copied image to", new_file_path)
-            return f"[![{alt_text}](/public/{new_file_name})](/public/{new_file_name})[Download](/public/{new_file_name})"
+            return (
+                f"[![{alt_text}](/public/{new_file_name})](/public/{new_file_name})[Download](/public/{new_file_name})"
+            )
         except Exception as e:
             print(f"Error moving image {image_path}: {e}")
             return match.group(0)

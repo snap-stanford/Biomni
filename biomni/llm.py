@@ -109,9 +109,7 @@ def get_llm(
             ):
                 source = "Bedrock"
             else:
-                raise ValueError(
-                    "Unable to determine model source. Please specify 'source' parameter."
-                )
+                raise ValueError("Unable to determine model source. Please specify 'source' parameter.")
 
     # Create appropriate model based on source
     if source == "OpenAI":
@@ -250,8 +248,7 @@ def get_llm(
 
         if not gemini_api_key:
             raise ValueError(
-                "GEMINI_API_KEY environment variable is not set. "
-                "Please set it or add it to ~/.bash_profile"
+                "GEMINI_API_KEY environment variable is not set. Please set it or add it to ~/.bash_profile"
             )
 
         return ChatOpenAI(
@@ -311,9 +308,7 @@ def get_llm(
                 "langchain-openai package is required for custom models. Install with: pip install langchain-openai"
             )
         # Custom LLM serving such as SGLang. Must expose an openai compatible API.
-        assert (
-            base_url is not None
-        ), "base_url must be provided for customly served LLMs"
+        assert base_url is not None, "base_url must be provided for customly served LLMs"
         llm = ChatOpenAI(
             model=model,
             temperature=temperature,

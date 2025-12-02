@@ -1,4 +1,4 @@
-"\"\"\"Logging utilities shared by Omics Horizon components.\"\"\""
+'"""Logging utilities shared by Omics Horizon components."""'
 
 from __future__ import annotations
 
@@ -25,8 +25,7 @@ def setup_file_logger(logger_name: str, log_filename: str) -> logging.Logger:
     existing = [
         handler
         for handler in root_logger.handlers
-        if isinstance(handler, RotatingFileHandler)
-        and getattr(handler, "baseFilename", None) == str(log_path)
+        if isinstance(handler, RotatingFileHandler) and getattr(handler, "baseFilename", None) == str(log_path)
     ]
     if not existing:
         file_handler = RotatingFileHandler(

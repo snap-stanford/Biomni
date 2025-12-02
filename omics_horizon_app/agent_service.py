@@ -1,9 +1,8 @@
-"\"\"\"Agent initialization helpers for Omics Horizon.\"\"\""
+'"""Agent initialization helpers for Omics Horizon."""'
 
 from __future__ import annotations
 
 import streamlit as st
-
 from biomni.agent import A1_HITS
 
 from .config import create_agent_config

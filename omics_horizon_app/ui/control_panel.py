@@ -1,10 +1,10 @@
-"\"\"\"Control panel rendering helpers for Omics Horizon UI.\"\"\""
+'"""Control panel rendering helpers for Omics Horizon UI."""'
 
 from __future__ import annotations
 
 import streamlit as st
 
-from ..utils.pdf_export import export_to_pdf_button
+from omics_horizon_app.utils.pdf_export import export_to_pdf_button
 
 
 def render_control_panel(t, llm_model: str, workspace_display_fn) -> None:
@@ -17,27 +17,23 @@ def render_control_panel(t, llm_model: str, workspace_display_fn) -> None:
         f"""
     - Data files: {len(st.session_state.data_files)}
     - Paper files: {len(st.session_state.paper_files)}
-    - Method defined: {'✅' if st.session_state.analysis_method else '❌'}
+    - Method defined: {"✅" if st.session_state.analysis_method else "❌"}
     - Work directory: `{workspace_display}`
     """
     )
 
     st.markdown("---")
-    
+
     # PDF Export button
     export_to_pdf_button()
-    
+
     st.markdown("---")
 
     if st.session_state.steps_state:
         if st.button("🔄 Reset Analysis", key="reset_analysis", use_container_width=True):
             st.session_state.steps_state = {}
             st.session_state.current_step = 0
-            reset_msg = (
-                "✅ Analysis reset!"
-                if st.session_state.language == "en"
-                else "✅ 분석이 초기화되었습니다!"
-            )
+            reset_msg = "✅ Analysis reset!" if st.session_state.language == "en" else "✅ 분석이 초기화되었습니다!"
             st.success(reset_msg)
             st.rerun()
         st.markdown("---")
@@ -52,9 +48,7 @@ def render_control_panel(t, llm_model: str, workspace_display_fn) -> None:
         st.session_state.qa_history = []
         st.session_state.message_history = []
         success_msg = (
-            "✅ All data cleared!"
-            if st.session_state.language == "en"
-            else "✅ 모든 데이터가 삭제되었습니다!"
+            "✅ All data cleared!" if st.session_state.language == "en" else "✅ 모든 데이터가 삭제되었습니다!"
         )
         st.success(success_msg)
         st.rerun()
@@ -65,16 +59,16 @@ def render_control_panel(t, llm_model: str, workspace_display_fn) -> None:
         st.markdown(
             f"""
         ### How to use (Interactive Mode):
-        
+
         1. **Upload Data** (Panel 1)
            - Upload CSV, Excel, or other data files
            - Click "Analyze Data" to get a briefing
-        
+
         2. **Upload Paper** (Panel 2)
            - Upload a research paper (PDF)
            - Click "Extract Analysis Workflow"
            - Edit the workflow if needed
-        
+
         3. **Interactive Step-by-Step Analysis** (Panel 3)
            - **Start Step 1**: Click "▶️ Start Step 1" button
            - **Review Results**: Check the analysis output and figures
@@ -82,12 +76,12 @@ def render_control_panel(t, llm_model: str, workspace_display_fn) -> None:
            - **Re-run** (if needed): Click "🔄 Re-run" to apply feedback
            - **Next Step**: Click "▶️ Next" to proceed to Step 2
            - **Repeat** for all steps
-           
-        ### {t('refinement_instructions_title')}
-        - {t('refinement_instructions_1')}
-        - {t('refinement_instructions_2')}
-        - {t('refinement_instructions_3')}
-        - {t('refinement_instructions_4')}
+
+        ### {t("refinement_instructions_title")}
+        - {t("refinement_instructions_1")}
+        - {t("refinement_instructions_2")}
+        - {t("refinement_instructions_3")}
+        - {t("refinement_instructions_4")}
 
         ### Tips:
         - Each step builds on previous results
