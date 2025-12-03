@@ -13,5 +13,5 @@ source activate biomni_hits
 python benchmark.py -f gemini-3-pro-preview_2 \
                     -l gemini-3-pro-preview \
                     -n 16 \
-                    -d gwas_causal_gene_gwas_catalog DbQA gwas_causal_gene_opentargets gwas_variant_prioritization \
+                    -d gwas_causal_gene_gwas_catalog DbQA gwas_causal_gene_opentargets gwas_variant_prioritization SeqQA HLE \
                     -s

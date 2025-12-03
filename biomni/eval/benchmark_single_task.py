@@ -13,13 +13,7 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from biomni.task.lab_bench import lab_bench
-from biomni.task.hle import humanity_last_exam
-from biomni.task.biomni_eval1_task import biomni_eval1_task
-from biomni.agent import A1_HITS
-from biomni.config import default_config
-from biomni.llm import get_llm
-from langchain_core.messages import HumanMessage
+# Heavy imports are done lazily inside run_single_task() for faster skip checks
 
 
 def convert_vanilla_model_name(llm_name: str) -> str:
@@ -65,6 +59,15 @@ def run_single_task(
     if skip_existing and os.path.exists(ans_file):
         print(f"✓ Skipping {dataset}/ans_{index}.json (already exists)")
         return
+
+    # Lazy imports - only load heavy modules after skip check passes
+    from biomni.task.lab_bench import lab_bench
+    from biomni.task.hle import humanity_last_exam
+    from biomni.task.biomni_eval1_task import biomni_eval1_task
+    from biomni.agent import A1_HITS
+    from biomni.config import default_config
+    from biomni.llm import get_llm
+    from langchain_core.messages import HumanMessage
 
     # Check if vanilla mode (direct LLM invocation)
     # Support both '_vanilla' and '_vanila' (typo)

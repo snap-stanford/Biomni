@@ -49,9 +49,17 @@ def generate_commands(
 ):
     """Generate all execution commands"""
     commands = []
+    skipped_count = 0
     script_path = Path(__file__).parent / "benchmark_single_task.py"
 
     for i in indices_to_run:
+        # Pre-check if output exists to avoid spawning subprocess
+        if skip_existing:
+            ans_file = output_dir / dataset / f"ans_{i}.json"
+            if ans_file.exists():
+                skipped_count += 1
+                continue
+
         cmd = [
             sys.executable,
             str(script_path),
@@ -64,10 +72,12 @@ def generate_commands(
             "--output-dir",
             str(output_dir),
         ]
-        if skip_existing:
-            cmd.append("--skip-existing")
+        # No need to pass --skip-existing since we already filtered
 
         commands.append(" ".join(cmd))
+
+    if skipped_count > 0:
+        print(f"  ⏭️  {dataset}: Skipped {skipped_count} existing outputs")
 
     return commands
 
