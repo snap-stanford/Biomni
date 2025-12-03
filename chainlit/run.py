@@ -12,6 +12,7 @@ import shutil
 import random
 import string
 import base64
+import io
 from PIL import Image
 from biomni.config import default_config
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
@@ -26,6 +27,10 @@ from sqlalchemy.ext.asyncio import (
 import asyncio
 import logging
 import concurrent.futures
+from openai import OpenAI
+
+# OpenAI client for Whisper API (Speech-to-Text)
+openai_client = OpenAI()
 
 # Configuration
 LLM_MODEL = "gemini-3-pro-preview"
@@ -345,6 +350,95 @@ async def resume_chat():
     cl.user_session.set("uploaded_files", uploaded_files)
     if uploaded_files:
         logger.info(f"Restored {len(uploaded_files)} uploaded files: {', '.join(uploaded_files)}")
+
+
+@cl.on_audio_chunk
+async def on_audio_chunk(chunk: cl.AudioChunk):
+    """Handle incoming audio chunks from user's microphone.
+    
+    This function is called for each audio chunk received during voice recording.
+    When this decorator is implemented, Chainlit automatically enables the microphone button in the UI.
+    """
+    if chunk.isStart:
+        # Initialize audio buffer at the start of recording
+        buffer = io.BytesIO()
+        buffer.name = "audio.webm"  # Chainlit sends audio in webm format
+        cl.user_session.set("audio_buffer", buffer)
+        cl.user_session.set("audio_mime_type", chunk.mimeType)
+        logger.info(f"[AUDIO] Started recording, mime type: {chunk.mimeType}")
+    
+    # Append audio data to buffer
+    audio_buffer = cl.user_session.get("audio_buffer")
+    if audio_buffer:
+        audio_buffer.write(chunk.data)
+
+
+@cl.on_audio_end
+async def on_audio_end(elements: list[cl.Audio]):
+    """Handle end of audio recording.
+    
+    This function is called when user stops recording.
+    It transcribes the audio using OpenAI Whisper API and processes the transcribed text.
+    """
+    audio_buffer = cl.user_session.get("audio_buffer")
+    
+    if not audio_buffer:
+        logger.warning("[AUDIO] No audio buffer found")
+        await cl.Message(content="음성 녹음을 찾을 수 없습니다. 다시 시도해주세요.").send()
+        return
+    
+    # Reset buffer position to beginning for reading
+    audio_buffer.seek(0)
+    audio_data = audio_buffer.read()
+    
+    if len(audio_data) == 0:
+        logger.warning("[AUDIO] Empty audio buffer")
+        await cl.Message(content="녹음된 음성이 없습니다. 다시 시도해주세요.").send()
+        return
+    
+    logger.info(f"[AUDIO] Recording ended, buffer size: {len(audio_data)} bytes")
+    
+    # Show processing indicator
+    processing_msg = cl.Message(content="🎤 음성을 텍스트로 변환 중...")
+    await processing_msg.send()
+    
+    try:
+        # Prepare audio file for Whisper API
+        audio_buffer.seek(0)
+        audio_buffer.name = "audio.webm"
+        
+        # Transcribe audio using OpenAI Whisper API
+        transcription = openai_client.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_buffer,
+            language="ko"  # Korean language
+        )
+        
+        transcribed_text = transcription.text.strip()
+        logger.info(f"[AUDIO] Transcription result: {transcribed_text}")
+        
+        if not transcribed_text:
+            await processing_msg.remove()
+            await cl.Message(content="음성을 인식할 수 없습니다. 다시 시도해주세요.").send()
+            return
+        
+        # Remove processing indicator
+        await processing_msg.remove()
+        
+        # Create user message with transcribed text
+        user_msg = cl.Message(author="User", content=transcribed_text)
+        await user_msg.send()
+        
+        # Process the transcribed message through the main handler
+        await main(user_msg)
+        
+    except Exception as e:
+        logger.error(f"[AUDIO] Transcription error: {e}", exc_info=True)
+        await processing_msg.remove()
+        await cl.Message(content=f"음성 변환 중 오류가 발생했습니다: {str(e)}").send()
+    finally:
+        # Clean up audio buffer
+        cl.user_session.set("audio_buffer", None)
 
 
 @cl.on_message
