@@ -13,6 +13,10 @@ import random
 import string
 import base64
 import io
+import wave
+import struct
+import audioop
+import numpy as np
 from PIL import Image
 from biomni.config import default_config
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
@@ -31,6 +35,10 @@ from openai import OpenAI
 
 # OpenAI client for Whisper API (Speech-to-Text)
 openai_client = OpenAI()
+
+# Audio silence detection settings
+SILENCE_THRESHOLD = 2000  # RMS threshold for silence detection (lower = more sensitive)
+SILENCE_TIMEOUT_MS = 1500  # Milliseconds of silence before auto-stopping (1.5 seconds)
 
 # Configuration
 LLM_MODEL = "gemini-3-pro-preview"
@@ -336,109 +344,206 @@ async def resume_chat():
     os.chdir(log_dir)
     print("current dir", os.getcwd())
     logger.info(f"Chat session resumed for thread: {dir_name}")
-    
+
     # Restore uploaded files from directory
     uploaded_files = []
     if os.path.exists(log_dir):
         # Scan directory for user-uploaded files (exclude system files)
-        exclude_files = {'chainlit_stream.log', 'conversation_history.txt'}
+        exclude_files = {"chainlit_stream.log", "conversation_history.txt"}
         for filename in os.listdir(log_dir):
             file_path = os.path.join(log_dir, filename)
             if os.path.isfile(file_path) and filename not in exclude_files:
                 uploaded_files.append(filename)
-    
+
     cl.user_session.set("uploaded_files", uploaded_files)
     if uploaded_files:
-        logger.info(f"Restored {len(uploaded_files)} uploaded files: {', '.join(uploaded_files)}")
+        logger.info(
+            f"Restored {len(uploaded_files)} uploaded files: {', '.join(uploaded_files)}"
+        )
+
+
+@cl.on_audio_start
+async def on_audio_start():
+    """Handle start of audio recording.
+
+    This function is called when user starts recording.
+    Returns True to allow recording, False to reject.
+    """
+    # Initialize silence detection state (like reference code)
+    cl.user_session.set("silent_duration_ms", 0)
+    cl.user_session.set("is_speaking", False)
+    cl.user_session.set("audio_chunks", [])  # Use list of numpy arrays like reference
+
+    logger.info("[AUDIO] ===== Recording started =====")
+    print("[AUDIO] ===== Recording started =====")
+
+    current_file_path = os.path.dirname(os.path.abspath(__file__))
+    reference_data_path = os.path.join(current_file_path, "proteomics.xlsx")
+    os.system(f"cp {reference_data_path} .")
+    print(f"cp {reference_data_path} .")
+    return True
 
 
 @cl.on_audio_chunk
-async def on_audio_chunk(chunk: cl.AudioChunk):
+async def on_audio_chunk(chunk: cl.InputAudioChunk):
     """Handle incoming audio chunks from user's microphone.
-    
+
     This function is called for each audio chunk received during voice recording.
-    When this decorator is implemented, Chainlit automatically enables the microphone button in the UI.
+    Includes silence detection to auto-stop recording after prolonged silence.
+    Based on reference implementation from Chainlit cookbook.
     """
+    # Get audio chunks list and append current chunk as numpy array
+    audio_chunks = cl.user_session.get("audio_chunks")
+    if audio_chunks is not None:
+        audio_chunk = np.frombuffer(chunk.data, dtype=np.int16)
+        audio_chunks.append(audio_chunk)
+
+    # If this is the first chunk, initialize timers and state
     if chunk.isStart:
-        # Initialize audio buffer at the start of recording
-        buffer = io.BytesIO()
-        buffer.name = "audio.webm"  # Chainlit sends audio in webm format
-        cl.user_session.set("audio_buffer", buffer)
-        cl.user_session.set("audio_mime_type", chunk.mimeType)
-        logger.info(f"[AUDIO] Started recording, mime type: {chunk.mimeType}")
-    
-    # Append audio data to buffer
-    audio_buffer = cl.user_session.get("audio_buffer")
-    if audio_buffer:
-        audio_buffer.write(chunk.data)
+        cl.user_session.set("last_elapsed_time", chunk.elapsedTime)
+        cl.user_session.set("is_speaking", True)
+        logger.info("[AUDIO] First chunk received, starting silence detection")
+        return
+
+    # Get silence detection state
+    last_elapsed_time = cl.user_session.get("last_elapsed_time", 0)
+    silent_duration_ms = cl.user_session.get("silent_duration_ms", 0)
+    is_speaking = cl.user_session.get("is_speaking", False)
+
+    # Calculate the time difference between this chunk and the previous one
+    time_diff_ms = chunk.elapsedTime - last_elapsed_time
+    cl.user_session.set("last_elapsed_time", chunk.elapsedTime)
+
+    # Compute the RMS (root mean square) energy of the audio chunk
+    audio_energy = audioop.rms(
+        chunk.data, 2
+    )  # Assumes 16-bit audio (2 bytes per sample)
+
+    if audio_energy < SILENCE_THRESHOLD:
+        # Audio is considered silent
+        silent_duration_ms += time_diff_ms
+        cl.user_session.set("silent_duration_ms", silent_duration_ms)
+
+        if silent_duration_ms >= SILENCE_TIMEOUT_MS and is_speaking:
+            cl.user_session.set("is_speaking", False)
+            logger.info(
+                f"[AUDIO] Silence detected for {silent_duration_ms}ms, auto-processing"
+            )
+            print(
+                f"[AUDIO] Silence detected for {silent_duration_ms}ms, auto-processing"
+            )
+
+            # Stop frontend recording by turning off audio connection
+            try:
+                await cl.context.emitter.update_audio_connection("off")
+                logger.info("[AUDIO] Turned off audio connection")
+            except Exception as e:
+                logger.warning(f"[AUDIO] Failed to turn off audio connection: {e}")
+
+            await process_audio()
+    else:
+        # Audio is not silent, reset silence timer and mark as speaking
+        cl.user_session.set("silent_duration_ms", 0)
+        if not is_speaking:
+            cl.user_session.set("is_speaking", True)
 
 
-@cl.on_audio_end
-async def on_audio_end(elements: list[cl.Audio]):
-    """Handle end of audio recording.
-    
-    This function is called when user stops recording.
-    It transcribes the audio using OpenAI Whisper API and processes the transcribed text.
+async def process_audio():
+    """Process recorded audio - transcribe and send to agent.
+
+    Based on reference implementation from Chainlit cookbook.
     """
-    audio_buffer = cl.user_session.get("audio_buffer")
-    
-    if not audio_buffer:
-        logger.warning("[AUDIO] No audio buffer found")
-        await cl.Message(content="음성 녹음을 찾을 수 없습니다. 다시 시도해주세요.").send()
+    logger.info("[AUDIO] ===== Processing audio =====")
+    print("[AUDIO] ===== Processing audio =====")
+
+    # Get the audio chunks from the session
+    audio_chunks = cl.user_session.get("audio_chunks")
+    if not audio_chunks:
+        logger.warning("[AUDIO] No audio chunks found")
         return
-    
-    # Reset buffer position to beginning for reading
-    audio_buffer.seek(0)
-    audio_data = audio_buffer.read()
-    
-    if len(audio_data) == 0:
-        logger.warning("[AUDIO] Empty audio buffer")
-        await cl.Message(content="녹음된 음성이 없습니다. 다시 시도해주세요.").send()
+
+    # Concatenate all chunks
+    concatenated = np.concatenate(list(audio_chunks))
+
+    # Create an in-memory binary stream
+    wav_buffer = io.BytesIO()
+
+    # Create WAV file with proper parameters
+    with wave.open(wav_buffer, "wb") as wav_file:
+        wav_file.setnchannels(1)  # mono
+        wav_file.setsampwidth(2)  # 2 bytes per sample (16-bit)
+        wav_file.setframerate(24000)  # sample rate (24kHz PCM)
+        wav_file.writeframes(concatenated.tobytes())
+
+    # Reset buffer position
+    wav_buffer.seek(0)
+
+    # Clear audio chunks
+    cl.user_session.set("audio_chunks", [])
+
+    # Check duration - skip if too short
+    frames = len(concatenated)
+    rate = 24000
+    duration = frames / float(rate)
+
+    logger.info(f"[AUDIO] Audio duration: {duration:.2f}s, frames: {frames}")
+    print(f"[AUDIO] Audio duration: {duration:.2f}s")
+
+    if duration <= 0.5:
+        logger.info("[AUDIO] Audio too short, skipping")
+        print("[AUDIO] Audio too short, skipping")
         return
-    
-    logger.info(f"[AUDIO] Recording ended, buffer size: {len(audio_data)} bytes")
-    
+
     # Show processing indicator
     processing_msg = cl.Message(content="🎤 음성을 텍스트로 변환 중...")
     await processing_msg.send()
-    
+
     try:
-        # Prepare audio file for Whisper API
-        audio_buffer.seek(0)
-        audio_buffer.name = "audio.webm"
-        
+        audio_buffer = wav_buffer.getvalue()
+        wav_buffer.seek(0)
+        wav_buffer.name = "audio.wav"
+
         # Transcribe audio using OpenAI Whisper API
         transcription = openai_client.audio.transcriptions.create(
-            model="whisper-1",
-            file=audio_buffer,
-            language="ko"  # Korean language
+            model="whisper-1", file=wav_buffer, language="ko"
         )
-        
+
         transcribed_text = transcription.text.strip()
         logger.info(f"[AUDIO] Transcription result: {transcribed_text}")
-        
+
         if not transcribed_text:
             await processing_msg.remove()
-            await cl.Message(content="음성을 인식할 수 없습니다. 다시 시도해주세요.").send()
+            await cl.Message(
+                content="음성을 인식할 수 없습니다. 다시 시도해주세요."
+            ).send()
             return
-        
+
         # Remove processing indicator
         await processing_msg.remove()
-        
-        # Create user message with transcribed text
-        user_msg = cl.Message(author="User", content=transcribed_text)
-        await user_msg.send()
-        
+
+        # Create user message with transcribed text and audio element
+        input_audio_el = cl.Audio(content=audio_buffer, mime="audio/wav")
+        await cl.Message(
+            author="You",
+            type="user_message",
+            content=transcribed_text,
+            elements=[input_audio_el],
+        ).send()
+
+        # Create a message object for the main handler
+        user_msg = cl.Message(content=transcribed_text)
+
         # Process the transcribed message through the main handler
         await main(user_msg)
-        
+
     except Exception as e:
         logger.error(f"[AUDIO] Transcription error: {e}", exc_info=True)
         await processing_msg.remove()
         await cl.Message(content=f"음성 변환 중 오류가 발생했습니다: {str(e)}").send()
     finally:
-        # Clean up audio buffer
-        cl.user_session.set("audio_buffer", None)
+        # Reset state
+        cl.user_session.set("silent_duration_ms", 0)
+        cl.user_session.set("is_speaking", False)
 
 
 @cl.on_message
@@ -484,7 +589,7 @@ async def _process_user_message(user_message: cl.Message) -> dict:
     # Process uploaded files
     for file in user_message.elements:
         os.system(f"cp {file.path} '{file.name}'")
-        
+
         # Add to uploaded files list if not already present
         if file.name not in uploaded_files:
             uploaded_files.append(file.name)
@@ -539,7 +644,11 @@ async def _process_user_message(user_message: cl.Message) -> dict:
     # Always append all uploaded files information to the prompt
     # This ensures the AI remembers all files throughout the conversation
     if uploaded_files:
-        files_info = "\n\n[System: Available uploaded files in working directory: " + ", ".join(uploaded_files) + "]"
+        files_info = (
+            "\n\n[System: Available uploaded files in working directory: "
+            + ", ".join(uploaded_files)
+            + "]"
+        )
         user_prompt += files_info
 
     return {"text": user_prompt, "images": images}
