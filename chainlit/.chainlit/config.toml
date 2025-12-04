@@ -51,8 +51,20 @@ edit_message = true
     max_size_mb = 500
 
 [features.audio]
+    # Enable audio input (microphone button)
+    enabled = true
     # Sample rate of the audio
     sample_rate = 24000
+    # Threshold for audio detection (in decibels, lower = more sensitive, default: -40)
+    min_decibels = -50
+    # Time in milliseconds to wait before stopping recording after silence (2.5초)
+    silence_timeout = 1500
+    # Initial silence timeout in milliseconds (5초 - 말하기 전 준비 시간)
+    initial_silence_timeout = 5000
+    # Chunk duration in milliseconds
+    chunk_duration = 1000
+    # Maximum recording duration in milliseconds (2분)
+    max_duration = 120000
 
 [features.mcp.sse]
     enabled = true
