@@ -1,21 +1,15 @@
-# 간단한 통계 분석
+# Task: Statistical Analysis and Visualization
 
-다음 데이터에 대한 기본 통계 분석을 수행해주세요:
+Please perform the following statistical analysis:
 
-**데이터**: [10, 20, 15, 25, 30, 18, 22, 28, 16, 24]
+1. Generate a histogram showing the distribution of a sample dataset
+2. Create a boxplot comparing different groups in the data
 
-다음을 계산하고 보고해주세요:
+Use the provided data files or generate sample data if needed. Save the visualizations as PNG files.
 
-1. **기본 통계량**
-   - 평균 (Mean)
-   - 중앙값 (Median)
-   - 표준편차 (Standard Deviation)
-   - 최솟값, 최댓값
+## Requirements:
+- Histogram should be saved as `histogram.png`
+- Boxplot should be saved as `boxplot.png`
+- Include appropriate labels, titles, and formatting
+- Use Python with matplotlib or similar visualization library
 
-2. **시각화**
-   - 히스토그램 생성
-   - 박스플롯 생성
-
-3. **결과 해석**
-   - 데이터의 분포 특성 설명
-   - 이상치(outlier) 여부 확인

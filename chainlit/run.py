@@ -1,4 +1,8 @@
 import chainlit as cl
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from biomni.agent import A1_HITS
 from langchain_core.messages import (
     AIMessage,
@@ -19,6 +23,7 @@ import audioop
 import numpy as np
 from PIL import Image
 from biomni.config import default_config
+from biomni.tool.memory import save_conversation
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from chainlit.data.storage_clients.base import BaseStorageClient
 from sqlalchemy import create_engine, event
@@ -40,14 +45,48 @@ openai_client = OpenAI()
 SILENCE_THRESHOLD = 2000  # RMS threshold for silence detection (lower = more sensitive)
 SILENCE_TIMEOUT_MS = 1500  # Milliseconds of silence before auto-stopping (1.5 seconds)
 
+CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def _resolve_biomni_data_path() -> str:
+    """Determine the local biomni data path, preferring existing directories."""
+    candidates = []
+    for env_key in ("BIOMNI_DATA_PATH", "BIOMNI_PATH"):
+        env_value = os.getenv(env_key)
+        if env_value:
+            candidates.append(env_value)
+
+    # Known shared locations and repo-relative defaults
+    candidates.extend(
+        [
+            "/workdir_efs/jhjeon/Biomni/biomni_data",
+            os.path.join(CURRENT_ABS_DIR, "..", "biomni_data"),
+            os.path.join(CURRENT_ABS_DIR, "biomni_data"),
+        ]
+    )
+
+    seen = set()
+    for candidate in candidates:
+        if not candidate:
+            continue
+        abs_candidate = os.path.abspath(candidate)
+        if abs_candidate in seen:
+            continue
+        seen.add(abs_candidate)
+        if os.path.isdir(abs_candidate):
+            return abs_candidate
+
+    fallback = os.path.abspath(os.path.join(CURRENT_ABS_DIR, "..", "biomni_data"))
+    os.makedirs(fallback, exist_ok=True)
+    return fallback
+
+
 # Configuration
 LLM_MODEL = "gemini-3-pro-preview"
 # LLM_MODEL = "grok-4-fast"
-BIOMNI_DATA_PATH = "/workdir_efs/jhjeon/Biomni/biomni_data"
-BIOMNI_DATA_PATH = "./"
-CURRENT_ABS_DIR = os.path.dirname(os.path.abspath(__file__))
-PUBLIC_DIR = f"{CURRENT_ABS_DIR}/public"
-CHAINLIT_DB_PATH = "chainlit.db"
+BIOMNI_DATA_PATH = _resolve_biomni_data_path()
+PUBLIC_DIR = os.path.join(os.getcwd(), "public")
+CHAINLIT_DB_PATH = os.path.join(CURRENT_ABS_DIR, "chainlit.db")
 STREAMING_MAX_TIMEOUT = 3600  # Maximum streaming timeout in seconds (1 hour)
 
 default_config.llm = LLM_MODEL
@@ -770,6 +809,13 @@ async def _process_agent_response(agent_input: list, message_history: list):
             f.write(raw_full_message + "\n")
         message_history.append({"role": "assistant", "content": raw_full_message})
 
+        # Save conversation to memory
+        try:
+            user_message_content = message_history[-2]["content"] # The message before the one we just appended
+            save_conversation(user_message_content, final_message)
+        except Exception as e:
+            logger.error(f"Failed to save conversation to memory: {e}")
+
     except asyncio.CancelledError:
         # Handle stop button click
         logger.info("User requested to stop the execution")
@@ -1341,6 +1387,26 @@ def _detect_image_name_and_move_to_public(
             )
 
         # Check if file exists
+        if not os.path.exists(image_path):
+             # Try to find it relative to the current working directory (chainlit_logs/thread_id)
+             # or relative to the project root (CURRENT_ABS_DIR)
+            
+            # 1. Check relative to CWD (already done by exists check if path is relative, but explicit check for absolute path construction might be needed)
+            cwd_path = os.path.abspath(image_path)
+            if os.path.exists(cwd_path):
+                image_path = cwd_path
+            else:
+                # 2. Check relative to CURRENT_ABS_DIR (project root where run.py is, or parent of it)
+                # Note: CURRENT_ABS_DIR in this file is chainlit/ directory. 
+                # But the agent execution happens in chainlit_logs/{thread_id}. 
+                # Sometimes paths are relative to project root.
+                
+                # Try relative to project root (parent of chainlit dir)
+                project_root = os.path.dirname(CURRENT_ABS_DIR)
+                root_path = os.path.join(project_root, image_path)
+                if os.path.exists(root_path):
+                    image_path = root_path
+                
         if not os.path.exists(image_path):
             return match.group(0)
 

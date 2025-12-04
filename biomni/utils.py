@@ -905,6 +905,7 @@ def textify_api_dict(api_dict):
 def read_module2api():
     fields = [
         "literature",
+        "bio_image_processing",
         "biochemistry",
         "bioimaging",
         "bioengineering",
@@ -925,7 +926,10 @@ def read_module2api():
         "support_tools",
         "database",
         "lab_automation",
-        "protocols",
+        "omics",
+        "qc",
+        "statistics",
+        "memory",
     ]
 
     module2api = {}

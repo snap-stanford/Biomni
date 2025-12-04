@@ -1,14 +1,10 @@
-# 유전자 정보 검색
+# Task: Gene Information Retrieval
 
-다음 유전자에 대한 정보를 검색하고 요약해주세요:
+Please retrieve detailed information about the BRCA1 gene, including:
+- Gene symbol and full name
+- Chromosomal location
+- Associated diseases or conditions
+- Key functions and pathways
 
-**유전자 이름**: BRCA1
-
-다음 내용을 포함해주세요:
-1. 유전자의 전체 이름
-2. 주요 기능
-3. 관련된 질병
-4. 염색체 위치
-
-간단하게 요약해서 답변해주세요.
+Provide a comprehensive summary of this gene's role in human biology and disease.
 

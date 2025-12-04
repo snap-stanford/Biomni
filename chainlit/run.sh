@@ -22,9 +22,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # HTTPS 모드 (마이크 사용을 위해 필요)
 # 자체 서명 인증서 사용 - 브라우저에서 "안전하지 않음" 경고가 나타나면 "고급" -> "계속 진행" 클릭
-chainlit run "${SCRIPT_DIR}/run.py" -h --host 0.0.0.0 --port 8001 \
-    --ssl-cert "${SCRIPT_DIR}/ssl_cert.pem" \
-    --ssl-key "${SCRIPT_DIR}/ssl_key.pem"
+# chainlit run "${SCRIPT_DIR}/run.py" -h --host 0.0.0.0 --port 8001 \
+#     --ssl-cert "${SCRIPT_DIR}/ssl_cert.pem" \
+#     --ssl-key "${SCRIPT_DIR}/ssl_key.pem"
 
 # HTTP 모드 (마이크 사용 불가, localhost에서만 마이크 작동)
 # chainlit run "${SCRIPT_DIR}/run.py" -h --host 0.0.0.0 --port 8001
+chainlit run "${SCRIPT_DIR}/run.py" -h --host 0.0.0.0 --port 8004

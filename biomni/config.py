@@ -34,7 +34,7 @@ class BiomniConfig:
 
     # LLM settings (API keys still from environment)
     llm: str = "claude-sonnet-4-5"
-    temperature: float = 0.7
+    temperature: float = 0.0
 
     # Tool settings
     use_tool_retriever: bool = True
