@@ -1,0 +1,25 @@
+{
+    "category": "data_analysis",
+    "difficulty": "easy",
+    "created_at": "2024-12-05T12:00:00",
+    "description": "Dose-response curve generation with logarithmic scale",
+    "tags": [
+        "dose_response",
+        "data_analysis",
+        "visualization",
+        "curve"
+    ],
+    "expected_tools": [
+        "pandas",
+        "numpy",
+        "matplotlib"
+    ],
+    "requires_images": false,
+    "expected_images": [
+        "dose_response_curve.png"
+    ],
+    "requires_input_data": true,
+    "input_data_files": [
+        "dose_response_data.csv"
+    ]
+}

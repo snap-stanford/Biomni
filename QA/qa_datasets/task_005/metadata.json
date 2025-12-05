@@ -1,0 +1,27 @@
+{
+    "category": "data_analysis",
+    "difficulty": "medium",
+    "created_at": "2024-12-05T12:00:00",
+    "description": "qPCR data analysis with Delta CT, Delta Delta CT, and Fold Change calculations",
+    "tags": [
+        "qpcr",
+        "data_analysis",
+        "fold_change",
+        "heatmap"
+    ],
+    "expected_tools": [
+        "pandas",
+        "numpy",
+        "matplotlib",
+        "seaborn"
+    ],
+    "requires_images": false,
+    "expected_images": [
+        "heatmap.png",
+        "boxplot.png"
+    ],
+    "requires_input_data": true,
+    "input_data_files": [
+        "qpcr_data.csv"
+    ]
+}

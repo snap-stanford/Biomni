@@ -1,0 +1,25 @@
+{
+    "category": "bio_image_processing",
+    "difficulty": "hard",
+    "created_at": "2024-11-28T12:00:00",
+    "description": "Western blot analysis using bio_image_processing tools",
+    "tags": [
+        "image_processing",
+        "bio_image_processing",
+        "western_blot"
+    ],
+    "expected_tools": [
+        "analyze_pixel_distribution",
+        "find_roi_from_image",
+        "quantify_bands"
+    ],
+    "requires_images": true,
+    "expected_images": [
+        "psmad2_quantification.png",
+        "wb_grid_verification.png"
+    ],
+    "requires_input_data": false,
+    "input_data_files": [
+        "wb_full.png"
+    ]
+}
