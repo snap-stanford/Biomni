@@ -17,4 +17,4 @@ I have analyzed the provided image `cell.png` to count the number of cells.
 **Visualization:**
 The segmentation outlines have been saved to `segmentation_results/outlines_cell.png`, which shows the boundaries of the detected cells overlaid on the original image.
 
-![Cell Segmentation Outlines](segmentation_results/outlines_cell.png)
+![Cell Segmentation Outlines](outlines_cell.png)
