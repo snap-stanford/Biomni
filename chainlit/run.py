@@ -625,6 +625,30 @@ async def _process_user_message(user_message: cl.Message) -> dict:
     # PDF file extension
     pdf_extensions = {".pdf"}
 
+    # Video file extensions
+    video_extensions = {
+        ".mp4",
+        ".mov",
+        ".avi",
+        ".webm",
+        ".mkv",
+        ".flv",
+        ".wmv",
+        ".m4v",
+    }
+
+    # Audio file extensions
+    audio_extensions = {
+        ".mp3",
+        ".wav",
+        ".flac",
+        ".ogg",
+        ".m4a",
+        ".aac",
+        ".wma",
+        ".opus",
+    }
+
     # Get current uploaded files list from session
     uploaded_files = cl.user_session.get("uploaded_files", [])
 
@@ -702,6 +726,64 @@ async def _process_user_message(user_message: cl.Message) -> dict:
                     user_prompt += f"\n - user uploaded PDF file: {file.name}\n"
             except Exception as e:
                 print(f"Error processing PDF {file.name}: {e}")
+                user_prompt += f"\n - user uploaded data file: {file.name}\n"
+        # Process video files - encode as base64 (Gemini API supports video natively)
+        elif file_ext in video_extensions:
+            try:
+                # Read video and encode to base64
+                with open(file.path, "rb") as f:
+                    video_data = base64.b64encode(f.read()).decode("utf-8")
+
+                # Determine MIME type for video
+                video_mime_type_map = {
+                    ".mp4": "video/mp4",
+                    ".mov": "video/quicktime",
+                    ".avi": "video/x-msvideo",
+                    ".webm": "video/webm",
+                    ".mkv": "video/x-matroska",
+                    ".flv": "video/x-flv",
+                    ".wmv": "video/x-ms-wmv",
+                    ".m4v": "video/mp4",
+                }
+                mime_type = video_mime_type_map.get(file_ext, "video/mp4")
+
+                # Add video as base64 encoded data
+                images.append(
+                    {"name": file.name, "data": f"data:{mime_type};base64,{video_data}"}
+                )
+
+                user_prompt += f"\n - user uploaded video file: {file.name}\n"
+            except Exception as e:
+                print(f"Error processing video {file.name}: {e}")
+                user_prompt += f"\n - user uploaded data file: {file.name}\n"
+        # Process audio files - encode as base64 (Gemini API supports audio natively)
+        elif file_ext in audio_extensions:
+            try:
+                # Read audio and encode to base64
+                with open(file.path, "rb") as f:
+                    audio_data = base64.b64encode(f.read()).decode("utf-8")
+
+                # Determine MIME type for audio
+                audio_mime_type_map = {
+                    ".mp3": "audio/mpeg",
+                    ".wav": "audio/wav",
+                    ".flac": "audio/flac",
+                    ".ogg": "audio/ogg",
+                    ".m4a": "audio/mp4",
+                    ".aac": "audio/aac",
+                    ".wma": "audio/x-ms-wma",
+                    ".opus": "audio/opus",
+                }
+                mime_type = audio_mime_type_map.get(file_ext, "audio/mpeg")
+
+                # Add audio as base64 encoded data
+                images.append(
+                    {"name": file.name, "data": f"data:{mime_type};base64,{audio_data}"}
+                )
+
+                user_prompt += f"\n - user uploaded audio file: {file.name}\n"
+            except Exception as e:
+                print(f"Error processing audio {file.name}: {e}")
                 user_prompt += f"\n - user uploaded data file: {file.name}\n"
         else:
             user_prompt += f"\n - user uploaded data file: {file.name}\n"
