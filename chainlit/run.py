@@ -622,6 +622,9 @@ async def _process_user_message(user_message: cl.Message) -> dict:
         ".tif",
     }
 
+    # PDF file extension
+    pdf_extensions = {".pdf"}
+
     # Get current uploaded files list from session
     uploaded_files = cl.user_session.get("uploaded_files", [])
 
@@ -633,8 +636,10 @@ async def _process_user_message(user_message: cl.Message) -> dict:
         if file.name not in uploaded_files:
             uploaded_files.append(file.name)
 
-        # Check if it's an image file
+        # Check file extension
         file_ext = os.path.splitext(file.name)[1].lower()
+        
+        # Process image files
         if file_ext in image_extensions:
             try:
                 # Extract image resolution
@@ -673,6 +678,30 @@ async def _process_user_message(user_message: cl.Message) -> dict:
                     user_prompt += f"\n - user uploaded image file: {file.name}\n"
             except Exception as e:
                 print(f"Error processing image {file.name}: {e}")
+                user_prompt += f"\n - user uploaded data file: {file.name}\n"
+        # Process PDF files - encode as base64 like images (Gemini API supports PDF natively)
+        elif file_ext in pdf_extensions:
+            try:
+                # Read PDF and encode to base64 (same way as images)
+                with open(file.path, "rb") as f:
+                    pdf_data = base64.b64encode(f.read()).decode("utf-8")
+
+                # Add PDF as base64 encoded data with application/pdf MIME type
+                images.append(
+                    {"name": file.name, "data": f"data:application/pdf;base64,{pdf_data}"}
+                )
+
+                # Get PDF page count for info (optional, for logging)
+                try:
+                    import PyPDF2
+                    with open(file.path, "rb") as pdf_file:
+                        pdf_reader = PyPDF2.PdfReader(pdf_file)
+                        num_pages = len(pdf_reader.pages)
+                        user_prompt += f"\n - user uploaded PDF file: {file.name} ({num_pages} pages)\n"
+                except Exception:
+                    user_prompt += f"\n - user uploaded PDF file: {file.name}\n"
+            except Exception as e:
+                print(f"Error processing PDF {file.name}: {e}")
                 user_prompt += f"\n - user uploaded data file: {file.name}\n"
         else:
             user_prompt += f"\n - user uploaded data file: {file.name}\n"
