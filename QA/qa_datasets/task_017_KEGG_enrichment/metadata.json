@@ -1,0 +1,11 @@
+{
+  "category": "enrichment",
+  "difficulty": "medium-hard",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "유전자 리스트에 대한 KEGG pathway 농축 분석",
+  "tags": ["KEGG", "enrichment", "pathway", "clusterProfiler"],
+  "expected_tools": ["run_r_code", "clusterProfiler", "org.Hs.eg.db", "ggplot2"],
+  "requires_images": true,
+  "expected_images": ["kegg_dotplot.png"],
+  "requires_input_data": false
+}

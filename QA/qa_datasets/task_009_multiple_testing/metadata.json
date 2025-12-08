@@ -1,0 +1,10 @@
+{
+  "category": "statistics",
+  "difficulty": "medium",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "p-value에 FDR (Benjamini-Hochberg) 보정 적용",
+  "tags": ["multiple_testing", "FDR", "statistics", "p_value_correction"],
+  "expected_tools": ["run_python_code", "run_r_code", "statsmodels", "p.adjust"],
+  "requires_images": false,
+  "requires_input_data": false
+}

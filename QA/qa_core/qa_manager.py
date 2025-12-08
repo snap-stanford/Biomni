@@ -91,17 +91,26 @@ class QAManager:
         images = []
         image_extensions = [".png", ".jpg", ".jpeg", ".gif", ".svg"]
         
-        # input data 파일 찾기 (task 폴더 바로 아래)
+        # input data 파일 찾기 (task 폴더 바로 아래 + input_data/ 하위)
         input_data = []
         input_data_extensions = [".csv", ".txt", ".tsv", ".xlsx", ".fasta", ".fastq", ".bam", ".vcf", ".bed", ".json", ".xml"]
         excluded_files = ["question.md", "answer.md", "metadata.json"]
-        
+
         for item in sorted(task_dir.iterdir()):
             if item.is_file():
                 if item.suffix.lower() in image_extensions:
                     images.append(item.name)
                 elif item.suffix.lower() in input_data_extensions and item.name not in excluded_files:
                     input_data.append(item.name)
+
+        # input_data/ 폴더가 있을 경우 하위 파일을 모두 입력 데이터로 간주해 상대 경로로 추가
+        input_data_dir = task_dir / "input_data"
+        if input_data_dir.exists() and input_data_dir.is_dir():
+            for sub_path in sorted(input_data_dir.rglob("*")):
+                if sub_path.is_file() and sub_path.suffix.lower() in input_data_extensions:
+                    # 상대 경로로 저장해 추후 복사 시 서브디렉토리 구조 유지
+                    rel_path = sub_path.relative_to(task_dir)
+                    input_data.append(str(rel_path))
 
         # 메타데이터 로딩 (있는 경우)
         metadata_file = task_dir / "metadata.json"
@@ -191,4 +200,3 @@ class QAManager:
 
     def __repr__(self) -> str:
         return f"QAManager(tasks={len(self.tasks)})"
-

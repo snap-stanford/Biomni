@@ -1,0 +1,10 @@
+{
+  "category": "database_query",
+  "difficulty": "easy",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "특정 유전자에 대한 상세 정보 검색",
+  "tags": ["gene_search", "database_query", "gene_information"],
+  "expected_tools": ["search_gene_info", "database_query", "gget"],
+  "requires_images": false,
+  "requires_input_data": false
+}

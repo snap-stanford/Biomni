@@ -1,0 +1,12 @@
+{
+  "category": "visualization",
+  "difficulty": "medium",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "Principal Component Analysis 수행 및 시각화",
+  "tags": ["PCA", "visualization", "dimensionality_reduction"],
+  "expected_tools": ["run_python_code", "run_r_code", "sklearn", "prcomp", "ggplot2"],
+  "requires_images": true,
+  "expected_images": ["pca_plot.png"],
+  "requires_input_data": true,
+  "input_data_description": "Gene expression matrix (genes × samples) with group labels"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "data_processing",
+  "difficulty": "easy-medium",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "Ensembl ID를 Gene Symbol로 변환하기",
+  "tags": ["gene_id_conversion", "ensembl", "gene_symbol", "annotation"],
+  "expected_tools": ["run_r_code", "run_python_code", "AnnotationDbi", "org.Hs.eg.db", "mygene"],
+  "requires_images": false,
+  "requires_input_data": false
+}
