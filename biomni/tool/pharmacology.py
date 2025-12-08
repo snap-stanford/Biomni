@@ -2056,7 +2056,7 @@ def find_roi_from_image(
         Returns
         -------
         dict
-            Dictionary containing edge_strength, std_dev, and is_band_like flag
+            Dictionary containing edge_strength, std_dev, and gradient_magnitude
 
         """
         x, y, w, h = roi
@@ -2065,7 +2065,7 @@ def find_roi_from_image(
         roi_region = image[y : y + h, x : x + w]
 
         if roi_region.size == 0:
-            return {"edge_strength": 0.0, "std_dev": 0.0, "is_band_like": False}
+            return {"edge_strength": 0.0, "std_dev": 0.0, "gradient_magnitude": 0.0}
 
         # Calculate standard deviation of pixel intensities
         std_dev = float(np.std(roi_region))
