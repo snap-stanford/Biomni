@@ -126,6 +126,18 @@ def run_single_task(
             else:
                 print(f"   ⚠️  Not found: {data_file}")
 
+    # 2.2. 이미지 파일들을 작업 디렉토리에 복사 (입력 이미지로 사용)
+    if task.images:
+        print(f"\n🖼️  Copying input image files...")
+        for image_file in task.images:
+            src_path = task.task_path / image_file
+            dst_path = task_output_dir / image_file
+            if src_path.exists():
+                shutil.copy2(src_path, dst_path)
+                print(f"   ✓ Copied: {image_file}")
+            else:
+                print(f"   ⚠️  Not found: {image_file}")
+
     # 3. HITS 에이전트 초기화
     print("\n🤖 Initializing HITS Agent...")
     try:

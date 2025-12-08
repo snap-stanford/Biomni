@@ -1,0 +1,18 @@
+{
+    "category": "bio_image_processing",
+    "difficulty": "medium",
+    "created_at": "2024-12-04T12:00:00",
+    "description": "Count the number of cells in a cell image",
+    "tags": [
+        "cell_counting"
+    ],
+    "expected_tools": [
+        "segment_cells_with_deep_learning"
+    ],
+    "requires_images": true,
+    "expected_images": [],
+    "requires_input_data": true,
+    "input_data_files": [
+        "cell.png"
+    ]
+}
