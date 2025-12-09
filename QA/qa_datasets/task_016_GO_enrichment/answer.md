@@ -22,39 +22,6 @@
 ### Cellular Component (CC) - Example Terms
 1. **GO:0005634** - nucleus (p = 0.01)
 
-## Example Code
-
-### R (clusterProfiler)
-
-```r
-library(clusterProfiler)
-library(org.Hs.eg.db)
-library(ggplot2)
-
-# Input gene list (Ensembl IDs)
-gene_list <- c("ENSG00000000003", "ENSG00000000005", "ENSG00000000419",
-               "ENSG00000000457", "ENSG00000000460")
-
-# Perform GO enrichment
-ego <- enrichGO(gene          = gene_list,
-                OrgDb         = org.Hs.eg.db,
-                keyType       = 'ENSEMBL',
-                ont           = "ALL",  # BP, MF, CC, or ALL
-                pAdjustMethod = "BH",
-                pvalueCutoff  = 0.01,
-                qvalueCutoff  = 0.05)
-
-# Save results
-if (!is.null(ego) && nrow(ego) > 0) {
-  write.csv(as.data.frame(ego), "go_enrichment_results.csv")
-  
-  # Create dotplot
-  p <- dotplot(ego, showCategory=10, split="ONTOLOGY") + 
-    facet_grid(ONTOLOGY~., scale="free")
-  ggsave("go_dotplot.png", plot=p, width=10, height=12)
-}
-```
-
 ## Results Table Structure
 
 | ID | Description | GeneRatio | BgRatio | pvalue | p.adjust | qvalue | geneID | Count |
@@ -68,8 +35,4 @@ if (!is.null(ego) && nrow(ego) > 0) {
 - **p.adjust**: Adjusted p-value (FDR corrected)
 - **Enrichment**: Higher GeneRatio relative to BgRatio indicates enrichment
 
-## Notes
-
-- GO enrichment identifies biological functions/pathways over-represented in the gene list
-- Results are typically visualized using dotplots or barplots
-- Separate analysis for BP, MF, and CC provides comprehensive functional annotation
+GO enrichment identifies biological functions/pathways over-represented in the gene list. Results are typically visualized using dotplots or barplots, and separate analysis for BP, MF, and CC provides comprehensive functional annotation.

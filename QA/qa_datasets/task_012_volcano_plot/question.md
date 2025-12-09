@@ -1,34 +1,5 @@
-# Task: Create Volcano Plot
+I have DEG analysis results in `input_data/deg_results.tsv`.
 
-Create a volcano plot to visualize differential expression analysis results.
+Could you create a Volcano plot to visualize these results? Use log2FoldChange for the x-axis and -log10(p-value) for the y-axis.
 
-## Input Data
-
-**DEG results**: `input_data/deg_results.tsv`
-- Columns:
-  - `Gene_ID`: Gene identifier
-  - `log2FoldChange`: Log2 fold change value
-  - `pvalue`: P-value from statistical test
-
-## Requirements
-
-1. Load the DEG results from `input_data/deg_results.tsv`
-2. Create a volcano plot with:
-   - X-axis: log2FoldChange
-   - Y-axis: -log10(p-value)
-3. Color-code points based on significance:
-   - Significant and up-regulated: Red (log2FC > 1, p < 0.05)
-   - Significant and down-regulated: Blue (log2FC < -1, p < 0.05)
-   - Not significant: Gray
-4. Add threshold lines:
-   - Vertical lines at log2FC = ±1
-   - Horizontal line at p-value = 0.05 (or -log10(0.05))
-5. Include appropriate labels, title, and legend
-6. Save as PNG file
-
-## Expected Output Format
-
-Provide:
-- Volcano plot image file (PNG format, named `volcano_plot.png`)
-- Brief description of the plot
-- Count of significant genes in each category (up, down, not significant)
+Please highlight significant genes (padj < 0.05 and |log2FC| > 1) in different colors (e.g., Red for Up, Blue for Down). Save the image as `volcano_plot.png`.

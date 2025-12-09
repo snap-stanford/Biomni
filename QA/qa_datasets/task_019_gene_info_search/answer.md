@@ -37,14 +37,6 @@
   - Pancreatic cancer
   - Fallopian tube cancer
 
-## Pathway Involvement
-
-- DNA repair pathway
-- Cell cycle checkpoint pathway
-- Apoptosis pathway
-- Fanconi anemia pathway
-- Homologous recombination pathway
-
 ## Clinical Significance
 
 BRCA1 mutations are associated with significantly increased cancer risk. Genetic testing is recommended for individuals with:
@@ -59,27 +51,3 @@ BRCA1 mutations are associated with significantly increased cancer risk. Genetic
 - **Transcript variants**: Multiple splice variants exist
 - **Conservation**: Highly conserved across species
 - **Expression**: Expressed in various tissues, highest in breast and ovary
-
-## Example Code
-
-### Using Database Query Tools
-
-```python
-# Using biomni database tools
-from biomni.tool.database import query_gene_info
-
-gene_info = query_gene_info("BRCA1")
-print(gene_info)
-```
-
-### Using gget (command line)
-
-```bash
-gget info BRCA1
-```
-
-## Notes
-
-- Gene information may vary slightly across databases
-- Always verify critical information from multiple sources
-- Clinical significance information should be interpreted by healthcare professionals
