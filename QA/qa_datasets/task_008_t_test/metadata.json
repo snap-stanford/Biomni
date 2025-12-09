@@ -1,0 +1,10 @@
+{
+  "category": "statistics",
+  "difficulty": "easy-medium",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "두 그룹 간 평균 차이 검정 (t-test)",
+  "tags": ["t_test", "statistics", "hypothesis_testing"],
+  "expected_tools": ["run_python_code", "run_r_code", "scipy.stats", "t.test"],
+  "requires_images": false,
+  "requires_input_data": false
+}

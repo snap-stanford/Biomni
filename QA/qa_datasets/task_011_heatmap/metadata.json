@@ -1,0 +1,12 @@
+{
+  "category": "visualization",
+  "difficulty": "medium",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "유전자 발현 데이터 히트맵 생성 (clustered heatmap)",
+  "tags": ["heatmap", "visualization", "clustering", "gene_expression"],
+  "expected_tools": ["run_python_code", "run_r_code", "seaborn", "matplotlib", "pheatmap"],
+  "requires_images": true,
+  "expected_images": ["heatmap.png"],
+  "requires_input_data": true,
+  "input_data_description": "Gene expression matrix (genes × samples) with group labels"
+}

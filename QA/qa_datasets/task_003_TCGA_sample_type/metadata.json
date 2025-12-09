@@ -1,0 +1,10 @@
+{
+  "category": "data_processing",
+  "difficulty": "easy",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "TCGA barcode에서 샘플 타입(tumor vs normal) 구분하기",
+  "tags": ["TCGA", "sample_classification", "barcode_parsing", "data_processing"],
+  "expected_tools": ["run_python_code", "string_manipulation"],
+  "requires_images": false,
+  "requires_input_data": false
+}

@@ -1,0 +1,11 @@
+{
+  "category": "data_processing",
+  "difficulty": "medium",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "Low expression 유전자 필터링 (발현량이 낮은 유전자 제거)",
+  "tags": ["filtering", "expression", "preprocessing", "quality_control"],
+  "expected_tools": ["run_python_code", "pandas", "numpy"],
+  "requires_images": false,
+  "requires_input_data": true,
+  "input_data_description": "Gene expression matrix (genes × samples) with log2-transformed values"
+}

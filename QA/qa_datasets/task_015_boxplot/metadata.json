@@ -1,0 +1,10 @@
+{
+  "category": "visualization",
+  "difficulty": "easy",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "그룹별 비교 박스플롯 생성",
+  "tags": ["boxplot", "visualization", "group_comparison"],
+  "expected_tools": ["run_python_code", "run_r_code", "matplotlib", "seaborn", "ggplot2"],
+  "requires_images": true,
+  "expected_images": ["boxplot.png"]
+}

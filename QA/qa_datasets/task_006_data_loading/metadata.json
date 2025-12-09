@@ -1,0 +1,11 @@
+{
+  "category": "data_processing",
+  "difficulty": "easy",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "CSV/TSV 파일 로딩 및 기본 통계량 계산",
+  "tags": ["data_loading", "statistics", "data_exploration"],
+  "expected_tools": ["run_python_code", "run_r_code", "pandas", "read.table"],
+  "requires_images": false,
+  "requires_input_data": true,
+  "input_data_description": "CSV or TSV file (can be compressed)"
+}

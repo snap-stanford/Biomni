@@ -1,0 +1,11 @@
+{
+  "category": "statistics",
+  "difficulty": "medium",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "두 그룹 간 차등 발현 유전자 찾기 (t-test, FDR correction)",
+  "tags": ["DEG", "differential_expression", "statistics", "t_test", "FDR"],
+  "expected_tools": ["run_python_code", "run_r_code", "scipy.stats", "statsmodels", "DESeq2"],
+  "requires_images": false,
+  "requires_input_data": true,
+  "input_data_description": "Expression matrix (genes × samples) and group labels"
+}

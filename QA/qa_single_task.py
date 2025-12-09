@@ -121,6 +121,7 @@ def run_single_task(
             src_path = task.task_path / data_file
             dst_path = task_output_dir / data_file
             if src_path.exists():
+                dst_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(src_path, dst_path)
                 print(f"   ✓ Copied: {data_file}")
             else:

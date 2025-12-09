@@ -1,0 +1,10 @@
+{
+  "category": "visualization",
+  "difficulty": "easy",
+  "created_at": "2024-12-05T00:00:00",
+  "description": "데이터 분포 히스토그램 생성",
+  "tags": ["histogram", "visualization", "distribution"],
+  "expected_tools": ["run_python_code", "run_r_code", "matplotlib", "ggplot2"],
+  "requires_images": true,
+  "expected_images": ["histogram.png"]
+}
