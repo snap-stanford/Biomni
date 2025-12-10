@@ -25,14 +25,32 @@ _DEFAULT_BRIGHTNESS_BUCKETS: tuple[tuple[int, int], ...] = (
 def analyze_pixel_distribution(image_path: str) -> dict:
     """Analyze western blot or DNA electrophoresis images and return pixel distribution statistics.
 
-    Args:
-        image_path (str): Path to the input grayscale image. Automatically appends
-            ``.png`` if no suffix is provided.
+    Parameters
+    ----------
+    image_path : str
+        Path to the input grayscale image. Automatically appends .png if no suffix is provided.
 
-    Returns:
-        dict: Summary dictionary containing image shape, intensity statistics, percentiles,
-            histogram values, and brightness distribution for predefined buckets.
+    Returns
+    -------
+    dict
+        Summary dictionary containing image shape, intensity statistics, percentiles,
+        histogram values, and brightness distribution for predefined buckets.
+
     """
+    import cv2
+
+    _DEFAULT_PERCENTILES = [1, 5, 10, 25, 50, 75, 90, 95, 99]
+
+    _DEFAULT_BRIGHTNESS_BUCKETS: tuple[tuple[int, int], ...] = (
+        (0, 20),
+        (20, 50),
+        (50, 80),
+        (80, 110),
+        (110, 140),
+        (140, 170),
+        (170, 200),
+        (200, 256),
+    )
 
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     if image is None:
@@ -46,15 +64,13 @@ def analyze_pixel_distribution(image_path: str) -> dict:
     for low, high in _DEFAULT_BRIGHTNESS_BUCKETS:
         count = int(histogram[low:high].sum())
         ratio = round((count / total_pixels) * 100, 2) if total_pixels > 0 else 0.0
-        brightness_lines.append(
-            f"Range [{low:>3}, {high:>3}): {count:>8} px ({ratio:5.2f}%)"
-        )
+        brightness_lines.append(f"Range [{low:>3}, {high:>3}): {count:>8} px ({ratio:5.2f}%)")
 
     min_intensity = int(image.min())
     max_intensity = int(image.max())
     mean_intensity = round(float(image.mean()), 2)
     std_intensity = round(float(image.std()), 2)
-    
+
     return {
         "shape": f"({image.shape[0]}, {image.shape[1]})",
         "intensity_stats": {
@@ -74,32 +90,48 @@ def find_roi_from_image(
     lower_threshold: int,
     upper_threshold: int,
     number_of_bands: int,
-    debug: bool = True,
-) -> str:
+    debug: bool = False,
+) -> tuple[str, list]:
     """Find the ROIs of the bands from the image which is determined by analyze_pixel_distribution function.
 
-    Args:
-        image_path (str): Path to the input image.
-        lower_threshold (int): Pixel intensities lower than this value are used to make the binary image.
-        upper_threshold (int): Pixel intensities greater than or equal to this value
-            are used to make the binary image.
-        number_of_bands (int): The actual number of bands in the image.
-        debug (bool): If True, draw green contours (hulls) and blue keypoint boxes for debugging.
-            Default is False.
-    Returns:
-        tuple[str, list[ROI]]: Absolute path to the saved annotated image and
-            detected ROI coordinates in ``(x, y, width, height)`` format.
+    Parameters
+    ----------
+    image_path : str
+        Path to the input image.
+    lower_threshold : int
+        Pixel intensities lower than this value are used to make the binary image.
+    upper_threshold : int
+        Pixel intensities greater than or equal to this value are used to make the binary image.
+    number_of_bands : int
+        The actual number of bands in the image.
+    debug : bool, optional
+        If True, draw green contours (hulls) and blue keypoint boxes for debugging.
+        Default is True.
 
-    Raises:
-        ValueError: If threshold values are outside the valid range or inconsistent.
-        FileNotFoundError: If the source image cannot be loaded.
+    Returns
+    -------
+    tuple[str, list]
+        A tuple containing:
+        - str: Absolute path to the saved annotated image
+        - list: List of ROI coordinates in (x, y, width, height) format.
+        The ROI list can be converted to target_bands for analyze_western_blot:
+        annotated_path, rois = find_roi_from_image(...)
+        target_bands = [{"name": f"band_{i}", "roi": list(roi)} for i, roi in enumerate(rois)]
+
+    Raises
+    ------
+    ValueError
+        If threshold values are outside the valid range or inconsistent.
+    FileNotFoundError
+        If the source image cannot be loaded.
+
     """
-    from typing import Iterable, List, Sequence, Tuple
+    from collections.abc import Iterable, Sequence
+    from pathlib import Path
 
     import cv2
 
-    ROI = Tuple[int, int, int, int]
-
+    ROI = tuple[int, int, int, int]
 
     def load_grayscale_image(path: str) -> cv2.Mat:
         """Load a grayscale image from disk."""
@@ -107,7 +139,6 @@ def find_roi_from_image(
         if image is None:
             raise FileNotFoundError(f"Unable to load image at '{path}'")
         return image
-
 
     def build_blob_detector(
         min_threshold: int = 0,
@@ -130,10 +161,7 @@ def find_roi_from_image(
         params.maxInertiaRatio = max_inertia
         return cv2.SimpleBlobDetector_create(params)
 
-
-    def detect_blobs(
-        image: cv2.Mat, detector: cv2.SimpleBlobDetector
-    ) -> List[cv2.KeyPoint]:
+    def detect_blobs(image: cv2.Mat, detector: cv2.SimpleBlobDetector) -> list[cv2.KeyPoint]:
         """Detect blob keypoints in the provided image."""
         keypoints = detector.detect(image)
         print(f"Detected {len(keypoints)} keypoints.")
@@ -145,34 +173,32 @@ def find_roi_from_image(
         binary_mask: cv2.Mat,
         min_area: int = 100,
         use_morphology: bool = True,
-    ) -> List[cv2.Mat]:
+    ) -> list[cv2.Mat]:
         """Find band contours from binary mask using morphological operations."""
         processed_mask = binary_mask.copy()
-        
+
         if use_morphology:
-            # [수정됨] 가로(Horizontal) 방향으로 떨어진 덩어리를 잇기 위해 가로가 긴 커널 사용
-            # (20, 1)의 20은 두 덩어리 사이의 픽셀 거리보다 커야 합니다.
+            # 가로(Horizontal) 방향으로 떨어진 덩어리를 잇기 위해 가로가 긴 커널 사용
+            # (50, 1)의 50은 두 덩어리 사이의 픽셀 거리보다 커야 합니다.
             kernel_connect = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 1))
-            
-            # [수정됨] OPEN(끊기) 대신 CLOSE(잇기)를 사용하여 빈 공간을 메움
+
+            # OPEN(끊기) 대신 CLOSE(잇기)를 사용하여 빈 공간을 메움
             processed_mask = cv2.morphologyEx(processed_mask, cv2.MORPH_CLOSE, kernel_connect, iterations=1)
-        
+
         # Find ALL contours (not just external) to detect separate bands
-        contours, _ = cv2.findContours(
-            processed_mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
-        )
-        
+        contours, _ = cv2.findContours(processed_mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
         print(f"Found {len(contours)} total contours")
-        
+
         # Filter contours by area
         filtered_contours = []
         for contour in contours:
             area = cv2.contourArea(contour)
             if area >= min_area:
                 filtered_contours.append(contour)
-        
+
         print(f"Filtered to {len(filtered_contours)} contours with area >= {min_area}")
-        
+
         return filtered_contours
 
     def analyze_roi_pixel_distribution(
@@ -180,34 +206,40 @@ def find_roi_from_image(
         roi: ROI,
     ) -> dict:
         """Analyze pixel distribution of an ROI to distinguish between text and bands.
-        
-        Args:
-            image: Original grayscale image
-            roi: ROI coordinates (x, y, width, height)
-            
-        Returns:
-            dict: Dictionary containing edge_strength, std_dev, and is_band_like flag
+
+        Parameters
+        ----------
+        image : cv2.Mat
+            Original grayscale image
+        roi : ROI
+            ROI coordinates (x, y, width, height)
+
+        Returns
+        -------
+        dict
+            Dictionary containing edge_strength, std_dev, and gradient_magnitude
+
         """
         x, y, w, h = roi
-        
+
         # Extract ROI region from original image
-        roi_region = image[y:y+h, x:x+w]
-        
+        roi_region = image[y : y + h, x : x + w]
+
         if roi_region.size == 0:
-            return {"edge_strength": 0.0, "std_dev": 0.0, "is_band_like": False}
-        
+            return {"edge_strength": 0.0, "std_dev": 0.0, "gradient_magnitude": 0.0}
+
         # Calculate standard deviation of pixel intensities
         std_dev = float(np.std(roi_region))
-        
+
         # Calculate edge strength using Laplacian
         laplacian = cv2.Laplacian(roi_region, cv2.CV_64F)
         edge_strength = float(np.mean(np.abs(laplacian)))
-        
+
         # Calculate gradient magnitude using Sobel
         sobelx = cv2.Sobel(roi_region, cv2.CV_64F, 1, 0, ksize=3)
         sobely = cv2.Sobel(roi_region, cv2.CV_64F, 0, 1, ksize=3)
         gradient_magnitude = float(np.mean(np.sqrt(sobelx**2 + sobely**2)))
-        
+
         return {
             "edge_strength": edge_strength,
             "std_dev": std_dev,
@@ -216,132 +248,157 @@ def find_roi_from_image(
 
     def filter_rois_by_pixel_distribution(
         image: cv2.Mat,
-        rois: List[ROI],
-        hulls: List[cv2.Mat],
+        rois: list[ROI],
+        hulls: list[cv2.Mat],
         max_edge_strength: float = 10.0,
         max_gradient_magnitude: float = 70.0,
         max_std_dev: float = 50.0,
-    ) -> tuple[List[ROI], List[cv2.Mat]]:
+    ) -> tuple[list[ROI], list[cv2.Mat]]:
         """Filter ROIs to remove text-like regions and keep band-like regions.
-        
+
         Text regions have very high edge strength, sharp gradients, and high std_dev.
         Band regions have low edge strength, moderate gradients, and moderate std_dev.
-        
-        Args:
-            image: Original grayscale image
-            rois: List of ROI coordinates
-            hulls: List of corresponding convex hulls
-            max_edge_strength: Maximum edge strength for band-like regions (text typically >20)
-            max_gradient_magnitude: Maximum gradient magnitude for band-like regions (text typically >100)
-            max_std_dev: Maximum standard deviation for band-like regions (text typically >80)
-            
-        Returns:
-            tuple: Filtered ROIs and hulls that are band-like
+
+        Parameters
+        ----------
+        image : cv2.Mat
+            Original grayscale image
+        rois : List[ROI]
+            List of ROI coordinates
+        hulls : List[cv2.Mat]
+            List of corresponding convex hulls
+        max_edge_strength : float, optional
+            Maximum edge strength for band-like regions (text typically >20)
+        max_gradient_magnitude : float, optional
+            Maximum gradient magnitude for band-like regions (text typically >100)
+        max_std_dev : float, optional
+            Maximum standard deviation for band-like regions (text typically >80)
+
+        Returns
+        -------
+        tuple
+            Filtered ROIs and hulls that are band-like
+
         """
-        filtered_rois: List[ROI] = []
-        filtered_hulls: List[cv2.Mat] = []
-        
+        filtered_rois: list[ROI] = []
+        filtered_hulls: list[cv2.Mat] = []
+
         print("\n=== ROI Pixel Distribution Analysis ===")
-        
-        for idx, (roi, hull) in enumerate(zip(rois, hulls)):
+
+        for idx, (roi, hull) in enumerate(zip(rois, hulls, strict=True)):
             analysis = analyze_roi_pixel_distribution(image, roi)
-            
+
             edge_strength = analysis["edge_strength"]
             gradient_magnitude = analysis["gradient_magnitude"]
             std_dev = analysis["std_dev"]
-            
+
             # Determine if this ROI is band-like or text-like
             # Text has very high edge strength (>20) and very high gradient (>100)
             # Bands have low edge strength (<10) and moderate gradient (<50)
             # Also check std_dev to filter out high-contrast text regions
-            is_band = (edge_strength <= max_edge_strength and 
-                      gradient_magnitude <= max_gradient_magnitude and
-                      std_dev <= max_std_dev)
-            
+            is_band = (
+                edge_strength <= max_edge_strength
+                and gradient_magnitude <= max_gradient_magnitude
+                and std_dev <= max_std_dev
+            )
+
             status = "✓ BAND" if is_band else "✗ TEXT"
-            print(f"ROI {idx}: edge={edge_strength:.2f}, grad={gradient_magnitude:.2f}, "
-                  f"std={std_dev:.2f} -> {status}")
-            
+            print(f"ROI {idx}: edge={edge_strength:.2f}, grad={gradient_magnitude:.2f}, std={std_dev:.2f} -> {status}")
+
             if is_band:
                 filtered_rois.append(roi)
                 filtered_hulls.append(hull)
-        
+
         print(f"\nFiltered: {len(filtered_rois)}/{len(rois)} ROIs kept as bands")
         print("=" * 40 + "\n")
-        
+
         return filtered_rois, filtered_hulls
 
     def compute_rois(
         image: cv2.Mat,
         binary_mask: cv2.Mat,
         keypoints: Iterable[cv2.KeyPoint],
-        padding: Tuple[int, int] = (5, 5),
+        padding: tuple[int, int] = (5, 5),
         min_contour_area: int = 100,
         filter_by_distribution: bool = True,
-    ) -> tuple[List[ROI], List[cv2.Mat]]:
+    ) -> tuple[list[ROI], list[cv2.Mat]]:
         """Compute global ROIs for each keypoint by matching them to band contours."""
         # Find band contours from binary mask
         band_contours = find_band_contours(binary_mask, min_area=min_contour_area)
-        
+
         if not band_contours:
             print("No band contours found!")
             return [], []
-        
-        auto_rois: List[ROI] = []
-        global_hulls: List[cv2.Mat] = []
+
+        auto_rois: list[ROI] = []
+        global_hulls: list[cv2.Mat] = []
         matched_contours = set()  # Track which contours have been matched
-        
+        used_contours = set()  # Track which contours have already been used to avoid duplicates
+
         for keypoint in keypoints:
             cx, cy = int(keypoint.pt[0]), int(keypoint.pt[1])
             keypoint_center = (float(cx), float(cy))
-            
+
             # Find the contour that contains this keypoint
             matched_contour = None
+            matched_idx = None
             for idx, contour in enumerate(band_contours):
+                # Skip if this contour has already been used
+                if idx in used_contours:
+                    continue
                 # Use pointPolygonTest to check if keypoint center is inside contour
                 # Returns positive if inside, negative if outside, zero if on edge
                 distance = cv2.pointPolygonTest(contour, keypoint_center, False)
                 if distance >= 0:  # Inside or on edge
                     matched_contour = contour
+                    matched_idx = idx
                     matched_contours.add(idx)
                     print(f"Keypoint at ({cx}, {cy}) matched to contour {idx}")
                     break
-            
+
             if matched_contour is None:
                 print(f"Warning: Keypoint at ({cx}, {cy}) not matched to any contour")
                 continue
-            
+
+            # Mark this contour as used to avoid duplicate ROIs
+            used_contours.add(matched_idx)
+
             # Compute convex hull from the matched contour
             hull = cv2.convexHull(matched_contour)
             if hull is None or len(hull) < 3:
                 continue
-            
+
             # Get bounding rectangle from hull with padding
             pad_x, pad_y = padding
             rx, ry, rw, rh = cv2.boundingRect(hull)
-            
+
+            # Skip if bounding rect is too large (likely covering entire image or invalid)
+            max_roi_area_ratio = 0.5  # Maximum 50% of image area
+            roi_area = rw * rh
+            image_area = image.shape[0] * image.shape[1]
+            if roi_area > image_area * max_roi_area_ratio:
+                print(f"Warning: ROI too large ({rw}x{rh}), skipping. This may indicate a detection error.")
+                continue
+
             global_x = max(0, rx - pad_x)
             global_y = max(0, ry - pad_y)
             global_w = min(image.shape[1] - global_x, rw + 2 * pad_x)
             global_h = min(image.shape[0] - global_y, rh + 2 * pad_y)
-            
+
             if global_w <= 0 or global_h <= 0:
                 continue
-            
+
             roi = (global_x, global_y, global_w, global_h)
             auto_rois.append(roi)
             global_hulls.append(hull)
-        
+
         print(f"Matched {len(matched_contours)} contours to keypoints")
-        
+
         # Filter ROIs by pixel distribution to remove text-like regions
         if filter_by_distribution and auto_rois:
-            auto_rois, global_hulls = filter_rois_by_pixel_distribution(
-                image, auto_rois, global_hulls
-            )
-        
-        return auto_rois, global_hulls
+            auto_rois, global_hulls = filter_rois_by_pixel_distribution(image, auto_rois, global_hulls)
 
+        return auto_rois, global_hulls
 
     def annotate_keypoints(
         image: cv2.Mat,
@@ -351,21 +408,33 @@ def find_roi_from_image(
         debug: bool = False,
     ) -> cv2.Mat:
         """Draw ROIs, convex hulls, and index labels on the image.
-        
-        Args:
-            image: Input grayscale image
-            keypoints: Detected keypoints
-            rois: ROI coordinates to draw
-            hulls: Convex hulls to draw (only if debug=True)
-            debug: If True, draw green contours (hulls) and blue keypoint boxes
+
+        Parameters
+        ----------
+        image : cv2.Mat
+            Input grayscale image
+        keypoints : Iterable[cv2.KeyPoint]
+            Detected keypoints
+        rois : Iterable[ROI]
+            ROI coordinates to draw
+        hulls : Iterable[cv2.Mat] | None, optional
+            Convex hulls to draw (only if debug=True)
+        debug : bool, optional
+            If True, draw green contours (hulls) and blue keypoint boxes
+
+        Returns
+        -------
+        cv2.Mat
+            Annotated image
+
         """
         output = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-        
+
         # Draw convex hulls in green if debug mode is enabled
         if debug and hulls is not None:
             for hull in hulls:
                 cv2.drawContours(output, [hull], -1, (0, 255, 0), 2)  # Green color in BGR
-        
+
         # Draw ROIs in red (always drawn)
         for roi in rois:
             x, y, w, h = roi
@@ -376,14 +445,14 @@ def find_roi_from_image(
             for index, keypoint in enumerate(keypoints):
                 x, y = keypoint.pt
                 size = keypoint.size
-                
+
                 # Draw blue rectangle around keypoint
                 # Use size as half-width and half-height for the rectangle
                 half_size = int(size / 2)
                 pt1 = (int(x) - half_size, int(y) - half_size)
                 pt2 = (int(x) + half_size, int(y) + half_size)
                 cv2.rectangle(output, pt1, pt2, (255, 0, 0), 2)  # Blue color in BGR
-                
+
                 # Draw index label
                 cv2.putText(
                     output,
@@ -396,7 +465,6 @@ def find_roi_from_image(
                     cv2.LINE_AA,
                 )
         return output
-
 
     def show_rois(rois: Sequence[ROI]) -> None:
         """Print ROI information to stdout."""
@@ -414,28 +482,30 @@ def find_roi_from_image(
     original_image = load_grayscale_image(image_path)
     mask = cv2.inRange(original_image, lower_threshold, upper_threshold)
     mask = cv2.bitwise_not(mask)
-
     detector = build_blob_detector()
+
     # Detect blobs in the mask image
     keypoints = detect_blobs(mask, detector)
     rois, hulls = compute_rois(original_image, mask, keypoints)
     show_rois(rois)
 
     # Draw ROIs, convex hulls, and keypoints on the mask image
+    debug = False
     annotated_mask = annotate_keypoints(mask, keypoints, rois, hulls, debug=debug)
     mask_path = Path(image_path).parent / f"{Path(image_path).stem}_mask.png"
     cv2.imwrite(str(mask_path), annotated_mask)
 
     # Draw ROIs, convex hulls, and keypoints on the original image
     annotated_image = annotate_keypoints(original_image, keypoints, rois, hulls, debug=debug)
-    annotated_image_path = (
-        Path(image_path).parent / f"{Path(image_path).stem}_annotated.png"
-    )
+    annotated_image_path = Path(image_path).parent / f"{Path(image_path).stem}_annotated.png"
     cv2.imwrite(str(annotated_image_path), annotated_image)
+
     if len(rois) != number_of_bands:
         print(f"Warning: Detected {len(rois)} ROIs, but expected {number_of_bands} ROIs.")
-        print("Please check the image and try to adjust the thresholds.")
-        # raise ValueError(f"Detected {len(rois)} ROIs, but expected {number_of_bands} ROIs.")
+        print(
+            "Please check the image and try to adjust the thresholds. Or you can manually infer the ROIs from the annotated image."
+        )
+
     return str(annotated_image_path.resolve()), rois
 
 def quantify_bands(

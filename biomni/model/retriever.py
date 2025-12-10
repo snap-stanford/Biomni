@@ -55,11 +55,16 @@ AVAILABLE SOFTWARE LIBRARIES:
 
         # Add know-how section if available
         if "know_how" in resources and resources["know_how"]:
+            know_how_formatted = self._format_resources_for_prompt(resources.get("know_how", []))
             prompt_sections.append(
                 f"""
 AVAILABLE KNOW-HOW DOCUMENTS (Best Practices & Protocols):
-{self._format_resources_for_prompt(resources.get("know_how", []))}"""
+{know_how_formatted}"""
             )
+            print(f"\n📚 KNOW-HOW IN RETRIEVAL PROMPT: {len(resources['know_how'])} documents available")
+            for i, doc in enumerate(resources["know_how"]):
+                if isinstance(doc, dict):
+                    print(f"  [{i}] {doc.get('name', 'Unknown')} - {doc.get('description', 'No description')[:100]}")
 
         # Build response format based on available categories
         response_format = """
@@ -113,6 +118,7 @@ IMPORTANT GUIDELINES:
             response_content = str(llm(prompt))
 
         # Parse the response to extract the selected indices
+        print(f"\n📚 LLM RETRIEVAL RESPONSE (first 500 chars): {response_content[:500]}")
         selected_indices = self._parse_llm_response(response_content)
 
         # Get the selected resources
@@ -136,11 +142,25 @@ IMPORTANT GUIDELINES:
 
         # Add know-how if present
         if "know_how" in resources and resources["know_how"]:
+            know_how_indices = selected_indices.get("know_how", [])
             selected_resources["know_how"] = [
                 resources["know_how"][i]
-                for i in selected_indices.get("know_how", [])
+                for i in know_how_indices
                 if i < len(resources.get("know_how", []))
             ]
+            # Log know-how selection
+            if know_how_indices:
+                print(f"\n📚 KNOW-HOW SELECTION: LLM selected indices {know_how_indices} from {len(resources['know_how'])} available documents")
+            else:
+                print(f"\n📚 KNOW-HOW SELECTION: LLM selected NO documents (empty list) from {len(resources['know_how'])} available documents")
+        else:
+            selected_resources["know_how"] = []
+            if "know_how" not in resources:
+                print(f"\n📚 KNOW-HOW SELECTION: 'know_how' key NOT FOUND in resources")
+            elif not resources["know_how"]:
+                print(f"\n📚 KNOW-HOW SELECTION: 'know_how' key exists but is EMPTY in resources")
+            else:
+                print(f"\n📚 KNOW-HOW SELECTION: No know-how documents available in resources")
 
         return selected_resources
 
@@ -219,13 +239,23 @@ IMPORTANT GUIDELINES:
 
         # Extract know-how indices
         know_how_match = re.search(r"KNOW[-_]HOW:\s*\[(.*?)\]", response, re.IGNORECASE)
-        if know_how_match and know_how_match.group(1).strip():
-            with contextlib.suppress(ValueError):
-                selected_indices["know_how"] = [
-                    int(idx.strip())
-                    for idx in know_how_match.group(1).split(",")
-                    if idx.strip()
-                ]
+        if know_how_match:
+            know_how_content = know_how_match.group(1).strip()
+            if know_how_content:
+                with contextlib.suppress(ValueError):
+                    selected_indices["know_how"] = [
+                        int(idx.strip())
+                        for idx in know_how_content.split(",")
+                        if idx.strip()
+                    ]
+            else:
+                print(f"📚 KNOW-HOW PARSING: KNOW_HOW section found but empty (no indices selected)")
+                selected_indices["know_how"] = []
+        else:
+            print(f"📚 KNOW-HOW PARSING: No KNOW_HOW section found in LLM response")
+            # Check if know-how was mentioned in the response at all
+            if "KNOW" in response.upper() or "HOW" in response.upper():
+                print(f"📚 KNOW-HOW PARSING: Response contains 'KNOW' or 'HOW' but no valid KNOW_HOW: [...] format")
 
         return selected_indices
 
