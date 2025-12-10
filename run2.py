@@ -49,7 +49,8 @@ original_dir = os.getcwd()
 os.chdir(dir_name)
 
 # Copy image file if it exists in parent directory
-image_files = ["rep1.png", "rep2.png", "rep3.png"]
+# image_files = ["rep1.png", "rep2.png", "rep3.png"]
+image_files = ["wb_full.png"]
 for image_file in image_files:
     parent_image_path = os.path.join(original_dir, image_file)
     if os.path.exists(parent_image_path):
@@ -61,21 +62,36 @@ for image_file in image_files:
 t1 = time.time()
 # llm = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
 # llm = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
-llm = "gemini-2.5-pro"
+llm = "gemini-3-pro-preview"
 # llm = "solar-pro2"
 # llm = "mistral-small-2506"
+# Use chainlit/biomni_data path to avoid downloading data
+chainlit_biomni_data_path = os.path.join(original_dir, "chainlit", "biomni_data")
+if os.path.exists(chainlit_biomni_data_path):
+    # If chainlit/biomni_data exists, use its parent directory as path
+    # so that biomni_data/data_lake will be found at chainlit/biomni_data/data_lake
+    agent_path = os.path.join(original_dir, "chainlit")
+    # Pass empty list to skip downloading - files already exist in chainlit/biomni_data/data_lake
+    expected_data_lake_files = []
+else:
+    # Fallback to current directory if chainlit path doesn't exist
+    agent_path = "./"
+    expected_data_lake_files = None  # Will download if needed
 agent = A1_HITS(
-    path="./",
+    path=agent_path,
     llm=llm,
     # allow_resources=["proteomics", "support_tools", "bio_image_processing"],
     use_tool_retriever=True,
     resource_filter_config_path=os.path.join(original_dir, "chainlit", "resource.yaml"),
+    expected_data_lake_files=expected_data_lake_files,
 )
 image_file = 'rep1_full.png'
-user_command = f"""
-이 웨스턴블롯 이미지에서 맨 윗줄의 밴드의 세기를 정량화 해줘. control을 기준으로 정규화해서 상대적인 발현량을 계산해야해 
- - user uploaded data file: {image_file}
-"""
+# user_command = input("Enter your command: ")
+user_command = 'Please analyze the provided Western blot image, which consists of 3 experimental repetitions. Each repetition includes four conditions: control, P144, TGF-β1, and Tβ1Ab. The targets are PSMAD2, SMAD2, and GAPDH'
+# user_command = f"""
+# 이 웨스턴블롯 이미지에서 맨 윗줄의 밴드의 세기를 정량화 해줘. control을 기준으로 정규화해서 상대적인 발현량을 계산해야해 
+#  - user uploaded data file: {image_file}
+# """
 # user_command = f"""
 # 이미지의 녹색세포와 빨간색 세포 개수를 세서 그래프로 비교해줘
 # 컨트롤은 컨트롤끼리 비교하고, 실험군은 실험군 끼리 비교해서 각각 바그래프로 보여줘

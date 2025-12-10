@@ -183,15 +183,16 @@ class ResourceCollector:
 
     def gather_all_resources(self) -> Dict[str, List]:
         """
-        Gather all available resources including tools, data lake, and libraries.
+        Gather all available resources including tools, data lake, libraries, and know-how.
 
         Returns:
-            Dictionary with 'tools', 'data_lake', and 'libraries' keys
+            Dictionary with 'tools', 'data_lake', 'libraries', and 'know_how' keys
         """
         return {
             "tools": self._get_tools(),
             "data_lake": self._get_data_lake_descriptions(),
             "libraries": self._get_library_descriptions(),
+            "know_how": self._get_know_how_summaries(),
         }
 
     def _get_tools(self) -> List:
@@ -264,21 +265,29 @@ class ResourceCollector:
 
         return descriptions
 
+    def _get_know_how_summaries(self) -> List[Dict[str, str]]:
+        """Get know-how document summaries."""
+        if hasattr(self.agent, "know_how_loader") and self.agent.know_how_loader:
+            return self.agent.know_how_loader.get_document_summaries()
+        return []
+
     @staticmethod
-    def process_selected_resources(selected_resources: Dict) -> Dict[str, List[str]]:
+    def process_selected_resources(selected_resources: Dict) -> Dict[str, List]:
         """
         Process selected resources to extract just the names.
+        Note: know-how documents are kept as full objects (not just names).
 
         Args:
-            selected_resources: Dict with 'tools', 'data_lake', 'libraries'
+            selected_resources: Dict with 'tools', 'data_lake', 'libraries', 'know_how'
 
         Returns:
-            Dict with resource names only
+            Dict with resource names (except know_how which keeps full objects)
         """
         result = {
             "tools": selected_resources.get("tools", []),
             "data_lake": [],
             "libraries": [],
+            "know_how": [],  # Keep know-how documents as full objects
         }
 
         # Process libraries
@@ -298,6 +307,9 @@ class ResourceCollector:
                 result["data_lake"].append(name)
             else:
                 result["data_lake"].append(item)
+
+        # Process know-how documents - keep Short description in the metadata section
+        result["know_how"] = selected_resources.get("know_how", [])
 
         return result
 

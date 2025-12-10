@@ -1484,17 +1484,20 @@ Each library is listed with its description to help you understand its functiona
         # This makes best practices always available, not just when retrieved
         know_how_docs = []
         if hasattr(self, "know_how_loader") and self.know_how_loader.documents:
+            print(f"\n📚 KNOW-HOW DOCUMENTS LOADING:")
+            print(f"  Total available documents: {len(self.know_how_loader.documents)}")
             for _doc_id, doc in self.know_how_loader.documents.items():
                 # Use content without metadata for efficiency
-                know_how_docs.append(
-                    {
-                        "id": doc["id"],
-                        "name": doc["name"],
-                        "description": doc["description"],
-                        "content": doc["content_without_metadata"],
-                        "metadata": doc["metadata"],
-                    }
-                )
+                doc_info = {
+                    "id": doc["id"],
+                    "name": doc["name"],
+                    "description": doc["description"],
+                    "content": doc["content_without_metadata"],
+                    "metadata": doc["metadata"],
+                }
+                know_how_docs.append(doc_info)
+                content_length = len(doc["content_without_metadata"])
+                print(f"  ✓ {doc['name']} (id: {doc['id']}, content: {content_length} chars)")
             print(
                 f"📚 Loading {len(know_how_docs)} know-how documents into system prompt"
             )
@@ -1849,6 +1852,17 @@ Each library is listed with its description to help you understand its functiona
 
         # 4. Know-how documents
         know_how_summaries = self.know_how_loader.get_document_summaries()
+        
+        # Debug: Log know-how summaries before adding to resources
+        print(f"\n📚 DEBUG _RETRIEVE_RESOURCES:")
+        print(f"  know_how_summaries count: {len(know_how_summaries)}")
+        print(f"  know_how_loader.documents count: {len(self.know_how_loader.documents)}")
+        if know_how_summaries:
+            for doc in know_how_summaries:
+                print(f"    - {doc.get('name', 'Unknown')} (id: {doc.get('id', 'unknown')})")
+        else:
+            print(f"  ⚠️  WARNING: know_how_summaries is EMPTY!")
+            print(f"  Documents in loader: {list(self.know_how_loader.documents.keys())}")
 
         # Use retrieval to get relevant resources
         resources = {
@@ -1857,6 +1871,10 @@ Each library is listed with its description to help you understand its functiona
             "libraries": library_descriptions,
             "know_how": know_how_summaries,
         }
+        
+        # Debug: Verify know-how is in resources
+        print(f"  resources dict has 'know_how' key: {'know_how' in resources}")
+        print(f"  resources['know_how'] count: {len(resources.get('know_how', []))}")
 
         # Use prompt-based retrieval with the agent's LLM
         selected_resources = self.retriever.prompt_based_retrieval(
@@ -1890,27 +1908,40 @@ Each library is listed with its description to help you understand its functiona
                 selected_resources_names["data_lake"].append(item)
 
         # Process know-how documents - get the full content for selected documents
-        if "know_how" in selected_resources and selected_resources["know_how"]:
-            print("\n📚 Know-How Documents Retrieved:")
-            for item in selected_resources["know_how"]:
-                if isinstance(item, dict):
-                    doc_id = item["id"]
-                    doc = self.know_how_loader.get_document_by_id(doc_id)
-                    if doc:
-                        print(f"  ✓ {doc['name']}")
-                        # Create a copy with content_without_metadata for agent context
-                        doc_for_agent = {
-                            "id": doc["id"],
-                            "name": doc["name"],
-                            "description": doc["description"],
-                            "content": doc[
-                                "content_without_metadata"
-                            ],  # Use stripped version for agent
-                            "metadata": doc["metadata"],
-                        }
-                        selected_resources_names["know_how"].append(doc_for_agent)
+        print(f"\n📚 KNOW-HOW DOCUMENTS PROCESSING:")
+        print(f"  Available in resources: {'know_how' in selected_resources}")
+        if "know_how" in selected_resources:
+            print(f"  Selected count: {len(selected_resources.get('know_how', []))}")
+            if selected_resources["know_how"]:
+                print(f"  Processing {len(selected_resources['know_how'])} selected document(s):")
+                for item in selected_resources["know_how"]:
+                    if isinstance(item, dict):
+                        doc_id = item["id"]
+                        doc = self.know_how_loader.get_document_by_id(doc_id)
+                        if doc:
+                            content_length = len(doc["content_without_metadata"])
+                            print(f"  ✓ {doc['name']} (id: {doc_id}, content: {content_length} chars)")
+                            # Create a copy with content_without_metadata for agent context
+                            doc_for_agent = {
+                                "id": doc["id"],
+                                "name": doc["name"],
+                                "description": doc["description"],
+                                "content": doc[
+                                    "content_without_metadata"
+                                ],  # Use stripped version for agent
+                                "metadata": doc["metadata"],
+                            }
+                            selected_resources_names["know_how"].append(doc_for_agent)
+                        else:
+                            print(f"  ✗ Document with id '{doc_id}' not found in know_how_loader")
+                print(f"  ✓ Successfully processed {len(selected_resources_names['know_how'])} know-how documents")
+            else:
+                print(f"  ⚠️  No know-how documents were selected by the LLM for this query")
+                print(f"  Available documents: {len(self.know_how_loader.documents)}")
+                print(f"  Document names: {[doc['name'] for doc in self.know_how_loader.get_document_summaries()]}")
         else:
-            print("\n📚 Know-How: None retrieved for this query")
+            print(f"  ⚠️  'know_how' key not found in selected_resources")
+            print(f"  Available know-how documents: {len(self.know_how_loader.documents)}")
 
         # Print summary of what was retrieved
         print("\n" + "-" * 60)
@@ -2160,7 +2191,46 @@ Each library is listed with its description to help you understand its functiona
                 )
 
         # Extract know-how documents if present
-        know_how_docs = selected_resources.get("know_how", [])
+        # Process know-how documents - get the full content for selected documents
+        print(f"\n📚 KNOW-HOW DOCUMENTS PROCESSING (in update_system_prompt):")
+        print(f"  Available in selected_resources: {'know_how' in selected_resources}")
+        know_how_docs = []
+        if "know_how" in selected_resources:
+            print(f"  Selected count: {len(selected_resources.get('know_how', []))}")
+            if selected_resources["know_how"]:
+                print(f"  Processing {len(selected_resources['know_how'])} selected document(s):")
+                for item in selected_resources["know_how"]:
+                    if isinstance(item, dict):
+                        doc_id = item.get("id")
+                        if doc_id:
+                            doc = self.know_how_loader.get_document_by_id(doc_id)
+                            if doc:
+                                content_length = len(doc["content_without_metadata"])
+                                print(f"  ✓ {doc['name']} (id: {doc_id}, content: {content_length} chars)")
+                                # Create a copy with content_without_metadata for agent context
+                                doc_for_agent = {
+                                    "id": doc["id"],
+                                    "name": doc["name"],
+                                    "description": doc["description"],
+                                    "content": doc["content_without_metadata"],
+                                    "metadata": doc["metadata"],
+                                }
+                                know_how_docs.append(doc_for_agent)
+                            else:
+                                print(f"  ✗ Document with id '{doc_id}' not found in know_how_loader")
+                        else:
+                            # If item already has full content, use it directly
+                            know_how_docs.append(item)
+                print(f"  ✓ Successfully processed {len(know_how_docs)} know-how documents")
+            else:
+                print(f"  ⚠️  No know-how documents were selected by the LLM for this query")
+                print(f"  Available documents: {len(self.know_how_loader.documents)}")
+                available_docs = self.know_how_loader.get_document_summaries()
+                for doc in available_docs:
+                    print(f"    - {doc['name']}: {doc['description'][:80]}...")
+        else:
+            print(f"  ⚠️  'know_how' key not found in selected_resources")
+            print(f"  Available know-how documents: {len(self.know_how_loader.documents)}")
 
         self.system_prompt = self._generate_system_prompt(
             tool_desc=tool_desc,
