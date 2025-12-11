@@ -1,6 +1,8 @@
 import chainlit as cl
 import sys
 import os
+import yaml
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from biomni.agent import A1_HITS
@@ -294,17 +296,38 @@ def get_data_layer():
     )
 
 
+def _load_credentials() -> dict:
+    """Load user credentials from YAML file.
+
+    Returns:
+        dict: Mapping of (username, password) -> identifier
+    """
+    credentials_path = os.path.join(CURRENT_ABS_DIR, "credentials.yaml")
+    valid_logins = {}
+
+    try:
+        with open(credentials_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+
+        for user in data.get("users", []):
+            username = user.get("username")
+            password = user.get("password")
+            identifier = user.get("identifier", username)
+            if username and password:
+                valid_logins[(username, password)] = identifier
+
+    except FileNotFoundError:
+        logger.warning(f"Credentials file not found: {credentials_path}")
+    except Exception as e:
+        logger.error(f"Error loading credentials: {e}")
+
+    return valid_logins
+
+
 @cl.password_auth_callback
 def auth_callback(username: str, password: str):
-    # Fetch the user matching username from your database
-    # and compare the hashed password with the value stored in the database
-    # Support both username and email format for login
-    valid_logins = {
-        ("admin", "admin"): "admin",
-        ("admin@example.com", "admin"): "admin@example.com",
-        ("admin@biomni.com", "admin"): "admin@biomni.com",
-        ("jslink", "5fdf7e4a-6632-48b1-a9c8-b79d9a9be2e0"): "jslink",
-    }
+    # Load credentials from YAML file
+    valid_logins = _load_credentials()
 
     identifier = valid_logins.get((username, password))
 
@@ -662,7 +685,7 @@ async def _process_user_message(user_message: cl.Message) -> dict:
 
         # Check file extension
         file_ext = os.path.splitext(file.name)[1].lower()
-        
+
         # Process image files
         if file_ext in image_extensions:
             try:
@@ -712,12 +735,16 @@ async def _process_user_message(user_message: cl.Message) -> dict:
 
                 # Add PDF as base64 encoded data with application/pdf MIME type
                 images.append(
-                    {"name": file.name, "data": f"data:application/pdf;base64,{pdf_data}"}
+                    {
+                        "name": file.name,
+                        "data": f"data:application/pdf;base64,{pdf_data}",
+                    }
                 )
 
                 # Get PDF page count for info (optional, for logging)
                 try:
                     import PyPDF2
+
                     with open(file.path, "rb") as pdf_file:
                         pdf_reader = PyPDF2.PdfReader(pdf_file)
                         num_pages = len(pdf_reader.pages)
@@ -922,7 +949,9 @@ async def _process_agent_response(agent_input: list, message_history: list):
 
         # Save conversation to memory
         try:
-            user_message_content = message_history[-2]["content"] # The message before the one we just appended
+            user_message_content = message_history[-2][
+                "content"
+            ]  # The message before the one we just appended
             save_conversation(user_message_content, final_message)
         except Exception as e:
             logger.error(f"Failed to save conversation to memory: {e}")
@@ -1499,25 +1528,25 @@ def _detect_image_name_and_move_to_public(
 
         # Check if file exists
         if not os.path.exists(image_path):
-             # Try to find it relative to the current working directory (chainlit_logs/thread_id)
-             # or relative to the project root (CURRENT_ABS_DIR)
-            
+            # Try to find it relative to the current working directory (chainlit_logs/thread_id)
+            # or relative to the project root (CURRENT_ABS_DIR)
+
             # 1. Check relative to CWD (already done by exists check if path is relative, but explicit check for absolute path construction might be needed)
             cwd_path = os.path.abspath(image_path)
             if os.path.exists(cwd_path):
                 image_path = cwd_path
             else:
                 # 2. Check relative to CURRENT_ABS_DIR (project root where run.py is, or parent of it)
-                # Note: CURRENT_ABS_DIR in this file is chainlit/ directory. 
-                # But the agent execution happens in chainlit_logs/{thread_id}. 
+                # Note: CURRENT_ABS_DIR in this file is chainlit/ directory.
+                # But the agent execution happens in chainlit_logs/{thread_id}.
                 # Sometimes paths are relative to project root.
-                
+
                 # Try relative to project root (parent of chainlit dir)
                 project_root = os.path.dirname(CURRENT_ABS_DIR)
                 root_path = os.path.join(project_root, image_path)
                 if os.path.exists(root_path):
                     image_path = root_path
-                
+
         if not os.path.exists(image_path):
             return match.group(0)
 
