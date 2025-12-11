@@ -39,6 +39,14 @@ class BiomniConfig:
     # Tool settings
     use_tool_retriever: bool = True
 
+    # Memory settings
+    use_persistent_memory: bool = (
+        False  # If True, enables conversation history persistence
+    )
+
+    # Audio input settings
+    enable_audio_input: bool = False  # If True, enables voice input via microphone
+
     # Data licensing settings
     commercial_mode: bool = False  # If True, excludes non-commercial datasets
 
@@ -63,7 +71,17 @@ class BiomniConfig:
         if os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL"):
             self.llm = os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL")
         if os.getenv("BIOMNI_USE_TOOL_RETRIEVER"):
-            self.use_tool_retriever = os.getenv("BIOMNI_USE_TOOL_RETRIEVER").lower() == "true"
+            self.use_tool_retriever = (
+                os.getenv("BIOMNI_USE_TOOL_RETRIEVER").lower() == "true"
+            )
+        if os.getenv("BIOMNI_USE_PERSISTENT_MEMORY"):
+            self.use_persistent_memory = (
+                os.getenv("BIOMNI_USE_PERSISTENT_MEMORY").lower() == "true"
+            )
+        if os.getenv("BIOMNI_ENABLE_AUDIO_INPUT"):
+            self.enable_audio_input = (
+                os.getenv("BIOMNI_ENABLE_AUDIO_INPUT").lower() == "true"
+            )
         if os.getenv("BIOMNI_COMMERCIAL_MODE"):
             self.commercial_mode = os.getenv("BIOMNI_COMMERCIAL_MODE").lower() == "true"
         if os.getenv("BIOMNI_TEMPERATURE"):
@@ -76,7 +94,9 @@ class BiomniConfig:
             self.source = os.getenv("BIOMNI_SOURCE")
 
         # Protocols.io access token (prefer specific env vars)
-        env_token = os.getenv("PROTOCOLS_IO_ACCESS_TOKEN") or os.getenv("BIOMNI_PROTOCOLS_IO_ACCESS_TOKEN")
+        env_token = os.getenv("PROTOCOLS_IO_ACCESS_TOKEN") or os.getenv(
+            "BIOMNI_PROTOCOLS_IO_ACCESS_TOKEN"
+        )
         if env_token:
             self.protocols_io_access_token = env_token
 
@@ -88,6 +108,8 @@ class BiomniConfig:
             "llm": self.llm,
             "temperature": self.temperature,
             "use_tool_retriever": self.use_tool_retriever,
+            "use_persistent_memory": self.use_persistent_memory,
+            "enable_audio_input": self.enable_audio_input,
             "commercial_mode": self.commercial_mode,
             "base_url": self.base_url,
             "api_key": self.api_key,
