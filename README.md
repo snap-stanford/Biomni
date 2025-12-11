@@ -176,8 +176,10 @@ agent.launch_gradio_demo()
 
 **Installation:**
 ```bash
-pip install gradio
+pip install "gradio>=5.0,<6.0"
 ```
+
+**Note:** Biomni's Gradio interface currently requires Gradio 5.x due to API changes in Gradio 6.0. If you have Gradio 6.x installed, you may need to downgrade.
 
 **Options:**
 - `share=True` - Create a public shareable link
