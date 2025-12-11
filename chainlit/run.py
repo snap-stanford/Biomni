@@ -431,6 +431,11 @@ async def on_audio_start():
     This function is called when user starts recording.
     Returns True to allow recording, False to reject.
     """
+    # Check if audio input is enabled
+    if not default_config.enable_audio_input:
+        logger.info("[AUDIO] Audio input is disabled")
+        return False
+
     # Initialize silence detection state (like reference code)
     cl.user_session.set("silent_duration_ms", 0)
     cl.user_session.set("is_speaking", False)
@@ -454,6 +459,10 @@ async def on_audio_chunk(chunk: cl.InputAudioChunk):
     Includes silence detection to auto-stop recording after prolonged silence.
     Based on reference implementation from Chainlit cookbook.
     """
+    # Skip if audio input is disabled
+    if not default_config.enable_audio_input:
+        return
+
     # Get audio chunks list and append current chunk as numpy array
     audio_chunks = cl.user_session.get("audio_chunks")
     if audio_chunks is not None:

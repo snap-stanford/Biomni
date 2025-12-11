@@ -1502,8 +1502,13 @@ class A1_HITS(A1):
 
         # Compile the workflow
         self.app = workflow.compile()
-        self.checkpointer = MemorySaver()
-        self.app.checkpointer = self.checkpointer
+        
+        # Set up persistent memory if enabled (controlled by default_config)
+        if default_config.use_persistent_memory:
+            self.checkpointer = MemorySaver()
+            self.app.checkpointer = self.checkpointer
+        else:
+            self.checkpointer = None
 
     def _load_prompt_template(self, template_name: str) -> str:
         """
