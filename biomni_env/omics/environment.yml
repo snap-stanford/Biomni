@@ -52,3 +52,4 @@ dependencies:
       - mcp
       - tooluniverse
       - aiosqlite
+      - pymed
