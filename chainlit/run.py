@@ -424,6 +424,269 @@ async def resume_chat():
         )
 
 
+# Feedback user identifier (must match credentials.yaml)
+FEEDBACK_USER_IDENTIFIER = "feedback"
+
+
+async def _get_or_create_feedback_user(cursor) -> str:
+    """Get feedback user ID from database, create if not exists.
+    
+    Returns:
+        str: The feedback user's database ID
+    """
+    import uuid
+    import json
+    from datetime import datetime
+    
+    cursor.execute(
+        'SELECT id FROM users WHERE identifier = ?',
+        (FEEDBACK_USER_IDENTIFIER,)
+    )
+    row = cursor.fetchone()
+    
+    if row:
+        return row[0]
+    
+    # Create feedback user if not exists
+    feedback_user_id = str(uuid.uuid4())
+    metadata = json.dumps({"role": "admin", "provider": "credentials"})
+    created_at = datetime.utcnow().isoformat()
+    
+    cursor.execute(
+        'INSERT INTO users (id, identifier, metadata, createdAt) VALUES (?, ?, ?, ?)',
+        (feedback_user_id, FEEDBACK_USER_IDENTIFIER, metadata, created_at)
+    )
+    
+    return feedback_user_id
+
+
+async def _copy_thread_to_feedback_user(
+    original_thread_id: str,
+    feedback_value: int,
+    feedback_comment: str | None,
+    feedback_for_id: str
+):
+    """Copy a thread and all its data to the feedback user account.
+    
+    Args:
+        original_thread_id: The original thread ID to copy
+        feedback_value: The feedback value (0 or 1)
+        feedback_comment: Optional feedback comment
+        feedback_for_id: The step ID that received the feedback
+    """
+    import uuid
+    import json
+    from datetime import datetime
+    
+    db_path = os.path.abspath(CHAINLIT_DB_PATH)
+    
+    try:
+        import sqlite3
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        # Get or create feedback user
+        feedback_user_id = await _get_or_create_feedback_user(cursor)
+        conn.commit()
+        
+        # Get original thread data
+        cursor.execute(
+            'SELECT id, createdAt, name, userId, userIdentifier, tags, metadata FROM threads WHERE id = ?',
+            (original_thread_id,)
+        )
+        thread_row = cursor.fetchone()
+        
+        if not thread_row:
+            logger.warning(f"[FEEDBACK] Thread not found: {original_thread_id}")
+            conn.close()
+            return
+        
+        # Create new thread ID
+        new_thread_id = str(uuid.uuid4())
+        original_user_identifier = thread_row[4] or "unknown"
+        
+        # Parse and modify metadata to include feedback info and original user
+        original_metadata = {}
+        if thread_row[6]:
+            try:
+                original_metadata = json.loads(thread_row[6])
+            except:
+                pass
+        
+        new_metadata = {
+            **original_metadata,
+            "copied_from_thread": original_thread_id,
+            "copied_from_user": original_user_identifier,
+            "feedback_value": feedback_value,
+            "feedback_comment": feedback_comment,
+            "copied_at": datetime.utcnow().isoformat()
+        }
+        
+        # Create thread name with feedback indicator and original user
+        original_name = thread_row[2] or "Untitled"
+        feedback_emoji = "👍" if feedback_value == 1 else "👎"
+        new_thread_name = f"[{feedback_emoji} from {original_user_identifier}] {original_name}"
+        
+        # Insert new thread with feedback user as owner
+        cursor.execute(
+            '''INSERT INTO threads (id, createdAt, name, userId, userIdentifier, tags, metadata)
+               VALUES (?, ?, ?, ?, ?, ?, ?)''',
+            (
+                new_thread_id,
+                thread_row[1],  # createdAt
+                new_thread_name,
+                feedback_user_id,
+                FEEDBACK_USER_IDENTIFIER,
+                thread_row[5],  # tags
+                json.dumps(new_metadata)
+            )
+        )
+        
+        # Copy all steps - need to map old step IDs to new ones for parent relationships
+        cursor.execute(
+            '''SELECT id, name, type, threadId, parentId, streaming, waitForAnswer, isError,
+                      metadata, tags, input, output, createdAt, command, start, end,
+                      generation, showInput, language, indent, defaultOpen
+               FROM steps WHERE threadId = ?''',
+            (original_thread_id,)
+        )
+        steps = cursor.fetchall()
+        
+        step_id_map = {}  # old_id -> new_id
+        
+        for step in steps:
+            old_step_id = step[0]
+            new_step_id = str(uuid.uuid4())
+            step_id_map[old_step_id] = new_step_id
+        
+        # Insert steps with mapped IDs
+        for step in steps:
+            old_step_id = step[0]
+            new_step_id = step_id_map[old_step_id]
+            old_parent_id = step[4]
+            new_parent_id = step_id_map.get(old_parent_id) if old_parent_id else None
+            
+            cursor.execute(
+                '''INSERT INTO steps (id, name, type, threadId, parentId, streaming, waitForAnswer,
+                                      isError, metadata, tags, input, output, createdAt, command,
+                                      start, end, generation, showInput, language, indent, defaultOpen)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                (
+                    new_step_id,
+                    step[1],   # name
+                    step[2],   # type
+                    new_thread_id,
+                    new_parent_id,
+                    step[5],   # streaming
+                    step[6],   # waitForAnswer
+                    step[7],   # isError
+                    step[8],   # metadata
+                    step[9],   # tags
+                    step[10],  # input
+                    step[11],  # output
+                    step[12],  # createdAt
+                    step[13],  # command
+                    step[14],  # start
+                    step[15],  # end
+                    step[16],  # generation
+                    step[17],  # showInput
+                    step[18],  # language
+                    step[19],  # indent
+                    step[20],  # defaultOpen
+                )
+            )
+        
+        # Copy all elements
+        cursor.execute(
+            '''SELECT id, threadId, type, url, chainlitKey, name, display, objectKey,
+                      size, page, language, forId, mime, props
+               FROM elements WHERE threadId = ?''',
+            (original_thread_id,)
+        )
+        elements = cursor.fetchall()
+        
+        for element in elements:
+            new_element_id = str(uuid.uuid4())
+            old_for_id = element[11]
+            new_for_id = step_id_map.get(old_for_id) if old_for_id else None
+            
+            cursor.execute(
+                '''INSERT INTO elements (id, threadId, type, url, chainlitKey, name, display,
+                                         objectKey, size, page, language, forId, mime, props)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                (
+                    new_element_id,
+                    new_thread_id,
+                    element[2],   # type
+                    element[3],   # url
+                    element[4],   # chainlitKey
+                    element[5],   # name
+                    element[6],   # display
+                    element[7],   # objectKey
+                    element[8],   # size
+                    element[9],   # page
+                    element[10],  # language
+                    new_for_id,
+                    element[12],  # mime
+                    element[13],  # props
+                )
+            )
+        
+        # Copy the feedback itself
+        new_feedback_id = str(uuid.uuid4())
+        new_for_id = step_id_map.get(feedback_for_id, feedback_for_id)
+        
+        cursor.execute(
+            '''INSERT INTO feedbacks (id, forId, threadId, value, comment)
+               VALUES (?, ?, ?, ?, ?)''',
+            (new_feedback_id, new_for_id, new_thread_id, feedback_value, feedback_comment)
+        )
+        
+        conn.commit()
+        conn.close()
+        
+        # Copy chainlit_logs directory
+        original_log_dir = os.path.join(CURRENT_ABS_DIR, "chainlit_logs", original_thread_id)
+        new_log_dir = os.path.join(CURRENT_ABS_DIR, "chainlit_logs", new_thread_id)
+        
+        if os.path.exists(original_log_dir):
+            shutil.copytree(original_log_dir, new_log_dir)
+            logger.info(f"[FEEDBACK] Copied logs from {original_log_dir} to {new_log_dir}")
+        
+        logger.info(
+            f"[FEEDBACK] Successfully copied thread {original_thread_id} to feedback user as {new_thread_id}"
+        )
+        logger.info(f"[FEEDBACK] Copied {len(steps)} steps and {len(elements)} elements")
+        
+    except Exception as e:
+        logger.error(f"[FEEDBACK] Error copying thread to feedback user: {e}", exc_info=True)
+
+
+@cl.on_feedback
+async def on_feedback(feedback):
+    """Handle user feedback events.
+    
+    When a user leaves feedback (thumbs up/down), copy the entire conversation
+    session to the feedback account for review.
+    """
+    logger.info(f"[FEEDBACK] Received feedback: value={feedback.value}, forId={feedback.forId}, "
+                f"threadId={feedback.threadId}, comment={feedback.comment}")
+    
+    if not feedback.threadId:
+        logger.warning("[FEEDBACK] No threadId in feedback, skipping copy")
+        return
+    
+    # Copy the thread to feedback user account
+    await _copy_thread_to_feedback_user(
+        original_thread_id=feedback.threadId,
+        feedback_value=feedback.value,
+        feedback_comment=feedback.comment,
+        feedback_for_id=feedback.forId
+    )
+    
+    logger.info(f"[FEEDBACK] Thread {feedback.threadId} copied to feedback account")
+
+
 @cl.on_audio_start
 async def on_audio_start():
     """Handle start of audio recording.
