@@ -45,7 +45,8 @@ allowed_resources:
     - module: biomni.tool.statistics
 
     # Extra tools
-    - module: biomni.tool.memory
+    # Memory module (disabled - use_persistent_memory is False)
+    # - module: biomni.tool.memory
   
   # Data lake items: list of allowed data lake item names
   # Uncomment and add data lake item names you want to allow:

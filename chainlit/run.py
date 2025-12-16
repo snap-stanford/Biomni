@@ -1219,14 +1219,15 @@ async def _process_agent_response(agent_input: list, message_history: list):
             f.write(raw_full_message + "\n")
         message_history.append({"role": "assistant", "content": raw_full_message})
 
-        # Save conversation to memory
-        try:
-            user_message_content = message_history[-2][
-                "content"
-            ]  # The message before the one we just appended
-            save_conversation(user_message_content, final_message)
-        except Exception as e:
-            logger.error(f"Failed to save conversation to memory: {e}")
+        # Save conversation to memory (only if persistent memory is enabled)
+        if default_config.use_persistent_memory:
+            try:
+                user_message_content = message_history[-2][
+                    "content"
+                ]  # The message before the one we just appended
+                save_conversation(user_message_content, final_message)
+            except Exception as e:
+                logger.error(f"Failed to save conversation to memory: {e}")
 
     except asyncio.CancelledError:
         # Handle stop button click
