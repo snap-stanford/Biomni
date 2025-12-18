@@ -799,6 +799,7 @@ async def _process_agent_response(agent_input: list, message_history: list):
 
         final_message = _extract_final_message(raw_full_message)
         final_message = _detect_image_name_and_move_to_public(final_message)
+        final_message = _detect_sar_report_and_add_button(final_message)
 
         await cl.Message(content=final_message).send()
 
@@ -1441,3 +1442,50 @@ def _detect_image_name_and_move_to_public(
             return match.group(0)
 
     return re.sub(image_pattern, replace_image, content)
+
+
+def _detect_sar_report_and_add_button(content: str) -> str:
+    """
+    Check if sar_analysis_report.html exists, move to public, add button to content.
+    """
+    report_filename = "sar_analysis_report.html"
+    
+    # Check in current working directory
+    if not os.path.exists(report_filename):
+        return content
+
+    public_dir = PUBLIC_DIR
+    os.makedirs(public_dir, exist_ok=True)
+
+    # Generate unique filename to avoid caching/overwriting issues
+    random_prefix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    new_filename = f"{random_prefix}_{report_filename}"
+    new_file_path = os.path.join(public_dir, new_filename)
+
+    try:
+        shutil.copy2(report_filename, new_file_path)
+        public_url = f"/public/{new_filename}"
+        
+        # Add button HTML
+        # Using inline styles for a green button
+        button_html = (
+            f'\n\n<div style="margin-top: 15px;">'
+            f'<a href="{public_url}" target="_blank" style="'
+            'display: inline-block; '
+            'padding: 10px 20px; '
+            'background-color: #4CAF50; '
+            'color: white; '
+            'text-decoration: none; '
+            'border-radius: 5px; '
+            'font-weight: bold; '
+            'box-shadow: 0 2px 5px rgba(0,0,0,0.2);'
+            'transition: background-color 0.3s;">'
+            '📊 Open Analysis Report'
+            '</a>'
+            '</div>\n'
+        )
+        print(f"SAR report moved to {new_file_path}")
+        return content + button_html
+    except Exception as e:
+        print(f"Error processing SAR report: {e}")
+        return content
