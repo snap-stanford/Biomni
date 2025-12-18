@@ -1430,7 +1430,7 @@ def _detect_image_name_and_move_to_public(
 
         try:
             shutil.copy2(image_path, new_file_path)
-            public_path = f"/public/{new_file_name}"
+            public_path = f"/chainlit/public/{new_file_name}"
             image_cache[image_path] = public_path  # Cache the result
             print("copied image to", new_file_path)
             return (
