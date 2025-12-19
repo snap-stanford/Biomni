@@ -1464,7 +1464,7 @@ def _detect_sar_report_and_add_button(content: str) -> str:
 
     try:
         shutil.copy2(report_filename, new_file_path)
-        public_url = f"/public/{new_filename}"
+        public_url = f"/chainlit/public/{new_filename}"
         
         # Add button HTML
         # Using inline styles for a green button
@@ -1485,6 +1485,14 @@ def _detect_sar_report_and_add_button(content: str) -> str:
             '</div>\n'
         )
         print(f"SAR report moved to {new_file_path}")
+        
+        # Rename original file to avoid re-processing in subsequent turns
+        # This acts as a flag that the report has been "consumed" (button added)
+        processed_filename = f"{report_filename}.processed"
+        if os.path.exists(processed_filename):
+            os.remove(processed_filename)
+        os.rename(report_filename, processed_filename)
+        
         return content + button_html
     except Exception as e:
         print(f"Error processing SAR report: {e}")
