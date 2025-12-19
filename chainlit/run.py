@@ -1,6 +1,7 @@
 import chainlit as cl
 import sys
 import os
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from biomni.agent import A1_HITS
@@ -800,6 +801,7 @@ async def _process_agent_response(agent_input: list, message_history: list):
         final_message = _extract_final_message(raw_full_message)
         final_message = _detect_image_name_and_move_to_public(final_message)
         final_message = _detect_sar_report_and_add_button(final_message)
+        final_message = _detect_sar_report_and_add_button(final_message)
 
         await cl.Message(content=final_message).send()
 
@@ -812,7 +814,9 @@ async def _process_agent_response(agent_input: list, message_history: list):
 
         # Save conversation to memory
         try:
-            user_message_content = message_history[-2]["content"] # The message before the one we just appended
+            user_message_content = message_history[-2][
+                "content"
+            ]  # The message before the one we just appended
             save_conversation(user_message_content, final_message)
         except Exception as e:
             logger.error(f"Failed to save conversation to memory: {e}")
@@ -1389,25 +1393,25 @@ def _detect_image_name_and_move_to_public(
 
         # Check if file exists
         if not os.path.exists(image_path):
-             # Try to find it relative to the current working directory (chainlit_logs/thread_id)
-             # or relative to the project root (CURRENT_ABS_DIR)
-            
+            # Try to find it relative to the current working directory (chainlit_logs/thread_id)
+            # or relative to the project root (CURRENT_ABS_DIR)
+
             # 1. Check relative to CWD (already done by exists check if path is relative, but explicit check for absolute path construction might be needed)
             cwd_path = os.path.abspath(image_path)
             if os.path.exists(cwd_path):
                 image_path = cwd_path
             else:
                 # 2. Check relative to CURRENT_ABS_DIR (project root where run.py is, or parent of it)
-                # Note: CURRENT_ABS_DIR in this file is chainlit/ directory. 
-                # But the agent execution happens in chainlit_logs/{thread_id}. 
+                # Note: CURRENT_ABS_DIR in this file is chainlit/ directory.
+                # But the agent execution happens in chainlit_logs/{thread_id}.
                 # Sometimes paths are relative to project root.
-                
+
                 # Try relative to project root (parent of chainlit dir)
                 project_root = os.path.dirname(CURRENT_ABS_DIR)
                 root_path = os.path.join(project_root, image_path)
                 if os.path.exists(root_path):
                     image_path = root_path
-                
+
         if not os.path.exists(image_path):
             return match.group(0)
 
@@ -1449,7 +1453,7 @@ def _detect_sar_report_and_add_button(content: str) -> str:
     Check if sar_analysis_report.html exists, move to public, add button to content.
     """
     report_filename = "sar_analysis_report.html"
-    
+
     # Check in current working directory
     if not os.path.exists(report_filename):
         return content
@@ -1465,34 +1469,34 @@ def _detect_sar_report_and_add_button(content: str) -> str:
     try:
         shutil.copy2(report_filename, new_file_path)
         public_url = f"/chainlit/public/{new_filename}"
-        
+
         # Add button HTML
         # Using inline styles for a green button
         button_html = (
             f'\n\n<div style="margin-top: 15px;">'
             f'<a href="{public_url}" target="_blank" style="'
-            'display: inline-block; '
-            'padding: 10px 20px; '
-            'background-color: #4CAF50; '
-            'color: white; '
-            'text-decoration: none; '
-            'border-radius: 5px; '
-            'font-weight: bold; '
-            'box-shadow: 0 2px 5px rgba(0,0,0,0.2);'
+            "display: inline-block; "
+            "padding: 10px 20px; "
+            "background-color: #4CAF50; "
+            "color: white; "
+            "text-decoration: none; "
+            "border-radius: 5px; "
+            "font-weight: bold; "
+            "box-shadow: 0 2px 5px rgba(0,0,0,0.2);"
             'transition: background-color 0.3s;">'
-            '📊 Open Analysis Report'
-            '</a>'
-            '</div>\n'
+            "📊 Open Analysis Report"
+            "</a>"
+            "</div>\n"
         )
         print(f"SAR report moved to {new_file_path}")
-        
+
         # Rename original file to avoid re-processing in subsequent turns
         # This acts as a flag that the report has been "consumed" (button added)
         processed_filename = f"{report_filename}.processed"
         if os.path.exists(processed_filename):
             os.remove(processed_filename)
         os.rename(report_filename, processed_filename)
-        
+
         return content + button_html
     except Exception as e:
         print(f"Error processing SAR report: {e}")

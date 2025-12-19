@@ -60,4 +60,3 @@ dependencies:
       - googlesearch-python
       - langchain_qdrant
       - langchain_classic
-      - fastapi<0.115.0  # chainlit 호환성을 위해 버전 제한
