@@ -28,4 +28,4 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # HTTP 모드 (마이크 사용 불가, localhost에서만 마이크 작동)
 # chainlit run "${SCRIPT_DIR}/run.py" -h --host 0.0.0.0 --port 8001
-chainlit run "${SCRIPT_DIR}/run.py" -h --host 0.0.0.0 --port 8004
+chainlit run "${SCRIPT_DIR}/run.py" -h --host 0.0.0.0 --port 8003

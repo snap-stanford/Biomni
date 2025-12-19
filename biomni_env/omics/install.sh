@@ -1,7 +1,7 @@
-env_name="hits_omics"
+env_name="biomni_hits2"
 
 # Install mamba if not already installed
-conda install -n base mamba -c conda-forge -y
+# conda install -n base mamba -c conda-forge -y
 mamba env create -n $env_name -f environment.yml
 
 # Activate environment
