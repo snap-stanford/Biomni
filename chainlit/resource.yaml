@@ -62,4 +62,4 @@ allowed_resources:
 excluded_resources:
   tools:
     # Literature module - Claude advanced web search
-    - advanced_web_search_claude
+    - biomni.tool.literature.advanced_web_search_claude
