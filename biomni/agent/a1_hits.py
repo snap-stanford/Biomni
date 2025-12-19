@@ -1219,6 +1219,9 @@ class A1_HITS(A1):
             resource_filter_config_path: Path to YAML file with resource filter configuration
             **kwargs: Keyword arguments passed to parent A1 class
         """
+        # Store resource filter config path for later use
+        self.resource_filter_config_path = resource_filter_config_path
+
         # Load and apply resource filter config before calling super()
         self._apply_resource_filters_before_init(resource_filter_config_path, kwargs)
 
@@ -1502,7 +1505,7 @@ class A1_HITS(A1):
 
         # Compile the workflow
         self.app = workflow.compile()
-        
+
         # Set up persistent memory if enabled (controlled by default_config)
         if default_config.use_persistent_memory:
             self.checkpointer = MemorySaver()
@@ -1611,7 +1614,7 @@ class A1_HITS(A1):
                     "📚 KNOW-HOW DOCUMENTS (BEST PRACTICES & PROTOCOLS - ALREADY LOADED):\n"
                     "{know_how_docs}\n\n"
                     "IMPORTANT: These documents are ALREADY AVAILABLE in your context. You do NOT need to\n"
-                    "retrieve them or \"review\" them as a separate step. You can DIRECTLY reference and use\n"
+                    'retrieve them or "review" them as a separate step. You can DIRECTLY reference and use\n'
                     "the information from these documents to answer questions, provide protocols, suggest\n"
                     "parameters, and offer troubleshooting guidance.\n\n"
                     "These documents contain expert knowledge, protocols, and troubleshooting guidance.\n"
@@ -1710,3 +1713,303 @@ class A1_HITS(A1):
         # Format and return prompt
         formatted_prompt = prompt_modifier.format(**format_dict)
         return formatted_prompt
+
+    def update_system_prompt_with_selected_resources(self, selected_resources):
+        """
+        Update the system prompt with the selected resources.
+
+        Overrides parent method to pass the resource_filter_config_path.
+        """
+        # Check if resource.yaml has module-level tool specifications
+        # If a tool from a module is selected, include ALL tools from that module
+        from biomni.utils.resource_filter import (
+            load_resource_filter_config,
+            _parse_tool_spec,
+            get_excluded_tool_names,
+        )
+
+        # Use the stored resource_filter_config_path instead of None
+        resource_config = load_resource_filter_config(self.resource_filter_config_path)
+        allowed_config = resource_config.get("allowed", {})
+        excluded_config = resource_config.get("excluded", {})
+
+        allowed_tools = allowed_config.get("tools", [])
+        excluded_tool_names = get_excluded_tool_names(excluded_config.get("tools", []))
+        excluded_data_lake = set(excluded_config.get("data_lake", []) or [])
+        excluded_libraries = set(excluded_config.get("libraries", []) or [])
+
+        if excluded_tool_names:
+            print(
+                f"🚫 Excluding {len(excluded_tool_names)} tools: {excluded_tool_names}"
+            )
+
+        # Find modules specified in resource.yaml
+        resource_modules = set()
+        for spec in allowed_tools:
+            parsed = _parse_tool_spec(spec)
+            if parsed["type"] == "module":
+                module_name = parsed["value"]
+                # Convert to tool_description format if needed
+                if not module_name.startswith("biomni.tool.tool_description."):
+                    if module_name.startswith("biomni.tool."):
+                        tool_name = module_name.replace("biomni.tool.", "")
+                        module_name = f"biomni.tool.tool_description.{tool_name}"
+                resource_modules.add(module_name)
+                # Also add the regular module format
+                if module_name.startswith("biomni.tool.tool_description."):
+                    base_module = module_name.replace(
+                        "biomni.tool.tool_description.", ""
+                    )
+                    resource_modules.add(f"biomni.tool.{base_module}")
+
+        # Track which modules have at least one tool selected
+        selected_modules = set()
+
+        # Extract tool descriptions for the selected tools
+        tool_desc = {}
+        for tool in selected_resources["tools"]:
+            # Get the module name from the tool
+            if isinstance(tool, dict):
+                module_name = tool.get("module", None)
+
+                # If module is not specified, try to find it in the module2api
+                if not module_name and hasattr(self, "module2api"):
+                    for mod, apis in self.module2api.items():
+                        for api in apis:
+                            if api.get("name") == tool.get("name"):
+                                module_name = mod
+                                # Update the tool with the module information
+                                tool["module"] = module_name
+                                break
+                        if module_name:
+                            break
+
+                # If still not found, use a default
+                if not module_name:
+                    module_name = "biomni.tool.scRNA_tools"  # Default to scRNA_tools as a fallback
+                    tool["module"] = module_name
+            else:
+                module_name = getattr(tool, "module_name", None)
+
+                # If module is not specified, try to find it in the module2api
+                if not module_name and hasattr(self, "module2api"):
+                    tool_name = getattr(tool, "name", str(tool))
+                    for mod, apis in self.module2api.items():
+                        for api in apis:
+                            if api.get("name") == tool_name:
+                                module_name = mod
+                                # Set the module_name attribute
+                                tool.module_name = module_name
+                                break
+                        if module_name:
+                            break
+
+                # If still not found, use a default
+                if not module_name:
+                    module_name = "biomni.tool.scRNA_tools"  # Default to scRNA_tools as a fallback
+                    tool.module_name = module_name
+
+            if module_name not in tool_desc:
+                tool_desc[module_name] = []
+
+            # Track selected modules that are in resource.yaml
+            if module_name in resource_modules:
+                selected_modules.add(module_name)
+            # Also check if it's the regular format (biomni.tool.X)
+            if module_name.startswith("biomni.tool.") and not module_name.startswith(
+                "biomni.tool.tool_description."
+            ):
+                # Check if corresponding tool_description module is in resource_modules
+                tool_desc_module = f"biomni.tool.tool_description.{module_name.replace('biomni.tool.', '')}"
+                if tool_desc_module in resource_modules:
+                    selected_modules.add(module_name)
+                    selected_modules.add(tool_desc_module)
+
+            # Add the tool to the appropriate module
+            if isinstance(tool, dict):
+                # Ensure the module is included in the tool description
+                if "module" not in tool:
+                    tool["module"] = module_name
+                tool_desc[module_name].append(tool)
+            else:
+                # Convert tool object to dictionary
+                tool_dict = {
+                    "name": getattr(tool, "name", str(tool)),
+                    "description": getattr(tool, "description", ""),
+                    "parameters": getattr(tool, "parameters", {}),
+                    "module": module_name,  # Explicitly include the module
+                }
+                tool_desc[module_name].append(tool_dict)
+
+        # For each selected module that's in resource.yaml, add ALL tools from that module
+        if selected_modules and hasattr(self, "module2api"):
+            for selected_mod in selected_modules:
+                # Get the corresponding module2api key
+                if selected_mod.startswith("biomni.tool.tool_description."):
+                    base_module = selected_mod.replace(
+                        "biomni.tool.tool_description.", ""
+                    )
+                    module2api_key = f"biomni.tool.{base_module}"
+                else:
+                    module2api_key = selected_mod
+
+                # If this module is in module2api and not already fully included
+                if module2api_key in self.module2api:
+                    # Get all tools from this module
+                    all_tools_in_module = self.module2api[module2api_key]
+
+                    # Initialize if not exists
+                    if module2api_key not in tool_desc:
+                        tool_desc[module2api_key] = []
+
+                    # Add all tools from the module (avoid duplicates)
+                    existing_tool_names = {
+                        (
+                            t.get("name")
+                            if isinstance(t, dict)
+                            else getattr(t, "name", str(t))
+                        )
+                        for t in tool_desc[module2api_key]
+                    }
+
+                    for api in all_tools_in_module:
+                        tool_name = api.get("name")
+                        if tool_name and tool_name not in existing_tool_names:
+                            # Convert to tool dict format
+                            tool_dict = {
+                                "name": tool_name,
+                                "description": api.get("description", ""),
+                                "required_parameters": api.get(
+                                    "required_parameters", []
+                                ),
+                                "optional_parameters": api.get(
+                                    "optional_parameters", []
+                                ),
+                                "module": module2api_key,
+                            }
+                            tool_desc[module2api_key].append(tool_dict)
+                            existing_tool_names.add(tool_name)
+
+        # Remove excluded tools from tool_desc
+        if excluded_tool_names:
+            for module_name in list(tool_desc.keys()):
+                tool_desc[module_name] = [
+                    t
+                    for t in tool_desc[module_name]
+                    if (
+                        t.get("name") if isinstance(t, dict) else getattr(t, "name", "")
+                    )
+                    not in excluded_tool_names
+                ]
+                # Remove empty modules
+                if not tool_desc[module_name]:
+                    del tool_desc[module_name]
+
+        # Prepare data lake items with descriptions (excluding excluded items)
+        data_lake_with_desc = []
+        for item in selected_resources["data_lake"]:
+            if item in excluded_data_lake:
+                continue
+            description = self.data_lake_dict.get(item, f"Data lake item: {item}")
+            data_lake_with_desc.append({"name": item, "description": description})
+
+        # Prepare custom resources for highlighting
+        custom_tools = []
+        if hasattr(self, "_custom_tools") and self._custom_tools:
+            for name, info in self._custom_tools.items():
+                custom_tools.append(
+                    {
+                        "name": name,
+                        "description": info["description"],
+                        "module": info["module"],
+                    }
+                )
+
+        custom_data = []
+        if hasattr(self, "_custom_data") and self._custom_data:
+            for name, info in self._custom_data.items():
+                custom_data.append({"name": name, "description": info["description"]})
+
+        custom_software = []
+        if hasattr(self, "_custom_software") and self._custom_software:
+            for name, info in self._custom_software.items():
+                custom_software.append(
+                    {"name": name, "description": info["description"]}
+                )
+
+        # Extract know-how documents if present
+        # Process know-how documents - get the full content for selected documents
+        print(f"\n📚 KNOW-HOW DOCUMENTS PROCESSING (in update_system_prompt):")
+        print(f"  Available in selected_resources: {'know_how' in selected_resources}")
+        know_how_docs = []
+        if "know_how" in selected_resources:
+            print(f"  Selected count: {len(selected_resources.get('know_how', []))}")
+            if selected_resources["know_how"]:
+                print(
+                    f"  Processing {len(selected_resources['know_how'])} selected document(s):"
+                )
+                for item in selected_resources["know_how"]:
+                    if isinstance(item, dict):
+                        doc_id = item.get("id")
+                        if doc_id:
+                            doc = self.know_how_loader.get_document_by_id(doc_id)
+                            if doc:
+                                content_length = len(doc["content_without_metadata"])
+                                print(
+                                    f"  ✓ {doc['name']} (id: {doc_id}, content: {content_length} chars)"
+                                )
+                                # Create a copy with content_without_metadata for agent context
+                                doc_for_agent = {
+                                    "id": doc["id"],
+                                    "name": doc["name"],
+                                    "description": doc["description"],
+                                    "content": doc["content_without_metadata"],
+                                    "metadata": doc["metadata"],
+                                }
+                                know_how_docs.append(doc_for_agent)
+                            else:
+                                print(
+                                    f"  ✗ Document with id '{doc_id}' not found in know_how_loader"
+                                )
+                        else:
+                            # If item already has full content, use it directly
+                            know_how_docs.append(item)
+                print(
+                    f"  ✓ Successfully processed {len(know_how_docs)} know-how documents"
+                )
+            else:
+                print(
+                    f"  ⚠️  No know-how documents were selected by the LLM for this query"
+                )
+                if hasattr(self, "know_how_loader") and self.know_how_loader:
+                    print(
+                        f"  Available documents: {len(self.know_how_loader.documents)}"
+                    )
+                    available_docs = self.know_how_loader.get_document_summaries()
+                    for doc in available_docs:
+                        print(f"    - {doc['name']}: {doc['description'][:80]}...")
+        else:
+            print(f"  ⚠️  'know_how' key not found in selected_resources")
+            if hasattr(self, "know_how_loader") and self.know_how_loader:
+                print(
+                    f"  Available know-how documents: {len(self.know_how_loader.documents)}"
+                )
+
+        # Filter out excluded libraries
+        filtered_libraries = [
+            lib
+            for lib in selected_resources["libraries"]
+            if lib not in excluded_libraries
+        ]
+
+        self.system_prompt = self._generate_system_prompt(
+            tool_desc=tool_desc,
+            data_lake_content=data_lake_with_desc,
+            library_content_list=filtered_libraries,
+            self_critic=getattr(self, "self_critic", False),
+            is_retrieval=True,
+            custom_tools=custom_tools if custom_tools else None,
+            custom_data=custom_data if custom_data else None,
+            custom_software=custom_software if custom_software else None,
+            know_how_docs=know_how_docs if know_how_docs else None,
+        )

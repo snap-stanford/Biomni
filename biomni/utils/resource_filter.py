@@ -21,26 +21,28 @@ def load_resource_filter_config(config_path: Optional[str] = None) -> Dict[str, 
                      including Biomni_HITS directory.
 
     Returns:
-        Dictionary with 'tools', 'data_lake', and 'libraries' keys.
-        Returns empty dict if file not found or invalid.
+        Dictionary with 'allowed' and 'excluded' keys, each containing
+        'tools', 'data_lake', and 'libraries' sub-keys.
+        Returns empty dict structure if file not found or invalid.
     """
 
     if config_path is None or not os.path.exists(config_path):
         print(f"No resource filter configuration found. Using all resources.")
-        return {}
+        return {"allowed": {}, "excluded": {}}
 
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f) or {}
 
-        # Extract allowed_resources section
+        # Extract allowed_resources and excluded_resources sections
         allowed_resources = config.get("allowed_resources", {})
+        excluded_resources = config.get("excluded_resources", {})
 
         print(f"Loaded resource filter from: {config_path}")
-        return allowed_resources
+        return {"allowed": allowed_resources, "excluded": excluded_resources}
     except Exception as e:
         print(f"Error loading resource filter config: {e}")
-        return {}
+        return {"allowed": {}, "excluded": {}}
 
 
 def _parse_tool_spec(spec: Any) -> Dict[str, Any]:
@@ -138,6 +140,44 @@ def _get_tools_from_file(file_path: str, base_path: Optional[str] = None) -> Set
     except Exception as e:
         print(f"Warning: Could not parse file {file_path}: {e}")
         return set()
+
+
+def get_excluded_tool_names(excluded_tools: Optional[List[Any]] = None) -> Set[str]:
+    """
+    Get set of excluded tool names from excluded_tools specification.
+
+    Args:
+        excluded_tools: List of tool specifications (name, module, or file).
+
+    Returns:
+        Set of tool names to exclude.
+    """
+    if not excluded_tools:
+        return set()
+
+    excluded_names: Set[str] = set()
+
+    for spec in excluded_tools:
+        parsed = _parse_tool_spec(spec)
+
+        if parsed["type"] == "name":
+            # Direct tool name
+            excluded_names.add(parsed["value"])
+        elif parsed["type"] == "module":
+            # Get all tools from module
+            module_name = parsed["value"]
+            if not module_name.startswith("biomni.tool.tool_description."):
+                if module_name.startswith("biomni.tool."):
+                    tool_name = module_name.replace("biomni.tool.", "")
+                    module_name = f"biomni.tool.tool_description.{tool_name}"
+            tools = _get_tools_from_module(module_name)
+            excluded_names.update(tools)
+        elif parsed["type"] == "file":
+            # Get all tools from file
+            tools = _get_tools_from_file(parsed["value"])
+            excluded_names.update(tools)
+
+    return excluded_names
 
 
 def filter_module2api(
@@ -310,19 +350,50 @@ def apply_resource_filters(
         Tuple of (filtered_module2api, filtered_data_lake_dict, filtered_library_content_dict).
     """
     config = load_resource_filter_config(config_path)
+    allowed_config = config.get("allowed", {})
+    excluded_config = config.get("excluded", {})
 
-    # Filter tools
-    allowed_tools = config.get("tools", None)
+    # Filter tools by allowed list
+    allowed_tools = allowed_config.get("tools", None)
     filtered_module2api = filter_module2api(module2api, allowed_tools)
 
-    # Filter data lake
-    allowed_data_lake = config.get("data_lake", None)
+    # Exclude tools from excluded list
+    excluded_tool_names = get_excluded_tool_names(excluded_config.get("tools", None))
+    if excluded_tool_names:
+        print(f"🚫 Excluding {len(excluded_tool_names)} tools: {excluded_tool_names}")
+        for module_name in list(filtered_module2api.keys()):
+            filtered_module2api[module_name] = [
+                api for api in filtered_module2api[module_name]
+                if api.get("name", "") not in excluded_tool_names
+            ]
+            # Remove empty modules
+            if not filtered_module2api[module_name]:
+                del filtered_module2api[module_name]
+
+    # Filter data lake by allowed list
+    allowed_data_lake = allowed_config.get("data_lake", None)
     filtered_data_lake_dict = filter_data_lake_dict(data_lake_dict, allowed_data_lake)
 
-    # Filter libraries
-    allowed_libraries = config.get("libraries", None)
+    # Exclude data lake items from excluded list
+    excluded_data_lake = set(excluded_config.get("data_lake", None) or [])
+    if excluded_data_lake:
+        filtered_data_lake_dict = {
+            k: v for k, v in filtered_data_lake_dict.items()
+            if k not in excluded_data_lake
+        }
+
+    # Filter libraries by allowed list
+    allowed_libraries = allowed_config.get("libraries", None)
     filtered_library_content_dict = filter_library_content_dict(
         library_content_dict, allowed_libraries
     )
+
+    # Exclude libraries from excluded list
+    excluded_libraries = set(excluded_config.get("libraries", None) or [])
+    if excluded_libraries:
+        filtered_library_content_dict = {
+            k: v for k, v in filtered_library_content_dict.items()
+            if k not in excluded_libraries
+        }
 
     return filtered_module2api, filtered_data_lake_dict, filtered_library_content_dict

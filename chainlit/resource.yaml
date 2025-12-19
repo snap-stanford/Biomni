@@ -38,14 +38,14 @@ allowed_resources:
     
     # Example: Allow all tools from database module
     - module: biomni.tool.database
+    - module: biomni.tool.literature
     
     # Universal omics analysis modules
-    - module: biomni.tool.omics
-    - module: biomni.tool.qc
-    - module: biomni.tool.statistics
+    # - module: biomni.tool.omics
+    # - module: biomni.tool.qc
+    # - module: biomni.tool.statistics
 
     # Extra tools
-    # Memory module (disabled - use_persistent_memory is False)
     # - module: biomni.tool.memory
   
   # Data lake items: list of allowed data lake item names
@@ -58,3 +58,25 @@ allowed_resources:
   # Libraries: list of allowed library/software names
   # Uncomment and add library names you want to allow:
   libraries:
+
+# Excluded resources - these will be explicitly excluded (blacklist)
+excluded_resources:
+  # Tools can be specified in three ways (same as allowed_resources):
+  # 1. By tool name (string): exact tool name
+  #    Example: - query_uniprot
+  #
+  # 2. By file path (dict with "file" key): all functions/tools in that Python file
+  #    Example: - file: biomni/tool/genetics.py
+  #
+  # 3. By module name (dict with "module" key): all tools in that module
+  #    Example: - module: biomni.tool.genetics
+
+  tools:
+    # Literature module - Claude advanced web search (specific tool)
+    - advanced_web_search_claude
+  
+  data_lake:
+    # - example_data_item
+  
+  libraries:
+    # - example_library
