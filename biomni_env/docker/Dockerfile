@@ -39,10 +39,10 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy environment files first (for Docker layer caching)
-COPY biomni_env/docker/environment.yml .
-COPY biomni_env/docker/bio_env.yml .
-COPY biomni_env/docker/r_packages.yml .
-COPY biomni_env/docker/install_r_packages.R .
+COPY biomni_env/omics/environment.yml .
+COPY biomni_env/omics/bio_env.yml .
+COPY biomni_env/omics/r_packages.yml .
+COPY biomni_env/omics/install_r_packages.R .
 
 # Install packages from environment.yml directly to base environment
 RUN mamba env update -n base -f environment.yml && \

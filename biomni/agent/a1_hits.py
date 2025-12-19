@@ -51,6 +51,7 @@ from biomni.utils.resource_filter import (
     apply_resource_filters,
     load_resource_filter_config,
     filter_data_lake_dict,
+    exclude_data_lake_dict,
 )
 from biomni.config import default_config
 
@@ -1244,15 +1245,17 @@ class A1_HITS(A1):
 
     def _apply_resource_filters_before_init(self, resource_filter_config_path, kwargs):
         """Apply resource filters before parent initialization."""
-        resource_config = load_resource_filter_config(resource_filter_config_path)
-        allowed_data_lake_items = resource_config.get("data_lake", None)
+        allowed_config, excluded_config = load_resource_filter_config(
+            resource_filter_config_path
+        )
+        allowed_data_lake_items = allowed_config.get("data_lake", None)
+        excluded_data_lake_items = excluded_config.get("data_lake", None)
 
         # Only apply filtering if resource.yaml has data_lake items defined
-        if (
-            allowed_data_lake_items
-            and len(allowed_data_lake_items) > 0
-            and "expected_data_lake_files" not in kwargs
-        ):
+        has_whitelist = allowed_data_lake_items and len(allowed_data_lake_items) > 0
+        has_blacklist = excluded_data_lake_items and len(excluded_data_lake_items) > 0
+
+        if (has_whitelist or has_blacklist) and "expected_data_lake_files" not in kwargs:
             # Determine commercial_mode
             commercial_mode = kwargs.get("commercial_mode", None)
             if commercial_mode is None:
@@ -1264,10 +1267,19 @@ class A1_HITS(A1):
             else:
                 from biomni.env_desc import data_lake_dict as full_data_lake_dict
 
-            # Filter data_lake_dict based on resource.yaml
-            filtered_data_lake_dict = filter_data_lake_dict(
-                full_data_lake_dict, allowed_data_lake_items
-            )
+            filtered_data_lake_dict = full_data_lake_dict
+
+            # Step 1: Apply whitelist filter (allowed_resources)
+            if has_whitelist:
+                filtered_data_lake_dict = filter_data_lake_dict(
+                    filtered_data_lake_dict, allowed_data_lake_items
+                )
+
+            # Step 2: Apply blacklist filter (excluded_resources)
+            if has_blacklist:
+                filtered_data_lake_dict = exclude_data_lake_dict(
+                    filtered_data_lake_dict, excluded_data_lake_items
+                )
 
             # Pass filtered file list to parent
             filtered_files = list(filtered_data_lake_dict.keys())
@@ -1277,11 +1289,10 @@ class A1_HITS(A1):
                     f"📥 Filtering data lake downloads: {len(filtered_files)} items "
                     f"allowed (from {len(full_data_lake_dict)} total)"
                 )
-            elif len(allowed_data_lake_items) > 0:
+            elif has_whitelist or has_blacklist:
                 kwargs["expected_data_lake_files"] = []
                 print(
-                    f"⚠️  Warning: Resource filter specified {len(allowed_data_lake_items)} "
-                    f"data_lake items, but none matched available items. "
+                    f"⚠️  Warning: Resource filter resulted in 0 data_lake items. "
                     f"No data lake files will be downloaded."
                 )
 

@@ -7,7 +7,7 @@ mamba env create -n $env_name -f environment.yml
 # Activate environment
 source activate $env_name
 
-mamba install -f bio_env.yml
+mamba env update --file bio_env.yml
 
 # Install R packages if needed
 mamba env update --file r_packages.yml

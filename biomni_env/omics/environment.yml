@@ -1,4 +1,3 @@
-name: biomni_e1
 channels:
   - conda-forge  # 1. 가장 우선순위가 높은 채널
   - bioconda     # 2. 
@@ -24,7 +23,8 @@ dependencies:
   - langchain
   - langgraph
   - langchain-openai
-  - langchain-aws
+  - langchain-google-genai
+  - langchain-aws>=1.0.0
   - langchain-community
   - openai
   - transformers
@@ -37,6 +37,10 @@ dependencies:
   - pyyaml
   - tqdm
   - python-dotenv
+  - chainlit
+
+  # --- Bioinformatics ---
+  - biopython
 
   # --- Jupyter & Dev ---
   - gradio
@@ -51,4 +55,9 @@ dependencies:
       - mcp
       - tooluniverse
       - aiosqlite
-      - langchain-classic
+      - PyPDF2
+      - pymed
+      - googlesearch-python
+      - langchain_qdrant
+      - langchain_classic
+      - fastapi<0.115.0  # chainlit 호환성을 위해 버전 제한

@@ -1,17 +1,23 @@
 """
 Resource filtering utilities for restricting tools, data lake, and libraries
 based on YAML configuration files.
+
+Supports two filtering modes:
+- Whitelist (allowed_resources): Only specified resources are allowed
+- Blacklist (excluded_resources): Specified resources are excluded, all others allowed
 """
 
 import os
 import yaml
 import importlib
 import inspect
-from typing import Dict, List, Any, Optional, Set
+from typing import Dict, List, Any, Optional, Set, Tuple
 from pathlib import Path
 
 
-def load_resource_filter_config(config_path: Optional[str] = None) -> Dict[str, Any]:
+def load_resource_filter_config(
+    config_path: Optional[str] = None,
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """
     Load resource filter configuration from YAML file.
 
@@ -21,26 +27,30 @@ def load_resource_filter_config(config_path: Optional[str] = None) -> Dict[str, 
                      including Biomni_HITS directory.
 
     Returns:
-        Dictionary with 'tools', 'data_lake', and 'libraries' keys.
-        Returns empty dict if file not found or invalid.
+        Tuple of (allowed_resources, excluded_resources) dictionaries.
+        Each dict has 'tools', 'data_lake', and 'libraries' keys.
+        Returns (empty dict, empty dict) if file not found or invalid.
     """
 
     if config_path is None or not os.path.exists(config_path):
         print(f"No resource filter configuration found. Using all resources.")
-        return {}
+        return {}, {}
 
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f) or {}
 
-        # Extract allowed_resources section
+        # Extract allowed_resources section (whitelist)
         allowed_resources = config.get("allowed_resources", {})
 
+        # Extract excluded_resources section (blacklist)
+        excluded_resources = config.get("excluded_resources", {})
+
         print(f"Loaded resource filter from: {config_path}")
-        return allowed_resources
+        return allowed_resources, excluded_resources
     except Exception as e:
         print(f"Error loading resource filter config: {e}")
-        return {}
+        return {}, {}
 
 
 def _parse_tool_spec(spec: Any) -> Dict[str, Any]:
@@ -241,6 +251,108 @@ def filter_module2api(
     return filtered_module2api
 
 
+def exclude_module2api(
+    module2api: Dict[str, List[Dict]], excluded_tools: Optional[List[Any]] = None
+) -> Dict[str, List[Dict]]:
+    """
+    Exclude specific tools from module2api dictionary (blacklist mode).
+
+    Args:
+        module2api: Dictionary mapping module names to lists of tool descriptions.
+        excluded_tools: List of tool specifications to exclude. Each can be:
+            - String tool name
+            - Dict with "file" key pointing to Python file
+            - Dict with "module" key pointing to module name
+            If None or empty, returns original module2api (no filtering).
+
+    Returns:
+        Filtered module2api dictionary with excluded tools removed.
+    """
+    if not excluded_tools:
+        return module2api
+
+    # Build set of excluded tool names
+    excluded_tool_names: Set[str] = set()
+
+    # Also track which modules/files are fully excluded
+    excluded_modules: Set[str] = set()
+
+    for spec in excluded_tools:
+        parsed = _parse_tool_spec(spec)
+
+        if parsed["type"] == "name":
+            excluded_tool_names.add(parsed["value"])
+        elif parsed["type"] == "module":
+            module_name = parsed["value"]
+            # Check if it's a tool_description module
+            if not module_name.startswith("biomni.tool.tool_description."):
+                # Try to convert module name to tool_description format
+                if module_name.startswith("biomni.tool."):
+                    # Convert "biomni.tool.genetics" to "biomni.tool.tool_description.genetics"
+                    tool_name = module_name.replace("biomni.tool.", "")
+                    tool_desc_module = f"biomni.tool.tool_description.{tool_name}"
+                    module_name = tool_desc_module
+
+            # Get all tools from this module
+            tools = _get_tools_from_module(module_name)
+            excluded_tool_names.update(tools)
+            # Also exclude matching module prefixes in module2api
+            if module_name.startswith("biomni.tool.tool_description."):
+                base_module = module_name.replace("biomni.tool.tool_description.", "")
+                excluded_modules.add(f"biomni.tool.tool_description.{base_module}")
+                excluded_modules.add(f"biomni.tool.{base_module}")
+            else:
+                excluded_modules.add(module_name)
+        elif parsed["type"] == "file":
+            file_path = parsed["value"]
+            # Get all functions from the file
+            functions = _get_tools_from_file(file_path)
+            excluded_tool_names.update(functions)
+
+    # Filter module2api by excluding specified tools
+    filtered_module2api = {}
+    excluded_count = 0
+
+    for module_name, api_list in module2api.items():
+        # Check if entire module is excluded
+        module_excluded = False
+        for excluded_mod in excluded_modules:
+            if module_name == excluded_mod:
+                module_excluded = True
+                break
+            if excluded_mod.startswith("biomni.tool.tool_description."):
+                base_name = excluded_mod.replace("biomni.tool.tool_description.", "")
+                if module_name == f"biomni.tool.{base_name}":
+                    module_excluded = True
+                    break
+            if module_name.startswith("biomni.tool.tool_description."):
+                base_name = module_name.replace("biomni.tool.tool_description.", "")
+                if excluded_mod == f"biomni.tool.{base_name}":
+                    module_excluded = True
+                    break
+
+        if module_excluded:
+            excluded_count += len(api_list)
+            continue  # Skip entire module
+
+        filtered_apis = []
+        for api in api_list:
+            tool_name = api.get("name", "")
+            # Include tool only if not in excluded list
+            if tool_name not in excluded_tool_names:
+                filtered_apis.append(api)
+            else:
+                excluded_count += 1
+
+        if filtered_apis:
+            filtered_module2api[module_name] = filtered_apis
+
+    print(
+        f"Excluded {excluded_count} tools. Remaining: {sum(len(apis) for apis in filtered_module2api.values())} tools from {len(filtered_module2api)} modules"
+    )
+    return filtered_module2api
+
+
 def filter_data_lake_dict(
     data_lake_dict: Dict[str, str], allowed_items: Optional[List[str]] = None
 ) -> Dict[str, str]:
@@ -291,14 +403,72 @@ def filter_library_content_dict(
     return filtered
 
 
+def exclude_data_lake_dict(
+    data_lake_dict: Dict[str, str], excluded_items: Optional[List[str]] = None
+) -> Dict[str, str]:
+    """
+    Exclude specific items from data_lake_dict (blacklist mode).
+
+    Args:
+        data_lake_dict: Dictionary mapping data lake item names to descriptions.
+        excluded_items: List of data lake item names to exclude. If None or empty, returns original dict.
+
+    Returns:
+        Filtered data_lake_dict with excluded items removed.
+    """
+    if not excluded_items:
+        return data_lake_dict
+
+    excluded_set = set(excluded_items)
+    filtered = {k: v for k, v in data_lake_dict.items() if k not in excluded_set}
+
+    print(
+        f"Excluded {len(excluded_set)} data lake items. Remaining: {len(filtered)} items"
+    )
+    return filtered
+
+
+def exclude_library_content_dict(
+    library_content_dict: Dict[str, str], excluded_libraries: Optional[List[str]] = None
+) -> Dict[str, str]:
+    """
+    Exclude specific libraries from library_content_dict (blacklist mode).
+
+    Args:
+        library_content_dict: Dictionary mapping library names to descriptions.
+        excluded_libraries: List of library names to exclude. If None or empty, returns original dict.
+
+    Returns:
+        Filtered library_content_dict with excluded libraries removed.
+    """
+    if not excluded_libraries:
+        return library_content_dict
+
+    excluded_set = set(excluded_libraries)
+    filtered = {k: v for k, v in library_content_dict.items() if k not in excluded_set}
+
+    print(
+        f"Excluded {len(excluded_set)} libraries. Remaining: {len(filtered)} libraries"
+    )
+    return filtered
+
+
 def apply_resource_filters(
     module2api: Dict[str, List[Dict]],
     data_lake_dict: Dict[str, str],
     library_content_dict: Dict[str, str],
     config_path: Optional[str] = None,
-) -> tuple[Dict[str, List[Dict]], Dict[str, str], Dict[str, str]]:
+) -> Tuple[Dict[str, List[Dict]], Dict[str, str], Dict[str, str]]:
     """
     Apply all resource filters based on YAML configuration.
+
+    Supports two filtering modes that can be combined:
+    - Whitelist (allowed_resources): Only specified resources are allowed
+    - Blacklist (excluded_resources): Specified resources are excluded
+
+    When both are specified:
+    1. Whitelist is applied first (if specified)
+    2. Blacklist is then applied to the result
 
     Args:
         module2api: Dictionary mapping module names to lists of tool descriptions.
@@ -309,20 +479,45 @@ def apply_resource_filters(
     Returns:
         Tuple of (filtered_module2api, filtered_data_lake_dict, filtered_library_content_dict).
     """
-    config = load_resource_filter_config(config_path)
+    allowed_config, excluded_config = load_resource_filter_config(config_path)
 
-    # Filter tools
-    allowed_tools = config.get("tools", None)
-    filtered_module2api = filter_module2api(module2api, allowed_tools)
+    # Start with original resources
+    filtered_module2api = module2api
+    filtered_data_lake_dict = data_lake_dict
+    filtered_library_content_dict = library_content_dict
 
-    # Filter data lake
-    allowed_data_lake = config.get("data_lake", None)
-    filtered_data_lake_dict = filter_data_lake_dict(data_lake_dict, allowed_data_lake)
+    # Step 1: Apply whitelist filters (allowed_resources)
+    allowed_tools = allowed_config.get("tools", None)
+    if allowed_tools:
+        filtered_module2api = filter_module2api(filtered_module2api, allowed_tools)
 
-    # Filter libraries
-    allowed_libraries = config.get("libraries", None)
-    filtered_library_content_dict = filter_library_content_dict(
-        library_content_dict, allowed_libraries
-    )
+    allowed_data_lake = allowed_config.get("data_lake", None)
+    if allowed_data_lake:
+        filtered_data_lake_dict = filter_data_lake_dict(
+            filtered_data_lake_dict, allowed_data_lake
+        )
+
+    allowed_libraries = allowed_config.get("libraries", None)
+    if allowed_libraries:
+        filtered_library_content_dict = filter_library_content_dict(
+            filtered_library_content_dict, allowed_libraries
+        )
+
+    # Step 2: Apply blacklist filters (excluded_resources)
+    excluded_tools = excluded_config.get("tools", None)
+    if excluded_tools:
+        filtered_module2api = exclude_module2api(filtered_module2api, excluded_tools)
+
+    excluded_data_lake = excluded_config.get("data_lake", None)
+    if excluded_data_lake:
+        filtered_data_lake_dict = exclude_data_lake_dict(
+            filtered_data_lake_dict, excluded_data_lake
+        )
+
+    excluded_libraries = excluded_config.get("libraries", None)
+    if excluded_libraries:
+        filtered_library_content_dict = exclude_library_content_dict(
+            filtered_library_content_dict, excluded_libraries
+        )
 
     return filtered_module2api, filtered_data_lake_dict, filtered_library_content_dict
