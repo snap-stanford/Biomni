@@ -1497,7 +1497,9 @@ Each library is listed with its description to help you understand its functiona
                 }
                 know_how_docs.append(doc_info)
                 content_length = len(doc["content_without_metadata"])
-                print(f"  ✓ {doc['name']} (id: {doc['id']}, content: {content_length} chars)")
+                print(
+                    f"  ✓ {doc['name']} (id: {doc['id']}, content: {content_length} chars)"
+                )
             print(
                 f"📚 Loading {len(know_how_docs)} know-how documents into system prompt"
             )
@@ -1852,17 +1854,23 @@ Each library is listed with its description to help you understand its functiona
 
         # 4. Know-how documents
         know_how_summaries = self.know_how_loader.get_document_summaries()
-        
+
         # Debug: Log know-how summaries before adding to resources
         print(f"\n📚 DEBUG _RETRIEVE_RESOURCES:")
         print(f"  know_how_summaries count: {len(know_how_summaries)}")
-        print(f"  know_how_loader.documents count: {len(self.know_how_loader.documents)}")
+        print(
+            f"  know_how_loader.documents count: {len(self.know_how_loader.documents)}"
+        )
         if know_how_summaries:
             for doc in know_how_summaries:
-                print(f"    - {doc.get('name', 'Unknown')} (id: {doc.get('id', 'unknown')})")
+                print(
+                    f"    - {doc.get('name', 'Unknown')} (id: {doc.get('id', 'unknown')})"
+                )
         else:
             print(f"  ⚠️  WARNING: know_how_summaries is EMPTY!")
-            print(f"  Documents in loader: {list(self.know_how_loader.documents.keys())}")
+            print(
+                f"  Documents in loader: {list(self.know_how_loader.documents.keys())}"
+            )
 
         # Use retrieval to get relevant resources
         resources = {
@@ -1871,7 +1879,7 @@ Each library is listed with its description to help you understand its functiona
             "libraries": library_descriptions,
             "know_how": know_how_summaries,
         }
-        
+
         # Debug: Verify know-how is in resources
         print(f"  resources dict has 'know_how' key: {'know_how' in resources}")
         print(f"  resources['know_how'] count: {len(resources.get('know_how', []))}")
@@ -1913,14 +1921,18 @@ Each library is listed with its description to help you understand its functiona
         if "know_how" in selected_resources:
             print(f"  Selected count: {len(selected_resources.get('know_how', []))}")
             if selected_resources["know_how"]:
-                print(f"  Processing {len(selected_resources['know_how'])} selected document(s):")
+                print(
+                    f"  Processing {len(selected_resources['know_how'])} selected document(s):"
+                )
                 for item in selected_resources["know_how"]:
                     if isinstance(item, dict):
                         doc_id = item["id"]
                         doc = self.know_how_loader.get_document_by_id(doc_id)
                         if doc:
                             content_length = len(doc["content_without_metadata"])
-                            print(f"  ✓ {doc['name']} (id: {doc_id}, content: {content_length} chars)")
+                            print(
+                                f"  ✓ {doc['name']} (id: {doc_id}, content: {content_length} chars)"
+                            )
                             # Create a copy with content_without_metadata for agent context
                             doc_for_agent = {
                                 "id": doc["id"],
@@ -1933,15 +1945,25 @@ Each library is listed with its description to help you understand its functiona
                             }
                             selected_resources_names["know_how"].append(doc_for_agent)
                         else:
-                            print(f"  ✗ Document with id '{doc_id}' not found in know_how_loader")
-                print(f"  ✓ Successfully processed {len(selected_resources_names['know_how'])} know-how documents")
+                            print(
+                                f"  ✗ Document with id '{doc_id}' not found in know_how_loader"
+                            )
+                print(
+                    f"  ✓ Successfully processed {len(selected_resources_names['know_how'])} know-how documents"
+                )
             else:
-                print(f"  ⚠️  No know-how documents were selected by the LLM for this query")
+                print(
+                    f"  ⚠️  No know-how documents were selected by the LLM for this query"
+                )
                 print(f"  Available documents: {len(self.know_how_loader.documents)}")
-                print(f"  Document names: {[doc['name'] for doc in self.know_how_loader.get_document_summaries()]}")
+                print(
+                    f"  Document names: {[doc['name'] for doc in self.know_how_loader.get_document_summaries()]}"
+                )
         else:
             print(f"  ⚠️  'know_how' key not found in selected_resources")
-            print(f"  Available know-how documents: {len(self.know_how_loader.documents)}")
+            print(
+                f"  Available know-how documents: {len(self.know_how_loader.documents)}"
+            )
 
         # Print summary of what was retrieved
         print("\n" + "-" * 60)
@@ -2024,11 +2046,14 @@ Each library is listed with its description to help you understand its functiona
         """Update the system prompt with the selected resources."""
         # Check if resource.yaml has module-level tool specifications
         # If a tool from a module is selected, include ALL tools from that module
-        from biomni.utils.resource_filter import load_resource_filter_config, _parse_tool_spec
-        
-        resource_config = load_resource_filter_config()
-        allowed_tools = resource_config.get("tools", [])
-        
+        from biomni.utils.resource_filter import (
+            load_resource_filter_config,
+            _parse_tool_spec,
+        )
+
+        allowed_config, excluded_config = load_resource_filter_config()
+        allowed_tools = allowed_config.get("tools", [])
+
         # Find modules specified in resource.yaml
         resource_modules = set()
         for spec in allowed_tools:
@@ -2043,12 +2068,14 @@ Each library is listed with its description to help you understand its functiona
                 resource_modules.add(module_name)
                 # Also add the regular module format
                 if module_name.startswith("biomni.tool.tool_description."):
-                    base_module = module_name.replace("biomni.tool.tool_description.", "")
+                    base_module = module_name.replace(
+                        "biomni.tool.tool_description.", ""
+                    )
                     resource_modules.add(f"biomni.tool.{base_module}")
-        
+
         # Track which modules have at least one tool selected
         selected_modules = set()
-        
+
         # Extract tool descriptions for the selected tools
         tool_desc = {}
         for tool in selected_resources["tools"]:
@@ -2100,7 +2127,9 @@ Each library is listed with its description to help you understand its functiona
             if module_name in resource_modules:
                 selected_modules.add(module_name)
             # Also check if it's the regular format (biomni.tool.X)
-            if module_name.startswith("biomni.tool.") and not module_name.startswith("biomni.tool.tool_description."):
+            if module_name.startswith("biomni.tool.") and not module_name.startswith(
+                "biomni.tool.tool_description."
+            ):
                 # Check if corresponding tool_description module is in resource_modules
                 tool_desc_module = f"biomni.tool.tool_description.{module_name.replace('biomni.tool.', '')}"
                 if tool_desc_module in resource_modules:
@@ -2122,30 +2151,38 @@ Each library is listed with its description to help you understand its functiona
                     "module": module_name,  # Explicitly include the module
                 }
                 tool_desc[module_name].append(tool_dict)
-        
+
         # For each selected module that's in resource.yaml, add ALL tools from that module
         if selected_modules and hasattr(self, "module2api"):
             for selected_mod in selected_modules:
                 # Get the corresponding module2api key
                 if selected_mod.startswith("biomni.tool.tool_description."):
-                    base_module = selected_mod.replace("biomni.tool.tool_description.", "")
+                    base_module = selected_mod.replace(
+                        "biomni.tool.tool_description.", ""
+                    )
                     module2api_key = f"biomni.tool.{base_module}"
                 else:
                     module2api_key = selected_mod
-                
+
                 # If this module is in module2api and not already fully included
                 if module2api_key in self.module2api:
                     # Get all tools from this module
                     all_tools_in_module = self.module2api[module2api_key]
-                    
+
                     # Initialize if not exists
                     if module2api_key not in tool_desc:
                         tool_desc[module2api_key] = []
-                    
+
                     # Add all tools from the module (avoid duplicates)
-                    existing_tool_names = {t.get("name") if isinstance(t, dict) else getattr(t, "name", str(t)) 
-                                         for t in tool_desc[module2api_key]}
-                    
+                    existing_tool_names = {
+                        (
+                            t.get("name")
+                            if isinstance(t, dict)
+                            else getattr(t, "name", str(t))
+                        )
+                        for t in tool_desc[module2api_key]
+                    }
+
                     for api in all_tools_in_module:
                         tool_name = api.get("name")
                         if tool_name and tool_name not in existing_tool_names:
@@ -2153,8 +2190,12 @@ Each library is listed with its description to help you understand its functiona
                             tool_dict = {
                                 "name": tool_name,
                                 "description": api.get("description", ""),
-                                "required_parameters": api.get("required_parameters", []),
-                                "optional_parameters": api.get("optional_parameters", []),
+                                "required_parameters": api.get(
+                                    "required_parameters", []
+                                ),
+                                "optional_parameters": api.get(
+                                    "optional_parameters", []
+                                ),
                                 "module": module2api_key,
                             }
                             tool_desc[module2api_key].append(tool_dict)
@@ -2198,7 +2239,9 @@ Each library is listed with its description to help you understand its functiona
         if "know_how" in selected_resources:
             print(f"  Selected count: {len(selected_resources.get('know_how', []))}")
             if selected_resources["know_how"]:
-                print(f"  Processing {len(selected_resources['know_how'])} selected document(s):")
+                print(
+                    f"  Processing {len(selected_resources['know_how'])} selected document(s):"
+                )
                 for item in selected_resources["know_how"]:
                     if isinstance(item, dict):
                         doc_id = item.get("id")
@@ -2206,7 +2249,9 @@ Each library is listed with its description to help you understand its functiona
                             doc = self.know_how_loader.get_document_by_id(doc_id)
                             if doc:
                                 content_length = len(doc["content_without_metadata"])
-                                print(f"  ✓ {doc['name']} (id: {doc_id}, content: {content_length} chars)")
+                                print(
+                                    f"  ✓ {doc['name']} (id: {doc_id}, content: {content_length} chars)"
+                                )
                                 # Create a copy with content_without_metadata for agent context
                                 doc_for_agent = {
                                     "id": doc["id"],
@@ -2217,20 +2262,28 @@ Each library is listed with its description to help you understand its functiona
                                 }
                                 know_how_docs.append(doc_for_agent)
                             else:
-                                print(f"  ✗ Document with id '{doc_id}' not found in know_how_loader")
+                                print(
+                                    f"  ✗ Document with id '{doc_id}' not found in know_how_loader"
+                                )
                         else:
                             # If item already has full content, use it directly
                             know_how_docs.append(item)
-                print(f"  ✓ Successfully processed {len(know_how_docs)} know-how documents")
+                print(
+                    f"  ✓ Successfully processed {len(know_how_docs)} know-how documents"
+                )
             else:
-                print(f"  ⚠️  No know-how documents were selected by the LLM for this query")
+                print(
+                    f"  ⚠️  No know-how documents were selected by the LLM for this query"
+                )
                 print(f"  Available documents: {len(self.know_how_loader.documents)}")
                 available_docs = self.know_how_loader.get_document_summaries()
                 for doc in available_docs:
                     print(f"    - {doc['name']}: {doc['description'][:80]}...")
         else:
             print(f"  ⚠️  'know_how' key not found in selected_resources")
-            print(f"  Available know-how documents: {len(self.know_how_loader.documents)}")
+            print(
+                f"  Available know-how documents: {len(self.know_how_loader.documents)}"
+            )
 
         self.system_prompt = self._generate_system_prompt(
             tool_desc=tool_desc,

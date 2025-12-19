@@ -1220,6 +1220,9 @@ class A1_HITS(A1):
             resource_filter_config_path: Path to YAML file with resource filter configuration
             **kwargs: Keyword arguments passed to parent A1 class
         """
+        # Store resource filter config path for later use
+        self.resource_filter_config_path = resource_filter_config_path
+
         # Load and apply resource filter config before calling super()
         self._apply_resource_filters_before_init(resource_filter_config_path, kwargs)
 
@@ -1255,7 +1258,9 @@ class A1_HITS(A1):
         has_whitelist = allowed_data_lake_items and len(allowed_data_lake_items) > 0
         has_blacklist = excluded_data_lake_items and len(excluded_data_lake_items) > 0
 
-        if (has_whitelist or has_blacklist) and "expected_data_lake_files" not in kwargs:
+        if (
+            has_whitelist or has_blacklist
+        ) and "expected_data_lake_files" not in kwargs:
             # Determine commercial_mode
             commercial_mode = kwargs.get("commercial_mode", None)
             if commercial_mode is None:
@@ -1453,8 +1458,27 @@ class A1_HITS(A1):
             selected_resources
         )
 
-        # Update system prompt
-        self.update_system_prompt_with_selected_resources(selected_resources_names)
+        # Update system prompt with resource filter config path
+        # Temporarily patch load_resource_filter_config to use our stored path
+        import biomni.agent.a1 as a1_module
+        from biomni.utils import resource_filter as rf_module
+
+        original_load_func = rf_module.load_resource_filter_config
+
+        def patched_load_func(config_path=None):
+            # Use stored path if no path provided
+            if config_path is None and self.resource_filter_config_path:
+                config_path = self.resource_filter_config_path
+            return original_load_func(config_path)
+
+        # Apply patch
+        rf_module.load_resource_filter_config = patched_load_func
+
+        try:
+            self.update_system_prompt_with_selected_resources(selected_resources_names)
+        finally:
+            # Restore original function
+            rf_module.load_resource_filter_config = original_load_func
 
     def configure(self, self_critic=False, test_time_scale_round=0):
         """
@@ -1617,7 +1641,7 @@ class A1_HITS(A1):
                     "📚 KNOW-HOW DOCUMENTS (BEST PRACTICES & PROTOCOLS - ALREADY LOADED):\n"
                     "{know_how_docs}\n\n"
                     "IMPORTANT: These documents are ALREADY AVAILABLE in your context. You do NOT need to\n"
-                    "retrieve them or \"review\" them as a separate step. You can DIRECTLY reference and use\n"
+                    'retrieve them or "review" them as a separate step. You can DIRECTLY reference and use\n'
                     "the information from these documents to answer questions, provide protocols, suggest\n"
                     "parameters, and offer troubleshooting guidance.\n\n"
                     "These documents contain expert knowledge, protocols, and troubleshooting guidance.\n"
