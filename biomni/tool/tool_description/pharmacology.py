@@ -442,6 +442,57 @@ description = [
         ],
     },
     {
+        "description": "Analyze western blot or DNA electrophoresis images and return pixel distribution statistics including intensity statistics, percentiles, and brightness distribution. Use this to determine appropriate threshold values for find_roi_from_image.",
+        "name": "analyze_pixel_distribution",
+        "optional_parameters": [],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Path to the input grayscale image. Automatically appends .png if no suffix is provided.",
+                "name": "image_path",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Find the ROIs (regions of interest) of protein bands from a Western blot or DNA electrophoresis image using threshold-based blob detection. Returns annotated image path and list of ROI coordinates. Use analyze_pixel_distribution first to determine appropriate threshold values. The returned ROI list can be converted to target_bands format for analyze_western_blot.",
+        "name": "find_roi_from_image",
+        "optional_parameters": [
+            {
+                "default": True,
+                "description": "If True, draw green contours (hulls) and blue keypoint boxes for debugging.",
+                "name": "debug",
+                "type": "bool",
+            }
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Path to the input image.",
+                "name": "image_path",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Pixel intensities lower than this value are used to make the binary image. Use analyze_pixel_distribution to determine appropriate values.",
+                "name": "lower_threshold",
+                "type": "int",
+            },
+            {
+                "default": None,
+                "description": "Pixel intensities greater than or equal to this value are used to make the binary image. Use analyze_pixel_distribution to determine appropriate values.",
+                "name": "upper_threshold",
+                "type": "int",
+            },
+            {
+                "default": None,
+                "description": "The actual number of bands expected in the image.",
+                "name": "number_of_bands",
+                "type": "int",
+            },
+        ],
+    },
+    {
         "description": "Performs densitometric analysis of Western blot images to "
         "quantify relative protein expression.",
         "name": "analyze_western_blot",
