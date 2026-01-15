@@ -1,0 +1,226 @@
+PROTOCOL: What is Polymerase Chain Reaction (PCR)
+SOURCE: https://www.addgene.org/protocols/pcr/
+================================================================================
+
+BACKGROUND INFORMATION
+================================================================================
+
+A standard Polymerase Chain Reaction (PCR) is an in vitro method that allows a
+single, short region of a DNA molecule (single gene perhaps) to be copied multiple
+times by Taq Polymerase. From a single copy of DNA (the template), a researcher can
+create thousands of identical copies using a simple set of reagents and a basic
+heating and cooling (denaturing and annealing) cycle. The process became automated
+with the discovery of a heat resistant DNA polymerase from the thermophilic
+bacterium, Thermus aquaticus (Taq). Taq polymerase can withstand many heating and
+cooling cycles, which would denature DNA polymerases from other species.
+
+In addition to the template DNA and the Taq polymerase, PCR requires free
+nucleotides [dNTPs; adenine (A), cytosine (C), guanine (G), thymine (T)] in an
+equal molar ratio. It also requires two unique single stranded DNA oligonucleotide
+(oligo) primers, which anneal to the regions upstream (5') and downstream (3') of
+the DNA segment to be amplified. When these reagents are combined in an appropriate
+buffer, a series of heating (denaturing) and cooling (annealing) steps allow the
+Taq polymerase to copy the DNA in between the oligo primers. This molecular biology
+technique creates several micrograms of target DNA from just a few nanograms of
+template DNA through several cycles of denaturation, annealing, and synthesis. After
+the PCR is complete, the product can be verified based on size by gel
+electrophoresis.
+
+
+BASIC PCR PROGRAM
+================================================================================
+
+1. Initial Denaturation for 2 minutes at 94°C:
+   This initiation step heats the double stranded DNA template strand to the point
+   where the strands start denaturing and the hydrogen bonds are broken between the
+   nucleotide base pairs. The initial denaturation step is commonly performed at
+   94–98°C.
+
+2. Denature 30 seconds at 94°C:
+   Continued denaturation of double stranded DNA.
+
+3. Anneal primers for 30 seconds at 55°C:
+   The forward and reverse primers are stable within this temperature range to
+   anneal to each of the single stranded DNA template strands. The DNA polymerase
+   is also stable enough to now bind to the primer DNA sequence.
+
+4. Extend DNA for 1 minute at 72°C:
+   The Taq polymerase has an optimal temperature around 70-75°C so this step enables
+   the DNA polymerase to synthesize and elongate the new target DNA strand
+   accurately and rapidly.
+
+5. Repeat steps 2-4 25-30 times.
+
+6. Final Extension for 5 minutes at 72°C:
+   A final extension to fill-in any protruding ends of the newly synthesized
+   strands.
+
+
+MATERIALS LIST
+================================================================================
+
+Reagents for each 50µL PCR:
+
+• Thin-walled PCR tube
+• Ice Bucket
+• 2 μL Template DNA (10 ng-500 ng)
+• 5 μl 10X Taq buffer with MgCl₂
+• 1 μl dNTP mix (10 mM each nt)
+• 2.5 μL Forward Primer (10 μM stock)
+• 2.5 μL Reverse Primer (10 μM stock)
+• 36.8 μL Sterile dH₂O
+• 0.2 μL Taq DNA Polymerase (5 units/μL)
+• PCR Machine
+• Agarose Gel
+
+
+PROCEDURE
+================================================================================
+
+Primer Design and PCR
+
+1. Design Primers. See our protocol on how to design primers.
+
+   Note: Primer3 is an excellent resource for choosing primers.
+
+2. Place thin-walled PCR tubes on ice.
+
+3. Set up a 50 μL reaction (Keep all your reagents on ice):
+   • 2 μL Template DNA (10 ng-500 ng)
+   • 5 μl 10X Taq buffer with MgCl₂
+   • 1 μl dNTP mix (10 mM each nt)
+   • 2.5 μL Forward Primer (10 μM stock)
+   • 2.5 μL Reverse Primer (10 μM stock)
+   • 0.2 μL Taq DNA Polymerase (5 units/μL)
+   • 36.8 μL Sterile dH₂O (variable)
+
+   Note: If you are doing multiple PCRs, save time by creating a "master mix,"
+   which minimizes the number of small volumes you need to pipet. If you are using
+   the same template DNA for all your reactions, the Template DNA can be added to
+   the master mix. Forward and Reverse Primers DO NOT get added to a master mix.
+
+4. Place reaction tubes in PCR machine.
+
+5. Set annealing temperature 5°C below the primer melting temperature (Tm).
+
+6. Set extension step at 1-2 minutes per kilobase of product depending on whether
+   you are using a polymerase with proofreading capabilities.
+
+   Note: See manufacturer's instructions for specific instructions about extension
+   time and temperatures.
+
+7. Initial Denaturation for 2 minutes at 94°C.
+
+8. Denature for 30 seconds at 94°C.
+
+9. Anneal primers for 30 seconds at 55°C (or 5°C below Tm).
+
+10. Extend DNA for 2 minutes at 72°C.
+
+11. Repeat steps 8-10 for 25-30 cycles.
+
+12. Final Extension for 5 minutes at 72°C.
+
+13. Run 2 μL on a gel to check size and concentration of PCR product.
+
+Master Mix Preparation
+
+1. Multiply the volume of each reagent by the number of individual PCRs you wish to
+   perform and add 10% extra to account for pipetting error. In this example, we
+   have 7 different reactions (7 unique primer pairs), so we multiply each volume
+   by 7.
+
+2. In a single 1.5mL tube combine the following:
+   • 10X Taq buffer with MgCl₂: 5μl x 7 reactions = 35μl total + 10% (3.5μl) =
+     38.5μl
+   • dNTP mix (10 mM each nt): 1µl x 7 reactions = 7µl total + 10% (0.7µl) =
+     7.7µl
+   • Template DNA: 2µl x 7 reactions = 14µl total + 10% (1.4µl) = 15.4µl
+   • Sterile dH₂O: 36.8µl x 7 reactions = 257.6µl + 10% (25.7µl) = 283.3µl
+   • Taq DNA polymerase: 0.2µl x 7 reactions = 1.4µl + 10% (0.14µl) = 1.54µl
+
+3. Mix the contents by gently pipetting up and down several times. Keep tube on ice.
+
+4. Add the forward and reverse primers to the thinned walled PCR tubes.
+
+   Note: Do this before adding the master mix so you know that the primers have
+   been added, pipet the forward primer onto one side of the tube wall and the
+   reverse primer onto the other.
+
+5. Add the master mix to the thin walled PCR tubes. Put 50µl – 2.5µl (fwd primer) –
+   2.5µl (rev primer) = 45µl volume of master mix to add to each PCR tube.
+
+6. Secure the tops to the PCR tubes, gently tap each tube to bring all the liquid
+   to the bottom before placing it in the PCR machine.
+
+Diluting Primers
+
+Most people order primers from a company, which synthesizes and ships them as a
+lyophilized powder. The researcher then needs to reconstitute their primers in
+liquid, normally sterile dH₂O. To make a 100uM stock of any primer, add a number of
+µl of dH₂O equal to the number of nanomoles of DNA times 10. For example, if your
+lyophilized DNA is 38.5nm, add 385µl of water.
+
+After making your 100uM stock, immediately make a working concentration of each
+primer (10uM) by making a 1:10 dilution of the stock. For example, add 100µl of
+primer stock to 900µl of dH₂O.
+
+
+TIPS AND FAQ
+================================================================================
+
+Tips
+
+• If your target DNA sequence is GC-rich, increase the time of the denaturing.
+
+• Your 5' and 3' primers should be designed to have similar melting temperatures
+  (Tm). Set the annealing temperature to 5°C lower than the Tm of your primers. If
+  you are getting non-specific PCR products, increase the annealing temperature
+  step-wise by 1-2°C.
+
+• The rate of DNA synthesis is ~1-2 kb/min. The extension time can be adjusted
+  according to the length of the target sequence.
+
+FAQ
+
+How do I design primers?
+
+See our reference page on how to design primers for detailed instructions and
+check out our protocol on plasmid cloning by PCR to learn how to design primers for
+cloning purposes.
+
+What do I do if my PCR isn't working?
+
+Try adding 1µl of 25mM MgCl₂ and/or 1µl DMSO to each reaction. The ideal setup for
+this troubleshooting step is to do one reaction with each, and one reaction with
+both. MgCl₂ acts to supplement the amount supplied by the buffer stock, where it is
+known to form a gradient when frozen. DMSO helps with denaturation of the DNA,
+particularly for GC-rich templates.
+
+What does each ingredient specifically do?
+
+• Template DNA: Contains the portion of DNA that we are interested in amplifying
+  for analysis and manipulation. It is essential that the template DNA and primer
+  are complementary for a PCR to work efficiently.
+
+• Taq Buffer with MgCl₂: Provides an optimal and stable chemical environment for
+  the DNA polymerase to work adequately. Divalent cations such as Mg²⁺ and Mn²⁺
+  stabilize the buffer solution. These cations can also be used for PCR-mediated DNA
+  mutagenesis. A higher cation concentration increases the error rate of the DNA
+  polymerase.
+
+• Deoxynucleoside Triphosphates (dNTPs): Are the building blocks added one at a time
+  to the new DNA strand by the DNA polymerase.
+
+• Forward and Reverse Primers: Hybridize and are complementary to the 3' ends of
+  the sense and anti-sense strands of the template DNA. They are strands of nucleic
+  acid that are starting points for DNA elongation and synthesis.
+
+• Taq DNA polymerase: Special DNA polymerase that can withstand radical
+  temperature changes during a typical PCR. The DNA polymerase has an optimum
+  temperature around 70°C and is the molecule responsible for driving the DNA
+  synthesis.
+
+• Sterile dH₂O: Used to fill the remaining 50 μL of the reaction mix. Its solvent
+  and buffer capabilities provide a suitable environment for the DNA amplification
+  reaction.

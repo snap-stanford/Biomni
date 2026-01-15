@@ -1,0 +1,134 @@
+PROTOCOL: Lab Safety for Biosafety Levels One and Two
+SOURCE: https://www.addgene.org/protocols/lab-safety/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+There are four biosafety levels. This protocol provides information for both
+biosafety level 1 (BSL-1) and biosafety level 2 (BSL-2). The purpose of the four
+levels is to distinguish between different types of hazards and to provide
+protective measures for each level, as each level has different safety
+requirements. BSL-1 is designated for those working with microbes that don't cause
+disease in healthy humans, for example, non-pathogenic E. coli. BSL-2 is for labs
+that work with pathogens including organisms such as Staphylococcus aureus or
+Vibrio cholerae. BSL-2 includes all of the precautions needed in BSL-1, along with
+additional precautions to prevent injuries, ingestion, and exposures to hazardous
+materials.
+
+
+EQUIPMENT
+================================================================================
+
+• Lab coat
+• Close-toed shoes
+• Gloves
+• Eye protection or face shields
+• Eye wash
+• Safety shower
+• Sharps container
+• Biohazard waste container
+• Fire blanket
+• Fire extinguisher
+
+
+GUIDELINES
+================================================================================
+
+BSL-1 Guidelines
+
+Before You Work
+
+1. Right after entering the lab, put on the proper personal protective equipment
+   (PPE) and wear it the whole time you are working in the lab.
+
+2. Do not eat, drink, chew gum, or apply makeup in the laboratory.
+
+3. Before you start your experiment, make sure your workspace is clean and
+   uncluttered. Disinfect your workspace with appropriate materials. For example,
+   you may use 70% ethanol, quaternary ammonium, or bleach solutions. Ask your lab
+   supervisor what is available and the appropriate contact times for each agent.
+   Make sure you have enough space to work at your lab bench.
+
+4. It's possible that while working, you may accidentally come into contact with
+   hazardous materials. A sink, eyewash station, safety shower, fire blanket, and
+   extinguisher are also required to be present in the room. Make sure that you
+   know where these are located before you start.
+
+5. Use the eyewash station if unwanted or biohazardous materials are splashed onto
+   your face and/or get into your eyes.
+
+6. Wash your hands before and after working in the lab.
+
+7. Ensure that a designated chemical waste accumulation site is present, and that
+   you have received hazardous waste safety training before starting the work.
+   Before working with chemicals, first review their material safety data sheets
+   (MSDS).
+
+While You Work
+
+1. Dispose of sharps in a designated sharps container. Sharps include anything that
+   can pierce your skin, including, but not limited to broken glass or needles.
+   Sharps containers must be thick walled, impenetrable by a needle, and must be
+   able to close securely.
+
+2. Biohazard signs should be placed in all areas containing biohazardous materials,
+   including biohazardous waste. Dispose of waste that may be contaminated with
+   pathogens or chemicals that present a danger to people and the environment in
+   biohazard containers. Biohazardous materials are decontaminated prior to
+   disposal, commonly done with an autoclave.
+
+3. Only mechanical pipetting should be done in the laboratory. Don't mouth pipette!
+
+4. There may be some times when you may be working with a protocol that requires
+   shaking or mixing, which may produce aerosols or splashes. These procedures
+   should be done underneath a hood.
+
+5. Clean any spills immediately, and decontaminate as necessary. For large spills
+   that cannot be easily cleaned, evacuate and close off the area and alert the
+   chemical hygiene officer.
+
+BSL-2 Guidelines
+
+Remember, the BSL-1 laboratory guidelines above are expected to be followed in
+addition to BSL-2 guidelines below, including PPE protocols.
+
+1. Working in a BSL-2 laboratory requires laboratory glasses in addition to coat
+   and gloves. This lab coat should not be worn outside of the BSL-2 area.
+
+2. BSL-2 laboratories must be clearly marked as "BSL-2." The names and contact
+   information of the laboratory manager should be clearly visible in the room and
+   on the door.
+
+3. BSL-2 centrifugation steps require an aerosol-tight lid and rotors should be
+   loaded and unloaded in a biosafety cabinet.
+
+4. BSL-2 safety protocols require bloodborne pathogens training. It is strongly
+   recommended that anyone participating in BSL-2 work receives a hepatitis B
+   vaccination or titer prior to starting work in the laboratory.
+
+5. For some biohazardous waste, an autoclave or other method for decontaminating
+   must be used for proper disposal. Liquid BSL-2 waste can be decontaminated in
+   a final concentration of 10% bleach for 30 minutes before pouring down the
+   drain. Solid BSL-2 waste can be collected in designated biohazardous waste
+   containers that can be autoclaved.
+
+
+CONCLUSION
+================================================================================
+
+Although simple, following appropriate BSL-1 and BSL-2 protocol goes a long way.
+It is the easiest way to ensure that you're doing your work in the safest way
+possible. Protecting yourself and working smart in the lab is important!
+
+
+DISCLAIMER
+================================================================================
+
+The SOP presented here has been designed by the Addgene nonprofit plasmid
+repository and is being shared outside of Addgene for informational purposes only.
+If you choose to reuse or repurpose this SOP in another location, please note that
+you do so at your own risk; you should ensure that any local guidance is also
+adhered to. None of the authors, contributors, administrators, or anyone else
+associated with Addgene, can be held responsible for your use of the information
+contained in or linked to from these web pages.

@@ -1,0 +1,68 @@
+PROTOCOL: How to Create a Bacterial Glycerol Stock
+SOURCE: https://www.addgene.org/protocols/create-glycerol-stock/
+================================================================================
+
+BACKGROUND INFORMATION
+================================================================================
+
+Bacterial glycerol stocks are important for long-term storage of plasmids.
+Although you can store your plasmid DNA at -20°C, many labs also create bacterial
+glycerol stocks of their plasmids. This way, when you want to make more plasmid
+DNA, the plasmid will already be in your desired bacterial strain and you will not
+need to obtain more competent cells and retransform.
+
+Bacteria on an LB agar plate can be stored at 4°C for a few weeks. However, if
+you want to store bacteria for a longer time, you will need to establish glycerol
+stocks. The addition of glycerol stabilizes the frozen bacteria, preventing damage
+to the cell membranes and keeping the cells alive. A glycerol stock of bacteria
+can be stored stably at -80°C for many years.
+
+
+PROCEDURE
+================================================================================
+
+1. Follow the steps for Inoculating an Overnight Liquid Culture.
+
+2. After you have bacterial growth, add 500 μL of the overnight culture to 500 μL
+   of 50% glycerol in a 2 mL screw top tube or cryovial and gently mix.
+
+   Notes:
+   • Make the 50% glycerol solution by diluting 100% glycerol in dH₂O.
+   • Snap top tubes are not recommended as they can open unexpectedly at -80°C.
+
+3. Freeze the glycerol stock tube at -80°C. The stock is now stable for years, as
+   long as it is kept at -80°C. Subsequent freeze and thaw cycles reduce shelf
+   life.
+
+4. To recover bacteria from your glycerol stock, open the tube and use a sterile
+   loop, toothpick or pipette tip to scrape some of the frozen bacteria off of the
+   top. Do not let the glycerol stock unthaw!
+
+5. Streak the bacteria onto an LB agar plate.
+
+6. Grow your bacteria overnight at the appropriate temperature. Growth conditions,
+   including copy number and growth temperature, can be found on your plasmid's
+   information page. The next day you will be able to start an overnight culture
+   for plasmid DNA prep the following day.
+
+
+TIPS AND FAQ
+================================================================================
+
+• The optimal concentration of long-term glycerol storage is unknown. Most labs
+  store bacteria in 15-25% glycerol.
+
+• You can prepare the glycerol stock the same time you prepare your plasmid DNA.
+  In the morning, when you retrieve your liquid bacterial culture, take 500 μL of
+  culture to make your glycerol stock before you begin your plasmid mini-prep.
+
+• Try not to freeze/thaw your glycerol stock too many times. Placing the glycerol
+  stock on dry ice while streaking onto LB agar will prevent it from thawing
+  completely and will improve the shelf life.
+
+• It is very important that you shake the glycerol before freezing (5-6 times).
+  Make sure that you see one uniform solution, and there are no layers present.
+
+• Be sure to label both the lid and the tube of a glycerol stock before you place
+  the sample at -80°C. Frozen tubes are hard to write on and samples stored for
+  long periods at -80°C can lose labels stuck to tube!

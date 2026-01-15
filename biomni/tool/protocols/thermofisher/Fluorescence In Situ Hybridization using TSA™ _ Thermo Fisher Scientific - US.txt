@@ -1,0 +1,161 @@
+PROTOCOL: Fluorescence In Situ Hybridization using TSA™
+SOURCE: Thermo Fisher Scientific - US
+URL: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/microscopy-protocol/fluorescent-in-situ-hybridization-using-tsa.html
+================================================================================
+
+Introduction
+This protocol describes steps for fluorescent in situ hybridization (FISH) to Drosophila embryos using Tyramide Signal Amplification (TSA™), and was developed in collaboration with Ethan Bier and Dave Kosman at UCSD. This protocol is demonstrated with Drosophila embryos, but should be easily amenable to any specimen or tissue. TSA provides enzymatic fluorescent signal amplification that is ideal for low-abundance DNA and RNA targets. This approach utilizes DNA or RNA probes that have been labeled with a hapten such as biotin, fluorescein, digoxigenin, or DNP. In brief, the haptenylated probe is hybridized to the specimen and then TSA performed to detect the hybridized probe in situ. The hapten is detected in one of two possible approaches. The hapten can be detected by first applying an appropriate anti-hapten primary antibody followed by the horse radish peroxidase (HRP)-secondary antibody provided in the kit. The Alexa Fluor dye tyramide is then incubated with the specimen to detect the hybridized probe. Alternatively, haptens can be developed with anti-hapten–antibody-HRP or streptavidin-HRP conjugates. For example, biotinylated probes are detected with a streptavidin HRP conjugate provided in the kit. Similarly, anti-fluorescein–HRP conjugates can be used to detect fluorescein-labeled probes (but not included in the kit). Our TSA kits are available with a selection of dye tyramides and HRP conjugates; please consult our full product line to determine which best fits your experimental design. Importantly, TSA can be performed sequentially for multiple haptens by simply inactivating one HRP conjugate before applying another. This approach is ideal for multiplex FISH studies.
+
+Before You Begin
+Preparing Solutions for FISH in Drosophila Embryos
+
+PBT (2 L)
+- 200 mL 10X PBS
+- 2 mL Tween 20
+- To 2 L with water
+
+PBT+5% formaldehyde (15 mL)—make fresh
+- 12.86 mL PBT
+- 2.14 mL 37% formaldehyde
+
+Proteinase K (10 mg/mL stock)
+- 100 µL 20 mg/mL proteinase K stock
+- 100 µL water
+- Divide into 10 µl aliquots and store at ≤–20°C.
+
+2X carbonate buffer for fragmentation (10 mL)
+- 127.2 mg sodium carbonate
+- 67.21 mg sodium bicarbonate
+- To 10 mL with water and pH to 10.2 with NaOH; divide into 100 µL aliquots and store at ≤–20°C.
+
+Stop Solution: 0.2 M Sodium acetate, pH 6.0 (10 mL)
+- 164.06 mg sodium acetate
+- To 10 mL with water and pH to 6.0 with acetic acid; divide into 100 µL aliquots and store at ≤–20°C.
+
+Heparin (10 mg/mL stock in PCR-grade water)
+- Divide into 250 µL aliquots and store at ≤–20°C.
+
+Hybridization solution (150 mL)
+- 75 mL formamide
+- 37.5 mL 20X SSC
+- 1.5 mL herring sperm DNA (10 mg/mL)
+- 750 µL heparin (10 mg/mL)
+- 150 µL Tween 20
+- 35.1 mL water
+- Store at 4°C.
+
+Preparing Solutions for TSA™ Procedure
+Labeled Tyramide Solution
+Add 150 µL of high-quality anhydrous DMSO to one vial labeled tyramide (the vial comes from the Molecular Probes™ Tyramide Signal Amplification Kit). Divide into 10 µL aliquots; store at ≤–20°C until required.
+
+Procedure
+1. Fixing the Specimens
+Note: All steps in this section are to be performed at room temperature unless stated otherwise. Prior to aspirating and discarding solutions from the tube containing the embryos, ensure that the embryos are settled to the bottom to avoid discarding them.
+
+1.1. Place embryos in a 1.5 mL tube and bring to 1 mL with 100% ethanol (EtOH)
+1.2. Rock for 5 minutes.
+1.3. Pour off most of the EtOH (leave ~100 µL).
+1.4. Add ~900 µL of xylenes (so that the final solution is 90% xylenes and 10% EtOH).
+1.5. Rock the tube for 1–2 hours.
+1.6. Aspirate and discard the solution.
+1.7. Wash the embryos 2 times with EtOH (1 mL each wash).
+1.8. Aspirate and discard the last EtOH wash.
+1.9. Add 1 mL fresh EtOH and rock for 5 minutes.
+1.10. Aspirate and discard the EtOH.
+1.11. Wash the embryos 2 times with 100% methanol (MeOH), 1 mL fresh MeOH each wash.
+1.12. Add 1 mL fresh MeOH and rock for 5 minutes.
+1.13. Aspirate and discard the MeOH.
+1.14. Add 500 µL MeOH and 500 µL of PBT+5% formaldehyde to the embryos and rock for 5 minutes.
+1.15. Wash the embryos one time with 1 mL PBT+5% formaldehyde.
+1.16. Aspirate and discard the PBT+5% formaldehyde.
+1.17. Add 1 mL fresh PBT+5% formaldehyde and rock for 25 minutes.
+1.18. Aspirate and discard the PBT+5% formaldehyde.
+1.19. Add 1 mL PBT and rock for 5 minutes.
+1.20. Repeat the PBT wash step 3 more times (including 5 minutes' rocking each time) using fresh PBT each time.
+1.21. Remove an aliquot of 10 mg/mL stock solution proteinase K from the freezer and dilute 1:1000 in PBT.
+1.22. Aspirate and discard the last PBS wash from the embryos, add 1 mL of the 10 µg/mL proteinase K solution, and rock for 5–7 minutes.
+1.23. Aspirate and discard the proteinase K solution.
+1.24. Wash the embryos two times with PBT.
+1.25. Remove and discard the last PBT wash, add 1 mL fresh PBT, and rock for 5 minutes.
+1.26. Remove and discard the PBT.
+1.27. Add 1 mL of PBT+5% formaldehyde and rock for 25 minutes.
+1.28. Aspirate and discard the PBT+5% formaldehyde.
+1.29. Add 1 mL PBT and rock for 5 minutes.
+1.30. Repeat the PBT wash step 3 more times (including 5 minutes' rocking each time) using fresh PBT each time.
+1.31. Make a solution of 50% PBT/50% hybridization solution (preparation above).
+1.32. Aspirate and discard the last PBT wash, add 1 mL of 50% PBT/50% hybridization solution, and rock for 10 minutes.
+1.33. Aspirate and discard the 50% PBT/50% hybridization solution.
+1.34. Add 1 mL hybridization solution and incubate in a 55°C water bath for at least 1 hour (up to 3 hours).
+1.35. If hybridization will be performed the same day, keep the embryos at 55°C until ready for use. Otherwise store the embryos at ≤–20°C until you are ready for the hybridization procedure, but note that extended storage in hybridization solution (more than two weeks) results in degraded morphology over time.
+
+2. Optional: Fragmenting the Probe
+This optional step is intended to reduce the length of the RNA probe to 200–300 bases in order to increase penetration and improve S/N. This step may not be required for all probes, but should be considered as a means to increase S/N. As the incubation duration will determine the final RNA length, a few different times should be tested and the RNA product analyzed by gel electrophoresis.
+
+2.1. Add 25 µL of 2X carbonate buffer (preparation for 2X carbonate buffer above) to 10 µL of probe.
+2.2. Mix well and incubate at 42°C for 30 minutes.
+2.3. To the fragmented probe add:
+   - 50 µL of stop solution (preparation for stop solution above)
+   - 10 µL of 3 M sodium acetate, pH 5.2
+   - 1 µL of glycogen
+   - 300 µL ice cold 100% EtOH
+2.4. Mix well and store at ≤–20°C for 30 minutes (or longer).
+2.5. Pellet the nucleic acid by centrifugation.
+2.6. Wash the pellet with 400 µL of 70% ice cold ethanol.
+2.7. Air dry to remove residual ethanol, but do not allow the pellet to dry out completely.
+2.8. Add 5 µL of water and resuspend the pellet.
+2.9. Measure the concentration of a small amount of the resuspended probe (≤2 µL).
+2.10. Add hybridization buffer to the rest of the probe such that it is at a final concentration somewhere in the range of 5–50 ng/µL.
+2.11. Store the probe stock at ≤–20°C until you are ready for the hybridization procedure.
+
+3. Hybridizing the Probe
+3.1. Place the tube containing the embryos in a 55°C water bath until equilibrated.
+3.2. Aliquot the embryos into individual 1.5 mL tubes (~25 µL of stirred-up embryos per tube). Make as many tubes as you have RNA probes for.
+3.3. For each probe, make a solution containing 100 ng of probe in 100 µL of hybridization solution in a 1.5 mL tube.
+3.4. Incubate the tube(s) containing the probe at 65°C for 10 minutes to denature the probe.
+3.5. Aspirate and discard most of the hybridization solution from the tube(s) containing the embryos.
+3.6. Add 100 µL of denatured probe to the tube containing the embryos, and stir the embryos by tapping the tube.
+3.7. Incubate for 20–24 hours at 55°C.
+Note: it is recommended that the embryos be stirred once (by tapping the tube) ~10 minutes into the 55°C incubation period and once again before leaving them overnight. Ensure that the water bath is covered during the incubation to minimize condensation in the tube.
+
+4. Post-hybridization
+4.1. Stir up the embryos by tapping the tube with your finger.
+4.2. Aspirate and discard as much of the hybridization solution as possible.
+4.3. Add 1 mL of fresh hybridization solution, equilibrated to 55°C, to the embryos and gently invert tube 3-4 times.
+4.4. Place tube in a 55°C water bath and incubate for 5 minutes.
+4.5. Aspirate and discard the hybridization solution.
+4.6. Add 1 mL of fresh hybridization solution, equilibrated to 55°C, to the embryos and incubate at 55°C for 30 minutes. During this incubation, periodically remove the tube from the bath and tap it to stir up the embryos.
+4.7. Aspirate and discard the hybridization solution (ensure that the embryos have settled before aspiration).
+4.8. Add 1 mL of fresh hybridization solution, equilibrated to 55°C, to the embryos and incubate at 55°C for 30 minutes. During this incubation, periodically remove the tube from the bath and tap it to stir up the embryos.
+4.9. Make a solution of 50% PBT/50% hybridization solution (preparation above).
+Note: Steps 4.10 through 4.15 are performed at room temperature.
+4.10. Aspirate and discard the hybridization solution, add 1 mL of 50% PBT/50% hybridization solution, and rock for 10 minutes.
+4.11. Aspirate and discard the 50% PBT/50% hybridization solution.
+4.12. Add 1 mL PBT.
+4.13. Aspirate and discard the PBT.
+4.14. Repeat the PBT wash step 3 more times with 5 minutes' rocking each time using fresh PBT each time.
+
+5. TSA™ Procedure
+All steps in the TSA Procedure are performed at room temperature.
+5.1. Just before you begin the TSA procedure:
+   - Aspirate and discard the last PBT wash (from step 4.14).
+   - Add 1 mL of freshly prepared PBT+blocking reagent and rock for 30–60 minutes at room temperature or 37°C.
+5.2. Aspirate and discard the PBT+blocking reagent.
+5.3. Add antibody (1 mg/mL) diluted 1:100 in PBT+blocking reagent and rock for 2 hours at room temperature, protected from light. For example, add 4 µL antibody into 396 µL of PBT+blocking reagent. The final concentration should be 1 µg/mL.
+5.4. Aspirate and discard the antibody solution.
+5.5. Add 1 mL PBT.
+5.6. Aspirate and discard the PBT.
+5.7. Wash with PBT 4 times with 15 minutes' rocking each time, protected from light using fresh PBT each time.
+5.8. Aspirate and discard the PBT.
+5.9. Make mixture of 300 µL amplification buffer working solution (from step 5.1) and 3 µL of labeled tyramide solution (from freezer stock) and add it to the embryos.
+5.10. Rock for 10–15 minutes.
+5.11. Aspirate and discard the tyramide solution.
+5.12. Wash the embryos 3 times with PBT (1 mL each wash).
+5.13. Aspirate and discard the last PBT wash.
+5.14. Add 1 mL PBT and rock for 5 minutes at room temperature.
+5.15. If you are ready to image, aspirate and discard the PBT, add 1 mL 70% glycerol/30% PBT and rock for 10 minutes. Store at ≤–20°C until ready to image. We recommend that the embryos are stored no longer than 3 weeks prior to imaging.
+5.16. Aspirate and discard the 70% glycerol/30% PBT.
+5.17. Add 20 µL ProLong Gold antifade reagent (Invitrogen Cat. no. S36931 or S36935) to the embryos and deposit the sample onto a slide.
+5.18. Cover with coverslip and image using appropriate filters (visit probes.thermofisher.com for the spectral characteristics of the dye you are using).
+
+Reference
+1. Science 305, 846 (2004).

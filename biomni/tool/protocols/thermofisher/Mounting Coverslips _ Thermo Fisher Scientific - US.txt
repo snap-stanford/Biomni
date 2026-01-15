@@ -1,0 +1,40 @@
+PROTOCOL: Mounting Coverslips
+SOURCE: https://www.thermofisher.com/us/en/home/life-science/cell-analysis/cell-analysis-learning-center/molecular-probes-school-of-fluorescence/imaging-basics/protocols-troubleshooting/protocols/mounting-coverslips.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+Formulations of mounting media that can add favorable properties such as optimizing the refractive index to match that of glass, preventing photobleaching, or preserving samples for long-term storage are widely available. Keep in mind that hard-setting mountants require time to "cure" or harden.
+
+MATERIALS REQUIRED
+================================================================================
+
+• Fixed, permeabilized, blocked, and stained sample on coverslip in a saline-based buffer solution such as PBS
+• Glass microscope slide
+• Mounting medium
+
+PROTOCOL
+================================================================================
+
+Try to limit the formation of bubbles in your mounting medium. Some bubbles are inevitable, and you can image around them as long as there are only a few.
+
+To avoid bubbles:
+• Don't shake or invert your bottle of mounting medium.
+• Clear bubbles from the tip of your applicator (i.e., from the tip of the pipette or dropper bottle) by squeezing a little bit of mounting medium onto a lab tissue before applying mounting medium to your slide
+
+Clean the surface of the non-sample side of the coverslip prior to imaging. Fingerprints, residual salts, and other contaminants can diminish image quality.
+
+1. Apply a small amount of mounting medium to the surface of the slide; try to use an amount that will just fill the space under the coverslip.
+
+2. Remove coverslip containing the sample from the buffer.
+
+3. Blot excess buffer or solvent from the non-sample surface of the coverslip (or allow it to air-dry and then remove the salt residue before imaging).
+
+4. Slowly tip the coverslip onto the mounting medium, and avoid creating bubbles as you lower it into place.
+
+5. Follow manufacturer's directions for curing time.
+
+6. Optional: Seal the coverslip if desired.
+
+7. Image.

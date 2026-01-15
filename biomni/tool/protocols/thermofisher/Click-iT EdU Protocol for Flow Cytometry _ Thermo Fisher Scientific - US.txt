@@ -1,0 +1,146 @@
+PROTOCOL: Click-iT EdU Protocol for Flow Cytometry
+SOURCE: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/protocols/click-it-edu-flow-cytometry-protocol.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+The Click-iT EdU Flow Cytometry Assay Kits provide a fast and simple method for detecting and quantifying cell proliferation using flow cytometry. EdU (5-ethynyl-2'-deoxyuridine) is a thymidine analog that is incorporated into DNA during active DNA synthesis. The Click-iT reaction uses copper-catalyzed azide-alkyne cycloaddition (CuAAC) chemistry to attach a fluorescent azide to the incorporated EdU, allowing for detection and quantification of proliferating cells.
+
+MATERIALS PROVIDED IN KIT
+================================================================================
+
+• Component A: EdU (5-ethynyl-2'-deoxyuridine), 40 mg
+• Component B: Fluorescent azide (Pacific Blue azide, Alexa Fluor 647 azide, or Alexa Fluor 488 azide)
+• Component C: DMSO, 4 mL
+• Component D: Click-iT fixative (contains paraformaldehyde)
+• Component E: Click-iT saponin-based permeabilization and wash reagent (10X), 50 mL
+• Component F: CuSO₄ solution, 1 mL
+• Component G: Click-iT EdU buffer additive
+
+Number of assays: Sufficient material is supplied for 50 reactions, based on the protocol below.
+
+Approximate fluorescence excitation/emission maxima:
+• Pacific Blue azide: 410/455 nm
+• Alexa Fluor 647 azide: 650/670 nm
+• Alexa Fluor 488 azide: 495/519 nm
+
+MATERIALS REQUIRED BUT NOT PROVIDED
+================================================================================
+
+• 1% bovine serum albumin (BSA) in phosphate buffered saline (PBS), pH 7.1–pH 7.4
+• Buffered saline solution, such as PBS, D-PBS, or TBS
+• Deionized water or 18 MΩ purified water
+• 12 × 75-mm tubes, or other flow cytometry tubes
+
+CAUTIONS
+================================================================================
+
+• DMSO (Component C), provided as a solvent in this kit, is known to facilitate the entry of organic molecules into tissues. Handle reagents containing DMSO using equipment and practices appropriate for the hazards posed by such materials. Dispose of the reagents in compliance with all pertaining local regulations.
+• Click-iT fixative (Component D) contains paraformaldehyde, which is harmful. Use with appropriate precautions.
+• Click-iT saponin-based permeabilization and wash reagent (Component E) contains sodium azide, which yields highly toxic hydrazoic acid under acidic conditions. Dilute azide compounds in running water before discarding to avoid accumulation of potentially explosive deposits in plumbing.
+
+PROTOCOL
+================================================================================
+
+Preparing reagents
+
+1. Allow vials to warm to room temperature before opening.
+2. To prepare a 10 mM solution of EdU, add 4 mL of DMSO (Component C) or aqueous solution (PBS) to Component A and mix well. After use, store any remaining stock solution at ≤–20°C. When stored as directed, the stock solution is stable for up to 1 year.
+3. To prepare a working solution of Pacific Blue azide, Alexa Fluor 647 azide, or Alexa Fluor 488 azide, add 130 μL of DMSO to Component B and mix well. After use, store any remaining working solution at ≤–20°C. When stored as directed, this working solution is stable for up to 1 year.
+4. To prepare 500 mL of 1X Click-iT saponin-based permeabilization and wash reagent, add 50 mL of Component E to 450 mL of 1% BSA in PBS. Smaller amounts can be prepared by diluting a volume of Component E 1:10 with 1% BSA in PBS. After use, store any remaining solutions at 2–6˚C. When stored as directed, the 1X solution is stable for 6 months and the 10X solution is stable for 12 months after receipt.
+
+Note: Component E contains sodium azide (see Cautions).
+
+5. To make a 10X stock solution of the Click-iT EdU buffer additive (Component G), add 2 mL of deionized water to the vial and mix until the Click-iT EdU buffer additive is fully dissolved. After use, store any remaining stock solution at ≤–20˚C. When stored as directed, the stock solution is stable for up to 1 year.
+
+Labeling cells with EdU
+
+The following protocol was developed with Jurkat cells, a human T cell line, and using an EdU concentration of 10 μM, and can be adapted for any cell type. Growth medium, cell density, cell type variations, and other factors may influence labeling. In initial experiments, we recommend testing a range of EdU concentrations to determine the optimal concentration for your cell type and experimental conditions. If currently using a BrdU based assay for cell proliferation, a similar concentration to BrdU is a good starting concentration for EdU. If using whole blood as the sample, we recommend heparin as the anticoagulant for collection.
+
+1. Suspend the cells in an appropriate tissue culture medium to obtain optimal conditions for cell growth. Disturbing the cells by temperature changes or washing prior to incubation with EdU slows the growth of the cells during incorporation.
+2. Add EdU to the culture medium at the desired final concentration and mix well. We recommend a starting concentration of 10 μM for 1–2 hours. For longer incubations, use lower concentrations. For shorter incubations, higher concentrations may be required. For a negative staining control, include cells from the same population that have not been treated with EdU.
+3. Incubate under conditions optimal for cell type for the desired length of time. Altering the amount of time the cells are exposed to EdU or subjecting the cells to pulse labeling with EdU allows the evaluation of various DNA synthesis and proliferation parameters. Effective time intervals for pulse labeling and the length of each pulse depend on the cell growth rate.
+4. Harvest cells and proceed immediately to "Staining cell-surface antigens with antibodies" if performing antibody surface labeling; otherwise continue to "Fixation and permeabilization".
+
+Staining cell-surface antigens with antibodies (optional)
+
+1. Wash cells once with 3 mL of 1% BSA in PBS, pellet cells by centrifugation, and remove supernatant.
+2. Dislodge the pellet and resuspend cells at 1 × 10⁷ cells/mL in 1% BSA in PBS.
+3. Add 100 μL of cell suspension or whole blood sample to flow tubes.
+4. Add surface antibodies and mix well.
+
+Note: Do not use PE, PE-tandem, or Qdot antibody conjugates before performing the click reaction; wait until step 6.1 for labeling with these fluorophores.
+
+5. Incubate for the recommended time and temperature, protected from light.
+6. Proceed to step 4.1 for cell fixation.
+
+Fixation and permeabilization
+
+The Click-iT saponin-based permeabilization and wash reagent can be used with whole blood or cell suspensions containing red blood cells, as well as with cell suspensions containing more than one cell type. This permeabilization and wash reagent maintains the morphological light scatter characteristics of leukocytes while lysing red blood cells.
+
+1. Wash the cells once with 3 mL of 1% BSA in PBS, pellet the cells, and remove the supernatant.
+2. Dislodge the pellet, add 100 μL of Click-iT fixative (Component D), and mix well.
+3. Incubate the cells for 15 minutes at room temperature, protected from light.
+4. Wash the cells with 3 mL of 1% BSA in PBS, pellet the cells, and remove the supernatant. Repeat the wash step if red blood cells or hemoglobin are present in the sample. Remove all residual red blood cell debris and hemoglobin before proceeding.
+5. Dislodge the cell pellet and resuspend the cells in 100 μL of 1X Click-iT saponin-based permeabilization and wash reagent (prepared in step 4 under "Preparing reagents"), and mix well. Incubate the cells for 15 minutes or proceed directly to the next protocol for click labeling.
+
+Click-iT reaction
+
+1. Prepare 1X Click-iT EdU buffer additive by diluting the 10X stock solution (prepared in step 5 under "Preparing reagents") 1:10 in deionized water.
+2. Prepare the Click-iT reaction cocktail according to Table 1.
+
+NOTE: Use the Click-iT reaction cocktail within 15 minutes of preparation.
+
+Table 1. Click-iT EdU reaction cocktails.
+
+Reaction components | 1 reaction | 2 reactions | 5 reactions | 10 reactions | 15 reactions | 30 reactions | 50 reactions
+---------------------|-----------|-------------|-------------|--------------|--------------|--------------|-------------
+PBS, D-PBS, or TBS  | 438 µL    | 875 µL      | 2.19 mL     | 4.38 mL      | 6.57 mL      | 13.2 mL      | 21.9 mL
+CuSO₄ (Component F)  | 10 µL     | 20 µL       | 50 µL       | 100 µL       | 150 µL       | 300 µL       | 500 µL
+Fluorescent dye azide | 2.5 µL   | 5 µL        | 12.5 µL     | 25 µL        | 37.5 µL      | 75 µL        | 125 µL
+Reaction Buffer Additive | 50 µL | 100 µL      | 250 µL      | 500 µL       | 750 µL       | 1.5 mL        | 2.5 mL
+Total reaction volume | 500 µL   | 1 mL        | 2.5 mL      | 5 mL         | 7.5 mL       | 15 mL         | 25 mL
+
+3. Add 0.5 mL of Click-iT reaction cocktail to each tube and mix well.
+4. Incubate the reaction mixture for 30 minutes at room temperature, protected from light.
+5. Wash the cells once with 3 mL of 1X Click-iT saponin-based permeabilization and wash reagent (prepared in step 4 under "Preparing reagents"), pellet the cells, and remove the supernatant. Dislodge the cell pellet and resuspend the cells in 100 μL of 1X Click-iT saponin-based permeabilization and wash reagent, if proceeding with intracellular antibody labeling in "Staining cells for DNA content". Otherwise, add 500 μL of 1X Click-iT saponin-based permeabilization and wash reagent and proceed to "Analysis by flow cytometry".
+
+Staining cells for DNA content (optional)
+
+1. If necessary, add Ribonuclease A to each tube and mix (see Table 2).
+2. Add the appropriate DNA stain to each tube, mix well, and incubate as recommended for each DNA stain.
+
+Table 2. Click-iT EdU compatibility with DNA content stains.
+
+DNA content stain | Click-iT EdU stain compatibility | RNase required?
+-----------------|----------------------------------|----------------
+                 | Pacific Blue | Alexa Fluor 647 | Alexa Fluor 488 |
+FxCycle Violet   | No           | Yes             | Yes             | No
+Propidium iodide (PI) | Yes      | Yes             | No*             | Yes
+SYTOX AADvanced  | Yes          | Yes             | Yes             | Yes
+FxCycle Far Red  | Yes          | No              | Yes             | Yes
+
+Analysis by flow cytometry
+
+If measuring total DNA content on a traditional flow cytometer using hydrodynamic focusing, use a low flow rate during acquisition. If using the Attune Acoustic Focusing Cytometer, all collection rates may be used without loss of signal integrity if the event rate is kept below 10,000 events per second. However, for each sample within an experiment, the same collection rate and cell concentration should be used. The fluorescent signal generated by DNA content stains is best detected with linear amplification. The fluorescent signal generated by Click-iT EdU labeling is best detected with logarithmic amplification.
+
+1. Analyze the cells using a flow cytometer.
+2. For the detection of EdU with Pacific Blue azide, use 405 nm excitation with a violet emission filter (450/50 nm or similar).
+3. For the detection of EdU with Alexa Fluor 647 azide use 633/635 nm excitation with a red emission filter (660/20 nm or similar).
+4. For the detection of EdU with Alexa Fluor 488 azide, use 488 nm excitation with a green emission filter (530/30 nm or similar).
+
+PRODUCT CATALOG NUMBERS
+================================================================================
+
+C10418, C10424, C10425, C10419, C10420, A10044, F10347, F10348, H3570, P3566, S10349, V35003, 14190144, 14190250
+
+REFERENCES
+================================================================================
+
+Chembiochem 4, 1147 (2003)
+J Am Chem Soc 125, 3192 (2003)
+Angew Chem Int Ed Engl 41, 2596 (2002)
+Angew Chem Int Ed Engl 40, 2004 (2001)
+BioTechniques 44, 927 (2008)
+Curr Protoc Cytom 55, 7.38.1 (2011)

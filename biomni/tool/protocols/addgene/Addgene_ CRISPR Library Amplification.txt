@@ -1,0 +1,330 @@
+PROTOCOL: CRISPR Library Amplification
+SOURCE: https://www.addgene.org/protocols/pooled-library-amplification/
+================================================================================
+
+INTRODUCTION
+================================================================================
+
+Please refer to our pooled library material pages for amplification protocols that
+have been developed by the depositor for a specific pooled library available at
+Addgene. We recommend following the depositor's specific protocol if one is
+available. If a pooled library does not yet have an amplification protocol, the
+following protocol can be used as a starting point for CRISPR libraries.
+
+This protocol allows the amplification of a pooled-plasmid library in
+Escherichia coli cells. Pooled libraries contain tens to millions of different
+plasmids in a single sample. They are often used for screening, barcoding, or
+other high throughput multiplexed experiments. These pooled plasmids differ by
+only a short region of DNA: guide RNAs targeting different genes in an organism's
+genome, for example.
+
+Amplification is usually necessary to produce sufficient quantities of library for
+experimental applications. Repeated amplifications should be avoided as best as
+possible due to the inherent possibility of altering the composition of the
+library. Bottlenecks, fitness differences, and plasmid recombination can all
+impact the representation of individual plasmids in the pooled library during
+amplification. This protocol is designed to be as general as possible but note
+that individual libraries may require modifications dictated by the originating
+laboratory for optimal results. If you obtained the pooled library from Addgene,
+these protocols can be found on the Pooled Library page for the specific library.
+
+This protocol assumes familiarity with standard bacterial transformation and
+basic knowledge of the library being amplified. Please see our protocol on
+Bacterial Transformation. The generalized pooled library amplification protocol
+is expected to obtain satisfactory results for libraries up to 200,000 individual
+plasmids and can be scaled according to the actual number.
+
+
+REQUIRED QUALITY CONTROL (QC)
+================================================================================
+
+Pooled libraries can be challenging and expensive to ensure adequate quality, but
+this upfront cost will save headaches and expense later.
+
+At a minimum we recommend the use of a diagnostic digest and high-throughput next
+generation sequencing (NGS). Select a restriction enzyme for digest that will
+cut the shared plasmid backbone a single time and visualize that digestion on an
+agarose gel (see restriction digest protocol here). Lentiviral plasmids can
+recombine between their LTRs resulting in a smaller plasmid containing only the
+elements required for bacterial propagation (origin of replication and antibiotic
+selection). This recombination, at a low rate, is not typically a problem as
+these sequences are not efficiently packaged into lentiviral particles. See below
+for options if the recombinant band makes up a significant proportion of the DNA
+pool.
+
+Last Update: August 17, 2023
+
+
+WORKFLOW TIMELINE
+================================================================================
+
+Day 1: Transform, recover, set up overnight growth (Estimated time 2-3 hours)
+
+    Transformation should be performed at the end of the day to ensure that
+    growth times are limited.
+
+Day 2: Harvest cells and purify DNA (Estimated time 3-4 hours)
+
+    Cells should be harvested first thing in the morning to ensure that outgrowth
+    and competition are limited.
+
+
+EQUIPMENT
+================================================================================
+
+• Table top centrifuge
+• BioRad Electroporator (MicroPulser TM, Bio-Rad 1652100)
+
+
+REAGENTS
+================================================================================
+
+• 200 µL electrocompetent cells (Default: 4 tubes of Endura Duos, Lucigen,
+  60242-1)
+
+  Alternatives include Stbl4 cells or other ultra-high efficiency
+  electrocompetent cells that are suitable for unstable or recombination-prone
+  DNA.
+
+  The use of electrocompetent cells is essential to ensure high efficiency
+  uptake of plasmid library DNA.
+
+  This quantity of cells is sufficient for libraries up to 200,000 individual
+  plasmids. For larger libraries scale the number of cells and DNA accordingly.
+
+  💡 PRO TIP: Use of extreme high efficiency (1×10¹⁰ cfu/µg) commercially
+  prepared electrocompetent cells is strongly recommended.
+
+• 800 ng pooled library DNA (100 ng plasmid DNA per 25 µL electrocompetent cells)
+
+  Less library DNA can be used but this dramatically increases the chances of
+  individual plasmids being lost from the pool and/or increasing the skewness of
+  the pool.
+
+• 8 electroporation cuvettes (BioRad, Micropulser, 0.1 cm)
+• 20 mL SOC recovery media (Lucigen, 80026-1)
+• 8X LB Agar + Antibiotic 245 mm bioassay plates (Molecular Devices, X602)
+
+  💡 PRO TIP: Pour these plates at least one day in advance to allow adequate
+  time to fully gel and to dry slightly. We routinely use 350 mL of LB Agar per
+  bioassay plate.
+
+• 14 mL Vented Falcon Tubes (BD Biosciences, 352059)
+• 3X LB Agar + Antibiotic 65 mm Petri dish (VWR, 11019-552)
+• 4 MaxiPreps (Qiagen HiSpeed Max, Catalog #12663)
+• Tips (1000 µL, 200 µL, 10 µL)
+• Bacti Cell Spreaders (VWR, 60828-680)
+• 5 mL and 10 mL Serological pipettes
+• Ice slurry (Ice bucket with ice and water to create slurry)
+• 100 mL LB
+
+  At Addgene we use premixed LB (VWR 101414-072) for convenience but any brand
+  or house-made LB that supports normal growth is expected to work.
+
+• 50 mL Falcon Conical tubes (Fisher, 14-432-22)
+
+
+REAGENT PREPARATION
+================================================================================
+
+• Prepare, sterilize, and pour all LB Agar + Antibiotic plates.
+
+• Prewarm 12 mL recovery media at 37 °C (for at least 15 minutes).
+
+• Prewarm 3X LB Agar + Antibiotic plates at 37 °C.
+
+• Prewarm 8X LB Agar + Antibiotic Bioassay plates.
+
+• Prechill Micropulser cuvettes on ice.
+
+• Thaw 4 tubes of electrocompetent cells on ice for 15-20 minutes or until
+  completely thawed.
+
+• Chill a box of 200 µL micropipette tips in a -20 °C freezer.
+
+• Aliquot 3 mL SOC into each of four 14 mL Vented Falcon Tubes and have 1 mL SOC
+  per electroporation readily available for post-electroporation recovery of
+  cells.
+
+• Ensure access to autoclaved, sterile reagents for all steps.
+
+
+PROCEDURE
+================================================================================
+
+Day 1
+
+1. Add 200 ng DNA to each 50 µL aliquot of thawed Endura Duos on ice. Flick
+   gently to mix.
+
+2. Electroporate cells (one at a time for a total of eight electroporations):
+
+   Electroporator Conditions: Bio-Rad Micropulser Ec1 0.1 cm cuvette, 1.8 kV, 1
+   pulse.
+
+   a. Aliquot 25 µL DNA-Endura into pre-chilled cuvette.
+   b. Pulse.
+
+      Caution: Electroporation involves the use of high voltages, please use
+      caution when activating pulse and follow all specifications described in the
+      equipment manual.
+
+   c. Immediately add 1 mL SOC to cuvette.
+   d. Remove all liquid from cuvette and add to 14 mL vented Falcon Tube
+      containing 3 mL SOC.
+   e. Repeat for each of the 25 µl aliquots of cell/DNA mixture used (8 in the
+      described protocol) using a new vented falcon tube for every two
+      transformations. Each of the four 14 mL Vented Falcon Tubes should contain
+      a total of 5 mL (3 mL SOC + 2 mL transformed Endura from two separate
+      transformations).
+
+   💡 PRO TIP: Do not pipette repeatedly or mix when removing SOC containing
+   transformed DNA-Endura from cuvette.
+
+3. Shake four 14 mL Vented Falcon Tubes at 30-37 ℃, 225 rpm for 1 hour.
+
+4. After the 1 hour shaking period, pool and gently mix the four tubes.
+
+5. Perform sequential 1:100 dilutions of the cells (add 10 µL of the pool to 990
+   µL LB then perform a second and then third 1:100 dilution). Plate 100 µL of
+   each dilution onto a prewarmed Petri dish.
+
+6. Incubate plates at 30 ℃ overnight.
+
+7. Plate 2.5 mL of the transformed cells on each of the eight bioassay plates (two
+   plates per tube). Distribute evenly with a sterile spreader until all liquid
+   has been absorbed by the agar. This usually takes 1-2 minutes.
+
+   Critical: Be careful not to rip or shred the agar. Do so by gentle spreading.
+   Some spreaders have a sharp edge that can scrape plates more abrasively at a
+   certain angle.
+
+8. Incubate plates upside down at 30 ℃ overnight.
+
+   Critical: Ensure at this stage that no unabsorbed media drips onto the lid.
+   Let plates remain agar side up until dried before overnight incubation if
+   needed.
+
+9. Place 100 mL sterile LB at 4 ℃.
+
+Day 2 (morning)
+
+1. Before beginning, prechill at least four conical tubes on ice and ensure
+   access to sterile scraper and cold LB.
+
+   💡 PRO TIP: Prepare one to two more conical tubes on ice in case you need to
+   spread out the harvested cells further than four Maxipreps worth.
+
+2. Count colonies on the most dilute Petri dish.
+
+   Total colony yield = count × 100 × 100 × 100 ÷ 0.1
+
+   This number should be at least 1000X greater than number of perturbations in
+   library.
+
+   Example: At least 10 colonies on the most diluted plate for 1000x coverage of
+   a library of 100,000 plasmids.
+
+   Colonies may appear small and require extra incubation time in order to be
+   enumerated accurately.
+
+   Frequently the number of colonies can be too great to count. Ideally,
+   dilutions would have been sufficient to enumerate single colonies but as long
+   as one can ensure more than the required colonies are present. If colonies are
+   not present on the most dilute plate, count the second plate (ie. the 1:10,000
+   dilution).
+
+3. After 12-18 hours of growth, use spreader and cold LB to scrape bioassay
+   plates and remove bacteria.
+
+   • Use one scraper for all plates.
+   • Use two 10 mL pipettes (one for dispensing cold LB and one for removing LB
+     containing bacteria from plate).
+
+   💡 PRO TIP: Scraped bacteria in LB can clog the pipette either mix gently up
+   and down avoiding introducing bubbles or pour off plates into conical tubes as
+   needed.
+
+4. Add 10 mL cold LB to each plate for each scrape and use spreader to scrape
+   plates.
+
+   💡 PRO TIP: Pushing motion is better than pulling motion. Take care not to
+   split or gouge agar during the scraping process.
+
+5. Add each scrape into a 50 mL conical tube on ice pooling the scrapings of two
+   plates into each tube. Keep each tube on ice while scraping.
+
+6. Repeat addition of 10 mL cold LB and scrape for each plate until agar is clear
+   (all bacteria have been removed). This should produce 25 mL cold LB-bacteria
+   per plate.
+
+7. Centrifuge tubes (4000 G, 4 ℃, 15 minutes) to pellet bacteria.
+
+8. Decant LB and weigh pellet. The total weight of each pellet should be ~1-2 g.
+
+   💡 PRO TIP: Make sure to weigh the empty tube beforehand! If you've already
+   gone too far, weigh an identical empty tube. It will be close enough for the
+   purpose of a Maxiprep.
+
+9. Purify plasmid DNA using the Qiagen HiSpeed Maxi Kit (one conical is its own
+   Maxiprep).
+
+   Critical: Do not freeze pellets for later purification. Immediately purify them!
+   Commercial Maxipreps rely on incremental, ordered cell lysis. E. coli cells
+   are subject to lysis by freeze-thaw if not suspended in cryoprotectant like
+   Glycerol or DMSO solutions.
+
+10. Quantify the individual Maxipreps by Nanodrop, Picogreen, or Qubit.
+
+    Each different DNA measurement type can report slightly different
+    concentrations of DNA. In our hands fluorescent dye methods tend to report
+    lower values than Nanodrop, although most protocols have been designed with
+    Nanodrop as the quantification method.
+
+11. If all Maxipreps appear to contain sufficient DNA for use, pool samples, and
+    continue with analysis.
+
+    "Sufficient" DNA will vary upon intended use. Typically yields range from
+    several hundred micrograms to a milligram of total plasmid DNA.
+
+
+TIPS AND TROUBLESHOOTING
+================================================================================
+
+What do I do if my transformation efficiency is not high enough?
+
+Repeat the experiment with more cells, more DNA, gentler practices, and colder
+reagents (not including the recovery media!). Do not proceed with Maxipreps or
+NGS until adequate transformation efficiency is obtained. Ensure that
+electrocompetent cells are being used. Chemically competent cells will not
+provide adequate transformation efficiency! Ensure that no arcing is taking place
+during electroporation. Arcing would manifest as a loud pop often accompanied by
+some light in the cuvette during the electroporation step.
+
+I got a heavy recombined band by digest.
+
+Recombination is thought to be in part related to selective pressure. These
+recombined plasmids are much smaller and are a smaller nutritional burden on the
+bacteria. Bacteria that contain a recombinant plasmid likely grow faster in the
+closed system of a crowded plate or culture. Try restricting growth to the bare
+minimum by growing at 30 ℃, limiting growth time further, or potentially
+spreading less bacteria on a given plate (example: by increasing the total number
+of bioassay plates used). Scaling up the experiment using a Gigaprep can be used
+to obtain sufficient intact pooled library even in the face of a recombined
+fraction but care must be taken to perform adequate NGS based QC to ensure no
+change in representation compared to the pre-amplified stock. A last option is
+to perform a gel extraction of either the original sample or the amplified
+sample, followed by reamplification of the DNA, but please note that NGS should
+be performed to ensure representation is maintained.
+
+Maxipreps - Less is more:
+
+Do not overload the Maxipreps as yield can dramatically plateau and sometimes fall
+off entirely if the column or reagents are significantly overloaded. If you find
+that your pellet outstrips the capacity listed in the Maxiprep protocol, scale
+the reagent volume and column number as needed. The use of Mega or Gigapreps is
+acceptable when scaling up or reducing the number of tandem purifications. Consult
+the manufacturers handbooks for appropriate volumes and numbers of tandem
+purifications.
+
+Visit our Help Center to get details on how to process your Addgene pooled library

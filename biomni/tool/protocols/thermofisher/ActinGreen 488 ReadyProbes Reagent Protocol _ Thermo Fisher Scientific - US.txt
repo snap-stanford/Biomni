@@ -1,0 +1,67 @@
+PROTOCOL: ActinGreen 488 ReadyProbes Reagent Protocol
+SOURCE: https://www.thermofisher.com/us/en/home/references/protocols/cell-and-tissue-analysis/protocols/actin-green-488-readyprobes-protocol.html
+================================================================================
+
+OVERVIEW
+================================================================================
+
+F-actin stain for fixed cells
+
+ActinGreen 488 ReadyProbes Reagent is a selective, high-affinity F-actin probe conjugated to our bright, photostable green-fluorescent Alexa Fluor 488 dye. Like other ReadyProbes reagents, the ActinGreen 488 reagent is formulated as a room temperature–stable solution and comes in a convenient dropper bottle.
+
+APPLICATIONS
+================================================================================
+
+This protocol can be used for:
+• F-actin staining in fluorescence microscopy
+
+This protocol should not be used for:
+• Flow cytometry
+
+MATERIALS REQUIRED
+================================================================================
+
+• Cells growing in culture
+• ActinGreen 488 ReadyProbes Reagent (Cat. No. R37110)
+• Fluorescence microscope
+
+PROTOCOL
+================================================================================
+
+Labeling fixed cells
+
+First, fix and permeabilize cultured cells with a protocol appropriate for your sample. Counterstain as desired. DAPI may be added directly to fixative.
+
+1. Wash the cells 1–3 times in PBS as needed.
+2. Add two drops of ActinGreen 488 ReadyProbes Reagent per milliliter of medium.
+3. Incubate for 30 minutes, protected from light.
+4. Remove the stain solution.
+5. Wash the cells 2–3 times in PBS.
+6. Image the cells.
+
+SPECTRAL INFORMATION AND STORAGE
+================================================================================
+
+ActinGreen 488:
+• Excitation/Emission (nm): 495/518
+• Standard filter set: FITC
+• EVOS Light Cube: GFP
+• Storage conditions: Room temperature
+
+PROTOCOL TIPS
+================================================================================
+
+• In some cases, more or fewer drops may be needed to achieve optimal staining intensity.
+• Image quality may be improved by replacing the culture medium with Live Cell Imaging Solution (Cat. No. A14291DJ).
+
+EXAMPLE APPLICATION
+================================================================================
+
+Multicolor staining of HeLa cells.
+
+HeLa cells were grown on coverslips and were fixed and permeabilized using the Image-iT Fixation/Permeabilization Kit. Cells were then stained to detect actin (green fluorescence from ActinGreen 488 ReadyProbes Reagent), B-catenin (red-orange fluorescence), and nuclei (blue fluorescence).
+
+PRODUCT CATALOG NUMBER
+================================================================================
+
+R37110

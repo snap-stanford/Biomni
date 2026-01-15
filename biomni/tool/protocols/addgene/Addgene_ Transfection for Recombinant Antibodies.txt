@@ -1,0 +1,231 @@
+Title: Addgene: Transfection for Recombinant Antibodies
+URL: https://www.addgene.org/protocols/transfection-for-recombinant-antibodies/
+================================================================================
+
+Protocols
+Transfection for Recombinant Antibodies
+Transfection for Recombinant Antibodies
+You may also like...
+Antibody Plasmid Collection
+Antibodies Blog Posts
+Antibody Guide
+General Transfection Protocol
+Recombinant Antibody Purification Protocol
+Introduction
+Transfections allow for transient expression of a gene of interest in cell culture. This protocol describes how to transfect suspension HEK293 cells with recombinant antibody plasmids using Polyethylenimine Max as a transfection reagent. After transfection and expression, the recombinant antibody can be purified for use in a variety of applications.
+Sharing speeds science.
+We believe that sharing the full details of our protocols supports reproducibility and accelerates science. Here, we list the specific equipment, reagents, and methods that we use in our lab at Addgene. Equipment and reagents from other vendors should produce similar outcomes when using these protocols. However, please be aware that your protocol may need to be adjusted to accommodate slight differences between products. Addgene does not endorse or recommend specific products or equipment. Inclusion of this information is solely for transparency intended to support reproducibility in science.
+General Considerations
+For antibody-expressing plasmids containing the SV40 origin of replication use a HEK293 line stably expressing the SV40 large T antigen.
+For antibody-expressing plasmids containing the Epstein-Barr virus origin of replication use a HEK293 line stable expressing Epstein Barr nuclear antigen (EBNA).
+Safety Warnings
+HEK293 cells are considered biosafety level 2. Please ensure that you are in compliance with your institution’s biosafety regulations.
+Last Update: February 18, 2022
+Workflow Timeline
+Day 1:
+Seed cells
+Day 2:
+Transfect cells
+Day 3-6:
+Feed cells
+Day 7:
+Harvest antibody
+Equipment
+Biosafety Cabinet
+4 °C Refrigerator
+Micropipettes and tips
+Pipettor and pipettes
+Benchtop centrifuge compatible with 50 mL conical tubes
+Automated cell counter
+37 °C, 5% CO
+2
+incubator with shaking platform set to 120 rpm
+37 °C bead bath
+Vortex
+Stir bar
+Magnetic stir plate
+pH meter
+Reagents
+HEK293 cells
+Recombinant antibody plasmid DNA
+500 mL vented flask
+50 mL conical tubes
+Microcentrifuge tubes
+Cell counting chamber slide
+30 mL luer-lock syringe, BD BD302832
+0.2 µm luer-lock filter, VWR 431229
+0.22 µm PES filtering system, 1000 mL, VWR 431098
+0.45 µm PES filtering system, 500 mL, VWR 430770
+Trypan Blue, Thermo Fisher T10282
+Valproic acid sodium salt, Sigma Aldrich P4543-10G
+Polyethylenimine hydrochloride, M.W. 40000 (PEI-MAX), Linear, Transfection Grade, VWR 75800-188
+10% Poloxamer 188, Thermo Fisher 24040032
+Glutagro, Corning 25-015-CI
+BalanCD HEK293 Media, Irvine Scientific 91165-1L
+BalanCD HEK293 Feed, Irvine Scientific 91166-500ML
+Benzamide, Millipore Sigma 12072
+Antipain, Millipore Sigma 10791
+Leupeptin, Millipore Sigma L2884
+Aprotinin saline solution, Millipore Sigma A6279
+Before Starting
+Warm the DNA and working stock of PEI-MAX to room temperature before use, and warm the BalanCD HEK293 transfection media (BCD TFX) to 37 °C. See below for other Reagent Preparation instructions.
+Wipe down all pipettes and equipment with 10% bleach prior to use.
+Reagent Preparation
+100 mM Valproic Acid
+Dissolve
+2.88 g
+valproic acid in
+200 mL
+deionized water
+Sterilize by passage through a sterile 0.22 µm filter.
+Prepare 10 mL aliquots and store the solution at -20 °C.
+1 mg/mL PEI-MAX
+Add
+1 g
+of PEI-MAX powder to
+900 mL
+deionized water in a 1 L bottle and stir on a magnetic stir plate.
+Stir until all particles have dissolved. Note: The powder should dissolve rapidly (with 20 min) but check for the presence of particles still in solution. Continue to stir until all particles have dissolved. This may take several hours.
+Adjust to
+pH 7.0
+with 10 N sodium hydroxide (NaOH) or 5 N hydrochloric acid (HCl). Note: Adjust the pH slowly, adding no more than 200 µL of NaOH or 20 µL of HCl at a time.
+Add deionized water to a final volume of
+1 L
+and recheck pH to ensure that it has not drifted.
+Filter the solution through a 0.22 µm filter.
+Prepare aliquots and store at -20 °C until use.
+BCD TFX
+1000 mL
+BalanCD HEK293 Media
+10 mL
+10% Poloxamer 188
+40 mL
+200 mM Glutagro
+Do not add selective reagents
+Store at 4 °C until use. We suggest preparing fresh solutions after one month.
+BCD Feed
+500 mL
+BalanCD HEK293 Feed
+20 mL
+200 mM Glutagro
+Store at 4 °C until use. We suggest preparing fresh solutions after one month.
+1000X protease inhibitor cocktail
+25 mg
+Leupeptin
+50 mg
+Antipain
+250 mg
+Benzamidine
+25 mL
+Aprotinin saline solution (2 mg/mL)
+Mix well and sterilize through a 0.2 µm PES syringe filter.
+Aliquot and freeze upright at -20 °C.
+Procedure
+Section 1: Seeding cells
+The day prior to transfecting, seed a
+108 mL
+culture of HEK293 cells at a density of
+0.9 x 10
+6
+cells/mL
+in a 500 mL vented flask.Incubate in a
+37 °C, 5% CO
+2
+incubator on a shaking platform set to 120 rpm.
+Pro-Tip
+Do not use cells that are over 30 passages.
+Section 2: Transfection
+Check the cell density and viability:
+Using a 5 mL pipette, transfer
+0.5 mL
+of HEK293 cell suspension into a clean microcentrifuge tube.
+Pro-Tip
+Cells settle quickly and need to be resuspended before sampling. Gently swirl the flask 5–10 times before sampling.
+Transfer
+10 µL
+of trypan blue into a clean microcentrifuge tube.
+Vortex the cell suspension.
+Transfer
+10 µL
+of cell suspension into the microfuge tube containing the trypan blue.
+Pipette 10 times to mix.
+Load
+10 µL
+of the cell suspension/trypan blue mix into a cell counting chamber.
+Load the cell counting chamber on an automated cell counter and measure the live cell density and viability of the culture.
+Pro-Tip
+Culture should be between
+1.5–2 x 10
+6
+cells/mL
+with
+>95%
+viability to proceed with transfection.
+Transfect the flask containing 108 mL cells:
+Transfer
+6 mL
+of BCD TFX into each of two 50 mL tubes.
+Cap the tubes and incubate for
+1 h
+in the
+37 °C
+bead bath.
+Transfer the PEI-MAX and recombinant antibody plasmid DNA sample to the biosafety cabinet and incubate for
+1 h
+at room temperature.
+After the BCD TFX has warmed in the bead bath, transfer the tubes to the biosafety cabinet.
+Add
+180 µg
+of recombinant antibody plasmid DNA to one tube of 6 mL BCD TFX. Cap the tube and vortex for 5 s to mix.
+Add
+450 µL
+of 1 mg/mL PEI-MAX to the second tube of 6 mL BCD TFX (for a 1 mg/mL stock solution of PEI-MAX, 450 µg = 450 µL). Cap the tube and vortex for 5 s to mix.
+Pro-Tip
+The optimal ratio of DNA:PEI may vary significantly and should be empirically determined for your sample. Typical ratios may range from 1:1 to 1:6.
+Add the diluted PEI-MAX to the diluted DNA. Cap the tube and vortex with three 1 s pulses.
+Incubate for
+3 min
+at room temperature.
+Transfer the flask of HEK293 cells to the biosafety cabinet.
+Add
+12 mL
+of PEI-MAX/DNA mix to the flask dropwise.
+Cap the flasks and swirl 5–10 times to mix.
+Return the flask to the incubator.
+Section 3: BCD Feed and valproic acid supplementation
+During the
+24–144 h
+post-transfection, supplement the flask with 4% BCD Feed.
+Pro-Tip
+The feed can be repeated up to 4 times for a total of 16% of the culture volume.
+At
+72-96 h
+post-transfection, supplement the flask with
+3.75 mM
+valproic acid.
+Example feeding schedule:
+Thursday: Transfect cells.
+Friday (24 h post-transfection): Add 4% BCD Feed.
+Monday (96 h post-transfection): Add valproic acid to 3.75 mM, add 4% BCD Feed.
+Tuesday (120 h post-transfection): Add 4% BCD Feed.
+Wednesday (144 h post-transfection): Add 4% BCD Feed.
+Thursday (168 h post-transfection): Harvest antibody.
+Section 4: Harvest antibody
+At 168 hours (1 week) post-transfection, harvest the antibody.
+Transfer the HEK293 cells and media to 50 mL conical tubes.
+Centrifuge for
+15 min
+at
+3100 x
+g
+to pellet the cells.
+Filter the supernatant through a 0.45 µm PES filter.
+Add
+1X
+protease inhibitor cocktail to the supernatant.
+The supernatant containing the recombinant antibody can be used as-is or the recombinant antibody can be purified from the supernatant (see our
+Recombinant Antibody Purification Protocol
+).
+Store the supernatant at
+4 °C
+until ready to use.
