@@ -6,13 +6,13 @@ phase portrait analysis, bifurcation diagrams, Lyapunov exponents, and chaos the
 """
 
 import numpy as np
-from scipy.integrate import odeint, solve_ivp
+from scipy.integrate import solve_ivp
 from scipy.optimize import fsolve
-import matplotlib.pyplot as plt
 
 
-def generate_phase_portrait(system_func, x_range, y_range, parameters=(), n_trajectories=10,
-                           time_span=(0, 10), grid_density=20):
+def generate_phase_portrait(
+    system_func, x_range, y_range, parameters=(), n_trajectories=10, time_span=(0, 10), grid_density=20
+):
     """
     Generate a phase portrait for a 2D dynamical system.
 
@@ -38,7 +38,7 @@ def generate_phase_portrait(system_func, x_range, y_range, parameters=(), n_traj
     """
     log = "# Phase Portrait Analysis\n\n"
 
-    log += f"## System Configuration:\n"
+    log += "## System Configuration:\n"
     log += f"- Phase space: x ∈ {x_range}, y ∈ {y_range}\n"
     log += f"- Number of trajectories: {n_trajectories}\n"
     log += f"- Time span: {time_span}\n"
@@ -97,8 +97,15 @@ def generate_phase_portrait(system_func, x_range, y_range, parameters=(), n_traj
     return log
 
 
-def bifurcation_diagram(system_func, parameter_range, initial_condition, n_points=500,
-                       transient_steps=1000, sample_steps=100, parameter_index=0):
+def bifurcation_diagram(
+    system_func,
+    parameter_range,
+    initial_condition,
+    n_points=500,
+    transient_steps=1000,
+    sample_steps=100,
+    parameter_index=0,
+):
     """
     Generate a bifurcation diagram by varying a system parameter.
 
@@ -124,7 +131,7 @@ def bifurcation_diagram(system_func, parameter_range, initial_condition, n_point
     """
     log = "# Bifurcation Diagram\n\n"
 
-    log += f"## Configuration:\n"
+    log += "## Configuration:\n"
     log += f"- Parameter range: {parameter_range}\n"
     log += f"- Number of parameter values: {n_points}\n"
     log += f"- Transient steps: {transient_steps}\n"
@@ -152,7 +159,7 @@ def bifurcation_diagram(system_func, parameter_range, initial_condition, n_point
         bifurcation_data.append((param, samples))
 
         if i % (n_points // 10) == 0:
-            log += f"  Progress: {100*i//n_points}%\n"
+            log += f"  Progress: {100 * i // n_points}%\n"
 
     log += "\n✓ Bifurcation diagram computed\n\n"
 
@@ -160,7 +167,7 @@ def bifurcation_diagram(system_func, parameter_range, initial_condition, n_point
     log += "## Attractor Analysis:\n"
 
     # Sample a few parameter values
-    sample_indices = [0, n_points//4, n_points//2, 3*n_points//4, n_points-1]
+    sample_indices = [0, n_points // 4, n_points // 2, 3 * n_points // 4, n_points - 1]
     for idx in sample_indices:
         param, samples = bifurcation_data[idx]
         unique_points = len(set(np.round(samples, 6)))
@@ -178,8 +185,9 @@ def bifurcation_diagram(system_func, parameter_range, initial_condition, n_point
     return log
 
 
-def compute_lyapunov_exponent(system_func, initial_condition, parameters=(), n_iterations=10000,
-                              dt=0.01, perturbation=1e-8):
+def compute_lyapunov_exponent(
+    system_func, initial_condition, parameters=(), n_iterations=10000, dt=0.01, perturbation=1e-8
+):
     """
     Compute the largest Lyapunov exponent for a dynamical system.
 
@@ -210,7 +218,7 @@ def compute_lyapunov_exponent(system_func, initial_condition, parameters=(), n_i
     initial_condition = np.array(initial_condition)
     n_dims = len(initial_condition)
 
-    log += f"## Configuration:\n"
+    log += "## Configuration:\n"
     log += f"- System dimension: {n_dims}\n"
     log += f"- Initial condition: {initial_condition}\n"
     log += f"- Number of iterations: {n_iterations}\n"
@@ -253,7 +261,7 @@ def compute_lyapunov_exponent(system_func, initial_condition, parameters=(), n_i
     # Final Lyapunov exponent
     lyapunov_exponent = lyapunov_sum / (n_iterations * dt)
 
-    log += f"\n## Results:\n"
+    log += "\n## Results:\n"
     log += f"**Largest Lyapunov Exponent: λ = {lyapunov_exponent:.6f}**\n\n"
 
     log += "## Interpretation:\n"
@@ -267,8 +275,9 @@ def compute_lyapunov_exponent(system_func, initial_condition, parameters=(), n_i
     return log
 
 
-def poincare_section(system_func, initial_conditions, parameters=(), plane_axis=2,
-                    plane_value=0, time_span=(0, 1000), n_trajectories=5):
+def poincare_section(
+    system_func, initial_conditions, parameters=(), plane_axis=2, plane_value=0, time_span=(0, 1000), n_trajectories=5
+):
     """
     Compute a Poincaré section for a 3D dynamical system.
 
@@ -296,8 +305,8 @@ def poincare_section(system_func, initial_conditions, parameters=(), plane_axis=
     """
     log = "# Poincaré Section Analysis\n\n"
 
-    axis_names = ['x', 'y', 'z']
-    log += f"## Configuration:\n"
+    axis_names = ["x", "y", "z"]
+    log += "## Configuration:\n"
     log += f"- Poincaré plane: {axis_names[plane_axis]} = {plane_value}\n"
     log += f"- Number of trajectories: {n_trajectories}\n"
     log += f"- Time span: {time_span}\n\n"
@@ -318,7 +327,7 @@ def poincare_section(system_func, initial_conditions, parameters=(), plane_axis=
         solution = solve_ivp(ode_wrapper, time_span, ic, t_eval=t_eval, dense_output=True)
 
         if not solution.success:
-            log += f"⚠ Trajectory {i+1} failed to integrate\n"
+            log += f"⚠ Trajectory {i + 1} failed to integrate\n"
             continue
 
         # Find intersections with Poincaré plane
@@ -327,23 +336,22 @@ def poincare_section(system_func, initial_conditions, parameters=(), plane_axis=
 
         for j in range(len(trajectory) - 1):
             # Check if trajectory crosses the plane
-            if ((trajectory[j, plane_axis] - plane_value) *
-                (trajectory[j+1, plane_axis] - plane_value) < 0):
-
+            if (trajectory[j, plane_axis] - plane_value) * (trajectory[j + 1, plane_axis] - plane_value) < 0:
                 # Linear interpolation to find exact crossing point
-                alpha = (plane_value - trajectory[j, plane_axis]) / \
-                       (trajectory[j+1, plane_axis] - trajectory[j, plane_axis])
+                alpha = (plane_value - trajectory[j, plane_axis]) / (
+                    trajectory[j + 1, plane_axis] - trajectory[j, plane_axis]
+                )
 
-                intersection = trajectory[j] + alpha * (trajectory[j+1] - trajectory[j])
+                intersection = trajectory[j] + alpha * (trajectory[j + 1] - trajectory[j])
 
                 # Only count upward crossings (to get unique points)
-                if trajectory[j+1, plane_axis] > trajectory[j, plane_axis]:
+                if trajectory[j + 1, plane_axis] > trajectory[j, plane_axis]:
                     intersections.append(intersection)
 
         all_intersections.extend(intersections)
-        log += f"  Trajectory {i+1}: {len(intersections)} intersections found\n"
+        log += f"  Trajectory {i + 1}: {len(intersections)} intersections found\n"
 
-    log += f"\n## Results:\n"
+    log += "\n## Results:\n"
     log += f"- Total intersections: {len(all_intersections)}\n"
 
     if len(all_intersections) > 0:
@@ -352,7 +360,7 @@ def poincare_section(system_func, initial_conditions, parameters=(), plane_axis=
         # Get the two coordinates orthogonal to the plane axis
         other_axes = [k for k in range(3) if k != plane_axis]
 
-        log += f"\n## Intersection Statistics:\n"
+        log += "\n## Intersection Statistics:\n"
         log += f"- {axis_names[other_axes[0]]} range: [{intersections_array[:, other_axes[0]].min():.4f}, "
         log += f"{intersections_array[:, other_axes[0]].max():.4f}]\n"
         log += f"- {axis_names[other_axes[1]]} range: [{intersections_array[:, other_axes[1]].min():.4f}, "
@@ -392,7 +400,7 @@ def find_limit_cycle(system_func, initial_guess, parameters=(), period_guess=10.
     initial_guess = np.array(initial_guess)
     n_dims = len(initial_guess)
 
-    log += f"## Configuration:\n"
+    log += "## Configuration:\n"
     log += f"- System dimension: {n_dims}\n"
     log += f"- Initial guess: {initial_guess}\n"
     log += f"- Period guess: {period_guess}\n"
@@ -423,8 +431,7 @@ def find_limit_cycle(system_func, initial_guess, parameters=(), period_guess=10.
         residual = x_final - x0
 
         # Add phase condition to fix period (prevents trivial solution)
-        phase_condition = np.dot(x0, system_func(0, x0) if not parameters
-                                else system_func(0, x0, *parameters))
+        phase_condition = np.dot(x0, system_func(0, x0) if not parameters else system_func(0, x0, *parameters))
 
         return np.append(residual, phase_condition)
 
@@ -440,12 +447,12 @@ def find_limit_cycle(system_func, initial_guess, parameters=(), period_guess=10.
             period = solution[-1]
 
             log += "✓ Limit cycle found!\n\n"
-            log += f"## Limit Cycle Properties:\n"
+            log += "## Limit Cycle Properties:\n"
             log += f"- Period T = {period:.6f}\n"
             log += f"- Point on cycle: {limit_cycle_point}\n"
             log += f"- Residual norm: {np.linalg.norm(info['fvec']):.2e}\n"
         else:
-            log += f"✗ Search did not converge\n"
+            log += "✗ Search did not converge\n"
             log += f"- Message: {msg}\n"
 
     except Exception as e:
@@ -454,8 +461,7 @@ def find_limit_cycle(system_func, initial_guess, parameters=(), period_guess=10.
     return log
 
 
-def analyze_attractor(system_func, initial_condition, parameters=(), time_span=(0, 100),
-                     n_points=10000):
+def analyze_attractor(system_func, initial_condition, parameters=(), time_span=(0, 100), n_points=10000):
     """
     Analyze the attractor of a dynamical system.
 
@@ -482,7 +488,7 @@ def analyze_attractor(system_func, initial_condition, parameters=(), time_span=(
     initial_condition = np.array(initial_condition)
     n_dims = len(initial_condition)
 
-    log += f"## Configuration:\n"
+    log += "## Configuration:\n"
     log += f"- System dimension: {n_dims}\n"
     log += f"- Initial condition: {initial_condition}\n"
     log += f"- Time span: {time_span}\n"
@@ -514,7 +520,7 @@ def analyze_attractor(system_func, initial_condition, parameters=(), time_span=(
     log += "\n## Attractor Characterization:\n"
 
     # Compute trajectory length
-    lengths = np.sqrt(np.sum(np.diff(trajectory, axis=0)**2, axis=1))
+    lengths = np.sqrt(np.sum(np.diff(trajectory, axis=0) ** 2, axis=1))
     total_length = np.sum(lengths)
     log += f"- Total trajectory length: {total_length:.4f}\n"
 

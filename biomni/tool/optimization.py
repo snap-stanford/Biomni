@@ -7,12 +7,14 @@ and metaheuristic algorithms.
 """
 
 import numpy as np
-from scipy.optimize import minimize, linprog, differential_evolution, minimize_scalar
-from scipy.optimize import LinearConstraint, NonlinearConstraint, Bounds
-import matplotlib.pyplot as plt
+from scipy.optimize import (
+    differential_evolution,
+    linprog,
+    minimize,
+)
 
 
-def solve_linear_program(c, A_ub=None, b_ub=None, A_eq=None, b_eq=None, bounds=None, method='highs'):
+def solve_linear_program(c, A_ub=None, b_ub=None, A_eq=None, b_eq=None, bounds=None, method="highs"):
     """
     Solve a linear programming problem.
 
@@ -45,8 +47,8 @@ def solve_linear_program(c, A_ub=None, b_ub=None, A_eq=None, b_eq=None, bounds=N
     """
     log = "# Linear Programming Solution\n\n"
 
-    log += f"## Problem Setup:\n"
-    log += f"- Objective function: minimize c^T @ x\n"
+    log += "## Problem Setup:\n"
+    log += "- Objective function: minimize c^T @ x\n"
     log += f"- Number of variables: {len(c)}\n"
     log += f"- Objective coefficients: {c}\n"
 
@@ -58,21 +60,20 @@ def solve_linear_program(c, A_ub=None, b_ub=None, A_eq=None, b_eq=None, bounds=N
     log += f"- Method: {method}\n\n"
 
     try:
-        result = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq,
-                        bounds=bounds, method=method)
+        result = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=bounds, method=method)
 
         log += "## Results:\n"
         if result.success:
             log += "✓ Optimization successful\n\n"
             log += f"**Optimal objective value:** {result.fun:.6f}\n\n"
-            log += f"**Optimal solution:**\n```\n"
+            log += "**Optimal solution:**\n```\n"
             for i, x in enumerate(result.x):
                 log += f"x[{i}] = {x:.6f}\n"
-            log += f"```\n\n"
+            log += "```\n\n"
             log += f"- Number of iterations: {result.nit}\n"
             log += f"- Status: {result.message}\n"
         else:
-            log += f"✗ Optimization failed\n"
+            log += "✗ Optimization failed\n"
             log += f"- Status: {result.message}\n"
 
     except Exception as e:
@@ -81,7 +82,7 @@ def solve_linear_program(c, A_ub=None, b_ub=None, A_eq=None, b_eq=None, bounds=N
     return log
 
 
-def solve_nonlinear_optimization(objective, x0, constraints=None, bounds=None, method='SLSQP'):
+def solve_nonlinear_optimization(objective, x0, constraints=None, bounds=None, method="SLSQP"):
     """
     Solve a nonlinear optimization problem.
 
@@ -107,13 +108,13 @@ def solve_nonlinear_optimization(objective, x0, constraints=None, bounds=None, m
     --------
     >>> # Minimize f(x,y) = (x-1)^2 + (y-2)^2 subject to x + y = 3
     >>> def objective(x):
-    ...     return (x[0]-1)**2 + (x[1]-2)**2
-    >>> constraints = [{'type': 'eq', 'fun': lambda x: x[0] + x[1] - 3}]
+    ...     return (x[0] - 1) ** 2 + (x[1] - 2) ** 2
+    >>> constraints = [{"type": "eq", "fun": lambda x: x[0] + x[1] - 3}]
     >>> result = solve_nonlinear_optimization(objective, [0, 0], constraints=constraints)
     """
     log = "# Nonlinear Optimization Solution\n\n"
 
-    log += f"## Problem Setup:\n"
+    log += "## Problem Setup:\n"
     log += f"- Number of variables: {len(x0)}\n"
     log += f"- Initial guess: {x0}\n"
     log += f"- Method: {method}\n"
@@ -121,7 +122,7 @@ def solve_nonlinear_optimization(objective, x0, constraints=None, bounds=None, m
     if constraints:
         log += f"- Number of constraints: {len(constraints)}\n"
     if bounds:
-        log += f"- Variable bounds specified: Yes\n"
+        log += "- Variable bounds specified: Yes\n"
 
     log += "\n"
 
@@ -132,15 +133,15 @@ def solve_nonlinear_optimization(objective, x0, constraints=None, bounds=None, m
         if result.success:
             log += "✓ Optimization converged successfully\n\n"
             log += f"**Optimal objective value:** {result.fun:.6f}\n\n"
-            log += f"**Optimal solution:**\n```\n"
+            log += "**Optimal solution:**\n```\n"
             for i, x in enumerate(result.x):
                 log += f"x[{i}] = {x:.6f}\n"
-            log += f"```\n\n"
+            log += "```\n\n"
             log += f"- Number of iterations: {result.nit}\n"
             log += f"- Number of function evaluations: {result.nfev}\n"
             log += f"- Status: {result.message}\n"
         else:
-            log += f"⚠ Optimization did not converge\n"
+            log += "⚠ Optimization did not converge\n"
             log += f"- Status: {result.message}\n"
             log += f"- Best objective found: {result.fun:.6f}\n"
 
@@ -177,17 +178,16 @@ def global_optimization_differential_evolution(objective, bounds, maxiter=1000, 
     log = "# Global Optimization - Differential Evolution\n\n"
 
     n_vars = len(bounds)
-    log += f"## Problem Setup:\n"
+    log += "## Problem Setup:\n"
     log += f"- Number of variables: {n_vars}\n"
-    log += f"- Variable bounds:\n"
+    log += "- Variable bounds:\n"
     for i, (lb, ub) in enumerate(bounds):
         log += f"  - x[{i}]: [{lb}, {ub}]\n"
     log += f"- Maximum iterations: {maxiter}\n"
     log += f"- Population size: {popsize * n_vars}\n\n"
 
     try:
-        result = differential_evolution(objective, bounds, maxiter=maxiter,
-                                       popsize=popsize, seed=seed, disp=False)
+        result = differential_evolution(objective, bounds, maxiter=maxiter, popsize=popsize, seed=seed, disp=False)
 
         log += "## Results:\n"
         if result.success:
@@ -196,10 +196,10 @@ def global_optimization_differential_evolution(objective, bounds, maxiter=1000, 
             log += "⚠ Maximum iterations reached\n\n"
 
         log += f"**Best objective value:** {result.fun:.6f}\n\n"
-        log += f"**Best solution:**\n```\n"
+        log += "**Best solution:**\n```\n"
         for i, x in enumerate(result.x):
             log += f"x[{i}] = {x:.6f}\n"
-        log += f"```\n\n"
+        log += "```\n\n"
         log += f"- Number of iterations: {result.nit}\n"
         log += f"- Number of function evaluations: {result.nfev}\n"
 
@@ -239,7 +239,7 @@ def gradient_descent_optimizer(objective, gradient, x0, learning_rate=0.01, max_
     trajectory = [x.copy()]
     obj_values = [objective(x)]
 
-    log += f"## Setup:\n"
+    log += "## Setup:\n"
     log += f"- Initial point: {x0}\n"
     log += f"- Learning rate: {learning_rate}\n"
     log += f"- Maximum iterations: {max_iter}\n"
@@ -270,7 +270,7 @@ def gradient_descent_optimizer(objective, gradient, x0, learning_rate=0.01, max_
     else:
         log += f"⚠ Reached maximum iterations ({max_iter})\n\n"
 
-    log += f"\n## Final Results:\n"
+    log += "\n## Final Results:\n"
     log += f"**Optimal objective value:** {obj_values[-1]:.6f}\n\n"
     log += f"**Optimal solution:**\n```\n{x}\n```\n\n"
     log += f"- Total iterations: {len(trajectory) - 1}\n"
@@ -279,7 +279,7 @@ def gradient_descent_optimizer(objective, gradient, x0, learning_rate=0.01, max_
     return log
 
 
-def solve_least_squares_optimization(residual_func, x0, bounds=None, method='trf'):
+def solve_least_squares_optimization(residual_func, x0, bounds=None, method="trf"):
     """
     Solve a nonlinear least squares problem.
 
@@ -305,7 +305,7 @@ def solve_least_squares_optimization(residual_func, x0, bounds=None, method='trf
 
     log = "# Nonlinear Least Squares Optimization\n\n"
 
-    log += f"## Setup:\n"
+    log += "## Setup:\n"
     log += f"- Number of parameters: {len(x0)}\n"
     log += f"- Initial guess: {x0}\n"
     log += f"- Method: {method}\n\n"
@@ -320,10 +320,10 @@ def solve_least_squares_optimization(residual_func, x0, bounds=None, method='trf
             log += "⚠ " + result.message + "\n\n"
 
         log += f"**Optimal cost (0.5 * ||residual||^2):** {result.cost:.6f}\n\n"
-        log += f"**Optimal parameters:**\n```\n"
+        log += "**Optimal parameters:**\n```\n"
         for i, x in enumerate(result.x):
             log += f"x[{i}] = {x:.6f}\n"
-        log += f"```\n\n"
+        log += "```\n\n"
         log += f"- Number of function evaluations: {result.nfev}\n"
         log += f"- Number of Jacobian evaluations: {result.njev}\n"
         log += f"- Optimality (gradient norm): {result.optimality:.2e}\n"
@@ -363,15 +363,14 @@ def particle_swarm_optimization(objective, bounds, n_particles=30, max_iter=100,
     log = "# Particle Swarm Optimization\n\n"
 
     n_dims = len(bounds)
-    log += f"## Setup:\n"
+    log += "## Setup:\n"
     log += f"- Number of dimensions: {n_dims}\n"
     log += f"- Number of particles: {n_particles}\n"
     log += f"- Maximum iterations: {max_iter}\n"
     log += f"- Parameters: w={w}, c1={c1}, c2={c2}\n\n"
 
     # Initialize particles
-    particles = np.random.uniform([b[0] for b in bounds], [b[1] for b in bounds],
-                                 (n_particles, n_dims))
+    particles = np.random.uniform([b[0] for b in bounds], [b[1] for b in bounds], (n_particles, n_dims))
     velocities = np.zeros((n_particles, n_dims))
 
     # Initialize best positions
@@ -388,9 +387,11 @@ def particle_swarm_optimization(objective, bounds, n_particles=30, max_iter=100,
         for i in range(n_particles):
             # Update velocity
             r1, r2 = np.random.random(2)
-            velocities[i] = (w * velocities[i] +
-                           c1 * r1 * (personal_best_positions[i] - particles[i]) +
-                           c2 * r2 * (global_best_position - particles[i]))
+            velocities[i] = (
+                w * velocities[i]
+                + c1 * r1 * (personal_best_positions[i] - particles[i])
+                + c2 * r2 * (global_best_position - particles[i])
+            )
 
             # Update position
             particles[i] += velocities[i]
@@ -414,12 +415,12 @@ def particle_swarm_optimization(objective, bounds, n_particles=30, max_iter=100,
         if iteration % 10 == 0:
             log += f"Iteration {iteration}: Best score = {global_best_score:.6f}\n"
 
-    log += f"\n## Final Results:\n"
+    log += "\n## Final Results:\n"
     log += f"**Best objective value:** {global_best_score:.6f}\n\n"
-    log += f"**Best solution:**\n```\n"
+    log += "**Best solution:**\n```\n"
     for i, x in enumerate(global_best_position):
         log += f"x[{i}] = {x:.6f}\n"
-    log += f"```\n"
+    log += "```\n"
 
     return log
 
@@ -447,14 +448,13 @@ def multi_objective_pareto_front(objective_funcs, bounds, n_samples=1000):
     n_objectives = len(objective_funcs)
     n_dims = len(bounds)
 
-    log += f"## Setup:\n"
+    log += "## Setup:\n"
     log += f"- Number of objectives: {n_objectives}\n"
     log += f"- Number of decision variables: {n_dims}\n"
     log += f"- Number of samples: {n_samples}\n\n"
 
     # Generate random samples
-    samples = np.random.uniform([b[0] for b in bounds], [b[1] for b in bounds],
-                               (n_samples, n_dims))
+    samples = np.random.uniform([b[0] for b in bounds], [b[1] for b in bounds], (n_samples, n_dims))
 
     # Evaluate objectives
     objectives = np.array([[f(x) for f in objective_funcs] for x in samples])
@@ -472,12 +472,12 @@ def multi_objective_pareto_front(objective_funcs, bounds, n_samples=1000):
     pareto_solutions = samples[is_pareto]
     pareto_objectives = objectives[is_pareto]
 
-    log += f"## Results:\n"
+    log += "## Results:\n"
     log += f"- Number of Pareto-optimal solutions found: {len(pareto_solutions)}\n\n"
 
     log += "## Sample Pareto-Optimal Solutions:\n"
     for i in range(min(5, len(pareto_solutions))):
-        log += f"\n### Solution {i+1}:\n"
+        log += f"\n### Solution {i + 1}:\n"
         log += f"Decision variables: {pareto_solutions[i]}\n"
         log += f"Objectives: {pareto_objectives[i]}\n"
 

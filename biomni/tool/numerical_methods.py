@@ -8,10 +8,9 @@ root finding, interpolation, and other computational mathematics tasks.
 import numpy as np
 from scipy import integrate, interpolate, optimize
 from scipy.misc import derivative
-import matplotlib.pyplot as plt
 
 
-def numerical_integration(func, a, b, method='quad', n_points=100, params=()):
+def numerical_integration(func, a, b, method="quad", n_points=100, params=()):
     """
     Numerically integrate a function over an interval.
 
@@ -35,7 +34,7 @@ def numerical_integration(func, a, b, method='quad', n_points=100, params=()):
     """
     log = "# Numerical Integration\n\n"
 
-    log += f"## Setup:\n"
+    log += "## Setup:\n"
     log += f"- Integration bounds: [{a}, {b}]\n"
     log += f"- Method: {method}\n"
 
@@ -45,26 +44,26 @@ def numerical_integration(func, a, b, method='quad', n_points=100, params=()):
         func_with_params = func
 
     try:
-        if method == 'quad':
+        if method == "quad":
             result, error = integrate.quad(func_with_params, a, b)
-            log += f"\n## Results (Adaptive Quadrature):\n"
+            log += "\n## Results (Adaptive Quadrature):\n"
             log += f"- Integral value: {result:.10f}\n"
             log += f"- Estimated error: {error:.2e}\n"
 
-        elif method == 'trapz':
+        elif method == "trapz":
             x = np.linspace(a, b, n_points)
             y = np.array([func_with_params(xi) for xi in x])
             result = integrate.trapz(y, x)
             log += f"- Number of points: {n_points}\n"
-            log += f"\n## Results (Trapezoidal Rule):\n"
+            log += "\n## Results (Trapezoidal Rule):\n"
             log += f"- Integral value: {result:.10f}\n"
 
-        elif method == 'simps':
+        elif method == "simps":
             x = np.linspace(a, b, n_points if n_points % 2 == 1 else n_points + 1)
             y = np.array([func_with_params(xi) for xi in x])
             result = integrate.simpson(y, x)
             log += f"- Number of points: {len(x)}\n"
-            log += f"\n## Results (Simpson's Rule):\n"
+            log += "\n## Results (Simpson's Rule):\n"
             log += f"- Integral value: {result:.10f}\n"
 
         else:
@@ -76,7 +75,7 @@ def numerical_integration(func, a, b, method='quad', n_points=100, params=()):
     return log
 
 
-def numerical_derivative(func, x0, method='central', h=1e-5, order=1):
+def numerical_derivative(func, x0, method="central", h=1e-5, order=1):
     """
     Compute numerical derivative of a function at a point.
 
@@ -100,7 +99,7 @@ def numerical_derivative(func, x0, method='central', h=1e-5, order=1):
     """
     log = "# Numerical Differentiation\n\n"
 
-    log += f"## Setup:\n"
+    log += "## Setup:\n"
     log += f"- Point: x = {x0}\n"
     log += f"- Method: {method} difference\n"
     log += f"- Step size: h = {h}\n"
@@ -108,16 +107,16 @@ def numerical_derivative(func, x0, method='central', h=1e-5, order=1):
 
     try:
         # Use scipy's derivative function
-        result = derivative(func, x0, dx=h, n=order, order=3 if method == 'central' else 1)
+        result = derivative(func, x0, dx=h, n=order, order=3 if method == "central" else 1)
 
-        log += f"## Result:\n"
+        log += "## Result:\n"
         log += f"- f^({order})(x0) ≈ {result:.10f}\n"
 
         # Also compute using finite difference formulas for comparison
         if order == 1:
-            if method == 'forward':
+            if method == "forward":
                 manual = (func(x0 + h) - func(x0)) / h
-            elif method == 'backward':
+            elif method == "backward":
                 manual = (func(x0) - func(x0 - h)) / h
             else:  # central
                 manual = (func(x0 + h) - func(x0 - h)) / (2 * h)
@@ -131,7 +130,7 @@ def numerical_derivative(func, x0, method='central', h=1e-5, order=1):
     return log
 
 
-def find_roots(func, bracket=None, x0=None, method='brentq', params=()):
+def find_roots(func, bracket=None, x0=None, method="brentq", params=()):
     """
     Find roots (zeros) of a function.
 
@@ -163,7 +162,7 @@ def find_roots(func, bracket=None, x0=None, method='brentq', params=()):
         func_with_params = func
 
     try:
-        if method == 'brentq':
+        if method == "brentq":
             if bracket is None:
                 return "Error: brentq method requires a bracket [a, b]"
             a, b = bracket
@@ -179,7 +178,7 @@ def find_roots(func, bracket=None, x0=None, method='brentq', params=()):
             log += f"- Iterations: {result.iterations}\n"
             log += f"- Function calls: {result.function_calls}\n"
 
-        elif method == 'bisect':
+        elif method == "bisect":
             if bracket is None:
                 return "Error: bisect method requires a bracket [a, b]"
             a, b = bracket
@@ -191,7 +190,7 @@ def find_roots(func, bracket=None, x0=None, method='brentq', params=()):
             log += f"- Root: x = {root:.10f}\n"
             log += f"- f(root) = {func_with_params(root):.2e}\n"
 
-        elif method == 'newton':
+        elif method == "newton":
             if x0 is None:
                 return "Error: newton method requires an initial guess x0"
             log += f"- Initial guess: x0 = {x0}\n\n"
@@ -202,7 +201,7 @@ def find_roots(func, bracket=None, x0=None, method='brentq', params=()):
             log += f"- Root: x = {root:.10f}\n"
             log += f"- f(root) = {func_with_params(root):.2e}\n"
 
-        elif method == 'fsolve':
+        elif method == "fsolve":
             if x0 is None:
                 return "Error: fsolve method requires an initial guess x0"
             log += f"- Initial guess: x0 = {x0}\n\n"
@@ -224,7 +223,7 @@ def find_roots(func, bracket=None, x0=None, method='brentq', params=()):
     return log
 
 
-def interpolate_data(x_data, y_data, x_eval, method='cubic'):
+def interpolate_data(x_data, y_data, x_eval, method="cubic"):
     """
     Interpolate data points to evaluate at new points.
 
@@ -248,7 +247,7 @@ def interpolate_data(x_data, y_data, x_eval, method='cubic'):
     y_data = np.array(y_data)
     x_eval = np.array(x_eval)
 
-    log += f"## Setup:\n"
+    log += "## Setup:\n"
     log += f"- Number of data points: {len(x_data)}\n"
     log += f"- Number of evaluation points: {len(x_eval)}\n"
     log += f"- Method: {method}\n"
@@ -256,27 +255,27 @@ def interpolate_data(x_data, y_data, x_eval, method='cubic'):
     log += f"- Evaluation range: x ∈ [{x_eval.min():.4f}, {x_eval.max():.4f}]\n\n"
 
     try:
-        if method == 'linear':
-            interp_func = interpolate.interp1d(x_data, y_data, kind='linear')
-        elif method == 'cubic':
-            interp_func = interpolate.interp1d(x_data, y_data, kind='cubic')
-        elif method == 'quadratic':
-            interp_func = interpolate.interp1d(x_data, y_data, kind='quadratic')
-        elif method == 'nearest':
-            interp_func = interpolate.interp1d(x_data, y_data, kind='nearest')
+        if method == "linear":
+            interp_func = interpolate.interp1d(x_data, y_data, kind="linear")
+        elif method == "cubic":
+            interp_func = interpolate.interp1d(x_data, y_data, kind="cubic")
+        elif method == "quadratic":
+            interp_func = interpolate.interp1d(x_data, y_data, kind="quadratic")
+        elif method == "nearest":
+            interp_func = interpolate.interp1d(x_data, y_data, kind="nearest")
         else:
             return f"Error: Unknown method '{method}'"
 
         y_eval = interp_func(x_eval)
 
         log += "## Results:\n"
-        log += f"✓ Interpolation successful\n\n"
+        log += "✓ Interpolation successful\n\n"
         log += "## Sample interpolated values:\n"
         n_samples = min(10, len(x_eval))
         for i in range(n_samples):
             log += f"- f({x_eval[i]:.4f}) = {y_eval[i]:.4f}\n"
 
-        log += f"\n## Interpolated value statistics:\n"
+        log += "\n## Interpolated value statistics:\n"
         log += f"- Min: {y_eval.min():.4f}\n"
         log += f"- Max: {y_eval.max():.4f}\n"
         log += f"- Mean: {y_eval.mean():.4f}\n"
@@ -310,7 +309,7 @@ def solve_nonlinear_system(equations, initial_guess, jacobian=None):
     initial_guess = np.array(initial_guess)
     n = len(initial_guess)
 
-    log += f"## Setup:\n"
+    log += "## Setup:\n"
     log += f"- Number of equations: {n}\n"
     log += f"- Initial guess: {initial_guess}\n"
     log += f"- Jacobian provided: {'Yes' if jacobian else 'No (will be approximated)'}\n\n"
@@ -329,10 +328,10 @@ def solve_nonlinear_system(equations, initial_guess, jacobian=None):
         else:
             log += "⚠ Solution may not have converged\n\n"
 
-        log += f"**Solution:**\n```\n"
+        log += "**Solution:**\n```\n"
         for i, val in enumerate(x):
             log += f"x[{i}] = {val:.10f}\n"
-        log += f"```\n\n"
+        log += "```\n\n"
 
         # Verify solution
         residual = equations(x)
@@ -373,7 +372,7 @@ def richardson_extrapolation(func, x, h, order=2, n_levels=4):
     """
     log = "# Richardson Extrapolation\n\n"
 
-    log += f"## Setup:\n"
+    log += "## Setup:\n"
     log += f"- Point: x = {x}\n"
     log += f"- Initial step size: h = {h}\n"
     log += f"- Derivative order: {order}\n"
@@ -386,7 +385,7 @@ def richardson_extrapolation(func, x, h, order=2, n_levels=4):
 
     # First column: central difference approximations with decreasing h
     for i in range(n_levels):
-        h_i = h / (2 ** i)
+        h_i = h / (2**i)
         if order == 1:
             D[i, 0] = (func(x + h_i) - func(x - h_i)) / (2 * h_i)
         elif order == 2:
@@ -397,12 +396,12 @@ def richardson_extrapolation(func, x, h, order=2, n_levels=4):
     # Richardson extrapolation
     for j in range(1, n_levels):
         for i in range(n_levels - j):
-            D[i, j] = D[i+1, j-1] + (D[i+1, j-1] - D[i, j-1]) / (4**j - 1)
+            D[i, j] = D[i + 1, j - 1] + (D[i + 1, j - 1] - D[i, j - 1]) / (4**j - 1)
         log += f"\nD[{i},{j}]: {D[0, j]:.10f}\n"
 
-    best_estimate = D[0, n_levels-1]
+    best_estimate = D[0, n_levels - 1]
 
-    log += f"\n## Best Estimate:\n"
+    log += "\n## Best Estimate:\n"
     log += f"- f^({order})(x) ≈ {best_estimate:.10f}\n"
 
     return log
@@ -430,7 +429,7 @@ def adaptive_integration(func, a, b, tol=1e-6, max_depth=20):
     """
     log = "# Adaptive Integration\n\n"
 
-    log += f"## Setup:\n"
+    log += "## Setup:\n"
     log += f"- Bounds: [{a}, {b}]\n"
     log += f"- Tolerance: {tol}\n"
     log += f"- Maximum depth: {max_depth}\n\n"
@@ -444,15 +443,15 @@ def adaptive_integration(func, a, b, tol=1e-6, max_depth=20):
         fa, fb, fc = f(a), f(b), f(c)
         h = b - a
 
-        S = h / 6 * (fa + 4*fc + fb)
+        S = h / 6 * (fa + 4 * fc + fb)
 
         # Subdivide
         d = (a + c) / 2
         e = (c + b) / 2
         fd, fe = f(d), f(e)
 
-        S_left = (c - a) / 6 * (fa + 4*fd + fc)
-        S_right = (b - c) / 6 * (fc + 4*fe + fb)
+        S_left = (c - a) / 6 * (fa + 4 * fd + fc)
+        S_right = (b - c) / 6 * (fc + 4 * fe + fb)
         S2 = S_left + S_right
 
         error = abs(S2 - S) / 15
@@ -461,8 +460,7 @@ def adaptive_integration(func, a, b, tol=1e-6, max_depth=20):
             intervals.append((a, b, depth, error))
             return S2
 
-        return (adaptive_quad(f, a, c, tol/2, depth+1) +
-                adaptive_quad(f, c, b, tol/2, depth+1))
+        return adaptive_quad(f, a, c, tol / 2, depth + 1) + adaptive_quad(f, c, b, tol / 2, depth + 1)
 
     try:
         result = adaptive_quad(func, a, b, tol, 0)
@@ -475,7 +473,7 @@ def adaptive_integration(func, a, b, tol=1e-6, max_depth=20):
 
         log += "## Interval Statistics:\n"
         depths = [iv[2] for iv in intervals]
-        log += f"- Depth distribution:\n"
+        log += "- Depth distribution:\n"
         for d in range(max(depths) + 1):
             count = depths.count(d)
             if count > 0:

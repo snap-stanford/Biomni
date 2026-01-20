@@ -8,8 +8,7 @@ regression analysis, time series analysis, and probability distributions.
 import numpy as np
 import pandas as pd
 from scipy import stats
-from scipy.stats import norm, t, chi2, f
-import matplotlib.pyplot as plt
+from scipy.stats import f
 
 
 def linear_regression_analysis(X, y, feature_names=None, alpha=0.05):
@@ -32,8 +31,8 @@ def linear_regression_analysis(X, y, feature_names=None, alpha=0.05):
     str
         Comprehensive regression analysis report
     """
-    from sklearn.linear_model import LinearRegression
     from scipy.stats import t as t_dist
+    from sklearn.linear_model import LinearRegression
 
     log = "# Multiple Linear Regression Analysis\n\n"
 
@@ -41,7 +40,7 @@ def linear_regression_analysis(X, y, feature_names=None, alpha=0.05):
     y = np.array(y)
 
     n_samples, n_features = X.shape
-    log += f"## Dataset:\n"
+    log += "## Dataset:\n"
     log += f"- Number of observations: {n_samples}\n"
     log += f"- Number of predictors: {n_features}\n\n"
 
@@ -53,7 +52,7 @@ def linear_regression_analysis(X, y, feature_names=None, alpha=0.05):
     residuals = y - y_pred
 
     # R-squared and Adjusted R-squared
-    ss_total = np.sum((y - np.mean(y))**2)
+    ss_total = np.sum((y - np.mean(y)) ** 2)
     ss_residual = np.sum(residuals**2)
     r_squared = 1 - (ss_residual / ss_total)
     adj_r_squared = 1 - (1 - r_squared) * (n_samples - 1) / (n_samples - n_features - 1)
@@ -69,7 +68,7 @@ def linear_regression_analysis(X, y, feature_names=None, alpha=0.05):
     f_statistic = ms_model / ms_residual
     f_p_value = 1 - f.cdf(f_statistic, n_features, n_samples - n_features - 1)
 
-    log += f"## Overall Model Test:\n"
+    log += "## Overall Model Test:\n"
     log += f"- F-statistic = {f_statistic:.4f}\n"
     log += f"- p-value = {f_p_value:.4e}\n"
     if f_p_value < alpha:
@@ -97,7 +96,7 @@ def linear_regression_analysis(X, y, feature_names=None, alpha=0.05):
         p_value = 2 * (1 - t_dist.cdf(abs(t_value), n_samples - n_features - 1))
         sig = "***" if p_value < 0.001 else "**" if p_value < 0.01 else "*" if p_value < 0.05 else ""
 
-        var_name = feature_names[i] if feature_names else f"X{i+1}"
+        var_name = feature_names[i] if feature_names else f"X{i + 1}"
         log += f"| {var_name} | {coef:.4f} | {se:.4f} | {t_value:.4f} | {p_value:.4e} | {sig} |\n"
 
     log += "\n"
@@ -146,7 +145,7 @@ def time_series_analysis(data, timestamps=None, seasonal_period=None):
     data = np.array(data)
     n = len(data)
 
-    log += f"## Dataset:\n"
+    log += "## Dataset:\n"
     log += f"- Number of observations: {n}\n"
     log += f"- Mean: {np.mean(data):.4f}\n"
     log += f"- Std: {np.std(data):.4f}\n"
@@ -156,10 +155,10 @@ def time_series_analysis(data, timestamps=None, seasonal_period=None):
     # Augmented Dickey-Fuller test for stationarity
     log += "## Stationarity Test (Augmented Dickey-Fuller):\n"
     try:
-        adf_result = adfuller(data, autolag='AIC')
+        adf_result = adfuller(data, autolag="AIC")
         log += f"- ADF Statistic: {adf_result[0]:.4f}\n"
         log += f"- p-value: {adf_result[1]:.4f}\n"
-        log += f"- Critical values:\n"
+        log += "- Critical values:\n"
         for key, value in adf_result[4].items():
             log += f"  - {key}: {value:.4f}\n"
 
@@ -181,7 +180,7 @@ def time_series_analysis(data, timestamps=None, seasonal_period=None):
             else:
                 ts = pd.Series(data)
 
-            decomposition = seasonal_decompose(ts, model='additive', period=seasonal_period)
+            decomposition = seasonal_decompose(ts, model="additive", period=seasonal_period)
 
             log += f"- Trend component variance: {np.var(decomposition.trend.dropna()):.4f}\n"
             log += f"- Seasonal component variance: {np.var(decomposition.seasonal):.4f}\n"
@@ -204,7 +203,7 @@ def time_series_analysis(data, timestamps=None, seasonal_period=None):
     # Autocorrelation analysis
     log += "## Autocorrelation Analysis:\n"
     max_lag = min(20, n // 2)
-    autocorr = [np.corrcoef(data[:-i or None], data[i:])[0, 1] for i in range(1, max_lag + 1)]
+    autocorr = [np.corrcoef(data[: -i or None], data[i:])[0, 1] for i in range(1, max_lag + 1)]
 
     log += "First 10 lags:\n"
     for i, ac in enumerate(autocorr[:10], 1):
@@ -215,7 +214,7 @@ def time_series_analysis(data, timestamps=None, seasonal_period=None):
     return log
 
 
-def hypothesis_test_two_samples(sample1, sample2, test_type='t-test', alpha=0.05, alternative='two-sided'):
+def hypothesis_test_two_samples(sample1, sample2, test_type="t-test", alpha=0.05, alternative="two-sided"):
     """
     Perform hypothesis tests comparing two samples.
 
@@ -241,42 +240,42 @@ def hypothesis_test_two_samples(sample1, sample2, test_type='t-test', alpha=0.05
     sample2 = np.array(sample2)
 
     log += "## Sample Statistics:\n"
-    log += f"### Sample 1:\n"
+    log += "### Sample 1:\n"
     log += f"- n = {len(sample1)}\n"
     log += f"- Mean = {np.mean(sample1):.4f}\n"
     log += f"- Std = {np.std(sample1, ddof=1):.4f}\n"
     log += f"- Median = {np.median(sample1):.4f}\n\n"
 
-    log += f"### Sample 2:\n"
+    log += "### Sample 2:\n"
     log += f"- n = {len(sample2)}\n"
     log += f"- Mean = {np.mean(sample2):.4f}\n"
     log += f"- Std = {np.std(sample2, ddof=1):.4f}\n"
     log += f"- Median = {np.median(sample2):.4f}\n\n"
 
-    log += f"## Hypothesis Test:\n"
+    log += "## Hypothesis Test:\n"
     log += f"- Test type: {test_type}\n"
     log += f"- Significance level: α = {alpha}\n"
     log += f"- Alternative hypothesis: {alternative}\n\n"
 
-    if test_type == 't-test':
+    if test_type == "t-test":
         # Independent two-sample t-test
         statistic, p_value = stats.ttest_ind(sample1, sample2, alternative=alternative)
-        log += f"### Results:\n"
+        log += "### Results:\n"
         log += f"- t-statistic = {statistic:.4f}\n"
         log += f"- p-value = {p_value:.4e}\n"
         log += f"- Mean difference = {np.mean(sample1) - np.mean(sample2):.4f}\n\n"
 
-    elif test_type == 'mann-whitney':
+    elif test_type == "mann-whitney":
         # Mann-Whitney U test (non-parametric)
         statistic, p_value = stats.mannwhitneyu(sample1, sample2, alternative=alternative)
-        log += f"### Results:\n"
+        log += "### Results:\n"
         log += f"- U-statistic = {statistic:.4f}\n"
         log += f"- p-value = {p_value:.4e}\n\n"
 
-    elif test_type == 'ks-test':
+    elif test_type == "ks-test":
         # Kolmogorov-Smirnov test
         statistic, p_value = stats.ks_2samp(sample1, sample2, alternative=alternative)
-        log += f"### Results:\n"
+        log += "### Results:\n"
         log += f"- KS-statistic = {statistic:.4f}\n"
         log += f"- p-value = {p_value:.4e}\n\n"
 
@@ -287,15 +286,15 @@ def hypothesis_test_two_samples(sample1, sample2, test_type='t-test', alpha=0.05
     log += "### Interpretation:\n"
     if p_value < alpha:
         log += f"✓ Reject the null hypothesis (p < {alpha})\n"
-        log += f"  There is significant evidence of a difference between the two samples.\n"
+        log += "  There is significant evidence of a difference between the two samples.\n"
     else:
         log += f"✗ Fail to reject the null hypothesis (p ≥ {alpha})\n"
-        log += f"  There is insufficient evidence of a difference between the two samples.\n"
+        log += "  There is insufficient evidence of a difference between the two samples.\n"
 
     return log
 
 
-def fit_distribution(data, distribution='norm'):
+def fit_distribution(data, distribution="norm"):
     """
     Fit a probability distribution to data and perform goodness-of-fit tests.
 
@@ -350,7 +349,7 @@ def fit_distribution(data, distribution='norm'):
     log += "\n## Fitted Distribution Percentiles:\n"
     percentiles = [1, 5, 10, 25, 50, 75, 90, 95, 99]
     for p in percentiles:
-        theoretical = dist.ppf(p/100, *params)
+        theoretical = dist.ppf(p / 100, *params)
         empirical = np.percentile(data, p)
         log += f"- {p}th: Theoretical={theoretical:.4f}, Empirical={empirical:.4f}\n"
 
@@ -375,7 +374,7 @@ def anova_one_way(*groups, alpha=0.05):
     """
     log = "# One-Way ANOVA\n\n"
 
-    log += f"## Setup:\n"
+    log += "## Setup:\n"
     log += f"- Number of groups: {len(groups)}\n"
     log += f"- Group sizes: {[len(g) for g in groups]}\n"
     log += f"- Significance level: α = {alpha}\n\n"
@@ -430,10 +429,10 @@ def bootstrap_confidence_interval(data, statistic_func, n_bootstrap=10000, confi
     data = np.array(data)
     n = len(data)
 
-    log += f"## Setup:\n"
+    log += "## Setup:\n"
     log += f"- Sample size: {n}\n"
     log += f"- Number of bootstrap samples: {n_bootstrap}\n"
-    log += f"- Confidence level: {confidence_level*100}%\n\n"
+    log += f"- Confidence level: {confidence_level * 100}%\n\n"
 
     # Compute observed statistic
     observed_stat = statistic_func(data)
@@ -455,10 +454,10 @@ def bootstrap_confidence_interval(data, statistic_func, n_bootstrap=10000, confi
     ci_lower = np.percentile(bootstrap_statistics, lower_percentile)
     ci_upper = np.percentile(bootstrap_statistics, upper_percentile)
 
-    log += f"## Bootstrap Results:\n"
+    log += "## Bootstrap Results:\n"
     log += f"- Mean of bootstrap statistics: {np.mean(bootstrap_statistics):.4f}\n"
     log += f"- Std of bootstrap statistics: {np.std(bootstrap_statistics):.4f}\n\n"
-    log += f"## {confidence_level*100}% Confidence Interval:\n"
+    log += f"## {confidence_level * 100}% Confidence Interval:\n"
     log += f"- Lower bound: {ci_lower:.4f}\n"
     log += f"- Upper bound: {ci_upper:.4f}\n"
     log += f"- Interval width: {ci_upper - ci_lower:.4f}\n"

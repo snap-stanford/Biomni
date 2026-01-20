@@ -7,10 +7,9 @@ matrix decompositions, eigenvalue problems, linear systems, and matrix analysis.
 
 import numpy as np
 from scipy import linalg
-import matplotlib.pyplot as plt
 
 
-def solve_linear_system(A, b, method='direct'):
+def solve_linear_system(A, b, method="direct"):
     """
     Solve a linear system Ax = b.
 
@@ -34,7 +33,7 @@ def solve_linear_system(A, b, method='direct'):
     b = np.array(b, dtype=float)
 
     m, n = A.shape
-    log += f"## System Properties:\n"
+    log += "## System Properties:\n"
     log += f"- Matrix size: {m} × {n}\n"
     log += f"- System: {'Overdetermined' if m > n else 'Underdetermined' if m < n else 'Square'}\n"
 
@@ -48,16 +47,16 @@ def solve_linear_system(A, b, method='direct'):
     log += f"- Method: {method}\n\n"
 
     try:
-        if method == 'direct' and m == n:
+        if method == "direct" and m == n:
             x = linalg.solve(A, b)
             log += "## Solution (Direct Method):\n"
 
-        elif method == 'cholesky':
+        elif method == "cholesky":
             # For symmetric positive definite matrices
-            x = linalg.solve(A, b, assume_a='pos')
+            x = linalg.solve(A, b, assume_a="pos")
             log += "## Solution (Cholesky Decomposition):\n"
 
-        elif method == 'lstsq':
+        elif method == "lstsq":
             x, residuals, rank, s = linalg.lstsq(A, b)
             log += "## Solution (Least Squares):\n"
             log += f"- Matrix rank: {rank}\n"
@@ -113,7 +112,7 @@ def eigenvalue_analysis(A, compute_vectors=True):
     if A.shape[0] != A.shape[1]:
         return "Error: Matrix must be square for eigenvalue analysis"
 
-    log += f"## Matrix Properties:\n"
+    log += "## Matrix Properties:\n"
     log += f"- Size: {n} × {n}\n"
 
     # Check if matrix is symmetric
@@ -124,9 +123,9 @@ def eigenvalue_analysis(A, compute_vectors=True):
     if is_symmetric:
         try:
             np.linalg.cholesky(A)
-            log += f"- Positive definite: Yes\n"
+            log += "- Positive definite: Yes\n"
         except:
-            log += f"- Positive definite: No\n"
+            log += "- Positive definite: No\n"
 
     log += "\n"
 
@@ -141,11 +140,11 @@ def eigenvalue_analysis(A, compute_vectors=True):
             log += "## Eigenvalues:\n"
             for i, eig in enumerate(eigenvalues):
                 if np.isreal(eig):
-                    log += f"λ{i+1} = {eig.real:.6f}\n"
+                    log += f"λ{i + 1} = {eig.real:.6f}\n"
                 else:
-                    log += f"λ{i+1} = {eig.real:.6f} + {eig.imag:.6f}i\n"
+                    log += f"λ{i + 1} = {eig.real:.6f} + {eig.imag:.6f}i\n"
 
-            log += f"\n## Eigenvalue Statistics:\n"
+            log += "\n## Eigenvalue Statistics:\n"
             log += f"- Largest eigenvalue: {np.max(np.abs(eigenvalues)):.6f}\n"
             log += f"- Smallest eigenvalue: {np.min(np.abs(eigenvalues)):.6f}\n"
             log += f"- Trace (sum of eigenvalues): {np.sum(eigenvalues):.6f}\n"
@@ -168,9 +167,9 @@ def eigenvalue_analysis(A, compute_vectors=True):
             log += "## Eigenvalues:\n"
             for i, eig in enumerate(eigenvalues):
                 if np.isreal(eig):
-                    log += f"λ{i+1} = {eig.real:.6f}\n"
+                    log += f"λ{i + 1} = {eig.real:.6f}\n"
                 else:
-                    log += f"λ{i+1} = {eig.real:.6f} + {eig.imag:.6f}i\n"
+                    log += f"λ{i + 1} = {eig.real:.6f} + {eig.imag:.6f}i\n"
 
     except Exception as e:
         log += f"✗ Error: {str(e)}\n"
@@ -178,7 +177,7 @@ def eigenvalue_analysis(A, compute_vectors=True):
     return log
 
 
-def matrix_decomposition(A, decomposition='svd'):
+def matrix_decomposition(A, decomposition="svd"):
     """
     Perform matrix decomposition.
 
@@ -199,12 +198,12 @@ def matrix_decomposition(A, decomposition='svd'):
     A = np.array(A, dtype=float)
     m, n = A.shape
 
-    log += f"## Matrix Properties:\n"
+    log += "## Matrix Properties:\n"
     log += f"- Size: {m} × {n}\n"
     log += f"- Rank: {np.linalg.matrix_rank(A)}\n\n"
 
     try:
-        if decomposition == 'svd':
+        if decomposition == "svd":
             # Singular Value Decomposition
             U, s, Vt = linalg.svd(A)
 
@@ -215,18 +214,18 @@ def matrix_decomposition(A, decomposition='svd'):
 
             log += "## Singular Values:\n"
             for i, sv in enumerate(s):
-                log += f"σ{i+1} = {sv:.6f}\n"
+                log += f"σ{i + 1} = {sv:.6f}\n"
 
-            log += f"\n## Condition Number:\n"
+            log += "\n## Condition Number:\n"
             log += f"- κ(A) = σ_max / σ_min = {s[0] / s[-1]:.2e}\n"
 
             # Reconstruction error
-            A_reconstructed = U @ np.diag(s) @ Vt if m == n else U[:, :len(s)] @ np.diag(s) @ Vt
+            A_reconstructed = U @ np.diag(s) @ Vt if m == n else U[:, : len(s)] @ np.diag(s) @ Vt
             recon_error = np.linalg.norm(A - A_reconstructed)
-            log += f"\n## Reconstruction Error:\n"
+            log += "\n## Reconstruction Error:\n"
             log += f"- ||A - UΣV^T||: {recon_error:.2e}\n"
 
-        elif decomposition == 'qr':
+        elif decomposition == "qr":
             # QR Decomposition
             Q, R = linalg.qr(A)
 
@@ -236,15 +235,15 @@ def matrix_decomposition(A, decomposition='svd'):
 
             # Check orthogonality of Q
             ortho_error = np.linalg.norm(Q.T @ Q - np.eye(Q.shape[1]))
-            log += f"## Q Orthogonality Check:\n"
+            log += "## Q Orthogonality Check:\n"
             log += f"- ||Q^T Q - I||: {ortho_error:.2e}\n"
 
             # Reconstruction error
             recon_error = np.linalg.norm(A - Q @ R)
-            log += f"\n## Reconstruction Error:\n"
+            log += "\n## Reconstruction Error:\n"
             log += f"- ||A - QR||: {recon_error:.2e}\n"
 
-        elif decomposition == 'lu':
+        elif decomposition == "lu":
             # LU Decomposition
             P, L, U = linalg.lu(A)
 
@@ -255,10 +254,10 @@ def matrix_decomposition(A, decomposition='svd'):
 
             # Reconstruction error
             recon_error = np.linalg.norm(P @ A - L @ U)
-            log += f"## Reconstruction Error:\n"
+            log += "## Reconstruction Error:\n"
             log += f"- ||PA - LU||: {recon_error:.2e}\n"
 
-        elif decomposition == 'cholesky':
+        elif decomposition == "cholesky":
             # Cholesky Decomposition (for positive definite matrices)
             if m != n:
                 return "Error: Cholesky decomposition requires square matrix"
@@ -270,10 +269,10 @@ def matrix_decomposition(A, decomposition='svd'):
 
             # Reconstruction error
             recon_error = np.linalg.norm(A - L @ L.T)
-            log += f"## Reconstruction Error:\n"
+            log += "## Reconstruction Error:\n"
             log += f"- ||A - LL^T||: {recon_error:.2e}\n"
 
-        elif decomposition == 'schur':
+        elif decomposition == "schur":
             # Schur Decomposition
             if m != n:
                 return "Error: Schur decomposition requires square matrix"
@@ -286,12 +285,12 @@ def matrix_decomposition(A, decomposition='svd'):
 
             # Check orthogonality of Z
             ortho_error = np.linalg.norm(Z.T @ Z - np.eye(n))
-            log += f"## Z Orthogonality Check:\n"
+            log += "## Z Orthogonality Check:\n"
             log += f"- ||Z^T Z - I||: {ortho_error:.2e}\n"
 
             # Reconstruction error
             recon_error = np.linalg.norm(A - Z @ T @ Z.T)
-            log += f"\n## Reconstruction Error:\n"
+            log += "\n## Reconstruction Error:\n"
             log += f"- ||A - ZTZ^T||: {recon_error:.2e}\n"
 
         else:
@@ -341,14 +340,14 @@ def matrix_norms(A):
         log += f"- Condition number: {cond:.2e}\n"
 
         if abs(det) > 1e-10:
-            log += f"- Matrix is invertible: Yes\n"
+            log += "- Matrix is invertible: Yes\n"
         else:
-            log += f"- Matrix is invertible: No (singular)\n"
+            log += "- Matrix is invertible: No (singular)\n"
 
     return log
 
 
-def compute_pseudoinverse(A, method='svd', rcond=1e-15):
+def compute_pseudoinverse(A, method="svd", rcond=1e-15):
     """
     Compute the Moore-Penrose pseudoinverse of a matrix.
 
@@ -371,7 +370,7 @@ def compute_pseudoinverse(A, method='svd', rcond=1e-15):
     A = np.array(A, dtype=float)
     m, n = A.shape
 
-    log += f"## Input Matrix:\n"
+    log += "## Input Matrix:\n"
     log += f"- Size: {m} × {n}\n"
     log += f"- Rank: {np.linalg.matrix_rank(A)}\n"
     log += f"- Method: {method}\n"
@@ -380,7 +379,7 @@ def compute_pseudoinverse(A, method='svd', rcond=1e-15):
     try:
         A_pinv = np.linalg.pinv(A, rcond=rcond)
 
-        log += f"## Pseudoinverse A⁺:\n"
+        log += "## Pseudoinverse A⁺:\n"
         log += f"- Size: {A_pinv.shape[0]} × {A_pinv.shape[1]}\n\n"
 
         # Verify properties of pseudoinverse
@@ -404,7 +403,11 @@ def compute_pseudoinverse(A, method='svd', rcond=1e-15):
         prop4_error = np.linalg.norm(A_pinv_A.T - A_pinv_A)
         log += f"4. (A⁺A)^T = A⁺A: ||(A⁺A)^T - A⁺A|| = {prop4_error:.2e}\n"
 
-        log += "\n✓ All properties satisfied (errors < 1e-10)\n" if max(prop1_error, prop2_error, prop3_error, prop4_error) < 1e-10 else "\n"
+        log += (
+            "\n✓ All properties satisfied (errors < 1e-10)\n"
+            if max(prop1_error, prop2_error, prop3_error, prop4_error) < 1e-10
+            else "\n"
+        )
 
     except Exception as e:
         log += f"✗ Error: {str(e)}\n"
@@ -412,7 +415,7 @@ def compute_pseudoinverse(A, method='svd', rcond=1e-15):
     return log
 
 
-def matrix_exponential(A, method='pade'):
+def matrix_exponential(A, method="pade"):
     """
     Compute the matrix exponential exp(A).
 
@@ -436,14 +439,14 @@ def matrix_exponential(A, method='pade'):
     if A.shape[0] != A.shape[1]:
         return "Error: Matrix must be square"
 
-    log += f"## Input Matrix A:\n"
+    log += "## Input Matrix A:\n"
     log += f"- Size: {n} × {n}\n"
     log += f"- Method: {method}\n\n"
 
     try:
         expA = linalg.expm(A)
 
-        log += f"## Matrix Exponential exp(A):\n"
+        log += "## Matrix Exponential exp(A):\n"
         log += f"- Size: {expA.shape[0]} × {expA.shape[1]}\n\n"
 
         if n <= 5:
@@ -458,7 +461,7 @@ def matrix_exponential(A, method='pade'):
         # Verify: det(exp(A)) should equal exp(trace(A))
         det_expA = np.linalg.det(expA)
         exp_trA = np.exp(np.trace(A))
-        log += f"Verification: det(exp(A)) ≈ exp(tr(A))?\n"
+        log += "Verification: det(exp(A)) ≈ exp(tr(A))?\n"
         log += f"- Difference: {abs(det_expA - exp_trA):.2e}\n"
 
     except Exception as e:

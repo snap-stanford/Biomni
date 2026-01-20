@@ -6,12 +6,13 @@ including ODEs, PDEs, and systems of differential equations.
 """
 
 import numpy as np
-from scipy.integrate import odeint, solve_ivp, solve_bvp
+from scipy.integrate import solve_bvp, solve_ivp
 from scipy.optimize import fsolve
-import matplotlib.pyplot as plt
 
 
-def solve_ode_system(func, initial_conditions, time_span, parameters=None, method='RK45', output_file='ode_solution.csv'):
+def solve_ode_system(
+    func, initial_conditions, time_span, parameters=None, method="RK45", output_file="ode_solution.csv"
+):
     """
     Solve a system of ordinary differential equations (ODEs).
 
@@ -41,8 +42,8 @@ def solve_ode_system(func, initial_conditions, time_span, parameters=None, metho
     >>> # Solve the Lorenz system
     >>> def lorenz(t, y, sigma, rho, beta):
     ...     x, y, z = y
-    ...     return [sigma*(y-x), x*(rho-z)-y, x*y-beta*z]
-    >>> result = solve_ode_system(lorenz, [1, 1, 1], (0, 50), parameters=(10, 28, 8/3))
+    ...     return [sigma * (y - x), x * (rho - z) - y, x * y - beta * z]
+    >>> result = solve_ode_system(lorenz, [1, 1, 1], (0, 50), parameters=(10, 28, 8 / 3))
     """
     import pandas as pd
 
@@ -58,6 +59,7 @@ def solve_ode_system(func, initial_conditions, time_span, parameters=None, metho
 
     # Wrap function to handle parameters
     if parameters:
+
         def ode_func(t, y):
             return func(t, y, *parameters)
     else:
@@ -69,20 +71,15 @@ def solve_ode_system(func, initial_conditions, time_span, parameters=None, metho
     # Solve the ODE system
     try:
         solution = solve_ivp(
-            ode_func,
-            (t_eval[0], t_eval[-1]),
-            initial_conditions,
-            method=method,
-            t_eval=t_eval,
-            dense_output=True
+            ode_func, (t_eval[0], t_eval[-1]), initial_conditions, method=method, t_eval=t_eval, dense_output=True
         )
 
         if solution.success:
             log += "✓ ODE system solved successfully\n\n"
 
             # Save solution to file
-            df = pd.DataFrame(solution.y.T, columns=[f'y{i}' for i in range(len(initial_conditions))])
-            df.insert(0, 't', solution.t)
+            df = pd.DataFrame(solution.y.T, columns=[f"y{i}" for i in range(len(initial_conditions))])
+            df.insert(0, "t", solution.t)
             df.to_csv(output_file, index=False)
 
             log += f"## Solution saved to {output_file}\n"
@@ -104,8 +101,9 @@ def solve_ode_system(func, initial_conditions, time_span, parameters=None, metho
     return log
 
 
-def solve_pde_heat_equation(initial_condition, boundary_conditions, domain, time_span,
-                            diffusivity=1.0, output_file='pde_solution.csv'):
+def solve_pde_heat_equation(
+    initial_condition, boundary_conditions, domain, time_span, diffusivity=1.0, output_file="pde_solution.csv"
+):
     """
     Solve the 1D heat equation (a prototypical parabolic PDE).
 
@@ -169,18 +167,18 @@ def solve_pde_heat_equation(initial_condition, boundary_conditions, domain, time
     # Time stepping using explicit finite difference
     for n in range(0, nt - 1):
         for i in range(1, nx - 1):
-            u[n+1, i] = u[n, i] + diffusivity * dt / dx**2 * (u[n, i+1] - 2*u[n, i] + u[n, i-1])
+            u[n + 1, i] = u[n, i] + diffusivity * dt / dx**2 * (u[n, i + 1] - 2 * u[n, i] + u[n, i - 1])
 
         # Apply boundary conditions
-        u[n+1, 0] = left_bc(t[n+1]) if callable(left_bc) else left_bc
-        u[n+1, -1] = right_bc(t[n+1]) if callable(right_bc) else right_bc
+        u[n + 1, 0] = left_bc(t[n + 1]) if callable(left_bc) else left_bc
+        u[n + 1, -1] = right_bc(t[n + 1]) if callable(right_bc) else right_bc
 
     # Save solution
-    df = pd.DataFrame(u, columns=[f'x_{i}' for i in range(nx)])
-    df.insert(0, 't', t)
+    df = pd.DataFrame(u, columns=[f"x_{i}" for i in range(nx)])
+    df.insert(0, "t", t)
     df.to_csv(output_file, index=False)
 
-    log += f"✓ PDE solution computed successfully\n"
+    log += "✓ PDE solution computed successfully\n"
     log += f"## Solution saved to {output_file}\n"
     log += f"- Solution shape: {nt} time steps × {nx} spatial points\n"
     log += f"- Final temperature range: [{u[-1].min():.4f}, {u[-1].max():.4f}]\n"
@@ -212,9 +210,11 @@ def find_equilibrium_points(func, search_region, parameters=None):
 
     # Create wrapper for fsolve
     if parameters:
+
         def system(y):
             return func(0, y, *parameters)
     else:
+
         def system(y):
             return func(0, y)
 
@@ -377,6 +377,7 @@ def solve_boundary_value_problem(ode_func, boundary_conditions, domain, initial_
 
     # Wrap ODE function
     if parameters:
+
         def ode_wrapper(x, y):
             return ode_func(x, y, *parameters)
     else:
@@ -388,7 +389,7 @@ def solve_boundary_value_problem(ode_func, boundary_conditions, domain, initial_
 
         if solution.success:
             log += "✓ BVP solved successfully\n\n"
-            log += f"## Solution Statistics:\n"
+            log += "## Solution Statistics:\n"
             log += f"- Number of variables: {solution.y.shape[0]}\n"
             log += f"- Number of mesh points: {solution.x.shape[0]}\n"
             log += f"- RMS residual: {solution.rms_residuals.max():.2e}\n"
@@ -401,9 +402,16 @@ def solve_boundary_value_problem(ode_func, boundary_conditions, domain, initial_
     return log
 
 
-def simulate_predator_prey_model(prey_initial, predator_initial, time_span,
-                                 alpha=1.0, beta=0.1, gamma=1.5, delta=0.075,
-                                 output_file='predator_prey.csv'):
+def simulate_predator_prey_model(
+    prey_initial,
+    predator_initial,
+    time_span,
+    alpha=1.0,
+    beta=0.1,
+    gamma=1.5,
+    delta=0.075,
+    output_file="predator_prey.csv",
+):
     """
     Simulate the Lotka-Volterra predator-prey model.
 
@@ -434,6 +442,7 @@ def simulate_predator_prey_model(prey_initial, predator_initial, time_span,
     str
         Summary of the simulation
     """
+
     def lotka_volterra(t, y, alpha, beta, gamma, delta):
         x, y_pred = y
         dx_dt = alpha * x - beta * x * y_pred
@@ -445,16 +454,16 @@ def simulate_predator_prey_model(prey_initial, predator_initial, time_span,
         [prey_initial, predator_initial],
         time_span,
         parameters=(alpha, beta, gamma, delta),
-        output_file=output_file
+        output_file=output_file,
     )
 
     log = "# Lotka-Volterra Predator-Prey Model\n\n"
-    log += f"## Parameters:\n"
+    log += "## Parameters:\n"
     log += f"- α (prey growth rate) = {alpha}\n"
     log += f"- β (predation rate) = {beta}\n"
     log += f"- γ (predator death rate) = {gamma}\n"
     log += f"- δ (predator efficiency) = {delta}\n\n"
-    log += f"## Initial Conditions:\n"
+    log += "## Initial Conditions:\n"
     log += f"- Prey population: {prey_initial}\n"
     log += f"- Predator population: {predator_initial}\n\n"
     log += result

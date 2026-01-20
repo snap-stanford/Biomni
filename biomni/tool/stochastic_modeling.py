@@ -8,7 +8,6 @@ Markov chains, random walks, and probabilistic modeling.
 import numpy as np
 from scipy import stats
 from scipy.linalg import eig
-import matplotlib.pyplot as plt
 
 
 def monte_carlo_simulation(function, parameter_distributions, n_samples=10000, seed=None):
@@ -38,7 +37,7 @@ def monte_carlo_simulation(function, parameter_distributions, n_samples=10000, s
         np.random.seed(seed)
 
     n_params = len(parameter_distributions)
-    log += f"## Configuration:\n"
+    log += "## Configuration:\n"
     log += f"- Number of parameters: {n_params}\n"
     log += f"- Number of samples: {n_samples}\n"
     log += f"- Random seed: {seed}\n\n"
@@ -84,7 +83,7 @@ def monte_carlo_simulation(function, parameter_distributions, n_samples=10000, s
         alpha = 1 - confidence
         lower = np.percentile(results, 100 * alpha / 2)
         upper = np.percentile(results, 100 * (1 - alpha / 2))
-        log += f"- {int(confidence*100)}% CI: [{lower:.6f}, {upper:.6f}]\n"
+        log += f"- {int(confidence * 100)}% CI: [{lower:.6f}, {upper:.6f}]\n"
 
     return log
 
@@ -117,7 +116,7 @@ def simulate_markov_chain(transition_matrix, initial_state, n_steps=1000, state_
     if state_names is None:
         state_names = [f"State {i}" for i in range(n_states)]
 
-    log += f"## Configuration:\n"
+    log += "## Configuration:\n"
     log += f"- Number of states: {n_states}\n"
     log += f"- Initial state: {state_names[initial_state]}\n"
     log += f"- Number of steps: {n_steps}\n\n"
@@ -177,7 +176,7 @@ def simulate_markov_chain(transition_matrix, initial_state, n_steps=1000, state_
     return log
 
 
-def random_walk_simulation(dimensions=1, n_steps=1000, step_distribution='normal', step_params=(0, 1)):
+def random_walk_simulation(dimensions=1, n_steps=1000, step_distribution="normal", step_params=(0, 1)):
     """
     Simulate a random walk process.
 
@@ -199,7 +198,7 @@ def random_walk_simulation(dimensions=1, n_steps=1000, step_distribution='normal
     """
     log = f"# {dimensions}D Random Walk Simulation\n\n"
 
-    log += f"## Configuration:\n"
+    log += "## Configuration:\n"
     log += f"- Dimensions: {dimensions}\n"
     log += f"- Number of steps: {n_steps}\n"
     log += f"- Step distribution: {step_distribution}{step_params}\n\n"
@@ -225,8 +224,8 @@ def random_walk_simulation(dimensions=1, n_steps=1000, step_distribution='normal
     log += f"- Final distance from origin: {final_distance:.4f}\n"
 
     # Theoretical expected distance for Brownian motion: sqrt(n_steps * variance)
-    if step_distribution == 'normal':
-        variance = step_params[1]**2
+    if step_distribution == "normal":
+        variance = step_params[1] ** 2
         expected_distance = np.sqrt(n_steps * variance * dimensions)
         log += f"- Expected distance (theory): {expected_distance:.4f}\n"
 
@@ -238,7 +237,7 @@ def random_walk_simulation(dimensions=1, n_steps=1000, step_distribution='normal
     # Statistics per dimension
     if dimensions <= 3:
         log += "\n## Per-Dimension Statistics:\n"
-        dim_names = ['x', 'y', 'z']
+        dim_names = ["x", "y", "z"]
         for i in range(dimensions):
             log += f"### {dim_names[i]}-dimension:\n"
             log += f"- Final: {final_position[i]:.4f}\n"
@@ -251,7 +250,7 @@ def random_walk_simulation(dimensions=1, n_steps=1000, step_distribution='normal
     if dimensions == 1:
         # Number of times walk changes direction
         direction_changes = np.sum(np.diff(np.sign(steps[:, 0])) != 0)
-        log += f"- Direction changes: {direction_changes} ({100*direction_changes/n_steps:.1f}%)\n"
+        log += f"- Direction changes: {direction_changes} ({100 * direction_changes / n_steps:.1f}%)\n"
 
     return log
 
@@ -281,7 +280,7 @@ def gillespie_algorithm(reactions, initial_state, rate_constants, t_max=10.0, ma
     """
     log = "# Gillespie Algorithm - Stochastic Simulation\n\n"
 
-    log += f"## Configuration:\n"
+    log += "## Configuration:\n"
     log += f"- Number of reactions: {len(reactions)}\n"
     log += f"- Initial state: {initial_state}\n"
     log += f"- Maximum time: {t_max}\n"
@@ -289,9 +288,9 @@ def gillespie_algorithm(reactions, initial_state, rate_constants, t_max=10.0, ma
 
     log += "## Reactions:\n"
     for i, (reactants, products) in enumerate(reactions):
-        react_str = ' + '.join([f"{v}{k}" if v > 1 else k for k, v in reactants.items()])
-        prod_str = ' + '.join([f"{v}{k}" if v > 1 else k for k, v in products.items()])
-        log += f"{i+1}. {react_str} → {prod_str} (k={rate_constants[i]})\n"
+        react_str = " + ".join([f"{v}{k}" if v > 1 else k for k, v in reactants.items()])
+        prod_str = " + ".join([f"{v}{k}" if v > 1 else k for k, v in products.items()])
+        log += f"{i + 1}. {react_str} → {prod_str} (k={rate_constants[i]})\n"
     log += "\n"
 
     # Initialize
@@ -351,7 +350,7 @@ def gillespie_algorithm(reactions, initial_state, rate_constants, t_max=10.0, ma
         if event_count % (max_events // 10) == 0:
             log += f"  t = {t:.4f}, events = {event_count}\n"
 
-    log += f"\n✓ Simulation completed\n"
+    log += "\n✓ Simulation completed\n"
     log += f"- Final time: {t:.4f}\n"
     log += f"- Total events: {event_count}\n"
     log += f"- Final state: {state}\n\n"
@@ -392,9 +391,9 @@ def wiener_process_simulation(t_max=1.0, n_steps=1000, n_paths=5):
     log = "# Wiener Process (Brownian Motion) Simulation\n\n"
 
     dt = t_max / n_steps
-    t = np.linspace(0, t_max, n_steps + 1)
+    np.linspace(0, t_max, n_steps + 1)
 
-    log += f"## Configuration:\n"
+    log += "## Configuration:\n"
     log += f"- Time span: [0, {t_max}]\n"
     log += f"- Number of steps: {n_steps}\n"
     log += f"- Time step: dt = {dt:.6f}\n"
@@ -416,13 +415,13 @@ def wiener_process_simulation(t_max=1.0, n_steps=1000, n_paths=5):
         final_value = paths[i, -1]
         max_value = paths[i].max()
         min_value = paths[i].min()
-        log += f"### Path {i+1}:\n"
+        log += f"### Path {i + 1}:\n"
         log += f"- Final value W({t_max}) = {final_value:.4f}\n"
         log += f"- Range: [{min_value:.4f}, {max_value:.4f}]\n"
 
     log += "\n## Theoretical Properties:\n"
-    log += f"- E[W(t)] = 0 (zero mean)\n"
-    log += f"- Var[W(t)] = t\n"
+    log += "- E[W(t)] = 0 (zero mean)\n"
+    log += "- Var[W(t)] = t\n"
     log += f"- For t={t_max}: Expected variance = {t_max:.4f}\n"
     log += f"- Observed variance across paths: {np.var(paths[:, -1]):.4f}\n"
 
@@ -447,7 +446,7 @@ def poisson_process_simulation(rate, t_max=10.0):
     """
     log = "# Poisson Process Simulation\n\n"
 
-    log += f"## Configuration:\n"
+    log += "## Configuration:\n"
     log += f"- Event rate λ = {rate}\n"
     log += f"- Time span: [0, {t_max}]\n\n"
 
@@ -478,7 +477,7 @@ def poisson_process_simulation(rate, t_max=10.0):
             inter_arrivals = np.diff([0] + event_times)
             log += "## Inter-Arrival Times:\n"
             log += f"- Mean: {np.mean(inter_arrivals):.4f}\n"
-            log += f"- Expected (1/λ): {1.0/rate:.4f}\n"
+            log += f"- Expected (1/λ): {1.0 / rate:.4f}\n"
             log += f"- Std: {np.std(inter_arrivals):.4f}\n"
             log += f"- Min: {np.min(inter_arrivals):.4f}\n"
             log += f"- Max: {np.max(inter_arrivals):.4f}\n"

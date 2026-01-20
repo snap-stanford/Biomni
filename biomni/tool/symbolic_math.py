@@ -6,8 +6,6 @@ algebraic manipulation, calculus, equation solving, and symbolic analysis.
 Requires sympy library.
 """
 
-import numpy as np
-
 
 def symbolic_differentiation(expression_str, variable, order=1):
     """
@@ -28,7 +26,7 @@ def symbolic_differentiation(expression_str, variable, order=1):
         Symbolic derivative result
     """
     try:
-        from sympy import symbols, sympify, diff, latex
+        from sympy import diff, latex, symbols, sympify
     except ImportError:
         return "Error: sympy library not available. Install with: pip install sympy"
 
@@ -86,7 +84,7 @@ def symbolic_integration(expression_str, variable, definite=False, limits=None):
         Symbolic integral result
     """
     try:
-        from sympy import symbols, sympify, integrate, latex, oo
+        from sympy import integrate, latex, oo, symbols, sympify
     except ImportError:
         return "Error: sympy library not available"
 
@@ -103,8 +101,8 @@ def symbolic_integration(expression_str, variable, definite=False, limits=None):
 
         if definite and limits:
             # Parse limits (handle infinity)
-            lower = sympify(str(limits[0])) if limits[0] != 'oo' else oo
-            upper = sympify(str(limits[1])) if limits[1] != 'oo' else oo
+            lower = sympify(str(limits[0])) if limits[0] != "oo" else oo
+            upper = sympify(str(limits[1])) if limits[1] != "oo" else oo
 
             log += f"## Definite Integral from {limits[0]} to {limits[1]}:\n"
 
@@ -151,7 +149,7 @@ def solve_symbolic_equation(equation_str, variable):
         Solutions
     """
     try:
-        from sympy import symbols, sympify, solve, latex
+        from sympy import latex, solve, symbols, sympify
     except ImportError:
         return "Error: sympy library not available"
 
@@ -164,8 +162,8 @@ def solve_symbolic_equation(equation_str, variable):
         var = symbols(variable)
 
         # Handle equation format
-        if '=' in equation_str:
-            lhs, rhs = equation_str.split('=')
+        if "=" in equation_str:
+            lhs, rhs = equation_str.split("=")
             expr = sympify(lhs) - sympify(rhs)
         else:
             expr = sympify(equation_str)
@@ -220,7 +218,7 @@ def symbolic_series_expansion(expression_str, variable, point=0, order=6):
         Series expansion
     """
     try:
-        from sympy import symbols, sympify, series, latex
+        from sympy import latex, series, symbols, sympify
     except ImportError:
         return "Error: sympy library not available"
 
@@ -258,7 +256,7 @@ def symbolic_series_expansion(expression_str, variable, point=0, order=6):
     return log
 
 
-def symbolic_limit(expression_str, variable, point, direction='+-'):
+def symbolic_limit(expression_str, variable, point, direction="+-"):
     """
     Compute symbolic limit of an expression.
 
@@ -279,7 +277,7 @@ def symbolic_limit(expression_str, variable, point, direction='+-'):
         Limit result
     """
     try:
-        from sympy import symbols, sympify, limit, latex, oo
+        from sympy import latex, limit, oo, symbols, sympify
     except ImportError:
         return "Error: sympy library not available"
 
@@ -294,9 +292,9 @@ def symbolic_limit(expression_str, variable, point, direction='+-'):
         expr = sympify(expression_str)
 
         # Parse point
-        if point == 'oo':
+        if point == "oo":
             point_val = oo
-        elif point == '-oo':
+        elif point == "-oo":
             point_val = -oo
         else:
             point_val = sympify(str(point))
@@ -318,7 +316,7 @@ def symbolic_limit(expression_str, variable, point, direction='+-'):
     return log
 
 
-def symbolic_matrix_operations(matrix_str, operation='det'):
+def symbolic_matrix_operations(matrix_str, operation="det"):
     """
     Perform symbolic matrix operations.
 
@@ -335,7 +333,7 @@ def symbolic_matrix_operations(matrix_str, operation='det'):
         Matrix operation result
     """
     try:
-        from sympy import Matrix, symbols, latex
+        from sympy import Matrix, latex, symbols
     except ImportError:
         return "Error: sympy library not available"
 
@@ -349,23 +347,23 @@ def symbolic_matrix_operations(matrix_str, operation='det'):
 
         log += f"Parsed matrix ({M.shape[0]}×{M.shape[1]}):\n```\n{M}\n```\n\n"
 
-        if operation == 'det':
+        if operation == "det":
             result = M.det()
             log += f"## Determinant:\n```\ndet(M) = {result}\n```\n\n"
 
-        elif operation == 'inverse':
+        elif operation == "inverse":
             result = M.inv()
             log += f"## Inverse Matrix:\n```\n{result}\n```\n\n"
 
-        elif operation == 'eigenvals':
+        elif operation == "eigenvals":
             eigenvals = M.eigenvals()
-            log += f"## Eigenvalues:\n"
+            log += "## Eigenvalues:\n"
             for eigenval, multiplicity in eigenvals.items():
                 log += f"- λ = {eigenval} (multiplicity: {multiplicity})\n"
 
-        elif operation == 'eigenvects':
+        elif operation == "eigenvects":
             eigenvects = M.eigenvects()
-            log += f"## Eigenvectors:\n"
+            log += "## Eigenvectors:\n"
             for eigenval, multiplicity, vects in eigenvects:
                 log += f"\n### Eigenvalue λ = {eigenval}:\n"
                 for i, vect in enumerate(vects, 1):
@@ -395,7 +393,7 @@ def simplify_expression(expression_str):
         Simplified expression
     """
     try:
-        from sympy import sympify, simplify, latex
+        from sympy import latex, simplify, sympify
     except ImportError:
         return "Error: sympy library not available"
 
@@ -437,28 +435,28 @@ def solve_system_of_equations(equations_list, variables_list):
         Solutions
     """
     try:
-        from sympy import symbols, sympify, solve
+        from sympy import solve, symbols, sympify
     except ImportError:
         return "Error: sympy library not available"
 
     log = "# System of Equations\n\n"
 
-    log += f"## Equations:\n"
+    log += "## Equations:\n"
     for eq in equations_list:
         log += f"- {eq}\n"
     log += f"\n## Variables: {', '.join(variables_list)}\n\n"
 
     try:
         # Parse variables
-        vars_symbols = symbols(' '.join(variables_list))
+        vars_symbols = symbols(" ".join(variables_list))
         if not isinstance(vars_symbols, tuple):
             vars_symbols = (vars_symbols,)
 
         # Parse equations
         equations = []
         for eq_str in equations_list:
-            if '=' in eq_str:
-                lhs, rhs = eq_str.split('=')
+            if "=" in eq_str:
+                lhs, rhs = eq_str.split("=")
                 equations.append(sympify(lhs) - sympify(rhs))
             else:
                 equations.append(sympify(eq_str))
