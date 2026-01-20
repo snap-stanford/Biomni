@@ -1,221 +1,209 @@
-# Data lake dictionary with detailed descriptions
+# Data lake dictionary with mathematical modeling datasets
 data_lake_dict = {
-    "affinity_capture-ms.parquet": "Protein-protein interactions detected via affinity capture and mass spectrometry.",
-    "affinity_capture-rna.parquet": "Protein-RNA interactions detected by affinity capture.",
-    "BindingDB_All_202409.tsv": "Measured binding affinities between proteins and small molecules for drug discovery.",
-    "broad_repurposing_hub_molecule_with_smiles.parquet": "Molecules from Broad Institute's Drug Repurposing Hub with SMILES annotations.",
-    "broad_repurposing_hub_phase_moa_target_info.parquet": "Drug phases, mechanisms of action, and target information from Broad Institute.",
-    "co-fractionation.parquet": "Protein-protein interactions from co-fractionation experiments.",
-    "czi_census_datasets_v4.parquet": "Datasets from the Chan Zuckerberg Initiative's Cell Census.",
-    "DepMap_CRISPRGeneDependency.csv": "Gene dependency probability estimates for cancer cell lines, including all DepMap models.",
-    "DepMap_CRISPRGeneEffect.csv": "Genome-wide CRISPR gene effect estimates for cancer cell lines, including all DepMap models.",
-    "DepMap_Model.csv": "Metadata describing all cancer models/cell lines which are referenced by a dataset contained within the DepMap portal.",
-    "DepMap_OmicsExpressionProteinCodingGenesTPMLogp1.csv": "Gene expression in TPMs for cancer cell lines, including all DepMap models.",
-    "ddinter_alimentary_tract_metabolism.csv": "Drug-drug interactions for alimentary tract and metabolism drugs from DDInter 2.0 database.",
-    "ddinter_antineoplastic.csv": "Drug-drug interactions for antineoplastic and immunomodulating agents from DDInter 2.0 database.",
-    "ddinter_antiparasitic.csv": "Drug-drug interactions for antiparasitic products from DDInter 2.0 database.",
-    "ddinter_blood_organs.csv": "Drug-drug interactions for blood and blood forming organs drugs from DDInter 2.0 database.",
-    "ddinter_dermatological.csv": "Drug-drug interactions for dermatological drugs from DDInter 2.0 database.",
-    "ddinter_hormonal.csv": "Drug-drug interactions for systemic hormonal preparations from DDInter 2.0 database.",
-    "ddinter_respiratory.csv": "Drug-drug interactions for respiratory system drugs from DDInter 2.0 database.",
-    "ddinter_various.csv": "Drug-drug interactions for various drugs from DDInter 2.0 database.",
-    "DisGeNET.parquet": "Gene-disease associations from multiple sources.",
-    "dosage_growth_defect.parquet": "Gene dosage changes affecting growth.",
-    "enamine_cloud_library_smiles.pkl": "Compounds from Enamine REAL library with SMILES annotations.",
-    "evebio_assay_table.csv": "Assay metadata with one row per assay from EveBio pharmome mapping.",
-    "evebio_bundle_table.csv": "Target subfamily bundles used for screening-to-profiling progression.",
-    "evebio_compound_table.csv": "Compound metadata with common identifiers from EveBio screening.",
-    "evebio_control_table.csv": "Control datapoints for all screening and profiling plates.",
-    "evebio_detailed_result_table.csv": "Expanded results on evebio_summary_result_table with curve fit parameters and phase categories.",
-    "evebio_observed_points_table.csv": "Raw observed datapoints from all screening and profiling experiments.",
-    "evebio_summary_result_table.csv": "Succinct summary of results for each assay-compound combination.",
-    "evebio_target_table.csv": "Target metadata with common identifiers from EveBio screening.",
-    "genebass_missense_LC_filtered.pkl": "Filtered missense variants from GeneBass.",
-    "genebass_pLoF_filtered.pkl": "Predicted loss-of-function variants from GeneBass.",
-    "genebass_synonymous_filtered.pkl": "Filtered synonymous variants from GeneBass.",
-    "gene_info.parquet": "Comprehensive gene information.",
-    "genetic_interaction.parquet": "Genetic interactions between genes.",
-    "go-plus.json": "Gene ontology data for functional gene annotations.",
-    "gtex_tissue_gene_tpm.parquet": "Gene expression (TPM) across human tissues from GTEx.",
-    "gwas_catalog.pkl": "Genome-wide association studies (GWAS) results.",
-    "hp.obo": "Official HPO release in obographs format",
-    "kg.csv": "Precision medicine knowledge graph with 17,080 diseases and 4+ million relationships across biological scales.",
-    "marker_celltype.parquet": "Cell type marker genes for identification.",
-    "McPAS-TCR.parquet": "T-cell receptor sequences and specificity data from McPAS database.",
-    "miRDB_v6.0_results.parquet": "Predicted microRNA targets from miRDB.",
-    "miRTarBase_microRNA_target_interaction.parquet": "Experimentally validated microRNA-target interactions from miRTarBase.",
-    "miRTarBase_microRNA_target_interaction_pubmed_abtract.txt": "PubMed abstracts for microRNA-target interactions in miRTarBase.",
-    "miRTarBase_MicroRNA_Target_Sites.parquet": "Binding sites of microRNAs on target genes from miRTarBase.",
-    "mousemine_m1_positional_geneset.parquet": "Positional gene sets from MouseMine.",
-    "mousemine_m2_curated_geneset.parquet": "Curated gene sets from MouseMine.",
-    "mousemine_m3_regulatory_target_geneset.parquet": "Regulatory target gene sets from MouseMine.",
-    "mousemine_m5_ontology_geneset.parquet": "Ontology-based gene sets from MouseMine.",
-    "mousemine_m8_celltype_signature_geneset.parquet": "Cell type signature gene sets from MouseMine.",
-    "mousemine_mh_hallmark_geneset.parquet": "Hallmark gene sets from MouseMine.",
-    "msigdb_human_c1_positional_geneset.parquet": "Human positional gene sets from MSigDB.",
-    "msigdb_human_c2_curated_geneset.parquet": "Curated human gene sets from MSigDB.",
-    "msigdb_human_c3_regulatory_target_geneset.parquet": "Regulatory target gene sets from MSigDB.",
-    "msigdb_human_c3_subset_transcription_factor_targets_from_GTRD.parquet": "Transcription factor targets from GTRD/MSigDB.",
-    "msigdb_human_c4_computational_geneset.parquet": "Computationally derived gene sets from MSigDB.",
-    "msigdb_human_c5_ontology_geneset.parquet": "Ontology-based gene sets from MSigDB.",
-    "msigdb_human_c6_oncogenic_signature_geneset.parquet": "Oncogenic signatures from MSigDB.",
-    "msigdb_human_c7_immunologic_signature_geneset.parquet": "Immunologic signatures from MSigDB.",
-    "msigdb_human_c8_celltype_signature_geneset.parquet": "Cell type signatures from MSigDB.",
-    "msigdb_human_h_hallmark_geneset.parquet": "Hallmark gene sets from MSigDB.",
-    "omim.parquet": "Genetic disorders and associated genes from OMIM.",
-    "proteinatlas.tsv": "Protein expression data from Human Protein Atlas.",
-    "proximity_label-ms.parquet": "Protein interactions via proximity labeling and mass spectrometry.",
-    "reconstituted_complex.parquet": "Protein complexes reconstituted in vitro.",
-    "sgRNA_KO_SP_mouse.txt": "sgRNA knockout data for mouse.",
-    "sgRNA_KO_SP_human.txt": "sgRNA knockout data for human.",
-    "synthetic_growth_defect.parquet": "Synthetic growth defects from genetic interactions.",
-    "synthetic_lethality.parquet": "Synthetic lethal interactions.",
-    "synthetic_rescue.parquet": "Genetic interactions rescuing phenotypes.",
-    "two-hybrid.parquet": "Protein-protein interactions detected by yeast two-hybrid assays.",
-    "variant_table.parquet": "Annotated genetic variants table.",
-    "Virus-Host_PPI_P-HIPSTER_2020.parquet": "Virus-host protein-protein interactions from P-HIPSTER.",
-    "txgnn_name_mapping.pkl": "Name mapping for TXGNN.",
-    "txgnn_prediction.pkl": "Prediction data for TXGNN.",
+    # Benchmark Optimization Problems
+    "optimization_test_functions.csv": "Classical optimization test functions (Rosenbrock, Rastrigin, Ackley, etc.) with global minima.",
+    "constrained_optimization_benchmarks.parquet": "Constrained optimization benchmark problems with known solutions.",
+    "multi_objective_test_problems.parquet": "Multi-objective optimization test problems and Pareto fronts.",
+
+    # Differential Equations and Dynamical Systems
+    "ode_benchmark_problems.json": "Standard ODE test problems from the literature (Van der Pol, Lorenz, Rössler, etc.).",
+    "stiff_ode_problems.json": "Stiff ordinary differential equation test cases.",
+    "pde_benchmark_solutions.parquet": "Benchmark solutions for heat equation, wave equation, and Laplace equation.",
+    "dynamical_systems_examples.json": "Examples of dynamical systems with known behavior (fixed points, limit cycles, chaos).",
+
+    # Linear Algebra Datasets
+    "sparse_matrix_collection.parquet": "Suite Sparse Matrix Collection - real-world sparse matrices from various applications.",
+    "symmetric_matrices_test.parquet": "Collection of symmetric and positive definite test matrices.",
+    "ill_conditioned_matrices.parquet": "Test matrices with various condition numbers for numerical stability testing.",
+    "eigenvalue_problems.parquet": "Standard eigenvalue test problems with known eigenvalues/eigenvectors.",
+
+    # Statistical and Time Series Data
+    "time_series_benchmarks.parquet": "Standard time series datasets (airline passengers, sunspots, economic indicators).",
+    "regression_datasets.parquet": "Classic regression datasets (Boston housing, diabetes, California housing).",
+    "classification_datasets.parquet": "Standard classification datasets (iris, wine, breast cancer).",
+    "statistical_distributions.json": "Parameters for standard probability distributions.",
+
+    # Stochastic Process Data
+    "markov_chain_examples.json": "Example Markov chain transition matrices from various applications.",
+    "random_walk_datasets.parquet": "Historical random walk data (stock prices, Brownian motion).",
+    "queuing_system_data.json": "Queueing theory examples and arrival/service time distributions.",
+    "monte_carlo_benchmarks.json": "Monte Carlo integration test problems with known solutions.",
+
+    # Network and Graph Data
+    "graph_theory_datasets.parquet": "Standard graphs (Petersen, K-partite, Erdős–Rényi) for network analysis.",
+    "network_flow_problems.json": "Network optimization problems (max flow, min cost flow).",
+    "social_network_datasets.parquet": "Real-world social network structures (Zachary's karate club, etc.).",
+    "complex_networks.parquet": "Scale-free and small-world network examples.",
+
+    # Numerical Methods Test Cases
+    "integration_test_integrals.json": "Definite integrals with known analytical solutions for numerical integration testing.",
+    "root_finding_test_functions.json": "Functions with known roots for testing root-finding algorithms.",
+    "interpolation_test_data.parquet": "Test datasets for interpolation and approximation methods.",
+    "numerical_differentiation_tests.json": "Functions with known derivatives for testing numerical differentiation.",
+
+    # Mathematical Models
+    "population_dynamics_models.json": "Predator-prey, SIR, SEIR, logistic growth model parameters.",
+    "physics_simulation_parameters.json": "Parameters for pendulum, spring-mass, planetary motion simulations.",
+    "chemical_kinetics_models.json": "Chemical reaction system parameters and rate constants.",
+    "financial_models.json": "Black-Scholes, Vasicek, CIR model parameters and market data.",
+
+    # Computational Geometry
+    "convex_hull_test_data.parquet": "Point clouds for convex hull algorithms.",
+    "voronoi_tesselation_data.parquet": "Point sets for Voronoi diagram generation.",
+    "triangulation_datasets.parquet": "2D and 3D point sets for triangulation algorithms.",
+
+    # Function Approximation
+    "fourier_series_examples.parquet": "Signals and their Fourier decompositions.",
+    "wavelet_test_signals.parquet": "Test signals for wavelet analysis.",
+    "spline_fitting_data.parquet": "Datasets for spline interpolation and smoothing.",
+
+    # Special Functions and Constants
+    "special_functions_values.parquet": "Tabulated values of Bessel, Legendre, and other special functions.",
+    "mathematical_constants.json": "High-precision values of π, e, φ, γ, and other constants.",
+
+    # Machine Learning Test Data
+    "ml_regression_benchmarks.parquet": "Standard ML regression datasets with ground truth.",
+    "ml_classification_benchmarks.parquet": "Standard ML classification datasets.",
+    "dimensionality_reduction_data.parquet": "High-dimensional datasets for PCA, t-SNE, UMAP testing.",
+
+    # Fractals and Chaos
+    "fractal_dimension_datasets.parquet": "Datasets with known fractal dimensions.",
+    "chaotic_time_series.parquet": "Time series from chaotic systems (Lorenz, logistic map).",
+    "strange_attractor_data.parquet": "Coordinates of strange attractors from various systems.",
 }
 
-# Updated library_content as a dictionary with detailed descriptions
+# Updated library_content as a dictionary focused on mathematical modeling
 library_content_dict = {
     # === PYTHON PACKAGES ===
-    # Core Bioinformatics Libraries (Python)
-    "biopython": "[Python Package] A set of tools for biological computation including parsers for bioinformatics files, access to online services, and interfaces to common bioinformatics programs.",
-    "biom-format": "[Python Package] The Biological Observation Matrix (BIOM) format is designed for representing biological sample by observation contingency tables with associated metadata.",
-    "scanpy": "[Python Package] A scalable toolkit for analyzing single-cell gene expression data, specifically designed for large datasets using AnnData.",
-    "scikit-bio": "[Python Package] Data structures, algorithms, and educational resources for bioinformatics, including sequence analysis, phylogenetics, and ordination methods.",
-    "anndata": "[Python Package] A Python package for handling annotated data matrices in memory and on disk, primarily used for single-cell genomics data.",
-    "mudata": "[Python Package] A Python package for multimodal data storage and manipulation, extending AnnData to handle multiple modalities.",
-    "pyliftover": "[Python Package] A Python implementation of UCSC liftOver tool for converting genomic coordinates between genome assemblies.",
-    "biopandas": "[Python Package] A package that provides pandas DataFrames for working with molecular structures and biological data.",
-    "biotite": "[Python Package] A comprehensive library for computational molecular biology, providing tools for sequence analysis, structure analysis, and more.",
-    "lazyslide": "[Python Package] A Python framework that brings interoperable, reproducible whole slide image analysis, enabling seamless histopathology workflows from preprocessing to deep learning.",
-    # Genomics & Variant Analysis (Python)
-    "gget": "[Python Package] A toolkit for accessing genomic databases and retrieving sequences, annotations, and other genomic data.",
-    "lifelines": "[Python Package] A complete survival analysis library for fitting models, plotting, and statistical tests.",
-    # "scvi-tools": "[Python Package] A package for probabilistic modeling of single-cell omics data, including deep generative models.",
-    "gseapy": "[Python Package] A Python wrapper for Gene Set Enrichment Analysis (GSEA) and visualization.",
-    "scrublet": "[Python Package] A tool for detecting doublets in single-cell RNA-seq data.",
-    "cellxgene-census": "[Python Package] A tool for accessing and analyzing the CellxGene Census, a collection of single-cell datasets. To download a dataset, use the download_source_h5ad function with the dataset id as the argument (856c1b98-5727-49da-bf0f-151bdb8cb056, no .h5ad extension).",
-    "hyperopt": "[Python Package] A Python library for optimizing hyperparameters of machine learning algorithms.",
-    "scvelo": "[Python Package] A tool for RNA velocity analysis in single cells using dynamical models.",
-    "pysam": "[Python Package] A Python module for reading, manipulating and writing genomic data sets in SAM/BAM/VCF/BCF formats.",
-    "pyfaidx": "[Python Package] A Python package for efficient random access to FASTA files.",
-    "pyranges": "[Python Package] A Python package for interval manipulation with a pandas-like interface.",
-    "pybedtools": "[Python Package] A Python wrapper for Aaron Quinlan's BEDTools programs.",
-    # "panhumanpy": "A Python package for hierarchical, cross-tissue cell type annotation of human single-cell RNA-seq data",
-    # Structural Biology & Drug Discovery (Python)
-    "rdkit": "[Python Package] A collection of cheminformatics and machine learning tools for working with chemical structures and drug discovery.",
-    "deeppurpose": "[Python Package] A deep learning library for drug-target interaction prediction and virtual screening.",
-    "pyscreener": "[Python Package] A Python package for virtual screening of chemical compounds.",
-    "openbabel": "[Python Package] A chemical toolbox designed to speak the many languages of chemical data, supporting file format conversion and molecular modeling.",
-    "descriptastorus": "[Python Package] A library for computing molecular descriptors for machine learning applications in drug discovery.",
-    # "pymol": "[Python Package] A molecular visualization system for rendering and animating 3D molecular structures.",
-    "openmm": "[Python Package] A toolkit for molecular simulation using high-performance GPU computing.",
-    "pytdc": "[Python Package] A Python package for Therapeutics Data Commons, providing access to machine learning datasets for drug discovery.",
-    # Data Science & Statistical Analysis (Python)
-    "pandas": "[Python Package] A fast, powerful, and flexible data analysis and manipulation library for Python.",
+
+    # Core Scientific Computing
     "numpy": "[Python Package] The fundamental package for scientific computing with Python, providing support for arrays, matrices, and mathematical functions.",
-    "scipy": "[Python Package] A Python library for scientific and technical computing, including modules for optimization, linear algebra, integration, and statistics.",
-    "scikit-learn": "[Python Package] A machine learning library featuring various classification, regression, and clustering algorithms.",
+    "scipy": "[Python Package] A Python library for scientific and technical computing, including modules for optimization, linear algebra, integration, statistics, ODEs, and more.",
+    "pandas": "[Python Package] A fast, powerful, and flexible data analysis and manipulation library for Python.",
+    "sympy": "[Python Package] A Python library for symbolic mathematics including algebra, calculus, equation solving, and discrete math.",
+
+    # Optimization
+    "cvxpy": "[Python Package] A Python-embedded modeling language for convex optimization problems.",
+    "pyomo": "[Python Package] A Python-based, open-source optimization modeling language for linear, nonlinear, and mixed-integer programming.",
+    "scipy.optimize": "[Python Module] Optimization algorithms including minimization, root finding, curve fitting, and linear programming (part of SciPy).",
+    "optuna": "[Python Package] An automatic hyperparameter optimization framework, particularly useful for ML model tuning.",
+    "pygmo": "[Python Package] A scientific library for massively parallel optimization providing bio-inspired and evolutionary algorithms.",
+    "nlopt": "[Python Package] A library for nonlinear optimization providing various local and global optimization algorithms.",
+    "gekko": "[Python Package] A library for machine learning and optimization of mixed-integer and differential algebraic equations.",
+    "deap": "[Python Package] A novel evolutionary computation framework for rapid prototyping and testing of ideas in genetic algorithms.",
+
+    # Differential Equations and Dynamical Systems
+    "scipy.integrate": "[Python Module] Numerical integration of ODEs and PDEs (odeint, solve_ivp, solve_bvp) - part of SciPy.",
+    "diffeqpy": "[Python Package] A Python interface to DifferentialEquations.jl from Julia for high-performance ODE/PDE solving.",
+    "assimulo": "[Python Package] A package for solving ordinary differential equations with various advanced solvers.",
+    "pydy": "[Python Package] A tool kit for modeling and simulating multibody dynamics problems.",
+
+    # Linear Algebra and Matrix Computations
+    "scipy.linalg": "[Python Module] Linear algebra routines including decompositions, eigenvalue problems, and matrix functions.",
+    "numpy.linalg": "[Python Module] Basic linear algebra operations (part of NumPy).",
+    "sparse": "[Python Package] Sparse multidimensional arrays for Python matching NumPy interface.",
+    "scipy.sparse": "[Python Module] Sparse matrix and sparse linear algebra routines.",
+
+    # Numerical Methods
+    "numdifftools": "[Python Package] Tools for numerical differentiation with automatic differentiation capabilities.",
+    "findiff": "[Python Package] A Python package for finite difference numerical derivatives in any number of dimensions.",
+    "mpmath": "[Python Package] A library for arbitrary-precision floating-point arithmetic.",
+
+    # Statistics and Probability
+    "statsmodels": "[Python Package] Statistical modeling including regression, time series analysis, and hypothesis testing.",
+    "scipy.stats": "[Python Module] Probability distributions, statistical functions, and tests (part of SciPy).",
+    "pingouin": "[Python Package] An open-source statistical package written in Python 3 and based mostly on Pandas and NumPy.",
+    "lifelines": "[Python Package] A complete survival analysis library for Python.",
+
+    # Stochastic Processes and Monte Carlo
+    "pymc": "[Python Package] Probabilistic programming for Bayesian statistical modeling and probabilistic machine learning.",
+    "emcee": "[Python Package] A Python implementation of the affine-invariant ensemble sampler for MCMC.",
+    "pyDOE": "[Python Package] Design of experiments for Python (Latin hypercube, factorial designs).",
+    "SALib": "[Python Package] Sensitivity Analysis Library in Python for running sensitivity analysis.",
+
+    # Symbolic and Computer Algebra
+    "sympy": "[Python Package] A Python library for symbolic mathematics.",
+    "sage": "[Python Package] Open-source mathematics software system - alternative to Mathematica/Maple/Matlab.",
+
+    # Visualization
     "matplotlib": "[Python Package] A comprehensive library for creating static, animated, and interactive visualizations in Python.",
-    "seaborn": "[Python Package] A statistical data visualization library based on matplotlib with a high-level interface for drawing attractive statistical graphics.",
-    "statsmodels": "[Python Package] A Python module for statistical modeling and econometrics, including descriptive statistics and estimation of statistical models.",
-    "pymc3": "[Python Package] A Python package for Bayesian statistical modeling and probabilistic machine learning.",
-    # "pystan": "[Python Package] A Python interface to Stan, a platform for statistical modeling and high-performance statistical computation.",
-    "umap-learn": "[Python Package] Uniform Manifold Approximation and Projection, a dimension reduction technique.",
-    "faiss-cpu": "[Python Package] A library for efficient similarity search and clustering of dense vectors.",
-    "harmony-pytorch": "[Python Package] A PyTorch implementation of the Harmony algorithm for integrating single-cell data.",
-    # General Bioinformatics & Computational Utilities (Python)
-    "tiledb": "[Python Package] A powerful engine for storing and analyzing large-scale genomic data.",
-    "tiledbsoma": "[Python Package] A library for working with the SOMA (Stack of Matrices) format using TileDB.",
-    "h5py": "[Python Package] A Python interface to the HDF5 binary data format, allowing storage of large amounts of numerical data.",
+    "seaborn": "[Python Package] Statistical data visualization library based on matplotlib.",
+    "plotly": "[Python Package] An interactive, open-source plotting library supporting 40+ chart types.",
+    "mayavi": "[Python Package] A 3D scientific data visualization and plotting library in Python.",
+    "vispy": "[Python Package] A high-performance interactive 2D/3D data visualization library.",
+
+    # Machine Learning (for mathematical modeling)
+    "scikit-learn": "[Python Package] Machine learning library with classification, regression, clustering, and dimensionality reduction.",
+    "tensorflow": "[Python Package] An end-to-end open source platform for machine learning.",
+    "pytorch": "[Python Package] An open source machine learning framework for deep learning.",
+    "jax": "[Python Package] Composable transformations of Python+NumPy programs: differentiate, vectorize, JIT to GPU/TPU.",
+
+    # Network Analysis
+    "networkx": "[Python Package] A Python package for creating, manipulating, and studying complex networks and graphs.",
+    "igraph": "[Python Package] A library for creating, manipulating, and studying the structure of complex networks.",
+    "graph-tool": "[Python Package] An efficient Python module for manipulation and statistical analysis of graphs.",
+
+    # Computational Geometry
+    "shapely": "[Python Package] Manipulation and analysis of geometric objects in the Cartesian plane.",
+    "scipy.spatial": "[Python Module] Spatial algorithms and data structures (Delaunay, Voronoi, KDTree, etc.).",
+    "trimesh": "[Python Package] A pure Python library for loading and using triangular meshes.",
+
+    # Signal Processing
+    "scipy.signal": "[Python Module] Signal processing tools including filtering, spectral analysis, and wavelets.",
+    "pywavelets": "[Python Package] Wavelet transform module for Python.",
+
+    # Special Functions
+    "scipy.special": "[Python Module] Special mathematical functions (Bessel, error, gamma, beta, etc.).",
+
+    # Parallel Computing
+    "dask": "[Python Package] Parallel computing library that scales Python workflows.",
+    "joblib": "[Python Package] A set of tools to provide lightweight pipelining and parallel computing.",
+    "numba": "[Python Package] A JIT compiler that translates Python and NumPy code into fast machine code.",
+
+    # Utilities
     "tqdm": "[Python Package] A fast, extensible progress bar for loops and CLI applications.",
-    "joblib": "[Python Package] A set of tools to provide lightweight pipelining in Python, including transparent disk-caching and parallel computing.",
-    "opencv-python": "[Python Package] OpenCV library for computer vision tasks, useful for image analysis in biological contexts.",
-    "PyPDF2": "[Python Package] A library for working with PDF files, useful for extracting text from scientific papers.",
-    "googlesearch-python": "[Python Package] A library for performing Google searches programmatically.",
-    "scikit-image": "[Python Package] A collection of algorithms for image processing in Python.",
-    "pymed": "[Python Package] A Python library for accessing PubMed articles.",
-    "arxiv": "[Python Package] A Python wrapper for the arXiv API, allowing access to scientific papers.",
-    "scholarly": "[Python Package] A module to retrieve author and publication information from Google Scholar.",
-    "cryosparc-tools": "[Python Package] Tools for working with cryoSPARC, a platform for cryo-EM data processing.",
-    "mageck": "[Python Package] Analysis of CRISPR screen data.",
-    "igraph": "[Python Package] Network analysis and visualization.",
-    "pyscenic": "[Python Package] Analysis of single-cell RNA-seq data and gene regulatory networks.",
-    "cooler": "[Python Package] Storage and analysis of Hi-C data.",
-    "trackpy": "[Python Package] Particle tracking in images and video.",
-    "nnunet": "[Python Package] A deep learning framework for biomedical image segmentation, providing a standardized approach to training and inference.",
-    # "flowcytometrytools": "[Python Package] Analysis and visualization of flow cytometry data.",
-    "cellpose": "[Python Package] Cell segmentation in microscopy images.",
-    "viennarna": "[Python Package] RNA secondary structure prediction.",
-    "PyMassSpec": "[Python Package] Mass spectrometry data analysis.",
-    "python-libsbml": "[Python Package] Working with SBML files for computational biology.",
-    "cobra": "[Python Package] Constraint-based modeling of metabolic networks.",
-    "reportlab": "[Python Package] Creation of PDF documents.",
-    "flowkit": "[Python Package] Toolkit for processing flow cytometry data.",
-    "hmmlearn": "[Python Package] Hidden Markov model analysis.",
-    "msprime": "[Python Package] Simulation of genetic variation.",
-    "tskit": "[Python Package] Handling tree sequences and population genetics data.",
-    "cyvcf2": "[Python Package] Fast parsing of VCF files.",
-    "pykalman": "[Python Package] Kalman filter and smoother implementation.",
-    "fanc": "[Python Package] Analysis of chromatin conformation data.",
-    "loompy": "A Python implementation of the Loom file format for efficiently storing and working with large omics datasets.",
-    "pyBigWig": "A Python library for accessing bigWig and bigBed files for genome browser track data.",
-    "pymzml": "A Python module for high-throughput bioinformatics analysis of mass spectrometry data.",
-    "optlang": "A Python package for modeling optimization problems symbolically.",
-    "FlowIO": "A Python package for reading and writing flow cytometry data files.",
-    "FlowUtils": "Utilities for processing and analyzing flow cytometry data.",
-    "arboreto": "A Python package for inferring gene regulatory networks from single-cell RNA-seq data.",
-    "pdbfixer": "A Python package for fixing problems in PDB files in preparation for molecular simulations.",
+    "h5py": "[Python Package] A Python interface to the HDF5 binary data format for storing large numerical arrays.",
+    "tables": "[Python Package] PyTables for managing hierarchical datasets designed to efficiently handle extremely large amounts of data.",
+
     # === R PACKAGES ===
-    # Core R Packages for Data Analysis
-    "ggplot2": "[R Package] A system for declaratively creating graphics, based on The Grammar of Graphics. Use with subprocess.run(['Rscript', '-e', 'library(ggplot2); ...']).",
-    "dplyr": "[R Package] A grammar of data manipulation, providing a consistent set of verbs that help you solve the most common data manipulation challenges. Use with subprocess.",
-    "tidyr": "[R Package] A package that helps you create tidy data, where each column is a variable, each row is an observation, and each cell is a single value. Use with subprocess.",
-    "readr": "[R Package] A fast and friendly way to read rectangular data like CSV, TSV, and FWF. Use with subprocess.run(['Rscript', '-e', 'library(readr); ...']).",
-    "stringr": "[R Package] A cohesive set of functions designed to make working with strings as easy as possible. Use with subprocess calls.",
-    "Matrix": "[R Package] A package that provides classes and methods for dense and sparse matrices. Required for Seurat. Use with subprocess calls.",
-    # "Rcpp": "[R Package] Seamless R and C++ Integration, allowing R functions to call compiled C++ code. Use with subprocess calls.",
-    # "devtools": "[R Package] Tools to make developing R packages easier, including functions to install packages from GitHub. Use with subprocess calls.",
-    # "remotes": "[R Package] Install R packages from GitHub, GitLab, Bitbucket, or other remote repositories. Use with subprocess calls.",
-    # Bioinformatics R Packages
-    "DESeq2": "[R Package] Differential gene expression analysis based on the negative binomial distribution. Use with subprocess.run(['Rscript', '-e', 'library(DESeq2); ...']).",
-    "clusterProfiler": "[R Package] A package for statistical analysis and visualization of functional profiles for genes and gene clusters. Use with subprocess calls.",
-    # "DADA2": "[R Package] A package for modeling and correcting Illumina-sequenced amplicon errors. Use with subprocess calls.",
-    # "xcms": "[R Package] A package for processing and visualization of LC-MS and GC-MS data. Use with subprocess calls.",
-    # "FlowCore": "[R Package] Basic infrastructure for flow cytometry data. Use with subprocess calls.",
-    "edgeR": "[R Package] Empirical Analysis of Digital Gene Expression Data in R, for differential expression analysis. Use with subprocess calls.",
-    "limma": "[R Package] Linear Models for Microarray Data, for differential expression analysis. Use with subprocess calls.",
-    "harmony": "[R Package] A method for integrating and analyzing single-cell data across datasets. Use with subprocess calls.",
-    "WGCNA": "[R Package] Weighted Correlation Network Analysis for studying biological networks. Use with subprocess calls.",
+
+    # Core R Statistical Packages
+    "stats": "[R Package] Base R statistics functions for probability distributions, statistical tests, and modeling.",
+    "MASS": "[R Package] Functions and datasets from the book Modern Applied Statistics with S.",
+
+    # Optimization in R
+    "optim": "[R Package] General-purpose optimization based on Nelder-Mead, quasi-Newton and conjugate-gradient algorithms.",
+    "optimx": "[R Package] A unified interface to optimization algorithms in R.",
+    "nloptr": "[R Package] R interface to NLopt library for nonlinear optimization.",
+    "lpSolve": "[R Package] Interface to Lp_solve library for solving linear and integer programming problems.",
+
+    # Differential Equations in R
+    "deSolve": "[R Package] General solvers for ordinary differential equations (ODE), partial differential equations (PDE), and delay differential equations (DDE).",
+    "odesolve": "[R Package] Solvers for ordinary differential equations.",
+
+    # Time Series Analysis
+    "forecast": "[R Package] Methods and tools for displaying and analyzing univariate time series forecasts.",
+    "tseries": "[R Package] Time series analysis and computational finance.",
+
+    # Data Manipulation and Visualization
+    "ggplot2": "[R Package] A system for declaratively creating graphics based on The Grammar of Graphics.",
+    "dplyr": "[R Package] A grammar of data manipulation for working with data frames.",
+    "tidyr": "[R Package] Tools for creating tidy data.",
+
+    # Matrix Computations
+    "Matrix": "[R Package] Classes and methods for dense and sparse matrices.",
+    "matrixcalc": "[R Package] Collection of functions for matrix calculations.",
+
     # === CLI TOOLS ===
-    # Sequence Analysis Tools
-    "samtools": "[CLI Tool] A suite of programs for interacting with high-throughput sequencing data. Use with subprocess.run(['samtools', ...]).",
-    "bowtie2": "[CLI Tool] An ultrafast and memory-efficient tool for aligning sequencing reads to long reference sequences. Use with subprocess.run(['bowtie2', ...]).",
-    "bwa": "[CLI Tool] Burrows-Wheeler Aligner for mapping low-divergent sequences against a large reference genome. Use with subprocess.run(['bwa', ...]).",
-    "bedtools": "[CLI Tool] A powerful toolset for genome arithmetic, allowing operations like intersect, merge, count, and complement on genomic features. Use with subprocess.run(['bedtools', ...]).",
-    "macs2": "[CLI Tool] Model-based Analysis of ChIP-Seq data, a tool for identifying transcript factor binding sites.",
-    # Quality Control and Processing Tools
-    "fastqc": "[CLI Tool] A quality control tool for high throughput sequence data. Use with subprocess.run(['fastqc', ...]).",
-    "trimmomatic": "[CLI Tool] A flexible read trimming tool for Illumina NGS data. Use with subprocess.run(['trimmomatic', ...]).",
-    # Multiple Sequence Alignment and Phylogenetics
-    "mafft": "[CLI Tool] A multiple sequence alignment program for unix-like operating systems. Use with subprocess.run(['mafft', ...]).",
-    "Homer": "[CLI Tool] Motif discovery and next-gen sequencing analysis.",
-    "FastTree": "[CLI Tool] Phylogenetic trees from sequence alignments.",
-    "muscle": "[CLI Tool] Multiple sequence alignment tool.",
-    # Genetic Analysis Tools
-    "plink": "[CLI Tool] A comprehensive toolkit for genome association studies that can perform a range of large-scale analyses in a computationally efficient manner. Use with subprocess.run(['plink', ...]).",
-    "plink2": "[CLI Tool] A comprehensive toolkit for genome association studies that can perform a range of large-scale analyses in a computationally efficient manner. Use with subprocess.run(['plink2', ...]).",
-    "gcta64": "[CLI Tool] Genome-wide Complex Trait Analysis (GCTA) tool for estimating the proportion of phenotypic variance explained by genome-wide SNPs and analyzing genetic relationships. Use with subprocess.run(['gcta64', ...]).",
-    "iqtree2": "[CLI Tool] An efficient phylogenetic software for maximum likelihood analysis with built-in model selection and ultrafast bootstrap. Use with subprocess.run(['iqtree2', ...]).",
-    "ADFR": "AutoDock for Receptors suite for molecular docking and virtual screening. ",
-    "diamond": "A sequence aligner for protein and translated DNA searches, designed for high performance analysis of big sequence data. ",
-    "fcsparser": "A command-line tool for parsing and analyzing flow cytometry standard (FCS) files. ",
-    "plannotate": "[CLI Tool] A tool for annotating plasmid sequences with common features. ",
-    "vina": "[CLI Tool] An open-source program for molecular docking and virtual screening, known for its speed and accuracy improvements over AutoDock 4.",
-    "autosite": "[CLI Tool] A binding site detection tool used to identify potential ligand binding pockets on protein structures for molecular docking.",
-    "PyLabRobot": "[Python Package] A Python package for controlling liquid-handling robots and other lab automation equipment.",
+
+    # Mathematical Software
+    "octave": "[CLI Tool] GNU Octave - scientific programming language largely compatible with MATLAB. Use with subprocess.run(['octave', '--eval', 'command']).",
+    "bc": "[CLI Tool] An arbitrary precision calculator language. Use with subprocess.run(['bc']).",
+    "gnuplot": "[CLI Tool] A portable command-line driven graphing utility. Use with subprocess.run(['gnuplot', '-e', 'plot command']).",
+
+    # Symbolic Mathematics
+    "maxima": "[CLI Tool] A system for the manipulation of symbolic and numerical expressions. Use with subprocess.run(['maxima', '-q']).",
+
+    # Computational Tools
+    "julia": "[CLI Tool] A high-level, high-performance programming language for technical computing.",
 }

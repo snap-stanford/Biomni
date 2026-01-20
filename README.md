@@ -22,12 +22,12 @@
 
 
 
-# Biomni: A General-Purpose Biomedical AI Agent
+# MathMind: A General-Purpose Mathematical Modeling AI Agent
 
 ## Overview
 
 
-Biomni is a general-purpose biomedical AI agent designed to autonomously execute a wide range of research tasks across diverse biomedical subfields. By integrating cutting-edge large language model (LLM) reasoning with retrieval-augmented planning and code-based execution, Biomni helps scientists dramatically enhance research productivity and generate testable hypotheses.
+MathMind (formerly Biomni) is a general-purpose mathematical modeling AI agent designed to autonomously execute a wide range of mathematical and computational tasks. By integrating cutting-edge large language model (LLM) reasoning with retrieval-augmented planning and code-based execution, MathMind helps researchers, scientists, and engineers solve complex mathematical problems, perform numerical simulations, optimize systems, and analyze dynamical systems.
 
 
 ## Quick Start
@@ -43,13 +43,14 @@ Then activate the environment E1:
 conda activate biomni_e1
 ```
 
-then install the biomni official pip package:
+then install the MathMind package from source:
 
 ```bash
-pip install biomni --upgrade
+# Install from local directory
+pip install -e .
 ```
 
-For the latest update, install from the github source version, or do:
+Or install from the github source version:
 
 ```bash
 pip install git+https://github.com/snap-stanford/Biomni.git@main
