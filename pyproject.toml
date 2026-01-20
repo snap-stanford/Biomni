@@ -105,6 +105,7 @@ ignore = [
 ]
 
 [tool.codespell]
-skip = '.git*,*.pdf,*.svg,*.css,*.min.*,*/i18n/*,*/build/*,biomni_env/*'
+skip = '.git*,*.pdf,*.svg,*.css,*.min.*,*/i18n/*,*/build/*,biomni_env/*,.cache,.npm'
 check-hidden = true
 ignore-regex = '^\s*"image/\S+": ".*'
+ignore-words-list = 'scarches,hsa,ser,abl,basf,optmizer,transferrin,te,tbe,tre,ther,commun,theis,inactivate'
