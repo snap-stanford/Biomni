@@ -209,7 +209,7 @@ Section 1: Affinity chromatography
 23. (Optional) Regenerate the column by washing with 25 mL of Protein A/G binding
     buffer and store in 20% ethanol at 4 °C.
 
-    💡 PRO TIP: Columns may be re-used up to 5x when purifying the same
+    💡 PRO TIP: Columns may be reused up to 5x when purifying the same
     recombinant antibody.
 
 Section 2: Buffer exchange

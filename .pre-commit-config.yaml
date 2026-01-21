@@ -32,6 +32,13 @@ repos:
           - id: check-merge-conflict
           - id: no-commit-to-branch
             args: ["--branch=main"]
+    - repo: https://github.com/codespell-project/codespell
+      # Configuration for codespell is in pyproject.toml
+      rev: v2.4.1
+      hooks:
+          - id: codespell
+            additional_dependencies:
+                - tomli; python_version<'3.11'
     #- repo: https://github.com/pre-commit/mirrors-mypy
     # rev: v1.16.1
     #  hooks:

@@ -78,7 +78,7 @@ ignore = [
     # First line should be in imperative mood; try rephrasing
     "D401",
     ## Disable one in each pair of mutually incompatible rules
-    # We don’t want a blank line before a class docstring
+    # We don't want a blank line before a class docstring
     "D203",
     # We want docstrings to start immediately after the opening triple quote
     "D213",
@@ -103,3 +103,9 @@ ignore = [
     # strip with multi characters
     "B005"
 ]
+
+[tool.codespell]
+skip = '.git*,*.pdf,*.svg,*.css,*.min.*,*/i18n/*,*/build/*,biomni_env/*,.cache,.npm'
+check-hidden = true
+ignore-regex = '^\s*"image/\S+": ".*'
+ignore-words-list = 'scarches,hsa,ser,abl,basf,optmizer,transferrin,te,tbe,tre,ther,commun,theis,inactivate'
