@@ -9,7 +9,7 @@ This directory contains scripts and configuration files to set up a comprehensiv
    ```
 
 2. Setting up the environment:
-- (a) If you want to use or try out the basic agent without the full E1 or install your own softwares, run the following script:
+- (a) If you want to use or try out the basic agent without the full E1 or install your own software, run the following script:
 
 ```bash
 conda env create -f environment.yml

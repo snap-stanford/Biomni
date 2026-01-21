@@ -270,7 +270,7 @@ def function_to_api_schema(function_string, llm):
     For variable without default values, set them as None, not null.
     For variable with boolean values, use capitalized True or False, not true or false.
     Do not add any return type in the docstring.
-    Be as clear and succint as possible for the descriptions. Please do not make it overly verbose.
+    Be as clear and succinct as possible for the descriptions. Please do not make it overly verbose.
     Here is the code snippet:
     {code}
     """
@@ -684,7 +684,7 @@ class PromptLogger(BaseCallbackHandler):
 
 class NodeLogger(BaseCallbackHandler):
     def on_llm_end(self, response, **kwargs):  # response of type LLMResult
-        for generations in response.generations:  # response.generations of type List[List[Generations]] becuase "each input could have multiple candidate generations"
+        for generations in response.generations:  # response.generations of type List[List[Generations]] because "each input could have multiple candidate generations"
             for generation in generations:
                 generated_text = generation.message.content
                 # token_usage = generation.message.response_metadata["token_usage"]

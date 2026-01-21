@@ -8,7 +8,7 @@ INTRODUCTION
 This protocol describes how to generate a monoclonal cell line from a polyclonal
 pool of stable cells.
 
-Transducing cells with lentivirus results in a heterogenous polyclonal population
+Transducing cells with lentivirus results in a heterogeneous polyclonal population
 that varies in the number of integration events and the site(s) of proviral
 integration across cells. Selective pressure on this heterogeneous cell pool
 could lead to reduced transgene expression over time, as the lower expressing
