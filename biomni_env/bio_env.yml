@@ -19,6 +19,7 @@ dependencies:
     - scanpy
     - biopython
     - biopandas
+    - biothings-client
     - biotite
     - opencv-python
     - rdkit

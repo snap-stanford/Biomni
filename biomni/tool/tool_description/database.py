@@ -728,4 +728,47 @@ description = [
             },
         ],
     },
+    {
+        "description": "Query the MyGene.info database for gene annotations. Supports querying by "
+        "Entrez gene IDs to get annotations, or by gene symbols to find gene IDs. "
+        "Supports both single queries and efficient batch queries for multiple genes.",
+        "name": "query_mygene",
+        "optional_parameters": [
+            {
+                "name": "gene_ids",
+                "type": "List[str]",
+                "description": "Entrez gene ID(s) to query. For a single gene, pass a string (e.g., '1017'). "
+                "For multiple genes, pass a list of strings (e.g., ['1017', '695', '3702']). "
+                "Do NOT join IDs with commas - use a Python list for batch queries.",
+                "default": None,
+            },
+            {
+                "name": "symbols",
+                "type": "List[str]",
+                "description": "Gene symbol(s) to search. For a single gene, pass a string (e.g., 'CDK2'). "
+                "For multiple genes, pass a list of strings (e.g., ['CDK2', 'BRCA1', 'TP53']). "
+                "Do NOT join symbols with commas - use a Python list for batch queries.",
+                "default": None,
+            },
+            {
+                "name": "fields",
+                "type": "str",
+                "description": "Comma-separated fields to return (e.g., 'symbol,name,entrezgene,ensembl.gene,refseq,pathway')",
+                "default": "symbol,name,entrezgene,ensembl.gene,taxid",
+            },
+            {
+                "name": "species",
+                "type": "str",
+                "description": "Species to search (e.g., 'human', 'mouse', or taxonomy ID '9606')",
+                "default": "human",
+            },
+            {
+                "name": "scopes",
+                "type": "str",
+                "description": "Fields to search when using symbols (e.g., 'symbol,alias,name')",
+                "default": "symbol,alias,name",
+            },
+        ],
+        "required_parameters": [],
+    },
 ]

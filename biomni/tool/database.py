@@ -4972,3 +4972,127 @@ def query_encode(
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
+
+
+def query_mygene(
+    gene_ids: str | list[str] | None = None,
+    symbols: str | list[str] | None = None,
+    fields: str = "symbol,name,entrezgene,ensembl.gene,taxid",
+    species: str = "human",
+    scopes: str = "symbol,alias,name",
+) -> dict:
+    """Query the MyGene.info database for gene annotations.
+
+    This function uses the biothings_client package to query MyGene.info,
+    supporting both single and batch queries for gene IDs or symbols.
+
+    Parameters
+    ----------
+    gene_ids : str or list of str, optional
+        Entrez gene ID(s) to query. Can be a single ID (e.g., "1017") or
+        a list of IDs for batch queries (e.g., ["1017", "1018", "1019"]).
+        Use this to retrieve annotations for known gene IDs.
+    symbols : str or list of str, optional
+        Gene symbol(s) to search for. Can be a single symbol (e.g., "CDK2")
+        or a list for batch queries (e.g., ["CDK2", "BRCA1", "TP53"]).
+        Use this to find gene IDs from symbols or aliases.
+    fields : str
+        Comma-separated fields to return. Common fields include:
+        - symbol: Official gene symbol
+        - name: Full gene name
+        - entrezgene: NCBI Entrez Gene ID
+        - ensembl.gene: Ensembl gene ID
+        - refseq: RefSeq IDs (genomic, protein, rna)
+        - uniprot: UniProt accession
+        - summary: Gene function summary
+        - pathway: Pathway annotations (KEGG, Reactome)
+        - go: Gene Ontology terms
+        - taxid: Taxonomy ID
+        Default: "symbol,name,entrezgene,ensembl.gene,taxid"
+    species : str
+        Species to search. Can be common name (e.g., "human", "mouse") or
+        NCBI taxonomy ID (e.g., "9606" for human). Default: "human"
+    scopes : str
+        Fields to search when using symbols parameter. Comma-separated list.
+        Common scopes: symbol, alias, name, entrezgene, ensembl.gene.
+        Default: "symbol,alias,name"
+
+    Returns
+    -------
+    dict
+        Dictionary containing query results:
+        - For single gene_id: {"success": True, "result": {gene_data}}
+        - For batch gene_ids: {"success": True, "results": [{gene1}, {gene2}, ...]}
+        - For symbol search: {"success": True, "results": [{match1}, ...], "total": N}
+        - On error: {"error": "error message"}
+
+    Examples
+    --------
+    Single gene lookup by Entrez ID:
+        >>> query_mygene(gene_ids="1017")
+        {"success": True, "result": {"symbol": "CDK2", "name": "cyclin dependent kinase 2", ...}}
+
+    Batch gene lookup:
+        >>> query_mygene(gene_ids=["1017", "1018", "595"])
+        {"success": True, "results": [{"symbol": "CDK2", ...}, {"symbol": "CDK3", ...}, ...]}
+
+    Search by gene symbol:
+        >>> query_mygene(symbols="BRCA1")
+        {"success": True, "results": [{"entrezgene": 672, "symbol": "BRCA1", ...}], "total": 1}
+
+    Batch symbol search:
+        >>> query_mygene(symbols=["CDK2", "BRCA1", "TP53"], fields="symbol,entrezgene,summary")
+        {"success": True, "results": [...]}
+
+    Get specific fields:
+        >>> query_mygene(gene_ids="1017", fields="symbol,name,refseq,pathway.kegg")
+
+    Notes
+    -----
+    For large batch queries (>1000 genes), the biothings_client automatically
+    handles chunking and rate limiting. Batch queries are more efficient than
+    making multiple single queries.
+
+    See https://docs.mygene.info/en/latest/doc/data.html for all available fields.
+
+    """
+    from biothings_client import get_client
+
+    if not gene_ids and not symbols:
+        return {"error": "Either gene_ids or symbols must be provided"}
+
+    try:
+        mg = get_client("gene")
+
+        # Query by gene ID(s)
+        if gene_ids:
+            if isinstance(gene_ids, list):
+                # Batch query using getgenes()
+                results = mg.getgenes(gene_ids, fields=fields, species=species)
+                return {"success": True, "results": results}
+            else:
+                # Single gene lookup using getgene()
+                result = mg.getgene(gene_ids, fields=fields)
+                if result is None:
+                    return {"error": f"Gene ID '{gene_ids}' not found"}
+                return {"success": True, "result": result}
+
+        # Search by symbol(s)
+        if symbols:
+            if isinstance(symbols, list):
+                # Batch query using querymany()
+                results = mg.querymany(
+                    symbols, scopes=scopes, fields=fields, species=species
+                )
+                return {"success": True, "results": results}
+            else:
+                # Single symbol search using query()
+                results = mg.query(symbols, scopes=scopes, fields=fields, species=species)
+                return {
+                    "success": True,
+                    "results": results.get("hits", []),
+                    "total": results.get("total", 0),
+                }
+
+    except Exception as e:
+        return {"error": f"MyGene.info query failed: {str(e)}"}
