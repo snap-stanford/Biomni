@@ -729,46 +729,99 @@ description = [
         ],
     },
     {
-        "description": "Query the MyGene.info database for gene annotations. Supports querying by "
-        "Entrez gene IDs to get annotations, or by gene symbols to find gene IDs. "
-        "Supports both single queries and efficient batch queries for multiple genes.",
-        "name": "query_mygene",
+        "name": "mybiothings",
+        "description": (
+            "BioThings.info tool (via biothings_client) for one of: "
+            "MyGene.info (gene), MyChem.info (chem), MyDisease.info (disease), "
+            "MyTaxon.info (taxon), MyVariant.info (variant). "
+            "Select behavior with `operation`: "
+            "(1) operation='query' supports exactly one input mode per call: "
+            "`ids` (direct ID lookup; str or list), `queries` (term search; str or list), "
+            "or `input_vcf_file_path` (variant-only; convert VCF to HGVS). "
+            "(2) operation='fields' returns available field names, optionally filtered by `search_term` "
+            "(str or list of str; lists execute multiple searches and return a dict keyed by term). "
+            "(3) operation='metadata' returns endpoint metadata. "
+            "Optional endpoint parameters can be provided via `params` (dict) and/or as additional "
+            "top-level named arguments; they are forwarded to biothings_client methods when supported. "
+            "Unknown/unsupported parameters may raise an error from the client or API."
+        ),
+        "required_parameters": [
+            {
+                "name": "biothings_type",
+                "type": "str",
+                "description": "Required. One of ['gene', 'chem', 'disease', 'taxon', 'variant'].",
+            },
+        ],
         "optional_parameters": [
             {
-                "name": "gene_ids",
-                "type": "List[str]",
-                "description": "Entrez gene ID(s) to query. For a single gene, pass a string (e.g., '1017'). "
-                "For multiple genes, pass a list of strings (e.g., ['1017', '695', '3702']). "
-                "Do NOT join IDs with commas - use a Python list for batch queries.",
+                "name": "operation",
+                "type": "str",
+                "description": "One of: 'query', 'fields', 'metadata'. Default: 'query'.",
+                "default": "query",
+            },
+            {
+                "name": "search_term",
+                "type": "str | List[str]",
+                "description": (
+                    "Fields-only. Field search term(s). If a list is provided, multiple searches are run "
+                    "and results are returned as a dict keyed by each term. If omitted/None, returns all fields."
+                ),
                 "default": None,
             },
             {
-                "name": "symbols",
-                "type": "List[str]",
-                "description": "Gene symbol(s) to search. For a single gene, pass a string (e.g., 'CDK2'). "
-                "For multiple genes, pass a list of strings (e.g., ['CDK2', 'BRCA1', 'TP53']). "
-                "Do NOT join symbols with commas - use a Python list for batch queries.",
+                "name": "ids",
+                "type": "str | List[str]",
+                "description": (
+                    "Query-only. Mutually exclusive with `queries` and `input_vcf_file_path`. "
+                    "Identifier(s) for direct lookup."
+                ),
+                "default": None,
+            },
+            {
+                "name": "queries",
+                "type": "str | List[str]",
+                "description": (
+                    "Query-only. Mutually exclusive with `ids` and `input_vcf_file_path`. "
+                    "Search term(s) for query/querymany."
+                ),
+                "default": None,
+            },
+            {
+                "name": "input_vcf_file_path",
+                "type": "str",
+                "description": (
+                    "Query-only, variant-only. Mutually exclusive with `ids` and `queries`. "
+                    "Path to a single VCF file to convert variants to genomic HGVS IDs."
+                ),
                 "default": None,
             },
             {
                 "name": "fields",
                 "type": "str",
-                "description": "Comma-separated fields to return (e.g., 'symbol,name,entrezgene,ensembl.gene,refseq,pathway')",
-                "default": "symbol,name,entrezgene,ensembl.gene,taxid",
+                "description": (
+                    "Query-only. Comma-separated fields to return. If omitted/None, endpoint defaults apply."
+                ),
+                "default": None,
             },
             {
-                "name": "species",
-                "type": "str",
-                "description": "Species to search (e.g., 'human', 'mouse', or taxonomy ID '9606')",
-                "default": "human",
+                "name": "normalize_hits",
+                "type": "bool",
+                "description": (
+                    "Query-only. If True (default) and a single-query response includes {'hits': ...}, "
+                    "the tool returns result=hits and meta.total. If False, returns the raw payload."
+                ),
+                "default": True,
             },
             {
-                "name": "scopes",
-                "type": "str",
-                "description": "Fields to search when using symbols (e.g., 'symbol,alias,name')",
-                "default": "symbol,alias,name",
+                "name": "params",
+                "type": "dict",
+                "description": (
+                    "Endpoint parameters forwarded to the underlying biothings_client method "
+                    "(e.g., species, scopes, size, from, sort, assembly, verbose). "
+                    "Unknown/unsupported parameters may raise an error."
+                ),
+                "default": None,
             },
         ],
-        "required_parameters": [],
-    },
+    }
 ]

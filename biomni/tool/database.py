@@ -4974,125 +4974,275 @@ def query_encode(
     return api_result
 
 
-def query_mygene(
-    gene_ids: str | list[str] | None = None,
-    symbols: str | list[str] | None = None,
-    fields: str = "symbol,name,entrezgene,ensembl.gene,taxid",
-    species: str = "human",
-    scopes: str = "symbol,alias,name",
+def mybiothings(
+    biothings_type: str,
+    *,
+    operation: str = "query",  # "query" | "fields" | "metadata"
+    # fields operation
+    search_term=None,  # str | Sequence[str] | None
+    # query operation (exactly one of these)
+    ids=None,  # str | Sequence[str] | None
+    queries=None,  # str | Sequence[str] | None
+    input_vcf_file_path: str | None = None,  # variant-only
+    # query operation options
+    fields: str | None = None,
+    normalize_hits: bool = True,
+    # endpoint parameters
+    params: dict | None = None,
+    **kwargs,
 ) -> dict:
-    """Query the MyGene.info database for gene annotations.
-
-    This function uses the biothings_client package to query MyGene.info,
-    supporting both single and batch queries for gene IDs or symbols.
-
-    Parameters
-    ----------
-    gene_ids : str or list of str, optional
-        Entrez gene ID(s) to query. Can be a single ID (e.g., "1017") or
-        a list of IDs for batch queries (e.g., ["1017", "1018", "1019"]).
-        Use this to retrieve annotations for known gene IDs.
-    symbols : str or list of str, optional
-        Gene symbol(s) to search for. Can be a single symbol (e.g., "CDK2")
-        or a list for batch queries (e.g., ["CDK2", "BRCA1", "TP53"]).
-        Use this to find gene IDs from symbols or aliases.
-    fields : str
-        Comma-separated fields to return. Common fields include:
-        - symbol: Official gene symbol
-        - name: Full gene name
-        - entrezgene: NCBI Entrez Gene ID
-        - ensembl.gene: Ensembl gene ID
-        - refseq: RefSeq IDs (genomic, protein, rna)
-        - uniprot: UniProt accession
-        - summary: Gene function summary
-        - pathway: Pathway annotations (KEGG, Reactome)
-        - go: Gene Ontology terms
-        - taxid: Taxonomy ID
-        Default: "symbol,name,entrezgene,ensembl.gene,taxid"
-    species : str
-        Species to search. Can be common name (e.g., "human", "mouse") or
-        NCBI taxonomy ID (e.g., "9606" for human). Default: "human"
-    scopes : str
-        Fields to search when using symbols parameter. Comma-separated list.
-        Common scopes: symbol, alias, name, entrezgene, ensembl.gene.
-        Default: "symbol,alias,name"
-
-    Returns
-    -------
-    dict
-        Dictionary containing query results:
-        - For single gene_id: {"success": True, "result": {gene_data}}
-        - For batch gene_ids: {"success": True, "results": [{gene1}, {gene2}, ...]}
-        - For symbol search: {"success": True, "results": [{match1}, ...], "total": N}
-        - On error: {"error": "error message"}
-
-    Examples
-    --------
-    Single gene lookup by Entrez ID:
-        >>> query_mygene(gene_ids="1017")
-        {"success": True, "result": {"symbol": "CDK2", "name": "cyclin dependent kinase 2", ...}}
-
-    Batch gene lookup:
-        >>> query_mygene(gene_ids=["1017", "1018", "595"])
-        {"success": True, "results": [{"symbol": "CDK2", ...}, {"symbol": "CDK3", ...}, ...]}
-
-    Search by gene symbol:
-        >>> query_mygene(symbols="BRCA1")
-        {"success": True, "results": [{"entrezgene": 672, "symbol": "BRCA1", ...}], "total": 1}
-
-    Batch symbol search:
-        >>> query_mygene(symbols=["CDK2", "BRCA1", "TP53"], fields="symbol,entrezgene,summary")
-        {"success": True, "results": [...]}
-
-    Get specific fields:
-        >>> query_mygene(gene_ids="1017", fields="symbol,name,refseq,pathway.kegg")
-
-    Notes
-    -----
-    For large batch queries (>1000 genes), the biothings_client automatically
-    handles chunking and rate limiting. Batch queries are more efficient than
-    making multiple single queries.
-
-    See https://docs.mygene.info/en/latest/doc/data.html for all available fields.
-
     """
-    from biothings_client import get_client
+    BioThings.info wrapper (via biothings_client) supporting three operations:
 
-    if not gene_ids and not symbols:
-        return {"error": "Either gene_ids or symbols must be provided"}
+    1) operation="query"
+       Supports exactly ONE input mode per call:
+         - ids: direct ID lookup (str or sequence of str)
+         - queries: term search (str or sequence of str)
+         - input_vcf_file_path: VCF->HGVS conversion (variant only)
+       Optional:
+         - fields: comma-separated fields to return (endpoint-dependent)
+         - normalize_hits: if True and a single-query response includes {"hits": ...},
+           returns result=hits and meta.total; if False, returns raw payload.
+
+    2) operation="fields"
+       Returns available field names. Optional:
+         - search_term: str to filter fields, or a sequence of str to run multiple searches.
+           If sequence, result is a dict keyed by each term.
+       Endpoint params (e.g., MyVariant assembly/verbose) can be passed via `params` or **kwargs.
+
+    3) operation="metadata"
+       Returns endpoint metadata. Endpoint params can be passed via `params` or **kwargs.
+
+    Endpoint parameters:
+      - Provide endpoint-specific parameters via `params` (dict) and/or **kwargs.
+      - A nested dict passed as kwargs={"...": ...} is treated as a deprecated alias and unpacked.
+      - Parameters are forwarded to the underlying biothings_client method when supported.
+        Unknown/unsupported parameters may raise an error from the client/API.
+
+    Returns:
+      {"success": True, "type": ..., "operation": ..., "mode": ..., "result": ... , "meta": ...?}
+      or {"error": "..."} on failure.
+    """
+    from typing import Any, Sequence, Literal
+    import inspect
+
+    BioThingsType = Literal["gene", "chem", "disease", "taxon", "variant"]
+
+    _ENDPOINTS: dict[str, dict[str, str]] = {
+        "gene": {"get_one": "getgene", "get_many": "getgenes", "query_one": "query", "query_many": "querymany"},
+        "chem": {"get_one": "getchem", "get_many": "getchems", "query_one": "query", "query_many": "querymany"},
+        "disease": {
+            "get_one": "getdisease",
+            "get_many": "getdiseases",
+            "query_one": "query",
+            "query_many": "querymany",
+        },
+        "taxon": {"get_one": "gettaxon", "get_many": "gettaxa", "query_one": "query", "query_many": "querymany"},
+        "variant": {
+            "get_one": "getvariant",
+            "get_many": "getvariants",
+            "query_one": "query",
+            "query_many": "querymany",
+            "vcf": "get_hgvs_from_vcf",
+        },
+    }
+
+    def _is_many(x: Any) -> bool:
+        return isinstance(x, (list, tuple, set))
+
+    def _as_list(x: str | Sequence[str]) -> list[str]:
+        if isinstance(x, str):
+            return [x]
+        return list(x)
+
+    def _filter_kwargs(fn: Any, kw: dict[str, Any]) -> dict[str, Any]:
+        """
+        Filters kw to those accepted by fn, unless fn accepts **kwargs
+        or signature introspection is not possible.
+        """
+        try:
+            sig = inspect.signature(fn)
+        except (TypeError, ValueError):
+            return kw
+
+        params_vals = sig.parameters.values()
+        if any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params_vals):
+            return kw
+
+        allowed = {p.name for p in params_vals}
+        return {k: v for k, v in kw.items() if k in allowed}
+
+    def _merge_endpoint_params(params: dict | None, kwargs: dict[str, Any]) -> dict[str, Any]:
+        """
+        Merge endpoint parameters in a tool-friendly way:
+          - `params` (dict) is preferred
+          - a nested dict passed as kwargs={"...": ...} is accepted as a deprecated alias and unpacked
+          - direct keyword args override both
+        """
+        merged: dict[str, Any] = {}
+        if isinstance(params, dict):
+            merged.update(params)
+
+        nested = kwargs.get("kwargs")
+        if isinstance(nested, dict):
+            kwargs.pop("kwargs", None)
+            merged.update(nested)
+
+        merged.update(kwargs)
+        return merged
+
+    # Validate biothings_type early
+    if biothings_type not in _ENDPOINTS:
+        return {"error": f"Unsupported biothings_type '{biothings_type}'. Supported: {sorted(_ENDPOINTS)}"}
+
+    op = (operation or "").strip().lower()
+    if op not in {"query", "fields", "metadata"}:
+        return {"error": "Unsupported operation. Use one of: 'query', 'fields', 'metadata'."}
 
     try:
-        mg = get_client("gene")
+        from biothings_client import get_client
 
-        # Query by gene ID(s)
-        if gene_ids:
-            if isinstance(gene_ids, list):
-                # Batch query using getgenes()
-                results = mg.getgenes(gene_ids, fields=fields, species=species)
-                return {"success": True, "results": results}
+        client = get_client(biothings_type)
+        ep = _ENDPOINTS[biothings_type]
+
+        extra = _merge_endpoint_params(params, dict(kwargs))
+
+        # -------------------------
+        # operation: fields
+        # -------------------------
+        if op == "fields":
+            fn = getattr(client, "get_fields", None)
+            if fn is None:
+                return {"error": f"My{biothings_type}.info does not support fields endpoint via client.get_fields()."}
+
+            call_kwargs = _filter_kwargs(fn, dict(extra))
+
+            # Multiple search terms -> run multiple calls
+            if search_term is not None and not isinstance(search_term, str):
+                try:
+                    terms = list(search_term)  # type: ignore[arg-type]
+                except TypeError:
+                    return {"error": "search_term must be a string, a sequence of strings, or None."}
+
+                payload: dict[str, Any] = {}
+                for term in terms:
+                    r = fn(search_term=term, **call_kwargs)
+                    if r is None:
+                        payload[str(term)] = {"error": f"Search term '{term}' not found"}
+                    else:
+                        payload[str(term)] = r
+            elif search_term:
+                payload = fn(search_term=search_term, **call_kwargs)
+                if payload is None:
+                    return {"error": f"Search term '{search_term}' not found"}
             else:
-                # Single gene lookup using getgene()
-                result = mg.getgene(gene_ids, fields=fields)
-                if result is None:
-                    return {"error": f"Gene ID '{gene_ids}' not found"}
-                return {"success": True, "result": result}
+                payload = fn(**call_kwargs)
+                if payload is None:
+                    return {"error": f"My{biothings_type}.info fields query failed"}
 
-        # Search by symbol(s)
-        if symbols:
-            if isinstance(symbols, list):
-                # Batch query using querymany()
-                results = mg.querymany(
-                    symbols, scopes=scopes, fields=fields, species=species
+            return {"success": True, "type": biothings_type, "operation": "fields", "result": payload}
+
+        # -------------------------
+        # operation: metadata
+        # -------------------------
+        if op == "metadata":
+            fn = getattr(client, "metadata", None)
+            if fn is None:
+                return {"error": f"My{biothings_type}.info does not support metadata endpoint via client.metadata()."}
+
+            call_kwargs = _filter_kwargs(fn, dict(extra))
+            payload = fn(**call_kwargs)
+            if payload is None:
+                return {"error": "Empty metadata response"}
+            return {"success": True, "type": biothings_type, "operation": "metadata", "result": payload}
+
+        # -------------------------
+        # operation: query
+        # -------------------------
+        provided = {
+            "ids": bool(ids),
+            "queries": bool(queries),
+            "input_vcf_file_path": bool(input_vcf_file_path),
+        }
+        if sum(provided.values()) != 1:
+            got = ", ".join(k for k, v in provided.items() if v) or "none"
+            return {
+                "error": (
+                    "Provide exactly one of: ids, queries, input_vcf_file_path "
+                    f"(got {got})."
                 )
-                return {"success": True, "results": results}
-            else:
-                # Single symbol search using query()
-                results = mg.query(symbols, scopes=scopes, fields=fields, species=species)
-                return {
-                    "success": True,
-                    "results": results.get("hits", []),
-                    "total": results.get("total", 0),
-                }
+            }
+
+        if input_vcf_file_path and biothings_type != "variant":
+            return {"error": "input_vcf_file_path is only supported when biothings_type='variant'."}
+
+        # Variant: VCF mode
+        if input_vcf_file_path:
+            fn = getattr(client, ep["vcf"])
+            call_kwargs = _filter_kwargs(fn, {"fields": fields, **extra})
+
+            payload = list(fn(input_vcf_file_path, **call_kwargs))
+            if payload is None:
+                return {"error": f"VCF query returned no result for '{input_vcf_file_path}'."}
+
+            return {
+                "success": True,
+                "type": biothings_type,
+                "operation": "query",
+                "mode": "vcf",
+                "result": payload,
+            }
+
+        # Get mode (by ids)
+        if ids:
+            many = _is_many(ids)
+            fn_name = ep["get_many"] if many else ep["get_one"]
+            fn = getattr(client, fn_name)
+
+            call_kwargs = _filter_kwargs(fn, {"fields": fields, **extra})
+            payload = fn(_as_list(ids) if many else ids, **call_kwargs)
+
+            if payload is None:
+                return {"error": f"{biothings_type} get returned no result for ids={ids!r}."}
+
+            return {
+                "success": True,
+                "type": biothings_type,
+                "operation": "query",
+                "mode": "get",
+                "result": payload,
+            }
+
+        # Query mode (by queries)
+        many = _is_many(queries)
+        fn_name = ep["query_many"] if many else ep["query_one"]
+        fn = getattr(client, fn_name)
+
+        call_kwargs = _filter_kwargs(fn, {"fields": fields, **extra})
+        payload = fn(_as_list(queries) if many else queries, **call_kwargs)
+
+        if payload is None:
+            return {"error": f"{biothings_type} query returned no result for queries={queries!r}."}
+
+        out: dict[str, Any] = {
+            "success": True,
+            "type": biothings_type,
+            "operation": "query",
+            "mode": "query",
+            "result": payload,
+        }
+
+        # Optional normalization for single-query responses that include hits/total
+        if normalize_hits and isinstance(payload, dict) and "hits" in payload:
+            out["meta"] = {"total": payload.get("total", 0)}
+            out["result"] = payload.get("hits", [])
+
+        return out
 
     except Exception as e:
-        return {"error": f"MyGene.info query failed: {str(e)}"}
+        # Keep error messages aligned to operation
+        if op == "fields":
+            return {"error": f"My{biothings_type}.info fields query failed: {str(e)}"}
+        if op == "metadata":
+            return {"error": f"My{biothings_type}.info metadata query failed: {str(e)}"}
+        return {"error": f"My{biothings_type}.info query failed: {e}"}

@@ -118,19 +118,20 @@ def get_llm(
                         if hasattr(self, "_use_responses_api") and self._use_responses_api(payload):  # type: ignore[attr-defined]
                             payload.pop("stop", None)
                             # Also drop temperature for gpt-5 models as they only support default value
-                            payload.pop("temperature", None)
+                            # payload.pop("temperature", None)
                     except Exception:
                         # Be conservative: if anything goes wrong, still remove `stop` and `temperature`.
                         payload.pop("stop", None)
-                        payload.pop("temperature", None)
+                        # payload.pop("temperature", None)
                     return payload
 
             return _ChatOpenAIResponsesNoStop(
                 model=model,
-                temperature=1,  # Set to default value for gpt-5, will be removed in payload
+                temperature=0.4,  # Set to default value for gpt-5, will be removed in payload
                 stop_sequences=stop_sequences,
                 use_responses_api=True,
                 output_version="v0",
+                reasoning={"effort": "high", "summary": None}
             )
         else:
             return ChatOpenAI(

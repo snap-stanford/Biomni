@@ -232,3 +232,6 @@ data/ddinter_raw/
 # Sphinx build
 /docs/build/
 /docs/source/api/
+
+tutorials/biomni_101.ipynb
+biomni/llm.py
