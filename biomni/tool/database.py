@@ -4974,7 +4974,7 @@ def query_encode(
     return api_result
 
 
-def mybiothings(
+def query_biothings(
     biothings_type: str,
     *,
     operation: str = "query",  # "query" | "fields" | "metadata"

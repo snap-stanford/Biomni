@@ -729,7 +729,7 @@ description = [
         ],
     },
     {
-        "name": "mybiothings",
+        "name": "query_biothings",
         "description": (
             "BioThings.info tool (via biothings_client) for one of: "
             "MyGene.info (gene), MyChem.info (chem), MyDisease.info (disease), "
