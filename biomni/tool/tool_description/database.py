@@ -728,4 +728,66 @@ description = [
             },
         ],
     },
+    {
+        "name": "query_biothings",
+        "description": "Query BioThings.info endpoints (MyVariant.info, MyChem.info, MyDisease.info, MyGene.info, MyTaxon.info) to retrieve biomedical annotations. Supports three operations: query (search by IDs, free-text queries, or VCF→HGVS conversion), fields (list available field names), and metadata (retrieve endpoint metadata).",
+        "required_parameters": [
+            {
+                "name": "biothings_type",
+                "type": "str",
+                "description": 'BioThings endpoint type (e.g., "gene", "chem", "disease", "taxon", "variant")',
+                "default": None,
+            }
+        ],
+        "optional_parameters": [
+            {
+                "name": "operation",
+                "type": "str",
+                "description": 'One of "query", "fields", or "metadata"',
+                "default": "query",
+            },
+            {
+                "name": "search_term",
+                "type": "str",
+                "description": "Field-name filter for the fields operation",
+                "default": None,
+            },
+            {
+                "name": "ids",
+                "type": "str",
+                "description": "Direct ID lookup mode for query operation. Mutually exclusive with queries and input_vcf_file_path",
+                "default": None,
+            },
+            {
+                "name": "queries",
+                "type": "str",
+                "description": "Term search mode for query operation. Mutually exclusive with ids and input_vcf_file_path",
+                "default": None,
+            },
+            {
+                "name": "input_vcf_file_path",
+                "type": "str",
+                "description": "Path to VCF file for variant-to-HGVS conversion (variant endpoints only). Mutually exclusive with ids and queries",
+                "default": None,
+            },
+            {
+                "name": "fields",
+                "type": "str",
+                "description": "Comma-separated list of fields to return for query operation",
+                "default": None,
+            },
+            {
+                "name": "normalize_hits",
+                "type": "bool",
+                "description": 'If True, normalize single-query responses with "hits" key to return hits and meta.total',
+                "default": True,
+            },
+            {
+                "name": "params",
+                "type": "dict",
+                "description": "Endpoint-specific parameters forwarded to the underlying client method",
+                "default": None,
+            },
+        ],
+    },
 ]

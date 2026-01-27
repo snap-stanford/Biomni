@@ -4972,3 +4972,278 @@ def query_encode(
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
+
+
+def query_biothings(
+    biothings_type: str,
+    *,
+    operation: str = "query",
+    search_term=None,
+    ids=None,
+    queries=None,
+    input_vcf_file_path: str | None = None,
+    fields: str | None = None,
+    normalize_hits: bool = True,
+    params: dict | None = None,
+    **kwargs,
+) -> dict:
+    """Query BioThings.info endpoints (via `biothings_client`) to retrieve biomedical annotations.
+    This wrapper supports three operations:
+    - query: search by IDs, free-text queries, or VCF→HGVS conversion (variant endpoints only)
+    - fields: list and optionally filter available field names for an endpoint
+    - metadata: retrieve endpoint metadata
+
+    Parameters
+    ----------
+    operation (str, required): One of {"query", "fields", "metadata"}
+    endpoint (str, required): BioThings endpoint name supported by `biothings_client` (e.g., MyGene, MyVariant)
+    ids (str or Sequence[str], optional): Direct ID lookup mode (query operation only). Mutually exclusive with
+        `queries` and `input_vcf_file_path`.
+    queries (str or Sequence[str], optional): Term search mode (query operation only). Mutually exclusive with
+        `ids` and `input_vcf_file_path`.
+    input_vcf_file_path (str, optional): Path to a VCF file to convert variants to HGVS and query annotations
+        (query operation only; variant endpoints only). Mutually exclusive with `ids` and `queries`.
+    fields (str, optional): Comma-separated list of fields to return (query operation only; endpoint-dependent).
+    normalize_hits (bool): If True and a single-query response contains a top-level "hits" key, return
+        result=hits and meta.total; if False, return the raw client payload.
+    search_term (str or Sequence[str], optional): Field-name filter for the fields operation. If a sequence is
+        provided, results are returned as a dict keyed by each term.
+    params (dict, optional): Endpoint-specific parameters forwarded to the underlying client method.
+    **kwargs: Additional endpoint parameters forwarded to the underlying client method. If a nested dict is passed
+        via kwargs={"...": ...}, it is treated as a deprecated alias and unpacked.
+
+    Returns
+    -------
+    dict: On success, returns a standardized payload:
+        {"success": True, "type": ..., "operation": ..., "mode": ..., "result": ..., "meta": ...?}
+        On failure, returns {"error": "..."} (and may include additional context when available).
+
+    Examples
+    --------
+    - Query by ID(s): biothings_wrapper(operation="query", endpoint="mygene", ids=["1017", "1018"], fields="symbol,name")
+    - Query by term(s): biothings_wrapper(operation="query", endpoint="mygene", queries="TP53", fields="symbol,summary")
+    - VCF→HGVS query: biothings_wrapper(operation="query", endpoint="myvariant", input_vcf_file_path="variants.vcf")
+    - List fields: biothings_wrapper(operation="fields", endpoint="myvariant")
+    - Filter fields: biothings_wrapper(operation="fields", endpoint="myvariant", search_term="clinvar")
+    - Get metadata: biothings_wrapper(operation="metadata", endpoint="mygene")
+    """
+
+    import inspect
+    from collections.abc import Sequence
+    from typing import Any, Literal
+
+    Literal["gene", "chem", "disease", "taxon", "variant"]
+
+    _ENDPOINTS: dict[str, dict[str, str]] = {
+        "gene": {"get_one": "getgene", "get_many": "getgenes", "query_one": "query", "query_many": "querymany"},
+        "chem": {"get_one": "getchem", "get_many": "getchems", "query_one": "query", "query_many": "querymany"},
+        "disease": {
+            "get_one": "getdisease",
+            "get_many": "getdiseases",
+            "query_one": "query",
+            "query_many": "querymany",
+        },
+        "taxon": {"get_one": "gettaxon", "get_many": "gettaxa", "query_one": "query", "query_many": "querymany"},
+        "variant": {
+            "get_one": "getvariant",
+            "get_many": "getvariants",
+            "query_one": "query",
+            "query_many": "querymany",
+            "vcf": "get_hgvs_from_vcf",
+        },
+    }
+
+    def _is_many(x: Any) -> bool:
+        return isinstance(x, (list, tuple, set))
+
+    def _as_list(x: str | Sequence[str]) -> list[str]:
+        if isinstance(x, str):
+            return [x]
+        return list(x)
+
+    def _filter_kwargs(fn: Any, kw: dict[str, Any]) -> dict[str, Any]:
+        """
+        Filters kw to those accepted by fn, unless fn accepts **kwargs
+        or signature introspection is not possible.
+        """
+        try:
+            sig = inspect.signature(fn)
+        except (TypeError, ValueError):
+            return kw
+
+        params_vals = sig.parameters.values()
+        if any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params_vals):
+            return kw
+
+        allowed = {p.name for p in params_vals}
+        return {k: v for k, v in kw.items() if k in allowed}
+
+    def _merge_endpoint_params(params: dict | None, kwargs: dict[str, Any]) -> dict[str, Any]:
+        """
+        Merge endpoint parameters in a tool-friendly way:
+          - `params` (dict) is preferred
+          - a nested dict passed as kwargs={"...": ...} is accepted as a deprecated alias and unpacked
+          - direct keyword args override both
+        """
+        merged: dict[str, Any] = {}
+        if isinstance(params, dict):
+            merged.update(params)
+
+        nested = kwargs.get("kwargs")
+        if isinstance(nested, dict):
+            kwargs.pop("kwargs", None)
+            merged.update(nested)
+
+        merged.update(kwargs)
+        return merged
+
+    # Validate biothings_type early
+    if biothings_type not in _ENDPOINTS:
+        return {"error": f"Unsupported biothings_type '{biothings_type}'. Supported: {sorted(_ENDPOINTS)}"}
+
+    op = (operation or "").strip().lower()
+    if op not in {"query", "fields", "metadata"}:
+        return {"error": "Unsupported operation. Use one of: 'query', 'fields', 'metadata'."}
+
+    try:
+        from biothings_client import get_client
+
+        client = get_client(biothings_type)
+        ep = _ENDPOINTS[biothings_type]
+
+        extra = _merge_endpoint_params(params, dict(kwargs))
+
+        # -------------------------
+        # operation: fields
+        # -------------------------
+        if op == "fields":
+            fn = getattr(client, "get_fields", None)
+            if fn is None:
+                return {"error": f"My{biothings_type}.info does not support fields endpoint via client.get_fields()."}
+
+            call_kwargs = _filter_kwargs(fn, dict(extra))
+
+            # Multiple search terms -> run multiple calls
+            if search_term is not None and not isinstance(search_term, str):
+                try:
+                    terms = list(search_term)  # type: ignore[arg-type]
+                except TypeError:
+                    return {"error": "search_term must be a string, a sequence of strings, or None."}
+
+                payload: dict[str, Any] = {}
+                for term in terms:
+                    r = fn(search_term=term, **call_kwargs)
+                    if r is None:
+                        payload[str(term)] = {"error": f"Search term '{term}' not found"}
+                    else:
+                        payload[str(term)] = r
+            elif search_term:
+                payload = fn(search_term=search_term, **call_kwargs)
+                if payload is None:
+                    return {"error": f"Search term '{search_term}' not found"}
+            else:
+                payload = fn(**call_kwargs)
+                if payload is None:
+                    return {"error": f"My{biothings_type}.info fields query failed"}
+
+            return {"success": True, "type": biothings_type, "operation": "fields", "result": payload}
+
+        # -------------------------
+        # operation: metadata
+        # -------------------------
+        if op == "metadata":
+            fn = getattr(client, "metadata", None)
+            if fn is None:
+                return {"error": f"My{biothings_type}.info does not support metadata endpoint via client.metadata()."}
+
+            call_kwargs = _filter_kwargs(fn, dict(extra))
+            payload = fn(**call_kwargs)
+            if payload is None:
+                return {"error": "Empty metadata response"}
+            return {"success": True, "type": biothings_type, "operation": "metadata", "result": payload}
+
+        # -------------------------
+        # operation: query
+        # -------------------------
+        provided = {
+            "ids": bool(ids),
+            "queries": bool(queries),
+            "input_vcf_file_path": bool(input_vcf_file_path),
+        }
+        if sum(provided.values()) != 1:
+            got = ", ".join(k for k, v in provided.items() if v) or "none"
+            return {"error": (f"Provide exactly one of: ids, queries, input_vcf_file_path (got {got}).")}
+
+        if input_vcf_file_path and biothings_type != "variant":
+            return {"error": "input_vcf_file_path is only supported when biothings_type='variant'."}
+
+        # Variant: VCF mode
+        if input_vcf_file_path:
+            fn = getattr(client, ep["vcf"])
+            call_kwargs = _filter_kwargs(fn, {"fields": fields, **extra})
+
+            payload = list(fn(input_vcf_file_path, **call_kwargs))
+            if payload is None:
+                return {"error": f"VCF query returned no result for '{input_vcf_file_path}'."}
+
+            return {
+                "success": True,
+                "type": biothings_type,
+                "operation": "query",
+                "mode": "vcf",
+                "result": payload,
+            }
+
+        # Get mode (by ids)
+        if ids:
+            many = _is_many(ids)
+            fn_name = ep["get_many"] if many else ep["get_one"]
+            fn = getattr(client, fn_name)
+
+            call_kwargs = _filter_kwargs(fn, {"fields": fields, **extra})
+            payload = fn(_as_list(ids) if many else ids, **call_kwargs)
+
+            if payload is None:
+                return {"error": f"{biothings_type} get returned no result for ids={ids!r}."}
+
+            return {
+                "success": True,
+                "type": biothings_type,
+                "operation": "query",
+                "mode": "get",
+                "result": payload,
+            }
+
+        # Query mode (by queries)
+        many = _is_many(queries)
+        fn_name = ep["query_many"] if many else ep["query_one"]
+        fn = getattr(client, fn_name)
+
+        call_kwargs = _filter_kwargs(fn, {"fields": fields, **extra})
+        payload = fn(_as_list(queries) if many else queries, **call_kwargs)
+
+        if payload is None:
+            return {"error": f"{biothings_type} query returned no result for queries={queries!r}."}
+
+        out: dict[str, Any] = {
+            "success": True,
+            "type": biothings_type,
+            "operation": "query",
+            "mode": "query",
+            "result": payload,
+        }
+
+        # Optional normalization for single-query responses that include hits/total
+        if normalize_hits and isinstance(payload, dict) and "hits" in payload:
+            out["meta"] = {"total": payload.get("total", 0)}
+            out["result"] = payload.get("hits", [])
+
+        return out
+
+    except Exception as e:
+        # Keep error messages aligned to operation
+        if op == "fields":
+            return {"error": f"My{biothings_type}.info fields query failed: {str(e)}"}
+        if op == "metadata":
+            return {"error": f"My{biothings_type}.info metadata query failed: {str(e)}"}
+        return {"error": f"My{biothings_type}.info query failed: {e}"}
