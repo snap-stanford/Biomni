@@ -4977,52 +4977,57 @@ def query_encode(
 def query_biothings(
     biothings_type: str,
     *,
-    operation: str = "query",  # "query" | "fields" | "metadata"
-    # fields operation
-    search_term=None,  # str | Sequence[str] | None
-    # query operation (exactly one of these)
-    ids=None,  # str | Sequence[str] | None
-    queries=None,  # str | Sequence[str] | None
-    input_vcf_file_path: str | None = None,  # variant-only
-    # query operation options
+    operation: str = "query",
+    search_term=None,
+    ids=None,
+    queries=None,
+    input_vcf_file_path: str | None = None,
     fields: str | None = None,
     normalize_hits: bool = True,
-    # endpoint parameters
     params: dict | None = None,
     **kwargs,
 ) -> dict:
+    """Query BioThings.info endpoints (via `biothings_client`) to retrieve biomedical annotations.
+    This wrapper supports three operations:
+    - query: search by IDs, free-text queries, or VCF→HGVS conversion (variant endpoints only)
+    - fields: list and optionally filter available field names for an endpoint
+    - metadata: retrieve endpoint metadata
+
+    Parameters
+    ----------
+    operation (str, required): One of {"query", "fields", "metadata"}
+    endpoint (str, required): BioThings endpoint name supported by `biothings_client` (e.g., MyGene, MyVariant)
+    ids (str or Sequence[str], optional): Direct ID lookup mode (query operation only). Mutually exclusive with
+        `queries` and `input_vcf_file_path`.
+    queries (str or Sequence[str], optional): Term search mode (query operation only). Mutually exclusive with
+        `ids` and `input_vcf_file_path`.
+    input_vcf_file_path (str, optional): Path to a VCF file to convert variants to HGVS and query annotations
+        (query operation only; variant endpoints only). Mutually exclusive with `ids` and `queries`.
+    fields (str, optional): Comma-separated list of fields to return (query operation only; endpoint-dependent).
+    normalize_hits (bool): If True and a single-query response contains a top-level "hits" key, return
+        result=hits and meta.total; if False, return the raw client payload.
+    search_term (str or Sequence[str], optional): Field-name filter for the fields operation. If a sequence is
+        provided, results are returned as a dict keyed by each term.
+    params (dict, optional): Endpoint-specific parameters forwarded to the underlying client method.
+    **kwargs: Additional endpoint parameters forwarded to the underlying client method. If a nested dict is passed
+        via kwargs={"...": ...}, it is treated as a deprecated alias and unpacked.
+
+    Returns
+    -------
+    dict: On success, returns a standardized payload:
+        {"success": True, "type": ..., "operation": ..., "mode": ..., "result": ..., "meta": ...?}
+        On failure, returns {"error": "..."} (and may include additional context when available).
+
+    Examples
+    --------
+    - Query by ID(s): biothings_wrapper(operation="query", endpoint="mygene", ids=["1017", "1018"], fields="symbol,name")
+    - Query by term(s): biothings_wrapper(operation="query", endpoint="mygene", queries="TP53", fields="symbol,summary")
+    - VCF→HGVS query: biothings_wrapper(operation="query", endpoint="myvariant", input_vcf_file_path="variants.vcf")
+    - List fields: biothings_wrapper(operation="fields", endpoint="myvariant")
+    - Filter fields: biothings_wrapper(operation="fields", endpoint="myvariant", search_term="clinvar")
+    - Get metadata: biothings_wrapper(operation="metadata", endpoint="mygene")
     """
-    BioThings.info wrapper (via biothings_client) supporting three operations:
 
-    1) operation="query"
-       Supports exactly ONE input mode per call:
-         - ids: direct ID lookup (str or sequence of str)
-         - queries: term search (str or sequence of str)
-         - input_vcf_file_path: VCF->HGVS conversion (variant only)
-       Optional:
-         - fields: comma-separated fields to return (endpoint-dependent)
-         - normalize_hits: if True and a single-query response includes {"hits": ...},
-           returns result=hits and meta.total; if False, returns raw payload.
-
-    2) operation="fields"
-       Returns available field names. Optional:
-         - search_term: str to filter fields, or a sequence of str to run multiple searches.
-           If sequence, result is a dict keyed by each term.
-       Endpoint params (e.g., MyVariant assembly/verbose) can be passed via `params` or **kwargs.
-
-    3) operation="metadata"
-       Returns endpoint metadata. Endpoint params can be passed via `params` or **kwargs.
-
-    Endpoint parameters:
-      - Provide endpoint-specific parameters via `params` (dict) and/or **kwargs.
-      - A nested dict passed as kwargs={"...": ...} is treated as a deprecated alias and unpacked.
-      - Parameters are forwarded to the underlying biothings_client method when supported.
-        Unknown/unsupported parameters may raise an error from the client/API.
-
-    Returns:
-      {"success": True, "type": ..., "operation": ..., "mode": ..., "result": ... , "meta": ...?}
-      or {"error": "..."} on failure.
-    """
     from typing import Any, Sequence, Literal
     import inspect
 

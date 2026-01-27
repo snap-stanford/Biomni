@@ -729,99 +729,44 @@ description = [
         ],
     },
     {
-        "name": "query_biothings",
-        "description": (
-            "BioThings.info tool (via biothings_client) for one of: "
-            "MyGene.info (gene), MyChem.info (chem), MyDisease.info (disease), "
-            "MyTaxon.info (taxon), MyVariant.info (variant). "
-            "Select behavior with `operation`: "
-            "(1) operation='query' supports exactly one input mode per call: "
-            "`ids` (direct ID lookup; str or list), `queries` (term search; str or list), "
-            "or `input_vcf_file_path` (variant-only; convert VCF to HGVS). "
-            "(2) operation='fields' returns available field names, optionally filtered by `search_term` "
-            "(str or list of str; lists execute multiple searches and return a dict keyed by term). "
-            "(3) operation='metadata' returns endpoint metadata. "
-            "Optional endpoint parameters can be provided via `params` (dict) and/or as additional "
-            "top-level named arguments; they are forwarded to biothings_client methods when supported. "
-            "Unknown/unsupported parameters may raise an error from the client or API."
-        ),
-        "required_parameters": [
-            {
-                "name": "biothings_type",
-                "type": "str",
-                "description": "Required. One of ['gene', 'chem', 'disease', 'taxon', 'variant'].",
-            },
-        ],
-        "optional_parameters": [
-            {
-                "name": "operation",
-                "type": "str",
-                "description": "One of: 'query', 'fields', 'metadata'. Default: 'query'.",
-                "default": "query",
-            },
-            {
-                "name": "search_term",
-                "type": "str | List[str]",
-                "description": (
-                    "Fields-only. Field search term(s). If a list is provided, multiple searches are run "
-                    "and results are returned as a dict keyed by each term. If omitted/None, returns all fields."
-                ),
-                "default": None,
-            },
-            {
-                "name": "ids",
-                "type": "str | List[str]",
-                "description": (
-                    "Query-only. Mutually exclusive with `queries` and `input_vcf_file_path`. "
-                    "Identifier(s) for direct lookup."
-                ),
-                "default": None,
-            },
-            {
-                "name": "queries",
-                "type": "str | List[str]",
-                "description": (
-                    "Query-only. Mutually exclusive with `ids` and `input_vcf_file_path`. "
-                    "Search term(s) for query/querymany."
-                ),
-                "default": None,
-            },
-            {
-                "name": "input_vcf_file_path",
-                "type": "str",
-                "description": (
-                    "Query-only, variant-only. Mutually exclusive with `ids` and `queries`. "
-                    "Path to a single VCF file to convert variants to genomic HGVS IDs."
-                ),
-                "default": None,
-            },
-            {
-                "name": "fields",
-                "type": "str",
-                "description": (
-                    "Query-only. Comma-separated fields to return. If omitted/None, endpoint defaults apply."
-                ),
-                "default": None,
-            },
-            {
-                "name": "normalize_hits",
-                "type": "bool",
-                "description": (
-                    "Query-only. If True (default) and a single-query response includes {'hits': ...}, "
-                    "the tool returns result=hits and meta.total. If False, returns the raw payload."
-                ),
-                "default": True,
-            },
-            {
-                "name": "params",
-                "type": "dict",
-                "description": (
-                    "Endpoint parameters forwarded to the underlying biothings_client method "
-                    "(e.g., species, scopes, size, from, sort, assembly, verbose). "
-                    "Unknown/unsupported parameters may raise an error."
-                ),
-                "default": None,
-            },
-        ],
+        'name': 'query_biothings',
+        'description': 'Query BioThings.info endpoints (MyVariant.info, MyChem.info, MyDisease.info, MyGene.info, MyTaxon.info) to retrieve biomedical annotations. Supports three operations: query (search by IDs, free-text queries, or VCF→HGVS conversion), fields (list available field names), and metadata (retrieve endpoint metadata).',
+        'required_parameters': [{'name': 'biothings_type',
+        'type': 'str',
+        'description': 'BioThings endpoint type (e.g., "gene", "chem", "disease", "taxon", "variant")',
+        'default': None}],
+        'optional_parameters': [{'name': 'operation',
+        'type': 'str',
+        'description': 'One of "query", "fields", or "metadata"',
+        'default': 'query'},
+        {'name': 'search_term',
+        'type': 'str',
+        'description': 'Field-name filter for the fields operation',
+        'default': None},
+        {'name': 'ids',
+        'type': 'str',
+        'description': 'Direct ID lookup mode for query operation. Mutually exclusive with queries and input_vcf_file_path',
+        'default': None},
+        {'name': 'queries',
+        'type': 'str',
+        'description': 'Term search mode for query operation. Mutually exclusive with ids and input_vcf_file_path',
+        'default': None},
+        {'name': 'input_vcf_file_path',
+        'type': 'str',
+        'description': 'Path to VCF file for variant-to-HGVS conversion (variant endpoints only). Mutually exclusive with ids and queries',
+        'default': None},
+        {'name': 'fields',
+        'type': 'str',
+        'description': 'Comma-separated list of fields to return for query operation',
+        'default': None},
+        {'name': 'normalize_hits',
+        'type': 'bool',
+        'description': 'If True, normalize single-query responses with "hits" key to return hits and meta.total',
+        'default': True},
+        {'name': 'params',
+        'type': 'dict',
+        'description': 'Endpoint-specific parameters forwarded to the underlying client method',
+        'default': None}
+        ]
     }
 ]
