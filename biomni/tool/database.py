@@ -5028,10 +5028,11 @@ def query_biothings(
     - Get metadata: biothings_wrapper(operation="metadata", endpoint="mygene")
     """
 
-    from typing import Any, Sequence, Literal
     import inspect
+    from collections.abc import Sequence
+    from typing import Any, Literal
 
-    BioThingsType = Literal["gene", "chem", "disease", "taxon", "variant"]
+    Literal["gene", "chem", "disease", "taxon", "variant"]
 
     _ENDPOINTS: dict[str, dict[str, str]] = {
         "gene": {"get_one": "getgene", "get_many": "getgenes", "query_one": "query", "query_many": "querymany"},
@@ -5171,12 +5172,7 @@ def query_biothings(
         }
         if sum(provided.values()) != 1:
             got = ", ".join(k for k, v in provided.items() if v) or "none"
-            return {
-                "error": (
-                    "Provide exactly one of: ids, queries, input_vcf_file_path "
-                    f"(got {got})."
-                )
-            }
+            return {"error": (f"Provide exactly one of: ids, queries, input_vcf_file_path (got {got}).")}
 
         if input_vcf_file_path and biothings_type != "variant":
             return {"error": "input_vcf_file_path is only supported when biothings_type='variant'."}
