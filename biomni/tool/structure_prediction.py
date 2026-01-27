@@ -6,7 +6,6 @@ the AlphaFold Server API.
 """
 
 import hashlib
-import json
 import os
 import time
 from typing import Any
@@ -31,16 +30,16 @@ def _make_api_request(
 ) -> dict[str, Any]:
     """Make an authenticated request to the AlphaFold Server API."""
     token = _get_api_token()
-    
+
     if headers is None:
         headers = {}
-    
+
     headers["Content-Type"] = "application/json"
     if token:
         headers["Authorization"] = f"Bearer {token}"
-    
+
     url = f"{ALPHAFOLD_API_URL}/{endpoint.lstrip('/')}"
-    
+
     try:
         if method.upper() == "GET":
             response = requests.get(url, headers=headers, timeout=timeout)
@@ -48,16 +47,16 @@ def _make_api_request(
             response = requests.post(url, headers=headers, json=data, timeout=timeout)
         else:
             return {"success": False, "error": f"Unsupported method: {method}"}
-        
+
         response.raise_for_status()
-        
+
         try:
             result = response.json()
         except ValueError:
             result = {"raw_text": response.text}
-        
+
         return {"success": True, "result": result}
-    
+
     except requests.exceptions.Timeout:
         return {"success": False, "error": "Request timed out"}
     except requests.exceptions.RequestException as e:
@@ -75,17 +74,17 @@ def _validate_sequence(sequence: str) -> tuple[bool, str]:
     """Validate a protein sequence contains only valid amino acid codes."""
     valid_aa = set("ACDEFGHIKLMNPQRSTVWY")
     sequence_upper = sequence.upper().replace(" ", "").replace("\n", "")
-    
+
     invalid_chars = set(sequence_upper) - valid_aa
     if invalid_chars:
         return False, f"Invalid characters in sequence: {invalid_chars}"
-    
+
     if len(sequence_upper) < 10:
         return False, "Sequence too short (minimum 10 residues)"
-    
+
     if len(sequence_upper) > 2000:
         return False, "Sequence too long (maximum 2000 residues for API)"
-    
+
     return True, sequence_upper
 
 
@@ -95,16 +94,16 @@ def _validate_nucleic_acid(sequence: str, na_type: str = "DNA") -> tuple[bool, s
         valid_bases = set("ATCGN")
     else:
         valid_bases = set("AUCGN")
-    
+
     sequence_upper = sequence.upper().replace(" ", "").replace("\n", "")
     invalid_chars = set(sequence_upper) - valid_bases
-    
+
     if invalid_chars:
         return False, f"Invalid characters for {na_type}: {invalid_chars}"
-    
+
     if len(sequence_upper) < 5:
         return False, "Sequence too short (minimum 5 bases)"
-    
+
     return True, sequence_upper
 
 
@@ -121,15 +120,15 @@ def _poll_job_status(
 ) -> dict[str, Any]:
     """Poll for job completion status."""
     elapsed = 0
-    
+
     while elapsed < max_wait_seconds:
         result = _make_api_request(f"jobs/{job_id}")
-        
+
         if not result["success"]:
             return result
-        
+
         status = result["result"].get("status", "unknown")
-        
+
         if status == "completed":
             return {"success": True, "result": result["result"]}
         elif status == "failed":
@@ -140,7 +139,7 @@ def _poll_job_status(
             elapsed += poll_interval
         else:
             return {"success": False, "error": f"Unknown job status: {status}"}
-    
+
     return {"success": False, "error": f"Job timed out after {max_wait_seconds} seconds"}
 
 
@@ -151,7 +150,7 @@ def predict_protein_structure(
     timeout_seconds: int = 600,
 ) -> dict[str, Any]:
     """Predict the 3D structure of a single protein sequence.
-    
+
     Parameters
     ----------
     sequence : str
@@ -162,7 +161,7 @@ def predict_protein_structure(
         If True, wait for prediction to complete. If False, return job ID immediately
     timeout_seconds : int
         Maximum time to wait for prediction in seconds
-    
+
     Returns
     -------
     dict
@@ -172,43 +171,43 @@ def predict_protein_structure(
         - pdb_content: PDB file content as string
         - confidence: overall confidence metrics
         - job_id: ID for tracking the prediction job
-    
+
     Examples
     --------
     >>> result = predict_protein_structure("MKFLILLFNILCLFPVLAADNH...")
     >>> print(result["confidence"]["plddt_mean"])
-    
+
     """
     is_valid, validated_seq = _validate_sequence(sequence)
     if not is_valid:
         return {"success": False, "error": validated_seq}
-    
+
     job_data = {
         "sequences": [{"type": "protein", "sequence": validated_seq}],
         "model": "alphafold3",
     }
-    
+
     submit_result = _make_api_request("predict", method="POST", data=job_data)
-    
+
     if not submit_result["success"]:
         return submit_result
-    
+
     job_id = submit_result["result"].get("job_id")
-    
+
     if not job_id:
         return {"success": False, "error": "No job ID returned from server"}
-    
+
     if not wait_for_result:
         return {"success": True, "job_id": job_id, "status": "submitted"}
-    
+
     poll_result = _poll_job_status(job_id, max_wait_seconds=timeout_seconds)
-    
+
     if not poll_result["success"]:
         return poll_result
-    
+
     job_result = poll_result["result"]
     pdb_content = job_result.get("pdb_content", "")
-    
+
     response = {
         "success": True,
         "job_id": job_id,
@@ -218,13 +217,13 @@ def predict_protein_structure(
             "ptm": job_result.get("ptm"),
         },
     }
-    
+
     if save_path and pdb_content:
         os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
         with open(save_path, "w") as f:
             f.write(pdb_content)
         response["structure_path"] = os.path.abspath(save_path)
-    
+
     return response
 
 
@@ -236,7 +235,7 @@ def predict_protein_complex(
     timeout_seconds: int = 900,
 ) -> dict[str, Any]:
     """Predict the 3D structure of a protein complex from multiple sequences.
-    
+
     Parameters
     ----------
     sequences : list[str]
@@ -249,7 +248,7 @@ def predict_protein_complex(
         If True, wait for prediction to complete
     timeout_seconds : int
         Maximum time to wait for prediction
-    
+
     Returns
     -------
     dict
@@ -259,55 +258,55 @@ def predict_protein_complex(
         - pdb_content: PDB content as string
         - confidence: per-chain and interface confidence metrics
         - interface_contacts: predicted inter-chain contacts
-    
+
     Examples
     --------
     >>> seqs = ["MKFLILLFNILCLFPVLAADNH...", "MALTEVNPKKYIPGTKMIFAG..."]
     >>> result = predict_protein_complex(seqs, chain_names=["Receptor", "Ligand"])
-    
+
     """
     if not sequences or len(sequences) < 2:
         return {"success": False, "error": "At least 2 sequences required for complex prediction"}
-    
+
     validated_sequences = []
     for i, seq in enumerate(sequences):
         is_valid, validated_seq = _validate_sequence(seq)
         if not is_valid:
-            return {"success": False, "error": f"Chain {i+1}: {validated_seq}"}
+            return {"success": False, "error": f"Chain {i + 1}: {validated_seq}"}
         validated_sequences.append(validated_seq)
-    
+
     if chain_names is None:
         chain_names = [chr(ord("A") + i) for i in range(len(sequences))]
-    
+
     sequence_data = [
         {"type": "protein", "sequence": seq, "chain_id": name}
-        for seq, name in zip(validated_sequences, chain_names)
+        for seq, name in zip(validated_sequences, chain_names, strict=False)
     ]
-    
+
     job_data = {
         "sequences": sequence_data,
         "model": "alphafold3",
         "predict_interface": True,
     }
-    
+
     submit_result = _make_api_request("predict", method="POST", data=job_data)
-    
+
     if not submit_result["success"]:
         return submit_result
-    
+
     job_id = submit_result["result"].get("job_id")
-    
+
     if not wait_for_result:
         return {"success": True, "job_id": job_id, "status": "submitted"}
-    
+
     poll_result = _poll_job_status(job_id, max_wait_seconds=timeout_seconds)
-    
+
     if not poll_result["success"]:
         return poll_result
-    
+
     job_result = poll_result["result"]
     pdb_content = job_result.get("pdb_content", "")
-    
+
     response = {
         "success": True,
         "job_id": job_id,
@@ -320,13 +319,13 @@ def predict_protein_complex(
         },
         "interface_contacts": job_result.get("interface_contacts", []),
     }
-    
+
     if save_path and pdb_content:
         os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
         with open(save_path, "w") as f:
             f.write(pdb_content)
         response["structure_path"] = os.path.abspath(save_path)
-    
+
     return response
 
 
@@ -339,7 +338,7 @@ def predict_protein_nucleic_acid_complex(
     timeout_seconds: int = 900,
 ) -> dict[str, Any]:
     """Predict structure of a protein-DNA or protein-RNA complex.
-    
+
     Parameters
     ----------
     protein_sequences : list[str]
@@ -354,69 +353,70 @@ def predict_protein_nucleic_acid_complex(
         Wait for completion
     timeout_seconds : int
         Maximum wait time
-    
+
     Returns
     -------
     dict
         Prediction results including structure and confidence metrics
-    
+
     Examples
     --------
     >>> protein = "MKFLILLFNILCLFPVLAADNH..."
     >>> dna = "ATCGATCGATCGATCG"
     >>> result = predict_protein_nucleic_acid_complex([protein], dna, "DNA")
-    
+
     """
     if nucleic_acid_type.upper() not in ("DNA", "RNA"):
         return {"success": False, "error": "nucleic_acid_type must be 'DNA' or 'RNA'"}
-    
+
     validated_proteins = []
     for i, seq in enumerate(protein_sequences):
         is_valid, validated_seq = _validate_sequence(seq)
         if not is_valid:
-            return {"success": False, "error": f"Protein {i+1}: {validated_seq}"}
+            return {"success": False, "error": f"Protein {i + 1}: {validated_seq}"}
         validated_proteins.append(validated_seq)
-    
+
     is_valid, validated_na = _validate_nucleic_acid(nucleic_acid_sequence, nucleic_acid_type)
     if not is_valid:
         return {"success": False, "error": validated_na}
-    
+
     sequence_data = [
-        {"type": "protein", "sequence": seq, "chain_id": chr(ord("A") + i)}
-        for i, seq in enumerate(validated_proteins)
+        {"type": "protein", "sequence": seq, "chain_id": chr(ord("A") + i)} for i, seq in enumerate(validated_proteins)
     ]
-    
+
     na_chain_id = chr(ord("A") + len(validated_proteins))
-    sequence_data.append({
-        "type": nucleic_acid_type.lower(),
-        "sequence": validated_na,
-        "chain_id": na_chain_id,
-    })
-    
+    sequence_data.append(
+        {
+            "type": nucleic_acid_type.lower(),
+            "sequence": validated_na,
+            "chain_id": na_chain_id,
+        }
+    )
+
     job_data = {
         "sequences": sequence_data,
         "model": "alphafold3",
         "predict_interface": True,
     }
-    
+
     submit_result = _make_api_request("predict", method="POST", data=job_data)
-    
+
     if not submit_result["success"]:
         return submit_result
-    
+
     job_id = submit_result["result"].get("job_id")
-    
+
     if not wait_for_result:
         return {"success": True, "job_id": job_id, "status": "submitted"}
-    
+
     poll_result = _poll_job_status(job_id, max_wait_seconds=timeout_seconds)
-    
+
     if not poll_result["success"]:
         return poll_result
-    
+
     job_result = poll_result["result"]
     pdb_content = job_result.get("pdb_content", "")
-    
+
     response = {
         "success": True,
         "job_id": job_id,
@@ -428,13 +428,13 @@ def predict_protein_nucleic_acid_complex(
         },
         "protein_na_contacts": job_result.get("interface_contacts", []),
     }
-    
+
     if save_path and pdb_content:
         os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
         with open(save_path, "w") as f:
             f.write(pdb_content)
         response["structure_path"] = os.path.abspath(save_path)
-    
+
     return response
 
 
@@ -446,7 +446,7 @@ def predict_protein_ligand_complex(
     timeout_seconds: int = 900,
 ) -> dict[str, Any]:
     """Predict structure of a protein-small molecule complex.
-    
+
     Parameters
     ----------
     protein_sequence : str
@@ -459,7 +459,7 @@ def predict_protein_ligand_complex(
         Wait for completion
     timeout_seconds : int
         Maximum wait time
-    
+
     Returns
     -------
     dict
@@ -468,50 +468,50 @@ def predict_protein_ligand_complex(
         - pdb_content: structure as string
         - binding_site: predicted binding residues
         - binding_affinity: predicted binding strength (if available)
-    
+
     Examples
     --------
     >>> protein = "MKFLILLFNILCLFPVLAADNH..."
     >>> erlotinib = "COCCOc1cc2ncnc(Nc3cccc(c3)C#C)c2cc1OCCOC"
     >>> result = predict_protein_ligand_complex(protein, erlotinib)
-    
+
     """
     is_valid, validated_seq = _validate_sequence(protein_sequence)
     if not is_valid:
         return {"success": False, "error": validated_seq}
-    
+
     if not ligand_smiles or len(ligand_smiles) < 2:
         return {"success": False, "error": "Invalid SMILES string"}
-    
+
     sequence_data = [
         {"type": "protein", "sequence": validated_seq, "chain_id": "A"},
         {"type": "ligand", "smiles": ligand_smiles, "chain_id": "L"},
     ]
-    
+
     job_data = {
         "sequences": sequence_data,
         "model": "alphafold3",
         "predict_binding": True,
     }
-    
+
     submit_result = _make_api_request("predict", method="POST", data=job_data)
-    
+
     if not submit_result["success"]:
         return submit_result
-    
+
     job_id = submit_result["result"].get("job_id")
-    
+
     if not wait_for_result:
         return {"success": True, "job_id": job_id, "status": "submitted"}
-    
+
     poll_result = _poll_job_status(job_id, max_wait_seconds=timeout_seconds)
-    
+
     if not poll_result["success"]:
         return poll_result
-    
+
     job_result = poll_result["result"]
     pdb_content = job_result.get("pdb_content", "")
-    
+
     response = {
         "success": True,
         "job_id": job_id,
@@ -523,24 +523,24 @@ def predict_protein_ligand_complex(
         "binding_site": job_result.get("binding_residues", []),
         "binding_affinity": job_result.get("predicted_affinity"),
     }
-    
+
     if save_path and pdb_content:
         os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
         with open(save_path, "w") as f:
             f.write(pdb_content)
         response["structure_path"] = os.path.abspath(save_path)
-    
+
     return response
 
 
 def get_job_status(job_id: str) -> dict[str, Any]:
     """Check the status of a submitted prediction job.
-    
+
     Parameters
     ----------
     job_id : str
         Job ID returned from a prediction function
-    
+
     Returns
     -------
     dict
@@ -548,15 +548,15 @@ def get_job_status(job_id: str) -> dict[str, Any]:
         - status: "pending", "running", "completed", or "failed"
         - progress: percentage complete (if available)
         - result: prediction results (if completed)
-    
+
     """
     result = _make_api_request(f"jobs/{job_id}")
-    
+
     if not result["success"]:
         return result
-    
+
     job_data = result["result"]
-    
+
     return {
         "success": True,
         "job_id": job_id,
@@ -573,7 +573,7 @@ def download_structure(
     file_format: str = "pdb",
 ) -> dict[str, Any]:
     """Download the structure file from a completed prediction job.
-    
+
     Parameters
     ----------
     job_id : str
@@ -582,31 +582,31 @@ def download_structure(
         Path to save the structure file
     file_format : str
         Output format: "pdb" or "cif"
-    
+
     Returns
     -------
     dict
         Download result with file path
-    
+
     """
     if file_format.lower() not in ("pdb", "cif"):
         return {"success": False, "error": "Format must be 'pdb' or 'cif'"}
-    
+
     result = _make_api_request(f"jobs/{job_id}/structure", timeout=60)
-    
+
     if not result["success"]:
         return result
-    
+
     structure_content = result["result"].get(f"{file_format}_content", "")
-    
+
     if not structure_content:
         return {"success": False, "error": f"No {file_format.upper()} content available"}
-    
+
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
-    
+
     with open(output_path, "w") as f:
         f.write(structure_content)
-    
+
     return {
         "success": True,
         "file_path": os.path.abspath(output_path),
@@ -617,12 +617,12 @@ def download_structure(
 
 def analyze_structure_confidence(pdb_path: str) -> dict[str, Any]:
     """Analyze confidence scores from a predicted structure file.
-    
+
     Parameters
     ----------
     pdb_path : str
         Path to a PDB file from AlphaFold prediction
-    
+
     Returns
     -------
     dict
@@ -631,36 +631,36 @@ def analyze_structure_confidence(pdb_path: str) -> dict[str, Any]:
         - mean_plddt: average pLDDT
         - confident_regions: regions with pLDDT > 70
         - low_confidence_regions: regions with pLDDT < 50
-    
+
     """
     if not os.path.exists(pdb_path):
         return {"success": False, "error": f"File not found: {pdb_path}"}
-    
+
     residue_plddt = {}
-    
+
     try:
-        with open(pdb_path, "r") as f:
+        with open(pdb_path) as f:
             for line in f:
                 if line.startswith("ATOM"):
                     chain = line[21].strip()
                     res_num = int(line[22:26].strip())
                     b_factor = float(line[60:66].strip())
-                    
+
                     key = f"{chain}:{res_num}"
                     if key not in residue_plddt:
                         residue_plddt[key] = b_factor
     except Exception as e:
         return {"success": False, "error": f"Failed to parse PDB: {str(e)}"}
-    
+
     if not residue_plddt:
         return {"success": False, "error": "No residues found in PDB file"}
-    
+
     scores = list(residue_plddt.values())
     mean_plddt = sum(scores) / len(scores)
-    
+
     confident_regions = [k for k, v in residue_plddt.items() if v > 70]
     low_confidence_regions = [k for k, v in residue_plddt.items() if v < 50]
-    
+
     return {
         "success": True,
         "file": pdb_path,
@@ -669,9 +669,7 @@ def analyze_structure_confidence(pdb_path: str) -> dict[str, Any]:
         "confident_residue_count": len(confident_regions),
         "low_confidence_residue_count": len(low_confidence_regions),
         "quality_assessment": (
-            "High confidence" if mean_plddt > 70 else
-            "Medium confidence" if mean_plddt > 50 else
-            "Low confidence"
+            "High confidence" if mean_plddt > 70 else "Medium confidence" if mean_plddt > 50 else "Low confidence"
         ),
         "residue_scores": residue_plddt,
     }
@@ -684,7 +682,7 @@ def batch_predict_structures(
     max_concurrent: int = 5,
 ) -> dict[str, Any]:
     """Submit multiple structure prediction jobs.
-    
+
     Parameters
     ----------
     jobs : list[dict]
@@ -698,12 +696,12 @@ def batch_predict_structures(
         Whether to submit jobs in parallel
     max_concurrent : int
         Maximum concurrent jobs if parallel=True
-    
+
     Returns
     -------
     dict
         Batch results including job IDs and status for each submission
-    
+
     Examples
     --------
     >>> jobs = [
@@ -711,25 +709,25 @@ def batch_predict_structures(
     ...     {"type": "complex", "sequences": ["MKFL...", "MALT..."], "name": "complex1"},
     ... ]
     >>> result = batch_predict_structures(jobs, output_dir="./structures")
-    
+
     """
     if not jobs:
         return {"success": False, "error": "No jobs provided"}
-    
+
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
-    
+
     results = []
-    
+
     for i, job in enumerate(jobs):
         job_type = job.get("type", "protein")
         sequences = job.get("sequences", [])
-        name = job.get("name", f"job_{i+1}")
-        
+        name = job.get("name", f"job_{i + 1}")
+
         save_path = None
         if output_dir:
             save_path = os.path.join(output_dir, f"{name}.pdb")
-        
+
         try:
             if job_type == "protein":
                 if not sequences:
@@ -768,19 +766,21 @@ def batch_predict_structures(
                 )
             else:
                 result = {"success": False, "error": f"Unknown job type: {job_type}"}
-            
+
             result["name"] = name
             results.append(result)
-            
+
         except Exception as e:
-            results.append({
-                "success": False,
-                "name": name,
-                "error": str(e),
-            })
-    
+            results.append(
+                {
+                    "success": False,
+                    "name": name,
+                    "error": str(e),
+                }
+            )
+
     successful = sum(1 for r in results if r.get("success", False))
-    
+
     return {
         "success": successful > 0,
         "total_jobs": len(jobs),
