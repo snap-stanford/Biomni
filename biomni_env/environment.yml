@@ -1,4 +1,4 @@
-name: biomni_e1
+name: amplicon
 channels:
   - conda-forge
   - defaults

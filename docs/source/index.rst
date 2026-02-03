@@ -18,6 +18,7 @@ biomni API Reference
    api/task/base_task
    api/task/hle
    api/task/lab_bench
+   api/tool/amplicon_table
    api/tool/biochemistry
    api/tool/bioengineering
    api/tool/biophysics
