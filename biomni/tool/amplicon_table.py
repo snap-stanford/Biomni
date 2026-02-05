@@ -1,9 +1,10 @@
 """
-Amplicon Table Tool for querying the Amplicon Repository.
+Amplicon Query Tool for querying the Amplicon Repository.
 
 This module provides a function to retrieve amplicon records from a local
 aggregated CSV file, supporting various filtering options for tissue of origin,
 classification, gene annotations, genomic location, and copy number features.
+Gene-related and location filters support lists for SQL-like IN clause matching.
 """
 
 import os
@@ -109,13 +110,13 @@ def _gene_in_field(gene: str, field_value: str) -> bool:
     return gene_upper in [g.strip() for g in genes_in_field]
 
 
-def amplicon_table(
+def query_amplicons(
     tissue_of_origin: str | None = None,
     classification: str | None = None,
-    gene: str | None = None,
+    gene: str | list[str] | None = None,
     gene_field: str | None = None,
-    ncbi_gene_id: str | None = None,
-    genomic_location: str | None = None,
+    ncbi_gene_id: str | list[str] | None = None,
+    genomic_location: str | list[str] | None = None,
     complexity_score_min: float | None = None,
     complexity_score_max: float | None = None,
     captured_interval_length_min: float | None = None,
@@ -140,12 +141,15 @@ def amplicon_table(
             Case-insensitive exact match.
         classification: Amplicon classification. Must be one of:
             'ecDNA', 'BFB', 'Linear', 'Complex-non-cyclic'.
-        gene: Gene symbol to search for (e.g., ERBB2, EGFR, MYC).
+        gene: Gene symbol(s) to search for. Can be a single string or list
+            of strings for OR matching (e.g., 'MYC' or ['MYC', 'EGFR']).
         gene_field: Which gene column(s) to search. One of:
             'oncogenes', 'all_genes', 'either' (default: 'either').
-        ncbi_gene_id: NCBI Gene ID to filter amplicons by.
-        genomic_location: Genomic interval in chromosome coordinates,
+        ncbi_gene_id: NCBI Gene ID(s) to filter by. Can be a single string
+            or list of strings for OR matching.
+        genomic_location: Genomic interval(s) in chromosome coordinates,
             formatted as chrN:start-end (e.g., chr2:12112-123421312).
+            Can be a single string or list of strings for OR matching.
         complexity_score_min: Minimum amplicon complexity score.
         complexity_score_max: Maximum amplicon complexity score.
         captured_interval_length_min: Minimum captured interval length (bp).
@@ -154,7 +158,7 @@ def amplicon_table(
         feature_median_copy_number_min: Minimum feature median copy number.
         reference_version: Reference genome version (e.g., hg19, hg38).
         select: Columns to return. If not specified, returns default columns.
-        limit: Maximum number of rows to return (default 50, maximum 500).
+        limit: Maximum number of rows to return. If not specified, returns all matching rows.
         offset: Row offset for pagination (default 0).
         csv_path: Path to the aggregated_results.csv file. If not specified,
             uses the default path from config.
@@ -173,15 +177,14 @@ def amplicon_table(
         ValueError: If invalid parameter values are provided
     """
     # Set defaults
-    if limit is None:
-        limit = 50
     if offset is None:
         offset = 0
     if gene_field is None:
         gene_field = "either"
 
     # Validate parameters
-    limit = min(max(1, limit), 500)  # Clamp between 1 and 500
+    if limit is not None:
+        limit = max(1, limit)  # Ensure at least 1 if specified
     offset = max(0, offset)
 
     valid_classifications = ["ecDNA", "BFB", "Linear", "Complex-non-cyclic"]
@@ -235,16 +238,21 @@ def amplicon_table(
         else:
             raise ValueError("Column 'Classification' not found in the data")
 
-    # Gene filter
+    # Gene filter (supports list for OR matching)
     if gene is not None:
+        gene_list = [gene] if isinstance(gene, str) else gene
+
+        def _any_gene_in_field(genes: list[str], field_value: str) -> bool:
+            return any(_gene_in_field(g, field_value) for g in genes)
+
         if gene_field == "oncogenes":
             if "Oncogenes" not in df.columns:
                 raise ValueError("Column 'Oncogenes' not found in the data")
-            mask &= df["Oncogenes"].apply(lambda x: _gene_in_field(gene, x))
+            mask &= df["Oncogenes"].apply(lambda x: _any_gene_in_field(gene_list, x))
         elif gene_field == "all_genes":
             if "All genes" not in df.columns:
                 raise ValueError("Column 'All genes' not found in the data")
-            mask &= df["All genes"].apply(lambda x: _gene_in_field(gene, x))
+            mask &= df["All genes"].apply(lambda x: _any_gene_in_field(gene_list, x))
         else:  # either
             oncogenes_col = "Oncogenes" in df.columns
             all_genes_col = "All genes" in df.columns
@@ -253,18 +261,26 @@ def amplicon_table(
 
             gene_mask = pd.Series([False] * len(df))
             if oncogenes_col:
-                gene_mask |= df["Oncogenes"].apply(lambda x: _gene_in_field(gene, x))
+                gene_mask |= df["Oncogenes"].apply(lambda x: _any_gene_in_field(gene_list, x))
             if all_genes_col:
-                gene_mask |= df["All genes"].apply(lambda x: _gene_in_field(gene, x))
+                gene_mask |= df["All genes"].apply(lambda x: _any_gene_in_field(gene_list, x))
             mask &= gene_mask
 
         filters_applied["gene"] = gene
         filters_applied["gene_field"] = gene_field
 
-    # NCBI Gene ID filter
+    # NCBI Gene ID filter (supports list for OR matching)
     if ncbi_gene_id is not None:
+        ncbi_id_list = [ncbi_gene_id] if isinstance(ncbi_gene_id, str) else ncbi_gene_id
+
+        def _any_ncbi_id_match(ids: list[str], field_value: str) -> bool:
+            if pd.isna(field_value) or not field_value:
+                return False
+            field_str = str(field_value)
+            return any(str(id_) in field_str for id_ in ids)
+
         if "NCBI Gene IDs" in df.columns:
-            mask &= df["NCBI Gene IDs"].astype(str).str.contains(str(ncbi_gene_id), na=False)
+            mask &= df["NCBI Gene IDs"].apply(lambda x: _any_ncbi_id_match(ncbi_id_list, x))
             filters_applied["ncbi_gene_id"] = ncbi_gene_id
         else:
             # Search in columns that might contain NCBI gene IDs
@@ -272,37 +288,43 @@ def amplicon_table(
             if ncbi_cols:
                 ncbi_mask = pd.Series([False] * len(df))
                 for col in ncbi_cols:
-                    ncbi_mask |= df[col].astype(str).str.contains(str(ncbi_gene_id), na=False)
+                    ncbi_mask |= df[col].apply(lambda x: _any_ncbi_id_match(ncbi_id_list, x))
                 mask &= ncbi_mask
                 filters_applied["ncbi_gene_id"] = ncbi_gene_id
             else:
                 filters_applied["ncbi_gene_id"] = ncbi_gene_id
                 filters_applied["ncbi_gene_id_warning"] = "No NCBI gene ID column found; filter may not apply correctly"
 
-    # Genomic location filter
+    # Genomic location filter (supports list for OR matching)
     if genomic_location is not None:
-        parsed = _parse_genomic_location(genomic_location)
-        if parsed is None:
-            raise ValueError(
-                f"Invalid genomic_location format '{genomic_location}'. "
-                "Expected format: chrN:start-end (e.g., chr2:12112-123421312)"
-            )
+        location_list = [genomic_location] if isinstance(genomic_location, str) else genomic_location
 
-        query_chrom, query_start, query_end = parsed
+        # Parse and validate all locations
+        parsed_locations = []
+        for loc in location_list:
+            parsed = _parse_genomic_location(loc)
+            if parsed is None:
+                raise ValueError(
+                    f"Invalid genomic_location format '{loc}'. "
+                    "Expected format: chrN:start-end (e.g., chr2:12112-123421312)"
+                )
+            parsed_locations.append(parsed)
+
+        def _any_location_overlaps(intervals_str: str) -> bool:
+            return any(
+                _intervals_overlap(intervals_str, chrom, start, end)
+                for chrom, start, end in parsed_locations
+            )
 
         # Use Location column for genomic location filtering
         if "Location" in df.columns:
-            mask &= df["Location"].apply(
-                lambda x: _intervals_overlap(x, query_chrom, query_start, query_end)
-            )
+            mask &= df["Location"].apply(_any_location_overlaps)
             filters_applied["genomic_location"] = genomic_location
         else:
             # Fallback to any interval column
             interval_cols = [col for col in df.columns if "interval" in col.lower() or "location" in col.lower()]
             if interval_cols:
-                mask &= df[interval_cols[0]].apply(
-                    lambda x: _intervals_overlap(x, query_chrom, query_start, query_end)
-                )
+                mask &= df[interval_cols[0]].apply(_any_location_overlaps)
                 filters_applied["genomic_location"] = genomic_location
             else:
                 raise ValueError("No Location column found in the data for genomic location filtering")
@@ -342,7 +364,10 @@ def amplicon_table(
     row_count_total = len(filtered_df)
 
     # Apply pagination
-    filtered_df = filtered_df.iloc[offset : offset + limit]
+    if limit is not None:
+        filtered_df = filtered_df.iloc[offset : offset + limit]
+    else:
+        filtered_df = filtered_df.iloc[offset:]
     row_count_returned = len(filtered_df)
 
     # Select columns
@@ -370,9 +395,11 @@ def amplicon_table(
     if classification:
         filter_desc.append(f"classification={classification}")
     if gene:
-        filter_desc.append(f"gene={gene}")
+        gene_str = gene if isinstance(gene, str) else ",".join(gene)
+        filter_desc.append(f"gene={gene_str}")
     if genomic_location:
-        filter_desc.append(f"location={genomic_location}")
+        loc_str = genomic_location if isinstance(genomic_location, str) else ",".join(genomic_location)
+        filter_desc.append(f"location={loc_str}")
 
     filter_str = ", ".join(filter_desc) if filter_desc else "no filters"
     summary = f"Found {row_count_total} amplicon records ({filter_str}). Returning rows {offset + 1}-{offset + row_count_returned}."

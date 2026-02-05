@@ -2,7 +2,7 @@
 
 description = [
     {
-        "name": "amplicon_table",
+        "name": "query_amplicons",
         "description": (
             "Retrieve authoritative amplicon records from the Amplicon Repository "
             "using a local aggregated CSV file. This tool provides the ground-truth "
@@ -27,8 +27,12 @@ description = [
             },
             {
                 "name": "gene",
-                "type": "string",
-                "description": "Gene symbol to search for (e.g., ERBB2, EGFR, MYC).",
+                "type": "array",
+                "items": {"type": "string"},
+                "description": (
+                    "Gene symbol(s) to search for (e.g., ['ERBB2', 'EGFR', 'MYC']). "
+                    "Multiple genes are matched with OR logic."
+                ),
             },
             {
                 "name": "gene_field",
@@ -38,16 +42,22 @@ description = [
             },
             {
                 "name": "ncbi_gene_id",
-                "type": "string",
-                "description": "NCBI Gene ID to filter amplicons by (optional).",
+                "type": "array",
+                "items": {"type": "string"},
+                "description": (
+                    "NCBI Gene ID(s) to filter amplicons by. "
+                    "Multiple IDs are matched with OR logic."
+                ),
             },
             {
                 "name": "genomic_location",
-                "type": "string",
+                "type": "array",
+                "items": {"type": "string"},
                 "description": (
-                    "Genomic interval in chromosome coordinates using base pairs, "
-                    "formatted as chrN:start-end (e.g., chr2:12112-123421312). "
-                    "Coordinates are interpreted as absolute base-pair positions."
+                    "Genomic interval(s) in chromosome coordinates using base pairs, "
+                    "formatted as chrN:start-end (e.g., ['chr2:12112-123421312']). "
+                    "Coordinates are interpreted as absolute base-pair positions. "
+                    "Multiple locations are matched with OR logic."
                 ),
             },
             {
@@ -97,7 +107,7 @@ description = [
             {
                 "name": "limit",
                 "type": "integer",
-                "description": "Maximum number of rows to return (default 50, maximum 500).",
+                "description": "Maximum number of rows to return. If not specified, returns all matching rows.",
             },
             {
                 "name": "offset",
