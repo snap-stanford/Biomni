@@ -92,22 +92,36 @@ def _gene_in_field(gene: str, field_value: str) -> bool:
 
     Args:
         gene: Gene symbol to search for
-        field_value: Field value (comma-separated gene list or similar)
+        field_value: Field value (JSON-formatted list or comma-separated)
 
     Returns:
         True if the gene is found in the field
     """
+    import json
+    
     if pd.isna(field_value) or not field_value:
         return False
 
-    # Normalize and search
-    field_str = str(field_value).upper()
+    field_str = str(field_value).strip()
     gene_upper = gene.upper()
 
-    # Check for exact match (word boundary)
-    # Handle comma-separated, semicolon-separated, or space-separated lists
-    genes_in_field = re.split(r"[,;\s]+", field_str)
-    return gene_upper in [g.strip() for g in genes_in_field]
+    # Try to parse as JSON list first
+    genes_list = []
+    if field_str.startswith('['):
+        try:
+            parsed = json.loads(field_str)
+            if isinstance(parsed, list):
+                genes_list = [str(g).strip().strip("'\"") for g in parsed if g]
+        except (json.JSONDecodeError, ValueError):
+            pass
+    
+    # If JSON parsing failed, try comma/semicolon splitting
+    if not genes_list:
+        genes_in_field = re.split(r"[,;\s]+", field_str.upper())
+        genes_list = [g.strip().strip("'\"") for g in genes_in_field if g]
+    
+    genes_normalized = [g.upper() for g in genes_list]
+    return gene_upper in genes_normalized
 
 
 def query_amplicons(
