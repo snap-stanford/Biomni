@@ -412,19 +412,29 @@ class A1:
                 print(f"Failed to discover tools: {e}")
                 return []
 
-        def make_mcp_wrapper(cmd: str, args: list[str], tool_name: str, doc: str, env_vars: dict = None):
+        def make_mcp_wrapper(cmd: str, args: list[str], tool_name: str, doc: str, env_vars: dict = None, param_names: list = None):
             """Create a synchronous wrapper for an async MCP tool call."""
+            param_names = param_names or []
 
-            def sync_tool_wrapper(**kwargs):
+            def sync_tool_wrapper(*args_positional, **kwargs):
                 """Synchronous wrapper for MCP tool execution."""
                 try:
+                    # Convert positional arguments to keyword arguments using param_names
+                    call_kwargs = dict(kwargs)
+                    for i, arg in enumerate(args_positional):
+                        if i < len(param_names):
+                            call_kwargs[param_names[i]] = arg
+                        else:
+                            # If more positional args than param names, skip or raise error
+                            pass
+
                     server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
 
                     async def async_tool_call():
                         async with stdio_client(server_params) as (reader, writer):
                             async with ClientSession(reader, writer) as session:
                                 await session.initialize()
-                                result = await session.call_tool(tool_name, kwargs)
+                                result = await session.call_tool(tool_name, call_kwargs)
                                 content = result.content[0]
                                 if hasattr(content, "json"):
                                     return content.json()
@@ -487,6 +497,9 @@ class A1:
                 env_vars = processed_env
 
             # Create module namespace for this MCP server
+            # First ensure the parent 'mcp_servers' module exists
+            if "mcp_servers" not in sys.modules:
+                sys.modules["mcp_servers"] = types.ModuleType("mcp_servers")
             mcp_module_name = f"mcp_servers.{server_name}"
             if mcp_module_name not in sys.modules:
                 sys.modules[mcp_module_name] = types.ModuleType(mcp_module_name)
@@ -534,8 +547,11 @@ class A1:
                     print(f"Warning: Skipping tool with no name in {server_name}")
                     continue
 
+                # Get ordered list of parameter names for positional arg support
+                param_names_ordered = list(parameters.keys())
+
                 # Create wrapper function
-                wrapper_function = make_mcp_wrapper(cmd, args, tool_name, description, env_vars)
+                wrapper_function = make_mcp_wrapper(cmd, args, tool_name, description, env_vars, param_names_ordered)
 
                 # Add to module namespace
                 setattr(server_module, tool_name, wrapper_function)

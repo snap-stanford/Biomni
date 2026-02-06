@@ -232,3 +232,5 @@ data/ddinter_raw/
 # Sphinx build
 /docs/build/
 /docs/source/api/
+biomni_env/setup_path.sh
+CLAUDE.md

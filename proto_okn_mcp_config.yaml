@@ -1,0 +1,77 @@
+# MCP Server Config for Proto-OKN SPARQL endpoints
+# Each server provides tools to query a specific knowledge graph
+
+mcp_servers:
+  # Biomedical Knowledge Graphs
+  spoke-genelab:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/spoke-genelab/sparql"]
+    enabled: true
+    description: "SPOKE-GeneLab - biomedical KG with genes, diseases, compounds, anatomies"
+
+  spoke:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/spoke/sparql"]
+    enabled: true
+    description: "SPOKE - Scalable Precision Medicine Open Knowledge Engine"
+
+  nde:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/nde/sparql"]
+    enabled: true
+    description: "NDE - NIAID Data Ecosystem knowledge graph"
+
+  biohealth:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/biohealth/sparql"]
+    enabled: true
+    description: "BioHealth knowledge graph"
+
+  gene-expression-atlas-okn:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/gene-expression-atlas-okn/sparql"]
+    enabled: true
+    description: "Gene Expression Atlas OKN"
+
+  # BioBricks toxicology/chemistry KGs
+  biobricks-aopwiki:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/biobricks-aopwiki/sparql"]
+    enabled: true
+    description: "BioBricks AOP-Wiki - Adverse Outcome Pathways"
+
+  biobricks-mesh:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/biobricks-mesh/sparql"]
+    enabled: true
+    description: "BioBricks MeSH - Medical Subject Headings"
+
+  biobricks-pubchem-annotations:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/biobricks-pubchem-annotations/sparql"]
+    enabled: true
+    description: "BioBricks PubChem Annotations - chemical compound annotations"
+
+  biobricks-tox21:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/biobricks-tox21/sparql"]
+    enabled: true
+    description: "BioBricks Tox21 - toxicology screening data"
+
+  biobricks-toxcast:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/biobricks-toxcast/sparql"]
+    enabled: true
+    description: "BioBricks ToxCast - EPA toxicity forecasting"
+
+  biobricks-ice:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/biobricks-ice/sparql"]
+    enabled: true
+    description: "BioBricks ICE - Integrated Chemical Environment"
+
+  # Other scientific KGs
+  dreamkg:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/dreamkg/sparql"]
+    enabled: true
+    description: "DreamKG knowledge graph"
+
+  wildlifekn:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://frink.apps.renci.org/wildlifekn/sparql"]
+    enabled: true
+    description: "Wildlife Knowledge Network"
+
+  # External endpoints
+  uniprot-sparql:
+    command: ["uvx", "mcp-proto-okn", "--endpoint", "https://sparql.uniprot.org/sparql", "--description", "UniProt protein sequence and function database"]
+    enabled: true
+    description: "UniProt SPARQL - protein sequences and annotations"
