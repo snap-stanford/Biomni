@@ -111,8 +111,8 @@ def _gene_in_field(gene: str, field_value: str) -> bool:
 
 
 def query_amplicons(
-    tissue_of_origin: str | None = None,
-    classification: str | None = None,
+    tissue_of_origin: str | list[str] | None = None,
+    classification: str | list[str] | None = None,
     gene: str | list[str] | None = None,
     gene_field: str | None = None,
     ncbi_gene_id: str | list[str] | None = None,
@@ -138,9 +138,11 @@ def query_amplicons(
 
     Args:
         tissue_of_origin: Cancer tissue of origin (e.g., breast, lung, ovary).
-            Case-insensitive exact match.
-        classification: Amplicon classification. Must be one of:
-            'ecDNA', 'BFB', 'Linear', 'Complex-non-cyclic'.
+            Can be a single string or list of strings for OR matching.
+            Case-insensitive matching.
+        classification: Amplicon classification. Can be a single string or list of
+            strings for OR matching. Valid values include 'ecDNA', 'BFB', 'Linear',
+            'Complex-non-cyclic'.
         gene: Gene symbol(s) to search for. Can be a single string or list
             of strings for OR matching (e.g., 'MYC' or ['MYC', 'EGFR']).
         gene_field: Which gene column(s) to search. One of:
@@ -188,8 +190,17 @@ def query_amplicons(
     offset = max(0, offset)
 
     valid_classifications = ["ecDNA", "BFB", "Linear", "Complex-non-cyclic"]
-    if classification is not None and classification not in valid_classifications:
-        raise ValueError(f"Invalid classification '{classification}'. Must be one of: {valid_classifications}")
+    if classification is not None:
+        # Allow single string or list of strings
+        if isinstance(classification, str):
+            cls_list = [classification]
+        elif isinstance(classification, list):
+            cls_list = classification
+        else:
+            raise ValueError("Invalid type for classification; must be string or list of strings")
+        invalid = [c for c in cls_list if c not in valid_classifications]
+        if invalid:
+            raise ValueError(f"Invalid classification value(s) {invalid}. Must be one of: {valid_classifications}")
 
     valid_gene_fields = ["oncogenes", "all_genes", "either"]
     if gene_field not in valid_gene_fields:
@@ -222,18 +233,26 @@ def query_amplicons(
     # Apply filters
     mask = pd.Series([True] * len(df))
 
-    # Tissue of origin filter (case-insensitive exact match)
+    # Tissue of origin filter (supports list for OR matching)
     if tissue_of_origin is not None:
         if "Tissue of origin" in df.columns:
-            mask &= df["Tissue of origin"].str.lower() == tissue_of_origin.lower()
+            tissue_list = [tissue_of_origin] if isinstance(tissue_of_origin, str) else tissue_of_origin
+            tissue_mask = pd.Series([False] * len(df))
+            for tissue in tissue_list:
+                tissue_mask |= df["Tissue of origin"].str.lower() == tissue.lower()
+            mask &= tissue_mask
             filters_applied["tissue_of_origin"] = tissue_of_origin
         else:
             raise ValueError("Column 'Tissue of origin' not found in the data")
 
-    # Classification filter
+    # Classification filter (supports list for OR matching)
     if classification is not None:
         if "Classification" in df.columns:
-            mask &= df["Classification"] == classification
+            class_list = [classification] if isinstance(classification, str) else classification
+            class_mask = pd.Series([False] * len(df))
+            for c in class_list:
+                class_mask |= df["Classification"] == c
+            mask &= class_mask
             filters_applied["classification"] = classification
         else:
             raise ValueError("Column 'Classification' not found in the data")
