@@ -1,0 +1,92 @@
+{
+  "summary": "Found 1234 amplicon records (no filters). Returning rows 1-5.",
+  "row_count_total": 1234,
+  "row_count_returned": 5,
+  "filters_applied": {},
+  "rows": [
+    {
+      "Sample name": "22RV1_PROSTATE",
+      "AA amplicon number": NaN,
+      "Classification": NaN,
+      "Tissue of origin": "prostate",
+      "Oncogenes": "['']",
+      "All genes": "['']",
+      "Feature maximum copy number": NaN,
+      "Feature median copy number": NaN,
+      "Captured interval length": NaN,
+      "Complexity score": NaN,
+      "Location": "['']",
+      "Reference version": "GRCh38"
+    },
+    {
+      "Sample name": "2313287_STOMACH",
+      "AA amplicon number": NaN,
+      "Classification": NaN,
+      "Tissue of origin": "stomach",
+      "Oncogenes": "['']",
+      "All genes": "['']",
+      "Feature maximum copy number": NaN,
+      "Feature median copy number": NaN,
+      "Captured interval length": NaN,
+      "Complexity score": NaN,
+      "Location": "['']",
+      "Reference version": "GRCh38"
+    },
+    {
+      "Sample name": "5637_URINARY_TRACT",
+      "AA amplicon number": 1.0,
+      "Classification": "ecDNA",
+      "Tissue of origin": "urinary tract",
+      "Oncogenes": "[\"'E2F3'\", \"'SOX4'\"]",
+      "All genes": "[\"'CASC15'\", \"'CDKAL1'\", \"'E2F3'\", \"'HDGFL1'\", \"'NBAT1'\", \"'PRL'\", \"'SOX4'\"]",
+      "Feature maximum copy number": 67.4193292013,
+      "Feature median copy number": 29.7572868827,
+      "Captured interval length": 2488757.0,
+      "Complexity score": 1.2231668014,
+      "Location": "[\"'chr6:20350615-22839372'\"]",
+      "Reference version": "GRCh38"
+    },
+    {
+      "Sample name": "5637_URINARY_TRACT",
+      "AA amplicon number": 1.0,
+      "Classification": "ecDNA",
+      "Tissue of origin": "urinary tract",
+      "Oncogenes": "[\"'FANCD2'\", \"'PPARG'\", \"'RAF1'\", \"'SRGAP3'\", \"'VHL'\"]",
+      "All genes": "[\"'ARPC4'\", \"'ARPC4-TTLL3'\", \"'ATG7'\", \"'ATP2B2'\", \"'ATP2B2-IT2'\", \"'BRK1'\", \"'BRPF1'\", \"'CAMK1'\", \"'CAND2'\", \"'CIDEC'\", \"'CIDECP1'\", \"'CPNE9'\", \"'CRELD1'\", \"'EMC3'\", \"'EMC3-AS1'\", \"'FANCD2'\", \"'FANCD2OS'\", \"'FBLN2'\", \"'FGD5P1'\", \"'GHRL'\", \"'GHRLOS'\", \"'HDAC11'\", \"'HDAC11-AS1'\", \"'HRH1'\", \"'IL17RC'\", \"'IL17RE'\", \"'IQSEC1'\", \"'IRAK2'\", \"'JAGN1'\", \"'LHFPL4'\", \"'MKRN2'\", \"'MKRN2OS'\", \"'MTMR14'\", \"'NUP210'\", \"'OGG1'\", \"'PPARG'\", \"'PRRT3'\", \"'PRRT3-AS1'\", \"'RAF1'\", \"'RPL32'\", \"'RPUSD3'\", \"'SEC13'\", \"'SETD5'\", \"'SLC6A1'\", \"'SLC6A1-AS1'\", \"'SLC6A11'\", \"'SNORA7A'\", \"'SNORA93'\", \"'SRGAP3'\", \"'SRGAP3-AS2'\", \"'SRGAP3-AS3'\", \"'SRGAP3-AS4'\", \"'SYN2'\", \"'TADA3'\", \"'TAMM41'\", \"'TATDN2'\", \"'THUMPD3'\", \"'THUMPD3-AS1'\", \"'TIMP4'\", \"'TMEM40'\", \"'TPRXL'\", \"'TSEN2'\", \"'TTLL3'\", \"'VGLL4'\", \"'VHL'\", \"'WNT7A'\"]",
+      "Feature maximum copy number": 17.2834896304,
+      "Feature median copy number": 13.1750189608,
+      "Captured interval length": 4901014.0,
+      "Complexity score": 0.7095808657,
+      "Location": "[\"'chr3:9099507-9519221'\", \"'chr3:9521655-10184493'\", \"'chr3:10187258-14005720'\"]",
+      "Reference version": "GRCh38"
+    },
+    {
+      "Sample name": "59M_OVARY",
+      "AA amplicon number": 1.0,
+      "Classification": "Complex-non-cyclic",
+      "Tissue of origin": "ovary",
+      "Oncogenes": "['']",
+      "All genes": "[\"'ABCA1'\", \"'DNAJC25'\", \"'DNAJC25-GNG10'\", \"'ECPAS'\", \"'GNG10'\", \"'ITGA1'\", \"'LPAR1'\", \"'LRRC37A5P'\", \"'MUSK'\", \"'NIPSNAP3A'\", \"'NIPSNAP3B'\", \"'OR13C2'\", \"'OR13C3'\", \"'OR13C4'\", \"'OR13C5'\", \"'OR13C8'\", \"'OR13C9'\", \"'OR13D1'\", \"'OR13F1'\", \"'OR2K2'\", \"'PELO'\", \"'PTGR1'\", \"'SHOC1'\", \"'SLC44A1'\", \"'UGCG'\", \"'ZNF483'\"]",
+      "Feature maximum copy number": 5.7879431777,
+      "Feature median copy number": 5.0260925593,
+      "Captured interval length": 3998299.0,
+      "Complexity score": 0.9358918769,
+      "Location": "[\"'chr5:51400000-51925591'\", \"'chr5:51925690-52863895'\", \"'chr9:104220123-104600584'\", \"'chr9:104600954-105410708'\", \"'chr9:110623485-111967773'\"]",
+      "Reference version": "GRCh38"
+    }
+  ],
+  "schema": [
+    "Sample name",
+    "AA amplicon number",
+    "Classification",
+    "Tissue of origin",
+    "Oncogenes",
+    "All genes",
+    "Feature maximum copy number",
+    "Feature median copy number",
+    "Captured interval length",
+    "Complexity score",
+    "Location",
+    "Reference version"
+  ]
+}
