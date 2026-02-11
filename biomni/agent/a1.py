@@ -215,6 +215,8 @@ class A1:
         
         # Token and prompt logging
         self.log_tokens = log_tokens
+        # Temporary: force token logging on for .go() and launch_gradio_demo(); remove when done testing
+        self.log_tokens = True
         self.token_logger = None  # Will be created when session starts
         self.logs_dir = default_config.logs_dir
         self.llm_source = source if source is not None else default_config.source
