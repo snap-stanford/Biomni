@@ -14,7 +14,7 @@ from biomni.agent import A1
 import biomni.agent.a1 as a1_module
 import biomni.llm as llm_module
 
-CSV_PATH = "/Users/siavashraeisidehkordi/amplicon-repo-agentai/amplicon-repo-agentai/biomni/data/biomni_data/data_lake/CCLE.csv"
+CSV_PATH = "/home/oem/Desktop/amplicon-repo-agentai/biomni/data/biomni_data/data_lake/CCLE.csv"
 
 
 def _assert(condition: bool, message: str) -> None:

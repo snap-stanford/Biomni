@@ -36,6 +36,11 @@ DEFAULT_COLUMNS = [
 ]
 
 
+def _normalize_column_name(name: str) -> str:
+    """Normalize column names to lower snake_case for easier programmatic access."""
+    return re.sub(r"[^0-9a-zA-Z]+", "_", name).strip("_").lower()
+
+
 def _parse_genomic_location(location: str) -> tuple[str, int, int] | None:
     """Parse a genomic location string in the format chrN:start-end.
 
@@ -142,6 +147,7 @@ def query_amplicons(
     limit: int | None = None,
     offset: int | None = None,
     csv_path: str | None = None,
+    add_normalized_columns: bool | None = None,
 ) -> dict[str, Any]:
     """Retrieve amplicon records from the Amplicon Repository CSV file.
 
@@ -178,6 +184,9 @@ def query_amplicons(
         offset: Row offset for pagination (default 0).
         csv_path: Path to the aggregated_results.csv file. If not specified,
             uses the default path from config.
+        add_normalized_columns: If True, adds lower snake_case aliases for
+            returned columns in each row (e.g., 'Classification' -> 'classification').
+            Defaults to True to make downstream access more consistent.
 
     Returns:
         Dictionary containing:
@@ -187,6 +196,8 @@ def query_amplicons(
             - filters_applied: Dictionary of filters that were applied
             - rows: List of matching amplicon records
             - schema: List of column names in the returned data
+            - schema_normalized: List of normalized column names (if enabled)
+            - column_map: Mapping of normalized -> original column names (if enabled)
 
     Raises:
         FileNotFoundError: If the CSV file is not found
@@ -195,6 +206,8 @@ def query_amplicons(
     # Set defaults
     if offset is None:
         offset = 0
+    if add_normalized_columns is None:
+        add_normalized_columns = True
     if gene_field is None:
         gene_field = "either"
 
@@ -421,6 +434,17 @@ def query_amplicons(
     result_df = filtered_df[output_columns]
     rows = result_df.to_dict(orient="records")
 
+    # Optionally add normalized column aliases for easier access
+    schema_normalized: list[str] | None = None
+    column_map: dict[str, str] | None = None
+    if add_normalized_columns:
+        column_map = {_normalize_column_name(col): col for col in output_columns}
+        schema_normalized = list(column_map.keys())
+        for row in rows:
+            for normalized, original in column_map.items():
+                if normalized not in row:
+                    row[normalized] = row.get(original)
+
     # Generate summary
     filter_desc = []
     if tissue_of_origin:
@@ -437,7 +461,7 @@ def query_amplicons(
     filter_str = ", ".join(filter_desc) if filter_desc else "no filters"
     summary = f"Found {row_count_total} amplicon records ({filter_str}). Returning rows {offset + 1}-{offset + row_count_returned}."
 
-    return {
+    result = {
         "summary": summary,
         "row_count_total": row_count_total,
         "row_count_returned": row_count_returned,
@@ -445,3 +469,9 @@ def query_amplicons(
         "rows": rows,
         "schema": output_columns,
     }
+
+    if add_normalized_columns:
+        result["schema_normalized"] = schema_normalized
+        result["column_map"] = column_map
+
+    return result
