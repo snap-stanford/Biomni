@@ -52,6 +52,10 @@ class BiomniConfig:
     # Third-party integrations
     protocols_io_access_token: str | None = None
 
+    # Token and prompt logging settings
+    log_tokens: bool = False
+    logs_dir: str = "./logs"
+
     def __post_init__(self):
         """Load any environment variable overrides if they exist."""
         # Check for environment variable overrides (optional)
@@ -80,6 +84,12 @@ class BiomniConfig:
         if env_token:
             self.protocols_io_access_token = env_token
 
+        # Token and prompt logging settings
+        if os.getenv("BIOMNI_LOG_TOKENS"):
+            self.log_tokens = os.getenv("BIOMNI_LOG_TOKENS").lower() == "true"
+        if os.getenv("BIOMNI_LOGS_DIR"):
+            self.logs_dir = os.getenv("BIOMNI_LOGS_DIR")
+
     def to_dict(self) -> dict:
         """Convert config to dictionary for easy access."""
         return {
@@ -92,6 +102,8 @@ class BiomniConfig:
             "base_url": self.base_url,
             "api_key": self.api_key,
             "source": self.source,
+            "log_tokens": self.log_tokens,
+            "logs_dir": self.logs_dir,
         }
 
 

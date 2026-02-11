@@ -64,6 +64,7 @@ class A1:
         base_url: str | None = None,
         api_key: str | None = None,
         commercial_mode: bool | None = None,
+        log_tokens: bool | None = None,
         expected_data_lake_files: list | None = None,
     ):
         """Initialize the biomni agent.
@@ -77,6 +78,7 @@ class A1:
             base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
             api_key: API key for the custom LLM
             commercial_mode: If True, excludes datasets that require commercial licenses or are non-commercial only
+            log_tokens: If True, logs token usage and prompts to files
 
         """
         # Use default_config values for unspecified parameters
@@ -96,6 +98,8 @@ class A1:
             api_key = default_config.api_key if default_config.api_key else "EMPTY"
         if commercial_mode is None:
             commercial_mode = default_config.commercial_mode
+        if log_tokens is None:
+            log_tokens = default_config.log_tokens
 
         # Import appropriate env_desc based on commercial_mode
         if commercial_mode:
@@ -208,6 +212,13 @@ class A1:
         )
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
+        
+        # Token and prompt logging
+        self.log_tokens = log_tokens
+        self.token_logger = None  # Will be created when session starts
+        self.logs_dir = default_config.logs_dir
+        self.llm_source = source if source is not None else default_config.source
+        self.thread_loggers = {}  # For gradio multi-thread logging
 
         if self.use_tool_retriever:
             self.tool_registry = ToolRegistry(module2api)
@@ -1396,6 +1407,11 @@ Each library is listed with its description to help you understand its functiona
 
             messages = [SystemMessage(content=system_prompt)] + state["messages"]
             response = self.llm.invoke(messages)
+            
+            # Store response for token logging if enabled
+            if self.log_tokens:
+                self._last_response = response
+                self._last_input_messages = messages
 
             # Normalize Responses API content blocks (list of dicts) into a plain string
             content = response.content
@@ -1651,6 +1667,21 @@ Each library is listed with its description to help you understand its functiona
         self.app.checkpointer = self.checkpointer
         # display(Image(self.app.get_graph().draw_mermaid_png()))
 
+    def _log_turn(self, logger, turn_counter, message):
+        """Log a turn to the token logger if we have response data. Returns new turn_counter or None."""
+        if not self.log_tokens or self._last_response is None or self._last_input_messages is None:
+            return None
+        from biomni.llm import extract_usage_metadata
+
+        turn_counter += 1
+        token_info = extract_usage_metadata(self._last_response, self.llm_source)
+        output = message.content if hasattr(message, "content") else str(message)
+        logger.log_turn(self._last_input_messages, output, token_info)
+        logger.print_tokens(turn_counter, token_info)
+        self._last_response = None
+        self._last_input_messages = None
+        return turn_counter
+
     def _prepare_resources_for_retrieval(self, prompt):
         """Prepare resources for retrieval and return selected resource names.
 
@@ -1774,6 +1805,16 @@ Each library is listed with its description to help you understand its functiona
         self.critic_count = 0
         self.user_task = prompt
 
+        # Initialize token logging session if enabled
+        if self.log_tokens:
+            from biomni.utils import TokenLogger
+
+            self.token_logger = TokenLogger(logs_base_dir=self.logs_dir)
+            self.token_logger.create_session()
+            self._last_response = None
+            self._last_input_messages = None
+            turn_counter = 0
+
         if self.use_tool_retriever:
             selected_resources_names = self._prepare_resources_for_retrieval(prompt)
             self.update_system_prompt_with_selected_resources(selected_resources_names)
@@ -1790,6 +1831,11 @@ Each library is listed with its description to help you understand its functiona
             out = pretty_print(message)
             self.log.append(out)
             final_state = s  # Store the latest state
+            
+            # Log turn if token logging is enabled
+            result = self._log_turn(self.token_logger, turn_counter, message)
+            if result is not None:
+                turn_counter = result
 
         # Store the conversation state for markdown generation
         self._conversation_state = final_state
@@ -2681,6 +2727,23 @@ Each library is listed with its description to help you understand its functiona
             text_input = prompt_input.get("text", "")
             files = prompt_input.get("files", [])
 
+            # Initialize token logging for this thread if enabled
+            if self.log_tokens:
+                from biomni.utils import TokenLogger
+                
+                # Create or get logger for this thread
+                if thread_id not in self.thread_loggers:
+                    thread_logger = TokenLogger(logs_base_dir=self.logs_dir)
+                    thread_logger.create_session()
+                    self.thread_loggers[thread_id] = {
+                        "logger": thread_logger,
+                        "turn_counter": 0
+                    }
+                
+                thread_logger_info = self.thread_loggers[thread_id]
+                self._last_response = None
+                self._last_input_messages = None
+
             self.main_history_copy += [{"role": "user", "content": text_input}]
             main_history.append(ChatMessage(role="user", content=text_input if text_input else "[Uploaded file]"))
 
@@ -2749,6 +2812,12 @@ Each library is listed with its description to help you understand its functiona
                 if message.content == text_input:
                     t = time()
                     continue
+                
+                # Log turn if token logging is enabled
+                if self.log_tokens:
+                    result = self._log_turn(thread_logger_info["logger"], thread_logger_info["turn_counter"], message)
+                    if result is not None:
+                        thread_logger_info["turn_counter"] = result
 
                 # Process the message
                 if isinstance(message.content, str):

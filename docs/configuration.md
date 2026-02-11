@@ -107,6 +107,10 @@ BIOMNI_USE_TOOL_RETRIEVER=true             # Default: true
 BIOMNI_SOURCE=Anthropic                     # Auto-detected if not set
 BIOMNI_CUSTOM_BASE_URL=http://localhost:8000/v1
 BIOMNI_CUSTOM_API_KEY=custom_key
+
+# Token and Prompt Logging
+BIOMNI_LOG_TOKENS=true                      # Default: false
+BIOMNI_LOGS_DIR=./logs                      # Default: ./logs
 ```
 
 ### Python Configuration
@@ -123,7 +127,69 @@ default_config.use_tool_retriever = True
 default_config.source = None  # Auto-detected
 default_config.base_url = None  # For custom models
 default_config.api_key = None  # For custom models
+default_config.log_tokens = False  # Enable token logging
+default_config.logs_dir = "./logs"  # Directory for log files
 ```
+
+## Token and Prompt Logging
+
+Enable comprehensive logging of LLM interactions including token usage and full prompts:
+
+```python
+from biomni.config import default_config
+
+# Enable token logging
+default_config.log_tokens = True
+default_config.logs_dir = "./my_logs"
+
+agent = A1()
+agent.go("Analyze the data")
+```
+
+### Log Directory Structure
+
+When `log_tokens=True`, each agent session creates a timestamped folder:
+
+```
+logs/
+  session_2026-02-10_14-30-45/
+    turn_001_input.txt     # Full context: system + history + user message
+    turn_001_output.txt    # Token header + AI response
+    turn_002_input.txt
+    turn_002_output.txt
+    ...
+```
+
+### Token Count Display
+
+Token usage is shown in two places:
+
+1. **Console output** (box format):
+```
+╔════════════════════════════════════════╗
+║          Turn 1 Token Usage            ║
+╠════════════════════════════════════════╣
+║  Prompt Tokens:       1234             ║
+║  Completion Tokens:    567             ║
+║  Total Tokens:        1801             ║
+╚════════════════════════════════════════╝
+```
+
+2. **Log files** (header in output files):
+```
+=== TOKEN USAGE ===
+Prompt Tokens: 1234
+Completion Tokens: 567
+Total Tokens: 1801
+==================
+
+[AI response text here]
+```
+
+### Provider Support
+
+- **OpenAI**: Full token counting support
+- **Anthropic, others**: Placeholder (shows None until implemented)
 
 ## Important Notes
 

@@ -2365,3 +2365,107 @@ def get_pdf_css_content() -> str:
         word-wrap: break-word;
     }
     """
+
+
+# Token and Prompt Logger for LLM Interactions
+class TokenLogger:
+    """Logger for tracking token usage and LLM prompts/responses.
+
+    Creates a session-based logging structure with timestamped folders
+    and turn-by-turn input/output files.
+
+    Attributes:
+        session_dir: Path to the current session directory
+        turn_counter: Current turn number
+        logs_base_dir: Base directory for all logs
+    """
+
+    def __init__(self, logs_base_dir: str = "./logs"):
+        """Initialize the TokenLogger.
+
+        Args:
+            logs_base_dir: Base directory for storing log files
+        """
+        self.logs_base_dir = logs_base_dir
+        self.session_dir = None
+        self.turn_counter = 0
+
+    def create_session(self):
+        """Create a new timestamped session directory."""
+        from datetime import datetime
+        from pathlib import Path
+
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        session_name = f"session_{timestamp}"
+        self.session_dir = Path(self.logs_base_dir) / session_name
+
+        # Create the directory
+        self.session_dir.mkdir(parents=True, exist_ok=True)
+        self.turn_counter = 0
+
+        print(f"📁 Created logging session: {self.session_dir}")
+        return self.session_dir
+
+    def log_turn(
+        self,
+        input_messages: list[Any],
+        output_content: str,
+        token_info: dict[str, int | None] | None = None,
+    ) -> None:
+        """Log a single turn of LLM interaction."""
+        if self.session_dir is None:
+            self.create_session()
+
+        self.turn_counter += 1
+        turn_num_str = f"{self.turn_counter:03d}"
+
+        # Write input file (full context)
+        input_path = self.session_dir / f"turn_{turn_num_str}_input.txt"
+        with open(input_path, "w", encoding="utf-8") as f:
+            f.write("=== FULL INPUT CONTEXT ===\n\n")
+            for i, msg in enumerate(input_messages, 1):
+                msg_type = getattr(msg, "type", "unknown")
+                msg_content = getattr(msg, "content", str(msg))
+                f.write(f"--- Message {i} ({msg_type}) ---\n")
+                f.write(f"{msg_content}\n\n")
+
+        # Write output file with token header
+        output_path = self.session_dir / f"turn_{turn_num_str}_output.txt"
+        with open(output_path, "w", encoding="utf-8") as f:
+            # Write token usage header if available
+            if token_info:
+                f.write("=== TOKEN USAGE ===\n")
+                f.write(f"Prompt Tokens: {token_info.get('prompt_tokens', 'N/A')}\n")
+                f.write(f"Completion Tokens: {token_info.get('completion_tokens', 'N/A')}\n")
+                f.write(f"Total Tokens: {token_info.get('total_tokens', 'N/A')}\n")
+                if token_info.get("note"):
+                    f.write(f"Note: {token_info['note']}\n")
+                f.write("==================\n\n")
+
+            # Write the actual response
+            f.write(output_content)
+
+        print(f"📝 Logged turn {self.turn_counter} to {self.session_dir.name}")
+
+    def print_tokens(self, turn_number: int, token_info: dict[str, int | None]) -> None:
+        """Print token usage in a formatted box to console."""
+        def _fmt(v):
+            return str(v).rjust(10) if v not in (None, "N/A") else "N/A".rjust(10)
+
+        prompt_str = _fmt(token_info.get("prompt_tokens", "N/A"))
+        completion_str = _fmt(token_info.get("completion_tokens", "N/A"))
+        total_str = _fmt(token_info.get("total_tokens", "N/A"))
+
+        print("\n╔════════════════════════════════════════╗")
+        print(f"║      Turn {turn_number} Token Usage            ║")
+        print("╠════════════════════════════════════════╣")
+        print(f"║  Prompt Tokens:    {prompt_str}        ║")
+        print(f"║  Completion Tokens:{completion_str}        ║")
+        print(f"║  Total Tokens:     {total_str}        ║")
+
+        if token_info.get("note"):
+            print("╠════════════════════════════════════════╣")
+            note = token_info["note"][:34]  # Truncate if too long
+            print(f"║  {note.ljust(38)} ║")
+
+        print("╚════════════════════════════════════════╝\n")

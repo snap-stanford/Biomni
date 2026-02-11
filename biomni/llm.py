@@ -10,6 +10,22 @@ SourceType = Literal["OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "
 ALLOWED_SOURCES: set[str] = set(SourceType.__args__)
 
 
+def extract_usage_metadata(response, source: SourceType) -> dict[str, int | None]:
+    """Extract token usage metadata from LLM response."""
+    empty = {"prompt_tokens": None, "completion_tokens": None, "total_tokens": None}
+
+    try:
+        if source in ("OpenAI", "AzureOpenAI", "Gemini", "Groq", "Custom") and hasattr(
+            response, "response_metadata"
+        ):
+            usage = response.response_metadata.get("token_usage", {})
+            return {k: usage.get(k) for k in ("prompt_tokens", "completion_tokens", "total_tokens")}
+        note = "Token counting not yet implemented for Anthropic" if source == "Anthropic" else f"Token counting not yet implemented for {source}"
+        return {**empty, "note": note}
+    except Exception as e:
+        return {**empty, "note": f"Failed to extract token information: {str(e)}"}
+
+
 def get_llm(
     model: str | None = None,
     temperature: float | None = None,
