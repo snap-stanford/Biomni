@@ -108,8 +108,7 @@ description = [
                 "type": "array",
                 "items": {"type": "string"},
                 "description": (
-                    "Columns to return (default: key identifying and feature columns). "
-                    "Useful for reducing output size."
+                    "Columns to return (default: key identifying and feature columns). Useful for reducing output size."
                 ),
             },
             {
@@ -127,11 +126,11 @@ description = [
                 "type": "string",
                 "description": "Path to the amplicon CSV file (e.g., CCLE.csv, aggregated_results.csv, or any compatible amplicon data file). If not specified, uses default config path.",
             },
-                {
-                    "name": "add_normalized_columns",
-                    "type": "boolean",
-                    "description": "If true (default), adds lower snake_case aliases for each returned column (e.g., 'Classification' -> 'classification') and includes schema_normalized and column_map in the response.",
-                },
+            {
+                "name": "add_normalized_columns",
+                "type": "boolean",
+                "description": "If true (default), adds lower snake_case aliases for each returned column (e.g., 'Classification' -> 'classification') and includes schema_normalized and column_map in the response.",
+            },
         ],
         "returns": {
             "type": "object",
@@ -142,8 +141,8 @@ description = [
                 "filters_applied",
                 "rows",
                 "schema",
-                    "schema_normalized",
-                    "column_map",
+                "schema_normalized",
+                "column_map",
             ],
         },
     }

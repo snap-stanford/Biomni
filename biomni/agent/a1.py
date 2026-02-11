@@ -15,6 +15,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from biomni.config import default_config
+
 # from biomni.know_how import KnowHowLoader
 from biomni.llm import SourceType, get_llm
 from biomni.model.retriever import ToolRetriever
@@ -212,7 +213,7 @@ class A1:
         )
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
-        
+
         # Token and prompt logging
         self.log_tokens = log_tokens
         # Temporary: force token logging on for .go() and launch_gradio_demo(); remove when done testing
@@ -1147,7 +1148,7 @@ After that, you have two options:
    - Never add new assumptions, like adding limits, etc. If you need more information and cannot perform the task with current specifications, report the issue.
    - If you are able to do something in a single step, do it in a single step. Do not overcomplicate the code by breaking it into multiple steps unnecessarily. For example, if there is a tool that can directly give you the answer, use it directly instead of writing code to process the data yourself. If you can write a one-liner to get the answer, do not write a multi-line code block that does the same thing.
    - Use tools efficiently, if you can achieve your goal by calling a tool in one step, don’t break the tool call into multiple steps.
-   
+
 2) When you think it is ready, directly provide a solution that adheres to the required format for the given task to the user. Your solution should be enclosed using "<solution>" tag, for example: The answer is <solution> A </solution>. IMPORTANT: You must end the solution block with </solution> tag.
 
 You have many chances to interact with the environment to receive the observation. So you can decompose your code into multiple steps.
@@ -1191,20 +1192,20 @@ IMPORTANT: The following custom resources have been specifically added for your 
 
 """
 
-#             if know_how_formatted:
-#                 prompt_modifier += """
-# 📚 KNOW-HOW DOCUMENTS (BEST PRACTICES & PROTOCOLS - ALREADY LOADED):
-# {know_how_docs}
+            #             if know_how_formatted:
+            #                 prompt_modifier += """
+            # 📚 KNOW-HOW DOCUMENTS (BEST PRACTICES & PROTOCOLS - ALREADY LOADED):
+            # {know_how_docs}
 
-# IMPORTANT: These documents are ALREADY AVAILABLE in your context. You do NOT need to
-# retrieve them or "review" them as a separate step. You can DIRECTLY reference and use
-# the information from these documents to answer questions, provide protocols, suggest
-# parameters, and offer troubleshooting guidance.
+            # IMPORTANT: These documents are ALREADY AVAILABLE in your context. You do NOT need to
+            # retrieve them or "review" them as a separate step. You can DIRECTLY reference and use
+            # the information from these documents to answer questions, provide protocols, suggest
+            # parameters, and offer troubleshooting guidance.
 
-# These documents contain expert knowledge, protocols, and troubleshooting guidance.
-# Reference them directly for experimental design, methodology, and problem-solving.
+            # These documents contain expert knowledge, protocols, and troubleshooting guidance.
+            # Reference them directly for experimental design, methodology, and problem-solving.
 
-# """
+            # """
 
             if custom_tools_formatted:
                 prompt_modifier += """
@@ -1409,7 +1410,7 @@ Each library is listed with its description to help you understand its functiona
 
             messages = [SystemMessage(content=system_prompt)] + state["messages"]
             response = self.llm.invoke(messages)
-            
+
             # Store response for token logging if enabled
             if self.log_tokens:
                 self._last_response = response
@@ -1833,7 +1834,7 @@ Each library is listed with its description to help you understand its functiona
             out = pretty_print(message)
             self.log.append(out)
             final_state = s  # Store the latest state
-            
+
             # Log turn if token logging is enabled
             result = self._log_turn(self.token_logger, turn_counter, message)
             if result is not None:
@@ -2732,16 +2733,13 @@ Each library is listed with its description to help you understand its functiona
             # Initialize token logging for this thread if enabled
             if self.log_tokens:
                 from biomni.utils import TokenLogger
-                
+
                 # Create or get logger for this thread
                 if thread_id not in self.thread_loggers:
                     thread_logger = TokenLogger(logs_base_dir=self.logs_dir)
                     thread_logger.create_session()
-                    self.thread_loggers[thread_id] = {
-                        "logger": thread_logger,
-                        "turn_counter": 0
-                    }
-                
+                    self.thread_loggers[thread_id] = {"logger": thread_logger, "turn_counter": 0}
+
                 thread_logger_info = self.thread_loggers[thread_id]
                 self._last_response = None
                 self._last_input_messages = None
@@ -2814,7 +2812,7 @@ Each library is listed with its description to help you understand its functiona
                 if message.content == text_input:
                     t = time()
                     continue
-                
+
                 # Log turn if token logging is enabled
                 if self.log_tokens:
                     result = self._log_turn(thread_logger_info["logger"], thread_logger_info["turn_counter"], message)

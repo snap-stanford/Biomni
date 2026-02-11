@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-import sys
 import os
+import sys
 
 # Fix Windows console encoding for emojis and ensure output is visible immediately (no buffering)
-if sys.platform == 'win32':
+if sys.platform == "win32":
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace", line_buffering=True)
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace", line_buffering=True)
 else:
     try:
         sys.stdout.reconfigure(line_buffering=True)
@@ -35,7 +36,9 @@ def _required_api_key_env_for_llm(model: str, source: str | None) -> str | None:
             source = "Gemini"
         elif "groq" in model.lower():
             source = "Groq"
-        elif model.startswith(("anthropic.claude-", "amazon.titan-", "meta.llama-", "mistral.", "cohere.", "ai21.", "us.")):
+        elif model.startswith(
+            ("anthropic.claude-", "amazon.titan-", "meta.llama-", "mistral.", "cohere.", "ai21.", "us.")
+        ):
             source = "Bedrock"
         elif os.getenv("BIOMNI_CUSTOM_BASE_URL") or os.getenv("BIOMNI_CUSTOM_API_KEY"):
             source = "Custom"
@@ -56,7 +59,12 @@ def _required_api_key_env_for_llm(model: str, source: str | None) -> str | None:
 
 # Verify API key for the configured LLM provider
 _llm = os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL") or "gpt-5"
-_source = os.getenv("LLM_SOURCE") if os.getenv("LLM_SOURCE") in ("OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Groq", "Custom") else None
+_source = (
+    os.getenv("LLM_SOURCE")
+    if os.getenv("LLM_SOURCE")
+    in ("OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Groq", "Custom")
+    else None
+)
 _key_var = _required_api_key_env_for_llm(_llm, _source)
 if _key_var:
     _key = os.getenv(_key_var)
@@ -69,27 +77,23 @@ print(f"Using LLM: {_llm}")
 # Install Gradio if needed using uv
 try:
     import gradio as gr
-    if int(gr.__version__.split('.')[0]) >= 6:
+
+    if int(gr.__version__.split(".")[0]) >= 6:
         import subprocess
+
         subprocess.check_call(["uv", "pip", "install", "-q", "--python", sys.executable, "gradio>=5.0,<6.0"])
 except ImportError:
     import subprocess
+
     subprocess.check_call(["uv", "pip", "install", "-q", "--python", sys.executable, "gradio>=5.0,<6.0"])
 
 # Initialize agent
 from biomni.agent import A1
 
-agent = A1(
-    path='./data',
-    llm=_llm,
-    expected_data_lake_files=[]
-)
+agent = A1(path="./data", llm=_llm, expected_data_lake_files=[])
 
 print("Starting web interface at http://localhost:7860")
 print("Press Ctrl+C to stop")
 
 # Launch web UI
-agent.launch_gradio_demo(
-    share=False,
-    server_name="0.0.0.0"
-)
+agent.launch_gradio_demo(share=False, server_name="0.0.0.0")

@@ -8,6 +8,7 @@ Usage:
 Optional:
     STRICT=1  -> enable stricter assertions on expected outputs.
 """
+
 from __future__ import annotations
 
 import os
@@ -112,9 +113,9 @@ if __name__ == "__main__":
     os.environ["BIOMNI_DATA_PATH"] = os.path.dirname(CSV_PATH)
 
     # llm_model = os.getenv("LLM_MODEL")
-    llm_model = 'gpt-5-mini'
+    llm_model = "gpt-5-mini"
     # llm_source = os.getenv("LLM_SOURCE")
-    llm_source = 'OpenAI'
+    llm_source = "OpenAI"
     agent = A1(llm=llm_model, source=llm_source, expected_data_lake_files=[], use_tool_retriever=False)
 
     target_q = os.getenv("Q")

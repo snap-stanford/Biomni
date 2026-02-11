@@ -42,88 +42,88 @@ Below is a walkthrough of all **30 columns** in the dataset.
 
 ### Identification Columns
 
-**`Unnamed: 0`** (int)  
+**`Unnamed: 0`** (int)
 Sequential index from original data. Can be ignored; pandas will create its own index.
 
-**`Sample name`** (str)  
+**`Sample name`** (str)
 Unique identifier for cell line sample. Format: `{CELL_LINE}_{TISSUE}` (e.g. `"22RV1_PROSTATE"`). Primary key for grouping analyses by cell line.
 
-**`AA amplicon number`** (float/NaN)  
+**`AA amplicon number`** (float/NaN)
 AmpliconArchitect's amplicon number for this feature. NaN for samples with no detected amplicons. Used to identify multiple amplicons within the same sample.
 
-**`Feature ID`** (str)  
+**`Feature ID`** (str)
 Unique identifier combining sample and amplicon. Format: `{SAMPLE_NAME}_{AMPLICON_NUM}` or `{SAMPLE_NAME}_NA`. Use as the primary key for individual amplicon features.
 
 ### Classification Column
 
-**`Classification`** (str)  
+**`Classification`** (str)
 Amplicon structural classification from AmpliconClassifier. **Values**: `"ecDNA"` (297), `"Linear"` (550), `"BFB"` (114), `"Complex-non-cyclic"` (196), `NaN` (77 = no amplicon). Most important column for categorizing amplicon types.
 
 ### Genomic Location and Genes
 
-**`Location`** (str)  
+**`Location`** (str)
 Genomic coordinates of the amplicon. **Format**: string representation of a list of strings, e.g. `["'chr6:20350615-22839372'"]`. Parse with `ast.literal_eval()` to get a Python list.
 
-**`Oncogenes`** (str)  
+**`Oncogenes`** (str)
 Known oncogenes in the amplicon. **Format**: string representation of a list of gene names, e.g. `["'E2F3'", "'SOX4'"]`. Empty when none: `["''"]`. Filter out `"''"` after parsing.
 
-**`All genes`** (str)  
+**`All genes`** (str)
 All genes (oncogenes + other) in the amplicon. Same format and parsing as Oncogenes.
 
-**`NCBI Gene IDs`** (str)  
+**`NCBI Gene IDs`** (str)
 NCBI Gene IDs corresponding to genes. String representation of a list; often `[]` or list of numeric IDs. Less commonly used than gene symbols.
 
 ### Amplicon Features
 
-**`Complexity score`** (float)  
+**`Complexity score`** (float)
 Quantitative measure of amplicon structural complexity. Range typically 1.0 to ~10+ (higher = more complex). NaN for samples without amplicons.
 
-**`ecDNA context`** (str)  
+**`ecDNA context`** (str)
 Additional context about ecDNA structure. Often NaN or detailed structural info; less used in basic analyses.
 
-**`Captured interval length`** (float)  
+**`Captured interval length`** (float)
 Total length of captured genomic intervals in the amplicon (base pairs). NaN when no amplicon.
 
-**`Feature median copy number`** (float)  
+**`Feature median copy number`** (float)
 Median copy number across the amplicon. Key metric for amplification strength. NaN when no amplicon.
 
-**`Feature maximum copy number`** (float)  
+**`Feature maximum copy number`** (float)
 Maximum copy number within the amplicon; usually higher than median. Useful for peak amplification regions.
 
-**`Filter flag`** (str/NaN)  
+**`Filter flag`** (str/NaN)
 Quality control flag. NaN = passed all filters (most common); non-NaN may indicate low-confidence feature.
 
 ### Reference and Versions
 
-**`Reference version`** (str)  
+**`Reference version`** (str)
 Genome reference build; `"GRCh38"` for all samples.
 
-**`AS-p version`**, **`AA version`**, **`AC version`** (str)  
+**`AS-p version`**, **`AA version`**, **`AC version`** (str)
 Software versions: AmpliconSuite-pipeline, AmpliconArchitect, AmpliconClassifier. Useful for reproducibility.
 
 ### Sample Metadata
 
-**`Tissue of origin`** (str)  
+**`Tissue of origin`** (str)
 Tissue type of the cancer cell line (e.g. `"prostate"`, `"lung"`, `"breast"`). Lowercase, standardized. Important for tissue-specific analyses.
 
-**`Sample type`** (str)  
+**`Sample type`** (str)
 Type of sample; `"cell line"` for all samples in this dataset.
 
 ### File Paths
 
-**`Feature BED file`**, **`CNV BED file`** (str)  
+**`Feature BED file`**, **`CNV BED file`** (str)
 Paths to BED files with genomic coordinates. Often `"Not Provided"` when no amplicon.
 
-**`AA PNG file`**, **`AA PDF file`** (str)  
+**`AA PNG file`**, **`AA PDF file`** (str)
 Paths to AmpliconArchitect visualization files. Often `"Not Provided"` when no amplicon.
 
-**`AA summary file`** (str)  
+**`AA summary file`** (str)
 Path to AmpliconArchitect summary text file.
 
-**`Run metadata JSON`**, **`Sample metadata JSON`** (str)  
+**`Run metadata JSON`**, **`Sample metadata JSON`** (str)
 Paths to JSON files with pipeline and sample metadata.
 
-**`AA directory`**, **`cnvkit directory`** (str)  
+**`AA directory`**, **`cnvkit directory`** (str)
 Paths to `.tar.gz` archives with full pipeline outputs.
 
 ---

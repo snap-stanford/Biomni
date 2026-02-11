@@ -103,7 +103,7 @@ def _gene_in_field(gene: str, field_value: str) -> bool:
         True if the gene is found in the field
     """
     import json
-    
+
     if pd.isna(field_value) or not field_value:
         return False
 
@@ -112,19 +112,19 @@ def _gene_in_field(gene: str, field_value: str) -> bool:
 
     # Try to parse as JSON list first
     genes_list = []
-    if field_str.startswith('['):
+    if field_str.startswith("["):
         try:
             parsed = json.loads(field_str)
             if isinstance(parsed, list):
                 genes_list = [str(g).strip().strip("'\"") for g in parsed if g]
         except (json.JSONDecodeError, ValueError):
             pass
-    
+
     # If JSON parsing failed, try comma/semicolon splitting
     if not genes_list:
         genes_in_field = re.split(r"[,;\s]+", field_str.upper())
         genes_list = [g.strip().strip("'\"") for g in genes_in_field if g]
-    
+
     genes_normalized = [g.upper() for g in genes_list]
     return gene_upper in genes_normalized
 
@@ -358,10 +358,7 @@ def query_amplicons(
             parsed_locations.append(parsed)
 
         def _any_location_overlaps(intervals_str: str) -> bool:
-            return any(
-                _intervals_overlap(intervals_str, chrom, start, end)
-                for chrom, start, end in parsed_locations
-            )
+            return any(_intervals_overlap(intervals_str, chrom, start, end) for chrom, start, end in parsed_locations)
 
         # Use Location column for genomic location filtering
         if "Location" in df.columns:
@@ -379,7 +376,12 @@ def query_amplicons(
     # Numeric range filters (mapping parameter names to actual column names)
     numeric_filters = [
         ("Complexity score", complexity_score_min, complexity_score_max, "complexity_score"),
-        ("Captured interval length", captured_interval_length_min, captured_interval_length_max, "captured_interval_length"),
+        (
+            "Captured interval length",
+            captured_interval_length_min,
+            captured_interval_length_max,
+            "captured_interval_length",
+        ),
         ("Feature maximum copy number", feature_max_copy_number_min, None, "feature_max_copy_number"),
         ("Feature median copy number", feature_median_copy_number_min, None, "feature_median_copy_number"),
     ]

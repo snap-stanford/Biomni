@@ -2449,6 +2449,7 @@ class TokenLogger:
 
     def print_tokens(self, turn_number: int, token_info: dict[str, int | None]) -> None:
         """Print token usage in a formatted box to console."""
+
         def _fmt(v):
             return str(v).rjust(10) if v not in (None, "N/A") else "N/A".rjust(10)
 

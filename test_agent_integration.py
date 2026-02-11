@@ -3,16 +3,16 @@
 End-to-end agent integration tests (mocked LLM) for all 24 questions in Tests.pdf.
 Validates that the A1 agent executes tool calls and produces expected results.
 """
+
 from __future__ import annotations
 
 import os
 from typing import Any
 
-from langchain_core.messages import AIMessage, HumanMessage
-
-from biomni.agent import A1
 import biomni.agent.a1 as a1_module
 import biomni.llm as llm_module
+from biomni.agent import A1
+from langchain_core.messages import AIMessage, HumanMessage
 
 CSV_PATH = "/home/oem/Desktop/amplicon-repo-agentai/biomni/data/biomni_data/data_lake/CCLE.csv"
 
@@ -379,7 +379,7 @@ print("Q18_OK=", ok)
 print("Q18_COUNT=", len(exclusive))
 """
     elif case_id == "Q19":
-        body = """
+        body = r"""
 df = _df(select_cols=["Location"])
 chroms = df["Location"].str.extract(r"(chr\d+|chrX|chrY)", expand=False)
 chrom_counts = chroms.value_counts()
@@ -448,7 +448,7 @@ print("Q23_OK=", ok)
 print("Q23_TOP=", top_pair, top_count)
 """
     elif case_id == "Q24":
-        body = """
+        body = r"""
 df = _df(select_cols=["Sample name","Location"])
 chrom = df["Location"].str.extract(r"(chr\d+|chrX|chrY)", expand=False)
 tmp = df.copy()
@@ -510,7 +510,7 @@ class MockLLM:
         code = _execute_code(case["id"])
         return AIMessage(content=f"<execute>\n{code}\n</execute>")
 
-    def with_structured_output(self, output_class):  # noqa: D401
+    def with_structured_output(self, output_class):
         return self
 
 

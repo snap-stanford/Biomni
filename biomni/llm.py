@@ -16,7 +16,11 @@ def extract_usage_metadata(response, source: SourceType) -> dict[str, int | None
 
     try:
         if source not in ("OpenAI", "AzureOpenAI", "Gemini", "Groq", "Custom"):
-            note = "Token counting not yet implemented for Anthropic" if source == "Anthropic" else f"Token counting not yet implemented for {source}"
+            note = (
+                "Token counting not yet implemented for Anthropic"
+                if source == "Anthropic"
+                else f"Token counting not yet implemented for {source}"
+            )
             return {**empty, "note": note}
 
         # Responses API (gpt-5): usage is on message.usage_metadata (input_tokens, output_tokens, total_tokens)
