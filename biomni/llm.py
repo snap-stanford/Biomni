@@ -11,17 +11,33 @@ ALLOWED_SOURCES: set[str] = set(SourceType.__args__)
 
 
 def extract_usage_metadata(response, source: SourceType) -> dict[str, int | None]:
-    """Extract token usage metadata from LLM response."""
+    """Extract token usage from LLM response. Supports Chat Completions and Responses API (e.g. gpt-5)."""
     empty = {"prompt_tokens": None, "completion_tokens": None, "total_tokens": None}
 
     try:
-        if source in ("OpenAI", "AzureOpenAI", "Gemini", "Groq", "Custom") and hasattr(
-            response, "response_metadata"
-        ):
-            usage = response.response_metadata.get("token_usage", {})
-            return {k: usage.get(k) for k in ("prompt_tokens", "completion_tokens", "total_tokens")}
-        note = "Token counting not yet implemented for Anthropic" if source == "Anthropic" else f"Token counting not yet implemented for {source}"
-        return {**empty, "note": note}
+        if source not in ("OpenAI", "AzureOpenAI", "Gemini", "Groq", "Custom"):
+            note = "Token counting not yet implemented for Anthropic" if source == "Anthropic" else f"Token counting not yet implemented for {source}"
+            return {**empty, "note": note}
+
+        # Responses API (gpt-5): usage is on message.usage_metadata (input_tokens, output_tokens, total_tokens)
+        um = getattr(response, "usage_metadata", None)
+        if um and isinstance(um, dict):
+            pt = um.get("input_tokens") or um.get("prompt_tokens")
+            ct = um.get("output_tokens") or um.get("completion_tokens")
+            tt = um.get("total_tokens")
+            if pt is not None or ct is not None or tt is not None:
+                return {"prompt_tokens": pt, "completion_tokens": ct, "total_tokens": tt}
+
+        # Chat Completions API: response_metadata["token_usage"]
+        meta = getattr(response, "response_metadata", None) or {}
+        usage = (meta.get("token_usage") or meta.get("usage")) or {}
+        if usage:
+            return {
+                "prompt_tokens": usage.get("prompt_tokens") or usage.get("input_tokens"),
+                "completion_tokens": usage.get("completion_tokens") or usage.get("output_tokens"),
+                "total_tokens": usage.get("total_tokens"),
+            }
+        return {**empty, "note": "No token usage in response"}
     except Exception as e:
         return {**empty, "note": f"Failed to extract token information: {str(e)}"}
 
