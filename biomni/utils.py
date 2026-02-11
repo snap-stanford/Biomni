@@ -135,11 +135,11 @@ def run_bash_script(script: str) -> str:
 
         # Decode output with error handling for non-UTF8 content
         try:
-            stdout = result.stdout.decode('utf-8', errors='replace')
+            stdout = result.stdout.decode("utf-8", errors="replace")
         except Exception:
             stdout = str(result.stdout)
         try:
-            stderr = result.stderr.decode('utf-8', errors='replace')
+            stderr = result.stderr.decode("utf-8", errors="replace")
         except Exception:
             stderr = str(result.stderr)
 

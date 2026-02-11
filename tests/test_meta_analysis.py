@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Load environment variables
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from biomni.config import default_config
@@ -50,10 +51,10 @@ try:
 
     print("Creating agent...")
     agent = A1(
-        path='./data',
+        path="./data",
         llm=default_config.llm,  # Use config from .env
         expected_data_lake_files=[],
-        use_tool_retriever=True
+        use_tool_retriever=True,
     )
 
     print("Configuring agent...")
@@ -70,7 +71,7 @@ try:
     print("CONVERSATION LOG:")
     print("=" * 70)
     for i, msg in enumerate(messages[-10:]):  # Last 10 messages
-        print(f"\n--- Message {i+1} ---")
+        print(f"\n--- Message {i + 1} ---")
         print(msg[:1000] if len(msg) > 1000 else msg)
 
     print("\n" + "=" * 70)
@@ -83,6 +84,7 @@ except KeyboardInterrupt:
 except Exception as e:
     print(f"\nEXCEPTION: {type(e).__name__}: {e}")
     import traceback
+
     traceback.print_exc()
 
 print("\n" + "=" * 70)

@@ -412,7 +412,9 @@ class A1:
                 print(f"Failed to discover tools: {e}")
                 return []
 
-        def make_mcp_wrapper(cmd: str, args: list[str], tool_name: str, doc: str, env_vars: dict = None, param_names: list = None):
+        def make_mcp_wrapper(
+            cmd: str, args: list[str], tool_name: str, doc: str, env_vars: dict = None, param_names: list = None
+        ):
             """Create a synchronous wrapper for an async MCP tool call."""
             param_names = param_names or []
 
