@@ -119,11 +119,12 @@ def run_bash_script(script: str) -> str:
         cwd = os.getcwd()
 
         # Run the Bash script with the current environment and working directory
+        # Use bytes mode to handle binary/non-UTF8 output gracefully
         result = subprocess.run(
             [temp_file],
             shell=True,
             capture_output=True,
-            text=True,
+            text=False,  # Use bytes mode to avoid UTF-8 decode errors
             check=False,
             env=env,
             cwd=cwd,
@@ -132,13 +133,23 @@ def run_bash_script(script: str) -> str:
         # Clean up the temporary file
         os.unlink(temp_file)
 
+        # Decode output with error handling for non-UTF8 content
+        try:
+            stdout = result.stdout.decode('utf-8', errors='replace')
+        except Exception:
+            stdout = str(result.stdout)
+        try:
+            stderr = result.stderr.decode('utf-8', errors='replace')
+        except Exception:
+            stderr = str(result.stderr)
+
         # Return the output
         if result.returncode != 0:
             traceback.print_stack()
             print(result)
-            return f"Error running Bash script (exit code {result.returncode}):\n{result.stderr}"
+            return f"Error running Bash script (exit code {result.returncode}):\n{stderr}"
         else:
-            return result.stdout
+            return stdout
     except Exception as e:
         traceback.print_exc()
         return f"Error running Bash script: {str(e)}"
@@ -316,11 +327,13 @@ def get_all_functions_from_file(file_path):
 
 
 def write_python_code(request: str):
-    from langchain_anthropic import ChatAnthropic
     from langchain_core.output_parsers import StrOutputParser
     from langchain_core.prompts import ChatPromptTemplate
 
-    model = ChatAnthropic(model="claude-3-5-sonnet-20240620")
+    from biomni.config import default_config
+    from biomni.llm import get_llm
+
+    model = get_llm(model=default_config.llm, temperature=0.7, config=default_config)
     template = """Write some python code to solve the user's problem.
 
     Return only python code in Markdown format, e.g.:

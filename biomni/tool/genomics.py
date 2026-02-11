@@ -466,7 +466,7 @@ def annotate_celltype_scRNA(
     data_info,
     data_lake_path,
     cluster="leiden",
-    llm="claude-3-5-sonnet-20241022",
+    llm=None,  # Uses default_config.llm if None
     composition=None,
 ):
     """Annotate cell types based on gene markers and transferred labels using LLM.
@@ -541,6 +541,11 @@ No numbers before name or spaces before number.
 """
     # Some can be a mixture of multiple cell types.
 
+    # Use default config if llm is None
+    if llm is None:
+        from biomni.config import default_config
+
+        llm = default_config.llm
     llm = get_llm(llm)
     prompt = PromptTemplate(input_variables=["cluster_info"], template=prompt_template)
     chain = prompt | llm

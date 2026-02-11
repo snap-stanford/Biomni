@@ -1168,6 +1168,9 @@ You may or may not receive feedbacks from human. If so, address the feedbacks by
         prompt_modifier += """
 PROTOCOL GENERATION:
 If the user requests an experimental protocol, use search_protocols(), advanced_web_search_claude(), list_local_protocols(), and read_local_protocol() to generate an accurate protocol. Include details such as reagents (with catalog numbers if available), equipment specifications, replicate requirements, error handling, and troubleshooting - but ONLY include information found in these resources. Do not make up specifications, catalog numbers, or equipment details. Prioritize accuracy over completeness.
+
+DATABASE QUERIES:
+IMPORTANT: For querying biological databases (NCBI, GEO, PubMed, ClinVar, dbSNP, UniProt, etc.), ALWAYS use the provided Python tool functions like query_geo(), query_pubmed(), query_clinvar(), query_dbsnp(), etc. Do NOT attempt to use command-line tools like esearch, efetch, or other NCBI E-utilities commands via Bash - these are not installed. The Python functions use REST APIs and will work reliably.
 """
 
         # Add custom resources section first (highlighted)
@@ -1400,7 +1403,41 @@ Each library is listed with its description to help you understand its functiona
             if hasattr(self.llm, "model_name") and (
                 "gpt" in str(self.llm.model_name).lower() or "openai" in str(type(self.llm)).lower()
             ):
-                system_prompt += "\n\nIMPORTANT FOR GPT MODELS: You MUST use XML tags <execute> or <solution> in EVERY response. Do not use markdown code blocks (```) - use <execute> tags instead."
+                system_prompt += """
+
+CRITICAL FORMAT REQUIREMENTS:
+Every response MUST contain exactly ONE of these XML tags:
+1. <execute>your_code_here</execute> - For running Python/R/Bash code
+2. <solution>your_final_answer</solution> - For providing the final answer
+
+Example execute response:
+I will query the GEO database.
+<execute>
+from biomni.tool.database import query_geo
+result = query_geo(prompt="diabetic nephropathy RNA-seq", max_results=3)
+print(result)
+</execute>
+
+Example solution response:
+Based on my analysis, here are the results:
+<solution>
+The top 3 datasets are: GSE123, GSE456, GSE789
+</solution>
+
+NEVER respond without one of these tags. Your response will fail if tags are missing.
+
+TASK COMPLETION REQUIREMENTS:
+Before providing a <solution>, you MUST verify that you have fully addressed all requirements in the original task:
+- If the task asks for "at least N" items (datasets, genes, etc.), ensure you have found N or more
+- If your initial search doesn't meet requirements, try alternative search terms, broaden criteria, or search additional databases
+- Do NOT provide a <solution> until all stated requirements are met, OR you have exhausted reasonable alternatives and explicitly explain why the requirements cannot be met
+- If you only found 2 datasets but the task asked for 4+, you MUST try additional searches before concluding
+
+PERSISTENCE:
+- Multi-step tasks require multiple rounds of execution
+- Keep working through your plan until ALL checkboxes are marked complete
+- If a step yields insufficient results, adapt your approach and try again
+- Only provide a <solution> when you have genuinely completed the task or exhausted all reasonable options"""
 
             messages = [SystemMessage(content=system_prompt)] + state["messages"]
             response = self.llm.invoke(messages)
@@ -1447,6 +1484,64 @@ Each library is listed with its description to help you understand its functiona
                 if code_block_match and not answer_match:
                     # If we found a code block and no solution, treat it as execute
                     execute_match = code_block_match
+
+            # For GPT models: if response looks like a final answer without tags, treat as solution
+            # Be conservative - only trigger for clear final conclusions, not interim summaries
+            if not execute_match and not answer_match and not think_match:
+                msg_lower = msg.lower()
+                # Check for indicators that this is NOT a final answer (still working)
+                still_working_indicators = [
+                    "let's execute",
+                    "let's proceed",
+                    "let's analyze",
+                    "let's continue",
+                    "let's search",
+                    "let's try",
+                    "let's refine",
+                    "next step",
+                    "step 2",
+                    "step 3",
+                    "step 4",
+                    "[ ]",  # Unchecked checkbox means more work to do
+                    "i will now",
+                    "let me ",
+                    "we need to",
+                    "we should",
+                    "i'll now",
+                    "now let's",
+                    "updated plan",
+                    "moving on to",
+                    "proceeding with",
+                    "however, we still need",
+                    "need to find more",
+                    "additional search",
+                    "try a different",
+                    "broaden the",
+                    "refine the search",
+                ]
+                is_still_working = any(ind in msg_lower for ind in still_working_indicators)
+
+                # Also check if the plan has uncompleted items
+                if "[✓]" in msg and "[ ]" in msg:
+                    is_still_working = True
+
+                # Only treat as final if it has strong final indicators AND is not still working
+                # Be very conservative - only auto-wrap explicit final conclusions
+                if not is_still_working:
+                    final_answer_indicators = [
+                        "in conclusion, here is the final",
+                        "to summarize the final answer",
+                        "the final answer is:",
+                        "my final recommendation is:",
+                        "this completes the full analysis",
+                        "analysis complete - here are the final",
+                        "task completed successfully",
+                        "all requirements have been met",
+                    ]
+                    if any(indicator in msg_lower for indicator in final_answer_indicators):
+                        # Wrap the response as a solution
+                        answer_match = True
+                        msg = f"{msg}\n<solution>See above</solution>"
 
             # Add the message to the state before checking for errors
             state["messages"].append(AIMessage(content=msg.strip()))

@@ -9,6 +9,40 @@ if TYPE_CHECKING:
 SourceType = Literal["OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Groq", "Custom"]
 ALLOWED_SOURCES: set[str] = set(SourceType.__args__)
 
+# Default models for each provider (used when no model is specified)
+DEFAULT_MODELS = {
+    "Anthropic": "claude-sonnet-4-5",
+    "OpenAI": "gpt-4o",
+    "Gemini": "gemini-1.5-pro",
+    "Groq": "llama-3.1-70b-versatile",
+    "Bedrock": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+}
+
+
+def _get_default_model() -> str:
+    """Select the default model based on available API keys.
+
+    Checks for API keys in order of preference and returns the appropriate
+    default model for the first available provider.
+
+    Returns:
+        str: The default model name for the available provider.
+    """
+    # Check providers in order of preference
+    if os.getenv("ANTHROPIC_API_KEY"):
+        return DEFAULT_MODELS["Anthropic"]
+    if os.getenv("OPENAI_API_KEY"):
+        return DEFAULT_MODELS["OpenAI"]
+    if os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"):
+        return DEFAULT_MODELS["Gemini"]
+    if os.getenv("GROQ_API_KEY"):
+        return DEFAULT_MODELS["Groq"]
+    if os.getenv("AWS_ACCESS_KEY_ID") or os.getenv("AWS_PROFILE"):
+        return DEFAULT_MODELS["Bedrock"]
+
+    # Fallback to Anthropic model (will fail if no key, but provides clear error)
+    return DEFAULT_MODELS["Anthropic"]
+
 
 def get_llm(
     model: str | None = None,
@@ -35,7 +69,7 @@ def get_llm(
     # Use config values for any unspecified parameters
     if config is not None:
         if model is None:
-            model = config.llm_model
+            model = config.llm  # Use config's LLM setting
         if temperature is None:
             temperature = config.temperature
         if source is None:
@@ -45,9 +79,9 @@ def get_llm(
         if api_key is None:
             api_key = config.api_key or "EMPTY"
 
-    # Use defaults if still not specified
+    # Use defaults if still not specified - select based on available API keys
     if model is None:
-        model = "claude-3-5-sonnet-20241022"
+        model = _get_default_model()
     if temperature is None:
         temperature = 0.7
     if api_key is None:
@@ -131,12 +165,14 @@ def get_llm(
                 stop_sequences=stop_sequences,
                 use_responses_api=True,
                 output_version="v0",
+                request_timeout=300,  # 5 minute timeout for API requests
             )
         else:
             return ChatOpenAI(
                 model=model,
                 temperature=temperature,
                 stop_sequences=stop_sequences,
+                request_timeout=300,  # 5 minute timeout for API requests
             )
 
     elif source == "AzureOpenAI":
@@ -186,6 +222,7 @@ def get_llm(
             temperature=temperature,
             max_tokens=8192,
             stop_sequences=stop_sequences,
+            timeout=300,  # 5 minute timeout for API requests
         )
 
     elif source == "Gemini":

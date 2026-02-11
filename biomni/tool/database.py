@@ -56,7 +56,10 @@ def _query_llm_for_api(prompt, schema, system_template):
         model = default_config.llm
         api_key = default_config.api_key
     except ImportError:
-        model = "claude-3-5-haiku-20241022"
+        # Fallback: use smart default based on available API keys
+        from biomni.llm import _get_default_model
+
+        model = _get_default_model()
         api_key = None
 
     try:
@@ -1966,9 +1969,9 @@ def query_geo(
         If database isn't clearly specified, default to "gds" as it contains most common experiment metadata.
 
         EXAMPLES OF CORRECT OUTPUTS:
-        - For "RNA-seq data in breast cancer": {"search_term": "RNA-seq AND breast cancer AND gse[ETYP]", "database": "gds"}
-        - For "Mouse microarray data from 2020": {"search_term": "Mus musculus[ORGN] AND 2020[PDAT] AND microarray AND gse[ETYP]", "database": "gds"}
-        - For "Expression profiles of TP53 in lung cancer": {"search_term": "TP53[Gene Symbol] AND lung cancer", "database": "geoprofiles"}
+        - For "RNA-seq data in breast cancer": {{"search_term": "RNA-seq AND breast cancer AND gse[ETYP]", "database": "gds"}}
+        - For "Mouse microarray data from 2020": {{"search_term": "Mus musculus[ORGN] AND 2020[PDAT] AND microarray AND gse[ETYP]", "database": "gds"}}
+        - For "Expression profiles of TP53 in lung cancer": {{"search_term": "TP53[Gene Symbol] AND lung cancer", "database": "geoprofiles"}}
         """
 
         # Query Claude to generate the API call
