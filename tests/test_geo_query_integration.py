@@ -34,6 +34,7 @@ class TestGeoQueryDirect:
         """Set up test configuration."""
         from biomni.config import default_config
         default_config.llm = "gpt-4o"
+        default_config.llm_lite = "gpt-4o-mini"  # Use OpenAI lite model for tests
         self.config = default_config
 
     def test_direct_search_term(self):
@@ -138,6 +139,7 @@ class TestGeoQueryAgent:
         """Set up test configuration."""
         from biomni.config import default_config
         default_config.llm = "gpt-4o"
+        default_config.llm_lite = "gpt-4o-mini"
 
     @pytest.mark.slow
     def test_agent_geo_query(self):
@@ -186,6 +188,7 @@ class TestOpenAICompatibility:
         """Verify configuration is set to use OpenAI models."""
         from biomni.config import default_config
         default_config.llm = "gpt-4o"
+        default_config.llm_lite = "gpt-4o-mini"
 
         assert default_config.llm == "gpt-4o", "Config should use gpt-4o"
         assert os.environ.get("OPENAI_API_KEY"), "OPENAI_API_KEY should be set"
@@ -196,6 +199,7 @@ class TestOpenAICompatibility:
         from biomni.llm import get_llm
         from biomni.config import default_config
         default_config.llm = "gpt-4o"
+        default_config.llm_lite = "gpt-4o-mini"
 
         llm = get_llm(model="gpt-4o", temperature=0.7)
 

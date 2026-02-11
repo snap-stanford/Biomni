@@ -333,7 +333,8 @@ def write_python_code(request: str):
     from biomni.config import default_config
     from biomni.llm import get_llm
 
-    model = get_llm(model=default_config.llm, temperature=0.7, config=default_config)
+    # Use lightweight model for simple code generation tasks
+    model = get_llm(model=default_config.llm_lite, temperature=0.7, config=default_config)
     template = """Write some python code to solve the user's problem.
 
     Return only python code in Markdown format, e.g.:

@@ -33,7 +33,8 @@ class BiomniConfig:
     timeout_seconds: int = 600
 
     # LLM settings (API keys still from environment)
-    llm: str = "claude-sonnet-4-5"
+    llm: str = "claude-sonnet-4-5"  # Primary model for agent reasoning
+    llm_lite: str = "claude-haiku-3-5"  # Lightweight model for simple tasks (parsing, classification)
     temperature: float = 0.7
 
     # Tool settings
@@ -62,6 +63,8 @@ class BiomniConfig:
             self.timeout_seconds = int(os.getenv("BIOMNI_TIMEOUT_SECONDS"))
         if os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL"):
             self.llm = os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL")
+        if os.getenv("BIOMNI_LLM_LITE"):
+            self.llm_lite = os.getenv("BIOMNI_LLM_LITE")
         if os.getenv("BIOMNI_USE_TOOL_RETRIEVER"):
             self.use_tool_retriever = os.getenv("BIOMNI_USE_TOOL_RETRIEVER").lower() == "true"
         if os.getenv("BIOMNI_COMMERCIAL_MODE"):
@@ -86,6 +89,7 @@ class BiomniConfig:
             "path": self.path,
             "timeout_seconds": self.timeout_seconds,
             "llm": self.llm,
+            "llm_lite": self.llm_lite,
             "temperature": self.temperature,
             "use_tool_retriever": self.use_tool_retriever,
             "commercial_mode": self.commercial_mode,

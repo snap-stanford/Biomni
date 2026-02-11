@@ -14,7 +14,7 @@ description = [
             },
             {
                 "default": None,
-                "description": "Language model instance for cell type prediction. Uses default_config.llm if None.",
+                "description": "Language model instance for cell type prediction. Uses default_config.llm_lite if None.",
                 "name": "llm",
                 "type": "str",
             },

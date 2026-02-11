@@ -50,16 +50,17 @@ def _query_llm_for_api(prompt, schema, system_template):
 
     """
     # Use global config for model and api_key
+    # This is a simple parsing task, so use the lite model
     try:
         from biomni.config import default_config
 
-        model = default_config.llm
+        model = default_config.llm_lite  # Use lightweight model for parsing
         api_key = default_config.api_key
     except ImportError:
         # Fallback: use smart default based on available API keys
-        from biomni.llm import _get_default_model
+        from biomni.llm import _get_default_model_lite
 
-        model = _get_default_model()
+        model = _get_default_model_lite()
         api_key = None
 
     try:

@@ -18,6 +18,15 @@ DEFAULT_MODELS = {
     "Bedrock": "anthropic.claude-3-5-sonnet-20241022-v2:0",
 }
 
+# Lightweight models for simple tasks (parsing, classification, etc.)
+DEFAULT_MODELS_LITE = {
+    "Anthropic": "claude-haiku-3-5",
+    "OpenAI": "gpt-4o-mini",
+    "Gemini": "gemini-1.5-flash",
+    "Groq": "llama-3.1-8b-instant",
+    "Bedrock": "anthropic.claude-3-haiku-20240307-v1:0",
+}
+
 
 def _get_default_model() -> str:
     """Select the default model based on available API keys.
@@ -42,6 +51,31 @@ def _get_default_model() -> str:
 
     # Fallback to Anthropic model (will fail if no key, but provides clear error)
     return DEFAULT_MODELS["Anthropic"]
+
+
+def _get_default_model_lite() -> str:
+    """Select the default lightweight model based on available API keys.
+
+    Similar to _get_default_model() but returns cheaper/faster models
+    suitable for simple tasks like parsing, classification, etc.
+
+    Returns:
+        str: The default lite model name for the available provider.
+    """
+    # Check providers in order of preference
+    if os.getenv("ANTHROPIC_API_KEY"):
+        return DEFAULT_MODELS_LITE["Anthropic"]
+    if os.getenv("OPENAI_API_KEY"):
+        return DEFAULT_MODELS_LITE["OpenAI"]
+    if os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"):
+        return DEFAULT_MODELS_LITE["Gemini"]
+    if os.getenv("GROQ_API_KEY"):
+        return DEFAULT_MODELS_LITE["Groq"]
+    if os.getenv("AWS_ACCESS_KEY_ID") or os.getenv("AWS_PROFILE"):
+        return DEFAULT_MODELS_LITE["Bedrock"]
+
+    # Fallback to Anthropic model (will fail if no key, but provides clear error)
+    return DEFAULT_MODELS_LITE["Anthropic"]
 
 
 def get_llm(
