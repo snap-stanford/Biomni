@@ -11,20 +11,24 @@ description = [
             "flexible filtering by tissue, classification, genes, genomic location, "
             "copy number thresholds, and complexity scores. Use csv_path to specify "
             "any compatible amplicon CSV file. The agent should call this tool before "
-            "answering any amplicon-related question."
+            "answering any amplicon-related question. You can apply multiple filters in "
+            "a single query to narrow results (e.g., filter by gene, classification, "
+            "and tissue of origin simultaneously)."
         ),
         "required_parameters": [],
         "optional_parameters": [
             {
                 "name": "tissue_of_origin",
-                "type": "string",
-                "description": "Cancer tissue of origin (e.g., breast, lung, ovary, urinary tract). Accepts a single tissue value. Case-insensitive exact match.",
+                "type": ["string", "array"],
+                "items": {"type": "string"},
+                "description": "Cancer tissue of origin (e.g., breast, lung, ovary, urinary tract). Accepts a single value or a list of values. Case-insensitive exact match.",
             },
             {
                 "name": "classification",
-                "type": "string",
+                "type": ["string", "array"],
+                "items": {"type": "string"},
                 "enum": ["ecDNA", "BFB", "Linear", "Complex-non-cyclic"],
-                "description": "Amplicon classification. Accepts a single value from: ecDNA, BFB, Linear, or Complex-non-cyclic.",
+                "description": "Amplicon classification. Accepts a single value or a list of values from: ecDNA, BFB, Linear, or Complex-non-cyclic.",
             },
             {
                 "name": "gene",
@@ -95,8 +99,9 @@ description = [
             },
             {
                 "name": "reference_version",
-                "type": "string",
-                "description": "Reference genome version (e.g., hg19, hg38). Accepts a single value and is used to interpret genomic coordinates and determine genomic regions of genes in the specified reference.",
+                "type": ["string", "array"],
+                "items": {"type": "string"},
+                "description": "Reference genome version (e.g., hg19, hg38). Accepts a single value or a list of values and is used to interpret genomic coordinates and determine genomic regions of genes in the specified reference.",
             },
             {
                 "name": "select",

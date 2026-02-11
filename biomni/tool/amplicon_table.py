@@ -142,7 +142,7 @@ def query_amplicons(
     captured_interval_length_max: float | None = None,
     feature_max_copy_number_min: float | None = None,
     feature_median_copy_number_min: float | None = None,
-    reference_version: str | None = None,
+    reference_version: str | list[str] | None = None,
     select: list[str] | None = None,
     limit: int | None = None,
     offset: int | None = None,
@@ -179,6 +179,7 @@ def query_amplicons(
         feature_max_copy_number_min: Minimum feature maximum copy number.
         feature_median_copy_number_min: Minimum feature median copy number.
         reference_version: Reference genome version (e.g., hg19, hg38).
+            Can be a single string or list of strings for OR matching.
         select: Columns to return. If not specified, returns default columns.
         limit: Maximum number of rows to return. If not specified, returns all matching rows.
         offset: Row offset for pagination (default 0).
@@ -398,7 +399,11 @@ def query_amplicons(
     # Reference version filter
     if reference_version is not None:
         if "Reference version" in df.columns:
-            mask &= df["Reference version"].str.lower() == reference_version.lower()
+            ref_list = [reference_version] if isinstance(reference_version, str) else reference_version
+            ref_mask = pd.Series([False] * len(df))
+            for ref in ref_list:
+                ref_mask |= df["Reference version"].str.lower() == str(ref).lower()
+            mask &= ref_mask
             filters_applied["reference_version"] = reference_version
         else:
             raise ValueError("Column 'Reference version' not found in the data")

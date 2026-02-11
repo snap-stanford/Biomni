@@ -1129,7 +1129,8 @@ After that, you have two options:
    - When using a new data file, first check the contents of the file using Bash commands like "head" or "cat" before using it in your code, to know how to interact with it properly.
    - Never add new assumptions, like adding limits, etc. If you need more information and cannot perform the task with current specifications, report the issue.
    - If you are able to do something in a single step, do it in a single step. Do not overcomplicate the code by breaking it into multiple steps unnecessarily. For example, if there is a tool that can directly give you the answer, use it directly instead of writing code to process the data yourself. If you can write a one-liner to get the answer, do not write a multi-line code block that does the same thing.
-
+   - Use tools efficiently, if you can achieve your goal by calling a tool in one step, don’t break the tool call into multiple steps.
+   
 2) When you think it is ready, directly provide a solution that adheres to the required format for the given task to the user. Your solution should be enclosed using "<solution>" tag, for example: The answer is <solution> A </solution>. IMPORTANT: You must end the solution block with </solution> tag.
 
 You have many chances to interact with the environment to receive the observation. So you can decompose your code into multiple steps.
