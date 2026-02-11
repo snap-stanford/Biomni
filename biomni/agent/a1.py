@@ -148,6 +148,10 @@ class A1:
 
         self.path = path
 
+        # Align know-how doc with amplicon tool: set CCLE_AMPLICON_CSV to the path the tool uses
+        _data_path = os.getenv("BIOMNI_PATH") or os.getenv("BIOMNI_DATA_PATH") or default_config.path
+        os.environ["CCLE_AMPLICON_CSV"] = os.path.join(_data_path, "CCLE.csv")
+
         if not os.path.exists(path):
             os.makedirs(path)
             print(f"Created directory: {path}")
