@@ -251,6 +251,23 @@ description = [
         ],
     },
     {
+        "description": "Download and parse data from a GEO accession (GSE series or GSM sample). Returns expression matrix and sample metadata.",
+        "name": "download_geo",
+        "optional_parameters": [
+            {"name": "output_dir", "type": "str", "description": "Directory to save downloaded files (defaults to workspace/geo_data)", "default": None},
+            {"name": "return_expression_matrix", "type": "bool", "description": "Whether to return expression matrix", "default": True},
+            {"name": "return_metadata", "type": "bool", "description": "Whether to return sample metadata", "default": True},
+        ],
+        "required_parameters": [
+            {
+                "name": "accession",
+                "type": "str",
+                "description": "GEO accession ID (e.g., 'GSE123456' for series, 'GSM123456' for sample)",
+                "default": None,
+            }
+        ],
+    },
+    {
         "description": "Query the NCBI dbSNP database using natural language or direct search term.",
         "name": "query_dbsnp",
         "optional_parameters": [

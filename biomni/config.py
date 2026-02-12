@@ -29,7 +29,8 @@ class BiomniConfig:
     """
 
     # Data and execution settings
-    path: str = "./data"
+    path: str = "./data"  # Data lake path (input data)
+    workspace: str = "./workspace"  # Output directory for generated files
     timeout_seconds: int = 600
 
     # LLM settings (API keys still from environment)
@@ -59,6 +60,8 @@ class BiomniConfig:
         # Support both old and new names for backwards compatibility
         if os.getenv("BIOMNI_PATH") or os.getenv("BIOMNI_DATA_PATH"):
             self.path = os.getenv("BIOMNI_PATH") or os.getenv("BIOMNI_DATA_PATH")
+        if os.getenv("BIOMNI_WORKSPACE"):
+            self.workspace = os.getenv("BIOMNI_WORKSPACE")
         if os.getenv("BIOMNI_TIMEOUT_SECONDS"):
             self.timeout_seconds = int(os.getenv("BIOMNI_TIMEOUT_SECONDS"))
         if os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL"):
@@ -87,6 +90,7 @@ class BiomniConfig:
         """Convert config to dictionary for easy access."""
         return {
             "path": self.path,
+            "workspace": self.workspace,
             "timeout_seconds": self.timeout_seconds,
             "llm": self.llm,
             "llm_lite": self.llm_lite,

@@ -2006,6 +2006,192 @@ def query_geo(
     return result
 
 
+def download_geo(
+    accession: str,
+    output_dir: str | None = None,
+    return_expression_matrix: bool = True,
+    return_metadata: bool = True,
+):
+    """Download and parse data from a GEO accession (GSE series or GSM sample).
+
+    Parameters
+    ----------
+    accession : str
+        GEO accession ID (e.g., 'GSE123456' for series, 'GSM123456' for sample)
+    output_dir : str, optional
+        Directory to save downloaded files. Defaults to workspace/geo_data from config
+    return_expression_matrix : bool
+        Whether to return the expression matrix as a pandas DataFrame. Defaults to True
+    return_metadata : bool
+        Whether to return sample metadata. Defaults to True
+
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - 'accession': The GEO accession ID
+        - 'files': List of downloaded file paths
+        - 'expression_matrix': pandas DataFrame of expression values (if requested and available)
+        - 'metadata': Sample metadata DataFrame (if requested)
+        - 'error': Error message if download failed
+
+    Examples
+    --------
+    >>> result = download_geo("GSE161650")
+    >>> df = result['expression_matrix']
+    >>> metadata = result['metadata']
+
+    Notes
+    -----
+    This function uses the GEOparse library to download and parse GEO data.
+    For GSE accessions, it downloads the series matrix file.
+    For GSM accessions, it downloads the individual sample data.
+    """
+    try:
+        import GEOparse
+    except ImportError:
+        return {
+            "error": "GEOparse library not installed. Install with: pip install GEOparse",
+            "accession": accession,
+        }
+
+    # Use workspace from config if output_dir not specified
+    if output_dir is None:
+        from biomni.config import default_config
+        output_dir = os.path.join(default_config.workspace, "geo_data")
+
+    # Create output directory
+    os.makedirs(output_dir, exist_ok=True)
+
+    result = {
+        "accession": accession,
+        "files": [],
+        "expression_matrix": None,
+        "metadata": None,
+        "error": None,
+    }
+
+    try:
+        # Download via HTTPS (more reliable than FTP)
+        accession = accession.upper()
+
+        if accession.startswith("GSE"):
+            # Construct HTTPS URL for SOFT file
+            # URL pattern: https://ftp.ncbi.nlm.nih.gov/geo/series/GSEnnn/GSE12345/soft/GSE12345_family.soft.gz
+            series_num = accession[3:]  # Remove 'GSE' prefix
+            series_dir = f"GSE{series_num[:-3]}nnn" if len(series_num) > 3 else "GSEnnn"
+            soft_url = f"https://ftp.ncbi.nlm.nih.gov/geo/series/{series_dir}/{accession}/soft/{accession}_family.soft.gz"
+
+            soft_path = os.path.join(output_dir, f"{accession}_family.soft.gz")
+
+            # Download the file via HTTPS
+            if not os.path.exists(soft_path):
+                response = requests.get(soft_url, stream=True)
+                response.raise_for_status()
+                with open(soft_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+
+            result["files"].append(soft_path)
+
+            # Parse with GEOparse using the downloaded file
+            gse = GEOparse.get_GEO(filepath=soft_path, silent=True)
+
+            # Get downloaded files
+            series_matrix_path = soft_path
+            if os.path.exists(series_matrix_path):
+                result["files"].append(series_matrix_path)
+
+            # Extract expression matrix
+            if return_expression_matrix and hasattr(gse, "gpls") and len(gse.gpls) > 0:
+                try:
+                    # Try to get pivoted expression data
+                    pivot_samples = gse.pivot_samples("VALUE")
+                    if pivot_samples is not None and not pivot_samples.empty:
+                        result["expression_matrix"] = pivot_samples
+                        # Save to CSV
+                        expr_path = os.path.join(output_dir, f"{accession}_expression.csv")
+                        pivot_samples.to_csv(expr_path)
+                        result["files"].append(expr_path)
+                except Exception:
+                    # Expression matrix not available in expected format
+                    pass
+
+            # Extract metadata
+            if return_metadata:
+                try:
+                    import pandas as pd
+
+                    metadata_rows = []
+                    for gsm_name, gsm in gse.gsms.items():
+                        row = {"sample_id": gsm_name}
+                        row.update(gsm.metadata)
+                        # Flatten lists in metadata
+                        for k, v in row.items():
+                            if isinstance(v, list) and len(v) == 1:
+                                row[k] = v[0]
+                            elif isinstance(v, list):
+                                row[k] = "; ".join(str(x) for x in v)
+                        metadata_rows.append(row)
+
+                    if metadata_rows:
+                        metadata_df = pd.DataFrame(metadata_rows)
+                        result["metadata"] = metadata_df
+                        # Save to CSV
+                        meta_path = os.path.join(output_dir, f"{accession}_metadata.csv")
+                        metadata_df.to_csv(meta_path, index=False)
+                        result["files"].append(meta_path)
+                except Exception as e:
+                    result["metadata_error"] = str(e)
+
+            # Summary info
+            result["n_samples"] = len(gse.gsms)
+            result["n_platforms"] = len(gse.gpls)
+            result["title"] = gse.metadata.get("title", ["Unknown"])[0] if gse.metadata.get("title") else "Unknown"
+
+        elif accession.startswith("GSM"):
+            # Construct HTTPS URL for GSM SOFT file
+            # URL pattern: https://ftp.ncbi.nlm.nih.gov/geo/samples/GSMnnn/GSM12345/soft/GSM12345.soft.gz
+            sample_num = accession[3:]  # Remove 'GSM' prefix
+            sample_dir = f"GSM{sample_num[:-3]}nnn" if len(sample_num) > 3 else "GSMnnn"
+            soft_url = f"https://ftp.ncbi.nlm.nih.gov/geo/samples/{sample_dir}/{accession}/soft/{accession}.soft.gz"
+
+            sample_path = os.path.join(output_dir, f"{accession}.soft.gz")
+
+            # Download the file via HTTPS
+            if not os.path.exists(sample_path):
+                response = requests.get(soft_url, stream=True)
+                response.raise_for_status()
+                with open(sample_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+
+            result["files"].append(sample_path)
+
+            # Parse with GEOparse using the downloaded file
+            gsm = GEOparse.get_GEO(filepath=sample_path, silent=True)
+
+            # Extract table data as expression
+            if return_expression_matrix and hasattr(gsm, "table") and gsm.table is not None:
+                result["expression_matrix"] = gsm.table
+                expr_path = os.path.join(output_dir, f"{accession}_data.csv")
+                gsm.table.to_csv(expr_path)
+                result["files"].append(expr_path)
+
+            # Extract metadata
+            if return_metadata:
+                result["metadata"] = gsm.metadata
+                result["title"] = gsm.metadata.get("title", ["Unknown"])[0] if gsm.metadata.get("title") else "Unknown"
+
+        else:
+            result["error"] = f"Unsupported accession type: {accession}. Use GSE (series) or GSM (sample) accessions."
+
+    except Exception as e:
+        result["error"] = f"Failed to download {accession}: {str(e)}"
+
+    return result
+
+
 def query_dbsnp(
     prompt=None,
     search_term=None,
