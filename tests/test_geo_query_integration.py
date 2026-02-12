@@ -11,6 +11,7 @@ Or directly: python tests/test_geo_query_integration.py
 
 import os
 import sys
+
 import pytest
 
 # Ensure we can import from the project root
@@ -18,6 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Load environment variables
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
@@ -33,6 +35,7 @@ class TestGeoQueryDirect:
     def _setup(self):
         """Set up test configuration."""
         from biomni.config import default_config
+
         default_config.llm = "gpt-4o"
         default_config.llm_lite = "gpt-4o-mini"  # Use OpenAI lite model for tests
         self.config = default_config
@@ -42,8 +45,7 @@ class TestGeoQueryDirect:
         from biomni.tool.database import query_geo
 
         result = query_geo(
-            search_term="diabetic nephropathy[Title] AND Homo sapiens[Organism] AND gse[ETYP]",
-            max_results=3
+            search_term="diabetic nephropathy[Title] AND Homo sapiens[Organism] AND gse[ETYP]", max_results=3
         )
 
         assert isinstance(result, dict), "Result should be a dictionary"
@@ -58,10 +60,7 @@ class TestGeoQueryDirect:
         """Test query_geo with natural language prompt (uses LLM)."""
         from biomni.tool.database import query_geo
 
-        result = query_geo(
-            prompt="Find RNA-seq datasets for diabetic nephropathy in humans",
-            max_results=3
-        )
+        result = query_geo(prompt="Find RNA-seq datasets for diabetic nephropathy in humans", max_results=3)
 
         assert isinstance(result, dict), "Result should be a dictionary"
 
@@ -92,14 +91,12 @@ class TestGeoQueryDirect:
 
     def test_llm_query_parsing(self):
         """Test that the LLM correctly parses natural language to GEO query."""
-        from biomni.tool.database import _query_llm_for_api
         import pickle
 
+        from biomni.tool.database import _query_llm_for_api
+
         # Load GEO schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__),
-            "../biomni/tool/schema_db/geo.pkl"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "../biomni/tool/schema_db/geo.pkl")
         with open(schema_path, "rb") as f:
             geo_schema = pickle.load(f)
 
@@ -113,9 +110,7 @@ class TestGeoQueryDirect:
         """
 
         result = _query_llm_for_api(
-            prompt="Find RNA-seq data for diabetic nephropathy",
-            schema=geo_schema,
-            system_template=system_template
+            prompt="Find RNA-seq data for diabetic nephropathy", schema=geo_schema, system_template=system_template
         )
 
         assert result.get("success"), f"LLM query failed: {result.get('error')}"
@@ -138,6 +133,7 @@ class TestGeoQueryAgent:
     def _setup(self):
         """Set up test configuration."""
         from biomni.config import default_config
+
         default_config.llm = "gpt-4o"
         default_config.llm_lite = "gpt-4o-mini"
 
@@ -147,12 +143,7 @@ class TestGeoQueryAgent:
         from biomni.agent import A1
 
         # Create agent with minimal setup
-        agent = A1(
-            path='./data',
-            llm='gpt-4o',
-            expected_data_lake_files=[],
-            use_tool_retriever=False
-        )
+        agent = A1(path="./data", llm="gpt-4o", expected_data_lake_files=[], use_tool_retriever=False)
         agent.configure()
 
         # Run query
@@ -171,10 +162,17 @@ class TestGeoQueryAgent:
         assert "gse" in answer_lower, "Answer should mention GSE accession numbers"
 
         # Check for specific dataset indicators
-        has_datasets = any(x in answer_lower for x in [
-            "gse317266", "gse315877", "gse273001",  # Known datasets
-            "diabetic", "nephropathy", "kidney"
-        ])
+        has_datasets = any(
+            x in answer_lower
+            for x in [
+                "gse317266",
+                "gse315877",
+                "gse273001",  # Known datasets
+                "diabetic",
+                "nephropathy",
+                "kidney",
+            ]
+        )
         assert has_datasets, "Answer should contain dataset information"
 
         print("✓ Agent successfully queried GEO and returned results")
@@ -187,6 +185,7 @@ class TestOpenAICompatibility:
     def test_config_uses_openai(self):
         """Verify configuration is set to use OpenAI models."""
         from biomni.config import default_config
+
         default_config.llm = "gpt-4o"
         default_config.llm_lite = "gpt-4o-mini"
 
@@ -196,8 +195,9 @@ class TestOpenAICompatibility:
 
     def test_llm_factory_creates_openai(self):
         """Test that get_llm creates OpenAI model correctly."""
-        from biomni.llm import get_llm
         from biomni.config import default_config
+        from biomni.llm import get_llm
+
         default_config.llm = "gpt-4o"
         default_config.llm_lite = "gpt-4o-mini"
 

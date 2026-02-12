@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from biomni.config import default_config
@@ -32,8 +33,7 @@ try:
     from biomni.tool.database import query_geo
 
     result = query_geo(
-        search_term="diabetic nephropathy[Title] AND Homo sapiens[Organism] AND gse[ETYP]",
-        max_results=3
+        search_term="diabetic nephropathy[Title] AND Homo sapiens[Organism] AND gse[ETYP]", max_results=3
     )
 
     if isinstance(result, dict):
@@ -49,6 +49,7 @@ try:
 except Exception as e:
     print(f"EXCEPTION: {type(e).__name__}: {e}")
     import traceback
+
     traceback.print_exc()
 
 print()
@@ -60,10 +61,7 @@ print("-" * 40)
 try:
     from biomni.tool.database import query_geo
 
-    result = query_geo(
-        prompt="Find RNA-seq datasets for diabetic nephropathy in humans",
-        max_results=3
-    )
+    result = query_geo(prompt="Find RNA-seq datasets for diabetic nephropathy in humans", max_results=3)
 
     if isinstance(result, dict):
         if "total_results" in result:
@@ -81,6 +79,7 @@ try:
 except Exception as e:
     print(f"EXCEPTION: {type(e).__name__}: {e}")
     import traceback
+
     traceback.print_exc()
 
 print()
