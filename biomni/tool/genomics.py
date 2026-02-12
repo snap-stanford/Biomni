@@ -565,6 +565,7 @@ No numbers before name or spaces before number.
 
             # Handle different response types (including OpenAI Responses API list format)
             from biomni.utils import normalize_llm_content
+
             if hasattr(response, "content"):  # For AIMessage
                 response = normalize_llm_content(response.content)
             elif isinstance(response, dict) and "text" in response:

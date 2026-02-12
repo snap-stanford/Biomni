@@ -2,7 +2,7 @@ import json
 import os
 import pickle
 import time
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 import requests
 from Bio.Blast import NCBIWWW, NCBIXML
@@ -17,12 +17,14 @@ from biomni.utils import parse_hpo_obo
 # Pydantic models for structured LLM output
 class GEOQueryResponse(BaseModel):
     """Structured response for GEO database queries."""
+
     search_term: str = Field(description="The GEO search query string")
     database: Literal["gds", "geoprofiles"] = Field(default="gds", description="GEO database to search")
 
 
 class DBSNPQueryResponse(BaseModel):
     """Structured response for dbSNP database queries."""
+
     search_term: str = Field(description="The dbSNP search query string")
 
 
@@ -106,7 +108,7 @@ def _query_llm_for_api(prompt, schema, system_template, response_model=None):
                     return {"success": True, "data": result.dict()}
                 else:
                     return {"success": True, "data": dict(result)}
-            except Exception as e:
+            except Exception:
                 # Fall back to manual parsing if structured output fails
                 pass  # Continue to manual parsing below
 
@@ -120,6 +122,7 @@ def _query_llm_for_api(prompt, schema, system_template, response_model=None):
         response = llm.invoke(messages)
         # Normalize content (handles string, list of blocks, etc.)
         from biomni.utils import normalize_llm_content
+
         llm_text = normalize_llm_content(response.content)
 
         # Find JSON boundaries (in case LLM adds explanations)
@@ -2061,15 +2064,17 @@ def query_geo(
             if uid == "uids":
                 continue
             if isinstance(data, dict):
-                datasets.append({
-                    "accession": data.get("accession", f"GDS{uid}"),
-                    "title": data.get("title", ""),
-                    "summary": data.get("summary", ""),
-                    "organism": data.get("taxon", ""),
-                    "platform": data.get("gpl", ""),
-                    "samples": data.get("n_samples", data.get("samplecount", "")),
-                    "type": data.get("gdstype", data.get("entrytype", "")),
-                })
+                datasets.append(
+                    {
+                        "accession": data.get("accession", f"GDS{uid}"),
+                        "title": data.get("title", ""),
+                        "summary": data.get("summary", ""),
+                        "organism": data.get("taxon", ""),
+                        "platform": data.get("gpl", ""),
+                        "samples": data.get("n_samples", data.get("samplecount", "")),
+                        "type": data.get("gdstype", data.get("entrytype", "")),
+                    }
+                )
         result["datasets"] = datasets
 
     return result
@@ -2294,8 +2299,8 @@ def download_gpl_annotation(
     Examples
     --------
     >>> result = download_gpl_annotation("GPL571")
-    >>> probe_to_gene = result['probe_to_gene']
-    >>> gene_symbol = probe_to_gene.get('1007_s_at')  # 'DDR1'
+    >>> probe_to_gene = result["probe_to_gene"]
+    >>> gene_symbol = probe_to_gene.get("1007_s_at")  # 'DDR1'
 
     Notes
     -----
@@ -2314,6 +2319,7 @@ def download_gpl_annotation(
     # Use workspace from config if output_dir not specified
     if output_dir is None:
         from biomni.config import default_config
+
         output_dir = os.path.join(default_config.workspace, "geo_data", "gpl_annotations")
 
     # Create output directory
@@ -2336,7 +2342,7 @@ def download_gpl_annotation(
         # Download GPL with annotations (annotate_gpl=True gets the curated annotation file)
         gpl = GEOparse.get_GEO(geo=gpl_id, destdir=output_dir, annotate_gpl=True, silent=True)
 
-        if not hasattr(gpl, 'table') or gpl.table is None or gpl.table.empty:
+        if not hasattr(gpl, "table") or gpl.table is None or gpl.table.empty:
             result["error"] = f"No annotation table found for {gpl_id}"
             return result
 
@@ -2344,8 +2350,8 @@ def download_gpl_annotation(
         result["annotation_table"] = annotation_df
 
         # Find gene-related columns
-        gene_col_patterns = ['gene symbol', 'gene_symbol', 'symbol', 'gene_assignment', 'gene name']
-        entrez_col_patterns = ['gene id', 'gene_id', 'entrez', 'entrez_gene_id']
+        gene_col_patterns = ["gene symbol", "gene_symbol", "symbol", "gene_assignment", "gene name"]
+        entrez_col_patterns = ["gene id", "gene_id", "entrez", "entrez_gene_id"]
 
         # Auto-detect gene symbol column
         detected_gene_col = None
@@ -2365,26 +2371,26 @@ def download_gpl_annotation(
         all_gene_cols = []
         for col in annotation_df.columns:
             col_lower = col.lower()
-            if any(p in col_lower for p in gene_col_patterns + entrez_col_patterns + ['refseq', 'ensembl', 'unigene']):
+            if any(p in col_lower for p in gene_col_patterns + entrez_col_patterns + ["refseq", "ensembl", "unigene"]):
                 all_gene_cols.append(col)
         result["gene_columns"] = all_gene_cols
 
         # Build probe-to-gene mapping
-        if detected_gene_col and 'ID' in annotation_df.columns:
+        if detected_gene_col and "ID" in annotation_df.columns:
             probe_to_gene = {}
             for _, row in annotation_df.iterrows():
-                probe_id = str(row['ID'])
-                gene_symbol = row.get(detected_gene_col, '')
+                probe_id = str(row["ID"])
+                gene_symbol = row.get(detected_gene_col, "")
 
                 # Handle complex gene symbol formats (e.g., "DDR1 /// MIR4640")
                 if pd.notna(gene_symbol) and gene_symbol:
                     gene_str = str(gene_symbol).strip()
                     # Take the first gene if multiple are listed
-                    if '///' in gene_str:
-                        gene_str = gene_str.split('///')[0].strip()
-                    elif '//' in gene_str:
-                        gene_str = gene_str.split('//')[0].strip()
-                    if gene_str and gene_str != '---' and gene_str.lower() != 'nan':
+                    if "///" in gene_str:
+                        gene_str = gene_str.split("///")[0].strip()
+                    elif "//" in gene_str:
+                        gene_str = gene_str.split("//")[0].strip()
+                    if gene_str and gene_str != "---" and gene_str.lower() != "nan":
                         probe_to_gene[probe_id] = gene_str
 
             result["probe_to_gene"] = probe_to_gene
@@ -2400,17 +2406,18 @@ def download_gpl_annotation(
         # Save probe-to-gene mapping
         if result["probe_to_gene"]:
             mapping_path = os.path.join(output_dir, f"{gpl_id}_probe_to_gene.csv")
-            mapping_df = pd.DataFrame([
-                {"probe_id": k, "gene_symbol": v}
-                for k, v in result["probe_to_gene"].items()
-            ])
+            mapping_df = pd.DataFrame([{"probe_id": k, "gene_symbol": v} for k, v in result["probe_to_gene"].items()])
             mapping_df.to_csv(mapping_path, index=False)
             result["files"].append(mapping_path)
 
         # Add platform info
-        if hasattr(gpl, 'metadata'):
-            result["platform_title"] = gpl.metadata.get("title", ["Unknown"])[0] if gpl.metadata.get("title") else "Unknown"
-            result["platform_organism"] = gpl.metadata.get("organism", ["Unknown"])[0] if gpl.metadata.get("organism") else "Unknown"
+        if hasattr(gpl, "metadata"):
+            result["platform_title"] = (
+                gpl.metadata.get("title", ["Unknown"])[0] if gpl.metadata.get("title") else "Unknown"
+            )
+            result["platform_organism"] = (
+                gpl.metadata.get("organism", ["Unknown"])[0] if gpl.metadata.get("organism") else "Unknown"
+            )
 
     except Exception as e:
         result["error"] = f"Failed to download {gpl_id}: {str(e)}"
@@ -2452,14 +2459,13 @@ def map_expression_to_genes(
     Examples
     --------
     >>> result = map_expression_to_genes(expr_df, gpl_id="GPL571")
-    >>> gene_expr = result['gene_expression']
+    >>> gene_expr = result["gene_expression"]
 
     Notes
     -----
     For cross-platform meta-analysis, this function allows mapping probe-level
     data from different platforms to a common gene-level representation.
     """
-    import pandas as pd
 
     result = {
         "gene_expression": None,
@@ -2517,20 +2523,20 @@ def map_expression_to_genes(
 
         # Filter to mapped probes and add gene column
         expr_mapped = expr_df.loc[mapped_probes].copy()
-        expr_mapped['gene_symbol'] = gene_symbols
+        expr_mapped["gene_symbol"] = gene_symbols
 
         # Aggregate by gene symbol
         agg_funcs = {
-            'mean': 'mean',
-            'median': 'median',
-            'max': 'max',
-            'sum': 'sum',
+            "mean": "mean",
+            "median": "median",
+            "max": "max",
+            "sum": "sum",
         }
-        agg_func = agg_funcs.get(aggregation, 'mean')
+        agg_func = agg_funcs.get(aggregation, "mean")
 
         # Group by gene and aggregate
-        numeric_cols = expr_mapped.select_dtypes(include=['number']).columns.tolist()
-        gene_expr = expr_mapped.groupby('gene_symbol')[numeric_cols].agg(agg_func)
+        numeric_cols = expr_mapped.select_dtypes(include=["number"]).columns.tolist()
+        gene_expr = expr_mapped.groupby("gene_symbol")[numeric_cols].agg(agg_func)
 
         result["gene_expression"] = gene_expr
         result["n_genes"] = len(gene_expr)

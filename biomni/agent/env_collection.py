@@ -196,6 +196,7 @@ Respond with only a valid JSON object containing the three lists described above
 
         # Normalize content (handles string, list of blocks, etc.)
         from biomni.utils import normalize_llm_content
+
         response_text = normalize_llm_content(response.content)
 
         # Extract the JSON from the response

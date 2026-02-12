@@ -98,6 +98,7 @@ IMPORTANT GUIDELINES:
             response = llm.invoke([HumanMessage(content=prompt)])
             # Normalize content (handles string, list of blocks, etc.)
             from biomni.utils import normalize_llm_content
+
             response_content = normalize_llm_content(response.content)
         else:
             # For other LLM interfaces
