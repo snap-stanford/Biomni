@@ -2038,8 +2038,8 @@ def download_geo(
     Examples
     --------
     >>> result = download_geo("GSE161650")
-    >>> df = result['expression_matrix']
-    >>> metadata = result['metadata']
+    >>> df = result["expression_matrix"]
+    >>> metadata = result["metadata"]
 
     Notes
     -----
@@ -2058,6 +2058,7 @@ def download_geo(
     # Use workspace from config if output_dir not specified
     if output_dir is None:
         from biomni.config import default_config
+
         output_dir = os.path.join(default_config.workspace, "geo_data")
 
     # Create output directory
@@ -2080,7 +2081,9 @@ def download_geo(
             # URL pattern: https://ftp.ncbi.nlm.nih.gov/geo/series/GSEnnn/GSE12345/soft/GSE12345_family.soft.gz
             series_num = accession[3:]  # Remove 'GSE' prefix
             series_dir = f"GSE{series_num[:-3]}nnn" if len(series_num) > 3 else "GSEnnn"
-            soft_url = f"https://ftp.ncbi.nlm.nih.gov/geo/series/{series_dir}/{accession}/soft/{accession}_family.soft.gz"
+            soft_url = (
+                f"https://ftp.ncbi.nlm.nih.gov/geo/series/{series_dir}/{accession}/soft/{accession}_family.soft.gz"
+            )
 
             soft_path = os.path.join(output_dir, f"{accession}_family.soft.gz")
 
@@ -2088,7 +2091,7 @@ def download_geo(
             if not os.path.exists(soft_path):
                 response = requests.get(soft_url, stream=True)
                 response.raise_for_status()
-                with open(soft_path, 'wb') as f:
+                with open(soft_path, "wb") as f:
                     for chunk in response.iter_content(chunk_size=8192):
                         f.write(chunk)
 
@@ -2162,7 +2165,7 @@ def download_geo(
             if not os.path.exists(sample_path):
                 response = requests.get(soft_url, stream=True)
                 response.raise_for_status()
-                with open(sample_path, 'wb') as f:
+                with open(sample_path, "wb") as f:
                     for chunk in response.iter_content(chunk_size=8192):
                         f.write(chunk)
 
