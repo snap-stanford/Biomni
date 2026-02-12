@@ -21,6 +21,46 @@ from langchain_core.utils.interactive_env import is_interactive_env
 from pydantic import BaseModel, Field, ValidationError
 
 
+def normalize_llm_content(content) -> str:
+    """Normalize LLM response content to a string.
+
+    Handles different response formats from various LLM APIs:
+    - String content (most common)
+    - List of content blocks (OpenAI Responses API, used by GPT-5)
+    - Dict with 'text' key
+
+    Args:
+        content: The content from response.content (can be str, list, or dict)
+
+    Returns:
+        str: Normalized string content
+    """
+    if isinstance(content, str):
+        return content.strip()
+    elif isinstance(content, list):
+        # OpenAI Responses API returns list of content blocks
+        text_parts = []
+        for block in content:
+            if isinstance(block, dict):
+                # Handle various block types
+                block_type = block.get("type", "")
+                if block_type in ("text", "output_text", "redacted_text"):
+                    text = block.get("text") or block.get("content") or ""
+                    if isinstance(text, str):
+                        text_parts.append(text)
+                elif "text" in block:
+                    text_parts.append(str(block["text"]))
+            elif isinstance(block, str):
+                text_parts.append(block)
+            elif hasattr(block, "text"):
+                text_parts.append(str(block.text))
+        return "".join(text_parts).strip()
+    elif isinstance(content, dict):
+        return str(content.get("text", content.get("content", str(content)))).strip()
+    else:
+        return str(content).strip()
+
+
 # Add these new functions for running R code and CLI commands
 def run_r_code(code: str) -> str:
     """Run R code using subprocess.

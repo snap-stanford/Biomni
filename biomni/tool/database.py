@@ -2,15 +2,28 @@ import json
 import os
 import pickle
 import time
-from typing import Any
+from typing import Any, Literal, Optional
 
 import requests
 from Bio.Blast import NCBIWWW, NCBIXML
 from Bio.Seq import Seq
 from langchain_core.messages import HumanMessage, SystemMessage
+from pydantic import BaseModel, Field
 
 from biomni.llm import get_llm
 from biomni.utils import parse_hpo_obo
+
+
+# Pydantic models for structured LLM output
+class GEOQueryResponse(BaseModel):
+    """Structured response for GEO database queries."""
+    search_term: str = Field(description="The GEO search query string")
+    database: Literal["gds", "geoprofiles"] = Field(default="gds", description="GEO database to search")
+
+
+class DBSNPQueryResponse(BaseModel):
+    """Structured response for dbSNP database queries."""
+    search_term: str = Field(description="The dbSNP search query string")
 
 
 # Function to map HPO terms to names
@@ -33,7 +46,7 @@ def get_hpo_names(hpo_terms: list[str], data_lake_path: str) -> list[str]:
     return hpo_names
 
 
-def _query_llm_for_api(prompt, schema, system_template):
+def _query_llm_for_api(prompt, schema, system_template, response_model=None):
     """Helper function to query LLMs for generating API calls based on natural language prompts.
 
     Supports multiple model providers including Claude, Gemini, GPT, and others via the unified get_llm interface.
@@ -43,6 +56,8 @@ def _query_llm_for_api(prompt, schema, system_template):
     prompt (str): Natural language query to process
     schema (dict): API schema to include in the system prompt
     system_template (str): Template string for the system prompt (should have {schema} placeholder)
+    response_model (BaseModel, optional): Pydantic model for structured output. If provided, uses
+        LangChain's with_structured_output() for reliable JSON responses.
 
     Returns
     -------
@@ -79,6 +94,22 @@ def _query_llm_for_api(prompt, schema, system_template):
         except ImportError:
             llm = get_llm(model=model, temperature=0.0, api_key=api_key or "EMPTY")
 
+        # Use structured output if a response model is provided
+        if response_model is not None:
+            try:
+                structured_llm = llm.with_structured_output(response_model)
+                result = structured_llm.invoke(system_prompt + "\n\nUser query: " + prompt)
+                # Convert Pydantic model to dict
+                if hasattr(result, "model_dump"):
+                    return {"success": True, "data": result.model_dump()}
+                elif hasattr(result, "dict"):
+                    return {"success": True, "data": result.dict()}
+                else:
+                    return {"success": True, "data": dict(result)}
+            except Exception as e:
+                # Fall back to manual parsing if structured output fails
+                pass  # Continue to manual parsing below
+
         # Compose messages
         messages = [
             SystemMessage(content=system_prompt),
@@ -87,7 +118,9 @@ def _query_llm_for_api(prompt, schema, system_template):
 
         # Query the LLM
         response = llm.invoke(messages)
-        llm_text = response.content.strip()
+        # Normalize content (handles string, list of blocks, etc.)
+        from biomni.utils import normalize_llm_content
+        llm_text = normalize_llm_content(response.content)
 
         # Find JSON boundaries (in case LLM adds explanations)
         json_start = llm_text.find("{")
@@ -222,15 +255,24 @@ def _query_ncbi_database(
     dict: Dictionary containing both the structured query and the results
 
     """
+    # NCBI rate limit: max 3 requests/second without API key, 10 with API key
+    # Limit max_results to avoid overwhelming the API
+    max_results = min(max_results, 20)  # Cap at 20 to avoid rate limits
+
     # Query NCBI API using the structured search term
     esearch_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
     esearch_params = {
         "db": database,
         "term": search_term,
         "retmode": "json",
-        "retmax": 100,
+        "retmax": max_results,  # Only fetch as many as we need
         "usehistory": "y",  # Use history server to store results
     }
+
+    # Add NCBI API key if available (increases rate limit from 3 to 10 requests/sec)
+    ncbi_api_key = os.getenv("NCBI_API_KEY")
+    if ncbi_api_key:
+        esearch_params["api_key"] = ncbi_api_key
 
     # Get IDs of matching entries
     search_response = _query_rest_api(
@@ -247,6 +289,9 @@ def _query_ncbi_database(
 
     # If we have results, fetch the details
     if "esearchresult" in search_data and int(search_data["esearchresult"]["count"]) > 0:
+        # Small delay to respect NCBI rate limits
+        time.sleep(0.4)
+
         # Extract WebEnv and query_key from the search results
         webenv = search_data["esearchresult"].get("webenv", "")
         query_key = search_data["esearchresult"].get("querykey", "")
@@ -262,6 +307,8 @@ def _query_ncbi_database(
                 "retmode": "json",
                 "retmax": max_results,
             }
+            if ncbi_api_key:
+                esummary_params["api_key"] = ncbi_api_key
 
             details_response = _query_rest_api(
                 endpoint=esummary_url,
@@ -286,6 +333,8 @@ def _query_ncbi_database(
                 "id": ",".join(id_list),
                 "retmode": "json",
             }
+            if ncbi_api_key:
+                esummary_params["api_key"] = ncbi_api_key
 
             details_response = _query_rest_api(
                 endpoint=esummary_url,
@@ -1975,11 +2024,12 @@ def query_geo(
         - For "Expression profiles of TP53 in lung cancer": {{"search_term": "TP53[Gene Symbol] AND lung cancer", "database": "geoprofiles"}}
         """
 
-        # Query Claude to generate the API call
+        # Query LLM to generate the API call (use structured output for reliability)
         llm_result = _query_llm_for_api(
             prompt=prompt,
             schema=geo_schema,
             system_template=system_template,
+            response_model=GEOQueryResponse,
         )
 
         if not llm_result["success"]:
@@ -2002,6 +2052,25 @@ def query_geo(
         search_term=search_term,
         max_results=max_results,
     )
+
+    # Format GEO results into a cleaner structure
+    if result.get("formatted_results") and isinstance(result["formatted_results"], dict):
+        raw_results = result["formatted_results"].get("result", {})
+        datasets = []
+        for uid, data in raw_results.items():
+            if uid == "uids":
+                continue
+            if isinstance(data, dict):
+                datasets.append({
+                    "accession": data.get("accession", f"GDS{uid}"),
+                    "title": data.get("title", ""),
+                    "summary": data.get("summary", ""),
+                    "organism": data.get("taxon", ""),
+                    "platform": data.get("gpl", ""),
+                    "samples": data.get("n_samples", data.get("samplecount", "")),
+                    "type": data.get("gdstype", data.get("entrytype", "")),
+                })
+        result["datasets"] = datasets
 
     return result
 
@@ -2191,6 +2260,284 @@ def download_geo(
 
     except Exception as e:
         result["error"] = f"Failed to download {accession}: {str(e)}"
+
+    return result
+
+
+def download_gpl_annotation(
+    gpl_id: str,
+    output_dir: str | None = None,
+    gene_symbol_column: str | None = None,
+):
+    """Download and parse GPL platform annotation file with probe-to-gene mappings.
+
+    Parameters
+    ----------
+    gpl_id : str
+        GPL platform ID (e.g., 'GPL571', 'GPL17586')
+    output_dir : str, optional
+        Directory to save downloaded files. Defaults to workspace/geo_data from config
+    gene_symbol_column : str, optional
+        Column name containing gene symbols. If None, auto-detects from common column names.
+
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - 'gpl_id': The GPL platform ID
+        - 'annotation_table': pandas DataFrame with full annotation table
+        - 'probe_to_gene': dict mapping probe IDs to gene symbols
+        - 'gene_columns': list of detected gene-related columns
+        - 'files': List of downloaded file paths
+        - 'error': Error message if download failed
+
+    Examples
+    --------
+    >>> result = download_gpl_annotation("GPL571")
+    >>> probe_to_gene = result['probe_to_gene']
+    >>> gene_symbol = probe_to_gene.get('1007_s_at')  # 'DDR1'
+
+    Notes
+    -----
+    This function uses GEOparse to download annotated GPL files which contain
+    probe-to-gene mappings necessary for cross-platform meta-analysis.
+    """
+    try:
+        import GEOparse
+        import pandas as pd
+    except ImportError:
+        return {
+            "error": "GEOparse library not installed. Install with: pip install GEOparse",
+            "gpl_id": gpl_id,
+        }
+
+    # Use workspace from config if output_dir not specified
+    if output_dir is None:
+        from biomni.config import default_config
+        output_dir = os.path.join(default_config.workspace, "geo_data", "gpl_annotations")
+
+    # Create output directory
+    os.makedirs(output_dir, exist_ok=True)
+
+    result = {
+        "gpl_id": gpl_id,
+        "annotation_table": None,
+        "probe_to_gene": {},
+        "gene_columns": [],
+        "files": [],
+        "error": None,
+    }
+
+    try:
+        gpl_id = gpl_id.upper()
+        if not gpl_id.startswith("GPL"):
+            gpl_id = f"GPL{gpl_id}"
+
+        # Download GPL with annotations (annotate_gpl=True gets the curated annotation file)
+        gpl = GEOparse.get_GEO(geo=gpl_id, destdir=output_dir, annotate_gpl=True, silent=True)
+
+        if not hasattr(gpl, 'table') or gpl.table is None or gpl.table.empty:
+            result["error"] = f"No annotation table found for {gpl_id}"
+            return result
+
+        annotation_df = gpl.table
+        result["annotation_table"] = annotation_df
+
+        # Find gene-related columns
+        gene_col_patterns = ['gene symbol', 'gene_symbol', 'symbol', 'gene_assignment', 'gene name']
+        entrez_col_patterns = ['gene id', 'gene_id', 'entrez', 'entrez_gene_id']
+
+        # Auto-detect gene symbol column
+        detected_gene_col = None
+        for col in annotation_df.columns:
+            col_lower = col.lower()
+            if gene_symbol_column and col_lower == gene_symbol_column.lower():
+                detected_gene_col = col
+                break
+            for pattern in gene_col_patterns:
+                if pattern in col_lower:
+                    detected_gene_col = col
+                    break
+            if detected_gene_col:
+                break
+
+        # Collect all gene-related columns for reference
+        all_gene_cols = []
+        for col in annotation_df.columns:
+            col_lower = col.lower()
+            if any(p in col_lower for p in gene_col_patterns + entrez_col_patterns + ['refseq', 'ensembl', 'unigene']):
+                all_gene_cols.append(col)
+        result["gene_columns"] = all_gene_cols
+
+        # Build probe-to-gene mapping
+        if detected_gene_col and 'ID' in annotation_df.columns:
+            probe_to_gene = {}
+            for _, row in annotation_df.iterrows():
+                probe_id = str(row['ID'])
+                gene_symbol = row.get(detected_gene_col, '')
+
+                # Handle complex gene symbol formats (e.g., "DDR1 /// MIR4640")
+                if pd.notna(gene_symbol) and gene_symbol:
+                    gene_str = str(gene_symbol).strip()
+                    # Take the first gene if multiple are listed
+                    if '///' in gene_str:
+                        gene_str = gene_str.split('///')[0].strip()
+                    elif '//' in gene_str:
+                        gene_str = gene_str.split('//')[0].strip()
+                    if gene_str and gene_str != '---' and gene_str.lower() != 'nan':
+                        probe_to_gene[probe_id] = gene_str
+
+            result["probe_to_gene"] = probe_to_gene
+            result["gene_symbol_column"] = detected_gene_col
+            result["n_mapped_probes"] = len(probe_to_gene)
+            result["n_total_probes"] = len(annotation_df)
+
+        # Save annotation to CSV
+        annot_path = os.path.join(output_dir, f"{gpl_id}_annotation.csv")
+        annotation_df.to_csv(annot_path, index=False)
+        result["files"].append(annot_path)
+
+        # Save probe-to-gene mapping
+        if result["probe_to_gene"]:
+            mapping_path = os.path.join(output_dir, f"{gpl_id}_probe_to_gene.csv")
+            mapping_df = pd.DataFrame([
+                {"probe_id": k, "gene_symbol": v}
+                for k, v in result["probe_to_gene"].items()
+            ])
+            mapping_df.to_csv(mapping_path, index=False)
+            result["files"].append(mapping_path)
+
+        # Add platform info
+        if hasattr(gpl, 'metadata'):
+            result["platform_title"] = gpl.metadata.get("title", ["Unknown"])[0] if gpl.metadata.get("title") else "Unknown"
+            result["platform_organism"] = gpl.metadata.get("organism", ["Unknown"])[0] if gpl.metadata.get("organism") else "Unknown"
+
+    except Exception as e:
+        result["error"] = f"Failed to download {gpl_id}: {str(e)}"
+
+    return result
+
+
+def map_expression_to_genes(
+    expression_matrix,
+    gpl_id: str | None = None,
+    probe_to_gene: dict | None = None,
+    aggregation: str = "mean",
+):
+    """Map probe-level expression data to gene-level using GPL annotations.
+
+    Parameters
+    ----------
+    expression_matrix : pandas.DataFrame
+        Expression matrix with probe IDs as index and samples as columns
+    gpl_id : str, optional
+        GPL platform ID to download annotations from (if probe_to_gene not provided)
+    probe_to_gene : dict, optional
+        Pre-computed probe-to-gene mapping dict. If not provided, will download from gpl_id
+    aggregation : str
+        Method to aggregate multiple probes per gene: 'mean', 'median', 'max', 'sum'
+        Default is 'mean'
+
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - 'gene_expression': pandas DataFrame with genes as index
+        - 'n_genes': Number of unique genes in output
+        - 'n_probes_mapped': Number of probes successfully mapped
+        - 'n_probes_unmapped': Number of probes without gene mapping
+        - 'unmapped_probes': List of probe IDs that couldn't be mapped
+        - 'error': Error message if mapping failed
+
+    Examples
+    --------
+    >>> result = map_expression_to_genes(expr_df, gpl_id="GPL571")
+    >>> gene_expr = result['gene_expression']
+
+    Notes
+    -----
+    For cross-platform meta-analysis, this function allows mapping probe-level
+    data from different platforms to a common gene-level representation.
+    """
+    import pandas as pd
+
+    result = {
+        "gene_expression": None,
+        "n_genes": 0,
+        "n_probes_mapped": 0,
+        "n_probes_unmapped": 0,
+        "unmapped_probes": [],
+        "error": None,
+    }
+
+    try:
+        # Get probe-to-gene mapping
+        if probe_to_gene is None:
+            if gpl_id is None:
+                result["error"] = "Either gpl_id or probe_to_gene mapping must be provided"
+                return result
+
+            gpl_result = download_gpl_annotation(gpl_id)
+            if gpl_result.get("error"):
+                result["error"] = f"Failed to get GPL annotation: {gpl_result['error']}"
+                return result
+
+            probe_to_gene = gpl_result.get("probe_to_gene", {})
+
+        if not probe_to_gene:
+            result["error"] = "No probe-to-gene mapping available"
+            return result
+
+        # Map probes to genes
+        expr_df = expression_matrix.copy()
+
+        # Handle index types
+        expr_df.index = expr_df.index.astype(str)
+
+        # Map probe IDs to gene symbols
+        gene_symbols = []
+        mapped_probes = []
+        unmapped_probes = []
+
+        for probe_id in expr_df.index:
+            gene = probe_to_gene.get(str(probe_id))
+            if gene:
+                gene_symbols.append(gene)
+                mapped_probes.append(probe_id)
+            else:
+                unmapped_probes.append(probe_id)
+
+        result["n_probes_mapped"] = len(mapped_probes)
+        result["n_probes_unmapped"] = len(unmapped_probes)
+        result["unmapped_probes"] = unmapped_probes[:100]  # Limit to first 100
+
+        if not mapped_probes:
+            result["error"] = "No probes could be mapped to genes"
+            return result
+
+        # Filter to mapped probes and add gene column
+        expr_mapped = expr_df.loc[mapped_probes].copy()
+        expr_mapped['gene_symbol'] = gene_symbols
+
+        # Aggregate by gene symbol
+        agg_funcs = {
+            'mean': 'mean',
+            'median': 'median',
+            'max': 'max',
+            'sum': 'sum',
+        }
+        agg_func = agg_funcs.get(aggregation, 'mean')
+
+        # Group by gene and aggregate
+        numeric_cols = expr_mapped.select_dtypes(include=['number']).columns.tolist()
+        gene_expr = expr_mapped.groupby('gene_symbol')[numeric_cols].agg(agg_func)
+
+        result["gene_expression"] = gene_expr
+        result["n_genes"] = len(gene_expr)
+        result["aggregation_method"] = aggregation
+
+    except Exception as e:
+        result["error"] = f"Failed to map expression to genes: {str(e)}"
 
     return result
 

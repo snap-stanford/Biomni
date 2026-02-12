@@ -194,15 +194,19 @@ Respond with only a valid JSON object containing the three lists described above
         prompt = self.consolidation_prompt.format(task_lists=all_tasks)
         response = self.llm.invoke(prompt)
 
+        # Normalize content (handles string, list of blocks, etc.)
+        from biomni.utils import normalize_llm_content
+        response_text = normalize_llm_content(response.content)
+
         # Extract the JSON from the response
         try:
             # Try to parse the entire response as JSON
-            result = json.loads(response.content)
+            result = json.loads(response_text)
         except json.JSONDecodeError:
             # If that fails, try to extract JSON from the text
             try:
                 # Look for JSON-like content between triple backticks
-                json_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", response.content)
+                json_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", response_text)
                 if json_match:
                     result = json.loads(json_match.group(1))
                 else:
@@ -211,7 +215,7 @@ Respond with only a valid JSON object containing the three lists described above
                         "tasks": [
                             {
                                 "error": "Could not parse JSON",
-                                "raw_response": response.content,
+                                "raw_response": response_text,
                             }
                         ],
                         "databases": [],
@@ -222,7 +226,7 @@ Respond with only a valid JSON object containing the three lists described above
                     "tasks": [
                         {
                             "error": "Could not parse JSON",
-                            "raw_response": response.content,
+                            "raw_response": response_text,
                         }
                     ],
                     "databases": [],

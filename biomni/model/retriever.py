@@ -96,7 +96,9 @@ IMPORTANT GUIDELINES:
         if hasattr(llm, "invoke"):
             # For LangChain-style LLMs
             response = llm.invoke([HumanMessage(content=prompt)])
-            response_content = response.content
+            # Normalize content (handles string, list of blocks, etc.)
+            from biomni.utils import normalize_llm_content
+            response_content = normalize_llm_content(response.content)
         else:
             # For other LLM interfaces
             response_content = str(llm(prompt))

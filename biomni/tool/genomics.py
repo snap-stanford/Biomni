@@ -563,9 +563,10 @@ No numbers before name or spaces before number.
         while True:
             response = chain.invoke({"cluster_info": cluster_info})
 
-            # Handle different response types
+            # Handle different response types (including OpenAI Responses API list format)
+            from biomni.utils import normalize_llm_content
             if hasattr(response, "content"):  # For AIMessage
-                response = response.content
+                response = normalize_llm_content(response.content)
             elif isinstance(response, dict) and "text" in response:
                 response = response["text"]
             elif isinstance(response, str):
