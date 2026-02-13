@@ -2,11 +2,14 @@ import pickle
 
 import pandas as pd
 
+from biomni.tool.execution_analytics import ExecutionAnalytics
+
 
 class ToolRegistry:
-    def __init__(self, tools):
+    def __init__(self, tools, execution_analytics: ExecutionAnalytics | None = None):
         self.tools = []
         self.next_id = 0
+        self.execution_analytics = execution_analytics
 
         for j in tools.values():
             for tool in j:
