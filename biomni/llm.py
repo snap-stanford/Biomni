@@ -20,11 +20,11 @@ DEFAULT_MODELS = {
 
 # Lightweight models for simple tasks (parsing, classification, etc.)
 DEFAULT_MODELS_LITE = {
-    "Anthropic": "claude-haiku-3-5",
-    "OpenAI": "gpt-4o-mini",
+    "Anthropic": "claude-haiku-4-5",
+    "OpenAI": "gpt-5-mini",
     "Gemini": "gemini-1.5-flash",
     "Groq": "llama-3.1-8b-instant",
-    "Bedrock": "anthropic.claude-3-haiku-20240307-v1:0",
+    "Bedrock": "anthropic.claude-3-5-haiku-20241022-v1:0",
 }
 
 
