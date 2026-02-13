@@ -392,8 +392,9 @@ class A1:
         Add MCP (Model Context Protocol) tools from configuration file.
 
         This method dynamically registers MCP server tools as callable functions within
-        the biomni agent system. Each MCP server is loaded as an independent module
-        with its tools exposed as synchronous wrapper functions.
+        the biomni agent system. Each MCP server is started as a persistent process with
+        a long-lived session so that stateful tools (background jobs, caching) work correctly
+        across multiple calls.
 
         Supports both manual tool definitions and automatic tool discovery from MCP servers.
 
@@ -407,8 +408,10 @@ class A1:
             RuntimeError: If MCP server initialization fails
         """
         import asyncio
+        import atexit
         import os
         import sys
+        import threading
         import types
         from pathlib import Path
 
@@ -419,74 +422,115 @@ class A1:
 
         nest_asyncio.apply()
 
-        def discover_mcp_tools_sync(server_params: StdioServerParameters) -> list[dict]:
-            """Discover available tools from MCP server synchronously."""
-            try:
+        # ---- Persistent MCP session management ----
+        # Each MCP server gets a single long-lived process and session so that
+        # stateful patterns (background jobs, caching) work across tool calls.
+        if not hasattr(self, "_mcp_sessions"):
+            self._mcp_sessions: dict[str, dict] = {}  # server_name -> {session, cleanup, loop, thread}
 
-                async def _discover_async():
+        def _start_persistent_session(server_name: str, server_params: StdioServerParameters) -> ClientSession:
+            """Start an MCP server process and keep the session alive in a background thread."""
+
+            ready_event = threading.Event()
+            session_holder: dict = {}
+
+            def _run_event_loop():
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                session_holder["loop"] = loop
+
+                async def _keep_alive():
                     async with stdio_client(server_params) as (reader, writer):
                         async with ClientSession(reader, writer) as session:
                             await session.initialize()
+                            session_holder["session"] = session
+                            ready_event.set()
+                            # Block until we're told to shut down
+                            session_holder["shutdown_event"] = asyncio.Event()
+                            await session_holder["shutdown_event"].wait()
 
-                            # Get available tools
-                            tools_result = await session.list_tools()
-                            tools = tools_result.tools if hasattr(tools_result, "tools") else tools_result
+                try:
+                    loop.run_until_complete(_keep_alive())
+                except Exception:
+                    ready_event.set()  # unblock caller even on failure
+                finally:
+                    loop.close()
 
-                            discovered_tools = []
-                            for tool in tools:
-                                if hasattr(tool, "name"):
-                                    discovered_tools.append(
-                                        {
-                                            "name": tool.name,
-                                            "description": tool.description,
-                                            "inputSchema": tool.inputSchema,
-                                        }
-                                    )
-                                else:
-                                    print(f"Warning: Skipping tool with no name attribute: {tool}")
+            thread = threading.Thread(target=_run_event_loop, daemon=True, name=f"mcp-{server_name}")
+            thread.start()
 
-                            return discovered_tools
+            # Wait for the session to be ready (up to 30 seconds)
+            if not ready_event.wait(timeout=30):
+                raise RuntimeError(f"MCP server '{server_name}' failed to start within 30 seconds")
 
-                return asyncio.run(_discover_async())
-            except Exception as e:
-                print(f"Failed to discover tools: {e}")
-                return []
+            if "session" not in session_holder:
+                raise RuntimeError(f"MCP server '{server_name}' session failed to initialize")
+
+            self._mcp_sessions[server_name] = session_holder
+            return session_holder["session"]
+
+        def _shutdown_all_sessions():
+            """Clean up all persistent MCP sessions on exit."""
+            for name, holder in getattr(self, "_mcp_sessions", {}).items():
+                try:
+                    shutdown_event = holder.get("shutdown_event")
+                    loop = holder.get("loop")
+                    if shutdown_event and loop and loop.is_running():
+                        loop.call_soon_threadsafe(shutdown_event.set)
+                except Exception:
+                    pass
+
+        atexit.register(_shutdown_all_sessions)
+
+        def discover_mcp_tools_via_session(session: ClientSession, loop: asyncio.AbstractEventLoop) -> list[dict]:
+            """Discover tools using an already-running persistent session."""
+            future = asyncio.run_coroutine_threadsafe(session.list_tools(), loop)
+            tools_result = future.result(timeout=30)
+            tools = tools_result.tools if hasattr(tools_result, "tools") else tools_result
+
+            discovered_tools = []
+            for tool in tools:
+                if hasattr(tool, "name"):
+                    discovered_tools.append(
+                        {
+                            "name": tool.name,
+                            "description": tool.description,
+                            "inputSchema": tool.inputSchema,
+                        }
+                    )
+                else:
+                    print(f"Warning: Skipping tool with no name attribute: {tool}")
+            return discovered_tools
 
         def make_mcp_wrapper(
-            cmd: str, args: list[str], tool_name: str, doc: str, env_vars: dict = None, param_names: list = None
+            server_name: str, tool_name: str, doc: str, param_names: list = None
         ):
-            """Create a synchronous wrapper for an async MCP tool call."""
+            """Create a synchronous wrapper that calls a tool on the persistent session."""
             param_names = param_names or []
 
             def sync_tool_wrapper(*args_positional, **kwargs):
-                """Synchronous wrapper for MCP tool execution."""
+                """Synchronous wrapper for MCP tool execution via persistent session."""
                 try:
-                    # Convert positional arguments to keyword arguments using param_names
                     call_kwargs = dict(kwargs)
                     for i, arg in enumerate(args_positional):
                         if i < len(param_names):
                             call_kwargs[param_names[i]] = arg
-                        else:
-                            # If more positional args than param names, skip or raise error
-                            pass
 
-                    server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
+                    holder = self._mcp_sessions.get(server_name)
+                    if not holder or "session" not in holder:
+                        raise RuntimeError(f"MCP session for '{server_name}' is not available")
 
-                    async def async_tool_call():
-                        async with stdio_client(server_params) as (reader, writer):
-                            async with ClientSession(reader, writer) as session:
-                                await session.initialize()
-                                result = await session.call_tool(tool_name, call_kwargs)
-                                content = result.content[0]
-                                if hasattr(content, "json"):
-                                    return content.json()
-                                return content.text
+                    session = holder["session"]
+                    loop = holder["loop"]
 
-                    try:
-                        loop = asyncio.get_running_loop()
-                        return loop.create_task(async_tool_call())
-                    except RuntimeError:
-                        return asyncio.run(async_tool_call())
+                    future = asyncio.run_coroutine_threadsafe(
+                        session.call_tool(tool_name, call_kwargs), loop
+                    )
+                    result = future.result(timeout=300)  # 5 min timeout per tool call
+                    content = result.content[0]
+                    if hasattr(content, "json"):
+                        return content.json()
+                    return content.text
 
                 except Exception as e:
                     raise RuntimeError(f"MCP tool execution failed for '{tool_name}': {e}") from e
@@ -550,12 +594,22 @@ class A1:
                 sys.modules[mcp_module_name] = types.ModuleType(mcp_module_name)
             server_module = sys.modules[mcp_module_name]
 
+            # Start a persistent session for this MCP server
+            server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
+            try:
+                session = _start_persistent_session(server_name, server_params)
+            except Exception as e:
+                print(f"Failed to start persistent session for {server_name}: {e}")
+                continue
+
+            holder = self._mcp_sessions[server_name]
+            loop = holder["loop"]
+
             tools_config = server_meta.get("tools", [])
 
             if not tools_config:
                 try:
-                    server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
-                    tools_config = discover_mcp_tools_sync(server_params)
+                    tools_config = discover_mcp_tools_via_session(session, loop)
 
                     if tools_config:
                         print(f"Discovered {len(tools_config)} tools from {server_name} MCP server")
@@ -595,8 +649,8 @@ class A1:
                 # Get ordered list of parameter names for positional arg support
                 param_names_ordered = list(parameters.keys())
 
-                # Create wrapper function
-                wrapper_function = make_mcp_wrapper(cmd, args, tool_name, description, env_vars, param_names_ordered)
+                # Create wrapper function using the persistent session
+                wrapper_function = make_mcp_wrapper(server_name, tool_name, description, param_names_ordered)
 
                 # Add to module namespace
                 setattr(server_module, tool_name, wrapper_function)
