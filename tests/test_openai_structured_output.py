@@ -233,7 +233,21 @@ class TestGenerateStructuredOutput:
                     msg = f"{response.reasoning}\n<{tag}>{content}</{tag}>"
                     state["messages"].append(AIMessage(content=msg.strip()))
                     if response.action == "solution":
-                        state["next_step"] = "end"
+                        # Guard: reject premature solutions when no code has been executed
+                        has_executed = any(
+                            "<observation>" in (m.content if isinstance(m.content, str) else "")
+                            for m in state["messages"]
+                        )
+                        if not has_executed:
+                            nudge = (
+                                "\n<observation>You chose 'solution' but have not executed any code yet. "
+                                "You MUST run code using the available tools before providing a final answer. "
+                                "Choose action 'execute' and write code to accomplish the task.</observation>"
+                            )
+                            state["messages"].append(AIMessage(content=nudge.strip()))
+                            state["next_step"] = "generate"
+                        else:
+                            state["next_step"] = "end"
                     else:
                         state["next_step"] = "execute"
                     return state
@@ -288,6 +302,8 @@ class TestGenerateStructuredOutput:
         mock_llm.with_structured_output.assert_called_once_with(AgentResponse)
 
     def test_solution_action_produces_solution_tag_and_ends(self):
+        from langchain_core.messages import AIMessage
+
         from biomni.agent.a1 import AgentResponse
 
         resp = AgentResponse(
@@ -297,7 +313,11 @@ class TestGenerateStructuredOutput:
         )
         generate, _ = self._build_generate(resp)
 
-        state = {"messages": [], "next_step": None}
+        # With a prior <observation> (i.e. code has been executed), solution should end
+        state = {
+            "messages": [AIMessage(content="<observation>some output</observation>")],
+            "next_step": None,
+        }
         result = generate(state)
 
         assert result["next_step"] == "end"
@@ -305,6 +325,27 @@ class TestGenerateStructuredOutput:
         assert "<solution>" in last_msg
         assert "</solution>" in last_msg
         assert "GSE123" in last_msg
+
+    def test_premature_solution_rejected_without_prior_execution(self):
+        """Agent cannot skip to 'solution' without executing code first."""
+        from biomni.agent.a1 import AgentResponse
+
+        resp = AgentResponse(
+            reasoning="I already know the answer.",
+            action="solution",
+            content="The answer is 42.",
+        )
+        generate, _ = self._build_generate(resp)
+
+        # No prior <observation> messages — no code has been executed
+        state = {"messages": [], "next_step": None}
+        result = generate(state)
+
+        # Should be sent back to generate, not end
+        assert result["next_step"] == "generate"
+        # Should have a nudge message telling the agent to execute code
+        nudge_msg = result["messages"][-1].content
+        assert "have not executed any code" in nudge_msg
 
     def test_execute_content_extractable_by_downstream_regex(self):
         """Verify the reconstructed message can be parsed by execute() regex."""
@@ -347,13 +388,19 @@ class TestGenerateStructuredOutput:
 
     def test_markdown_fences_not_stripped_from_solution(self):
         """Markdown fences in solution content should be preserved (they may be intentional formatting)."""
+        from langchain_core.messages import AIMessage
+
         from biomni.agent.a1 import AgentResponse
 
         content_with_fences = "Here is the code:\n```python\nx = 42\n```"
         resp = AgentResponse(reasoning="Done.", action="solution", content=content_with_fences)
         generate, _ = self._build_generate(resp)
 
-        state = {"messages": [], "next_step": None}
+        # Provide a prior observation so the premature-solution guard doesn't reject
+        state = {
+            "messages": [AIMessage(content="<observation>prior output</observation>")],
+            "next_step": None,
+        }
         result = generate(state)
 
         last_msg = result["messages"][-1].content
@@ -407,7 +454,21 @@ class TestGenerateXMLFallback:
                     msg = f"{response.reasoning}\n<{tag}>{content}</{tag}>"
                     state["messages"].append(AIMessage(content=msg.strip()))
                     if response.action == "solution":
-                        state["next_step"] = "end"
+                        # Guard: reject premature solutions when no code has been executed
+                        has_executed = any(
+                            "<observation>" in (m.content if isinstance(m.content, str) else "")
+                            for m in state["messages"]
+                        )
+                        if not has_executed:
+                            nudge = (
+                                "\n<observation>You chose 'solution' but have not executed any code yet. "
+                                "You MUST run code using the available tools before providing a final answer. "
+                                "Choose action 'execute' and write code to accomplish the task.</observation>"
+                            )
+                            state["messages"].append(AIMessage(content=nudge.strip()))
+                            state["next_step"] = "generate"
+                        else:
+                            state["next_step"] = "end"
                     else:
                         state["next_step"] = "execute"
                     return state

@@ -528,9 +528,18 @@ class A1:
                     )
                     result = future.result(timeout=300)  # 5 min timeout per tool call
                     content = result.content[0]
-                    if hasattr(content, "json"):
-                        return content.json()
-                    return content.text
+                    # Return the text payload, not the MCP envelope.
+                    # content is a Pydantic TextContent model — .json() would serialize
+                    # the entire envelope (type, text, annotations, meta), but tools
+                    # expect just the inner text (e.g. a JSON string with job_id).
+                    # Auto-parse JSON so the agent gets dicts directly.
+                    text = content.text
+                    try:
+                        import json as _json
+
+                        return _json.loads(text)
+                    except (ValueError, TypeError):
+                        return text
 
                 except Exception as e:
                     raise RuntimeError(f"MCP tool execution failed for '{tool_name}': {e}") from e
@@ -1554,7 +1563,23 @@ Each library is listed with its description to help you understand its functiona
                     state["messages"].append(AIMessage(content=msg.strip()))
 
                     if response.action == "solution":
-                        state["next_step"] = "end"
+                        # Guard: reject premature solutions when no code has been executed.
+                        # Check if any <observation> exists in prior messages (observations
+                        # are only added after code execution).
+                        has_executed = any(
+                            "<observation>" in (m.content if isinstance(m.content, str) else "")
+                            for m in state["messages"]
+                        )
+                        if not has_executed:
+                            nudge = (
+                                "\n<observation>You chose 'solution' but have not executed any code yet. "
+                                "You MUST run code using the available tools before providing a final answer. "
+                                "Choose action 'execute' and write code to accomplish the task.</observation>"
+                            )
+                            state["messages"].append(AIMessage(content=nudge.strip()))
+                            state["next_step"] = "generate"
+                        else:
+                            state["next_step"] = "end"
                     else:
                         state["next_step"] = "execute"
                     return state
