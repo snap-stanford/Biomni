@@ -35,7 +35,7 @@ class BiomniConfig:
 
     # LLM settings (API keys still from environment)
     llm: str = "claude-sonnet-4-5"  # Primary model for agent reasoning
-    llm_lite: str = "claude-haiku-3-5"  # Lightweight model for simple tasks (parsing, classification)
+    llm_lite: str | None = None  # Lightweight model for simple tasks; auto-inferred from llm provider if not set
     temperature: float = 0.7
 
     # Tool settings
@@ -85,6 +85,26 @@ class BiomniConfig:
         env_token = os.getenv("PROTOCOLS_IO_ACCESS_TOKEN") or os.getenv("BIOMNI_PROTOCOLS_IO_ACCESS_TOKEN")
         if env_token:
             self.protocols_io_access_token = env_token
+
+        # Auto-infer llm_lite from the main llm's provider if not explicitly set
+        if self.llm_lite is None:
+            self.llm_lite = self._infer_lite_model(self.llm)
+
+    @staticmethod
+    def _infer_lite_model(model: str) -> str:
+        """Return a lightweight model that matches the provider of the given model."""
+        _LITE_MODELS = {
+            "claude-": "claude-haiku-4-5",
+            "gpt-": "gpt-5-mini",
+            "gemini-": "gemini-1.5-flash",
+            "groq": "llama-3.1-8b-instant",
+        }
+        model_lower = model.lower()
+        for prefix, lite in _LITE_MODELS.items():
+            if model_lower.startswith(prefix) or prefix in model_lower:
+                return lite
+        # Fallback: same provider detection as llm.py
+        return "claude-haiku-4-5"
 
     def to_dict(self) -> dict:
         """Convert config to dictionary for easy access."""
