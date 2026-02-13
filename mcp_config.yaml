@@ -1,0 +1,13 @@
+# MCP Server Config for Biomni — OKN-WOBD
+# Usage: agent.add_mcp(config_path="./mcp_config.yaml")
+
+mcp_servers:
+  okn-wobd:
+    command: ["python3.11", "-m", "okn_wobd.mcp_server"]
+    enabled: true
+    description: >
+      Biomedical analysis tools for gene-disease path finding, gene neighborhood
+      queries, drug-disease opposing expression patterns, and differential
+      expression analysis via ARCHS4.
+    env:
+      PYTHONPATH: "/Users/bgood/Documents/GitHub/OKN-WOBD/src"
