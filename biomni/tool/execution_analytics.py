@@ -15,10 +15,11 @@ import hashlib
 import json
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 import pandas as pd
 
@@ -53,10 +54,10 @@ class ExecutionRecord:
     timestamp: float
     execution_time: float
     success: bool
-    error_type: Optional[ErrorType] = None
-    error_message: Optional[str] = None
+    error_type: ErrorType | None = None
+    error_message: str | None = None
     parameters_hash: str = ""
-    result_hash: Optional[str] = None
+    result_hash: str | None = None
     retry_count: int = 0
 
 
@@ -70,8 +71,8 @@ class ToolAnalytics:
     failed_executions: int = 0
     total_execution_time: float = 0.0
     average_execution_time: float = 0.0
-    error_counts: Dict[ErrorType, int] = field(default_factory=lambda: defaultdict(int))
-    last_execution: Optional[float] = None
+    error_counts: dict[ErrorType, int] = field(default_factory=lambda: defaultdict(int))
+    last_execution: float | None = None
     cache_hits: int = 0
     cache_misses: int = 0
 
@@ -114,11 +115,11 @@ class ExecutionAnalytics:
         self.enable_analytics = enable_analytics
 
         # Analytics storage
-        self.tool_analytics: Dict[str, ToolAnalytics] = {}
-        self.execution_history: List[ExecutionRecord] = []
+        self.tool_analytics: dict[str, ToolAnalytics] = {}
+        self.execution_history: list[ExecutionRecord] = []
 
         # Result cache: {tool_name: {param_hash: (result, timestamp)}}
-        self.result_cache: Dict[str, Dict[str, Tuple[Any, float]]] = defaultdict(dict)
+        self.result_cache: dict[str, dict[str, tuple[Any, float]]] = defaultdict(dict)
 
         # Error classification patterns
         self.error_patterns = {
@@ -158,9 +159,7 @@ class ExecutionAnalytics:
 
     def _get_parameters_hash(self, tool_name: str, args: tuple, kwargs: dict) -> str:
         """Generate a hash for tool parameters."""
-        param_str = json.dumps(
-            {"tool": tool_name, "args": args, "kwargs": kwargs}, sort_keys=True, default=str
-        )
+        param_str = json.dumps({"tool": tool_name, "args": args, "kwargs": kwargs}, sort_keys=True, default=str)
         return hashlib.md5(param_str.encode()).hexdigest()
 
     def _get_result_hash(self, result: Any) -> str:
@@ -168,7 +167,7 @@ class ExecutionAnalytics:
         result_str = json.dumps(result, sort_keys=True, default=str)
         return hashlib.md5(result_str.encode()).hexdigest()
 
-    def _get_cached_result(self, tool_name: str, param_hash: str) -> Optional[Any]:
+    def _get_cached_result(self, tool_name: str, param_hash: str) -> Any | None:
         """Retrieve cached result if available and not expired."""
         if not self.enable_caching:
             return None
@@ -198,14 +197,12 @@ class ExecutionAnalytics:
         current_time = time.time()
         self.result_cache[tool_name][param_hash] = (result, current_time)
 
-    def _calculate_backoff_delay(
-        self, retry_count: int, strategy: RetryStrategy, base_delay: float = 1.0
-    ) -> float:
+    def _calculate_backoff_delay(self, retry_count: int, strategy: RetryStrategy, base_delay: float = 1.0) -> float:
         """Calculate delay before retry based on strategy."""
         if strategy == RetryStrategy.IMMEDIATE:
             return 0.0
         elif strategy == RetryStrategy.EXPONENTIAL_BACKOFF:
-            return base_delay * (2 ** retry_count)
+            return base_delay * (2**retry_count)
         elif strategy == RetryStrategy.LINEAR_BACKOFF:
             return base_delay * (retry_count + 1)
         elif strategy == RetryStrategy.NO_RETRY:
@@ -218,7 +215,7 @@ class ExecutionAnalytics:
         tool_name: str,
         execution_time: float,
         success: bool,
-        error_type: Optional[ErrorType] = None,
+        error_type: ErrorType | None = None,
         from_cache: bool = False,
     ):
         """Update analytics for a tool execution."""
@@ -247,9 +244,7 @@ class ExecutionAnalytics:
 
         # Update average execution time
         if analytics.total_executions > 0:
-            analytics.average_execution_time = (
-                analytics.total_execution_time / analytics.total_executions
-            )
+            analytics.average_execution_time = analytics.total_execution_time / analytics.total_executions
 
     def execute_with_retry(
         self,
@@ -258,7 +253,7 @@ class ExecutionAnalytics:
         args: tuple = (),
         kwargs: dict = None,
         retry_on_error: bool = True,
-    ) -> Tuple[Any, ExecutionRecord]:
+    ) -> tuple[Any, ExecutionRecord]:
         """Execute a tool with retry logic and analytics tracking.
 
         Args:
@@ -292,7 +287,6 @@ class ExecutionAnalytics:
 
         # Execute with retry logic
         last_error = None
-        last_error_type = None
         retry_count = 0
 
         while retry_count <= self.max_retries:
@@ -324,7 +318,6 @@ class ExecutionAnalytics:
                 execution_time = time.time() - start_time
                 error_type = self._classify_error(e)
                 last_error = e
-                last_error_type = error_type
 
                 # Record failed execution
                 record = ExecutionRecord(
@@ -357,7 +350,7 @@ class ExecutionAnalytics:
         # All retries exhausted or no retry strategy
         raise last_error
 
-    def get_tool_analytics(self, tool_name: Optional[str] = None) -> Dict[str, ToolAnalytics]:
+    def get_tool_analytics(self, tool_name: str | None = None) -> dict[str, ToolAnalytics]:
         """Get analytics for a specific tool or all tools.
 
         Args:
@@ -380,15 +373,11 @@ class ExecutionAnalytics:
         rows = []
         for tool_name, analytics in self.tool_analytics.items():
             most_common_error = (
-                max(analytics.error_counts.items(), key=lambda x: x[1])[0].value
-                if analytics.error_counts
-                else None
+                max(analytics.error_counts.items(), key=lambda x: x[1])[0].value if analytics.error_counts else None
             )
 
             cache_total = analytics.cache_hits + analytics.cache_misses
-            cache_hit_rate = (
-                analytics.cache_hits / cache_total if cache_total > 0 else 0.0
-            )
+            cache_hit_rate = analytics.cache_hits / cache_total if cache_total > 0 else 0.0
 
             rows.append(
                 {
@@ -429,7 +418,7 @@ class ExecutionAnalytics:
 
         return pd.DataFrame(rows)
 
-    def clear_cache(self, tool_name: Optional[str] = None):
+    def clear_cache(self, tool_name: str | None = None):
         """Clear cached results for a specific tool or all tools.
 
         Args:
@@ -446,4 +435,3 @@ class ExecutionAnalytics:
         self.tool_analytics.clear()
         self.execution_history.clear()
         self.result_cache.clear()
-

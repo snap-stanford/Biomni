@@ -1,5 +1,4 @@
 import pickle
-from typing import Optional
 
 import pandas as pd
 
@@ -7,7 +6,7 @@ from biomni.tool.execution_analytics import ExecutionAnalytics
 
 
 class ToolRegistry:
-    def __init__(self, tools, execution_analytics: Optional[ExecutionAnalytics] = None):
+    def __init__(self, tools, execution_analytics: ExecutionAnalytics | None = None):
         self.tools = []
         self.next_id = 0
         self.execution_analytics = execution_analytics

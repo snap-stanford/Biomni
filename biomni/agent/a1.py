@@ -230,7 +230,6 @@ class A1:
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
 
-
         self.configure()
 
     def add_tool(self, api):
