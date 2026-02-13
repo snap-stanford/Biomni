@@ -13,6 +13,7 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
+from pydantic import BaseModel, Field
 
 from biomni.config import default_config
 from biomni.know_how import KnowHowLoader
@@ -51,6 +52,28 @@ if os.path.exists(".env"):
 class AgentState(TypedDict):
     messages: list[BaseMessage]
     next_step: str | None
+
+
+class AgentResponse(BaseModel):
+    """Structured response schema for OpenAI models.
+
+    Used with structured outputs (constrained decoding) to guarantee
+    format compliance instead of relying on XML tag parsing.
+    """
+
+    reasoning: str = Field(
+        description="Your step-by-step reasoning about the current state, what observations mean, and what to do next."
+    )
+    action: Literal["execute", "solution"] = Field(
+        description="'execute' to run code (Python/R/Bash), 'solution' to provide the final answer."
+    )
+    content: str = Field(
+        description=(
+            "If action is 'execute': the code to run. Python by default. "
+            "Prefix with #!R for R code, #!BASH for Bash scripts. "
+            "If action is 'solution': the final answer text."
+        ),
+    )
 
 
 class A1:
@@ -202,6 +225,17 @@ class A1:
             api_key=api_key,
             config=default_config,
         )
+
+        # If the constructor overrides the LLM to a different provider,
+        # update default_config.llm_lite to match so that all lite-model
+        # consumers (database.py, genomics.py, utils.py) use the same provider.
+        from biomni.config import BiomniConfig
+
+        inferred_lite = BiomniConfig._infer_lite_model(llm)
+        if inferred_lite != default_config.llm_lite:
+            default_config.llm_lite = inferred_lite
+            print(f"  Lite Model: {default_config.llm_lite} (updated to match agent provider)")
+
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
 
@@ -221,6 +255,12 @@ class A1:
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
         self.configure()
+
+    @property
+    def _is_openai_model(self) -> bool:
+        """Check if the current LLM is an OpenAI model (supports structured outputs)."""
+        model_name = getattr(self.llm, "model_name", "") or getattr(self.llm, "model", "")
+        return str(model_name).lower().startswith("gpt-") or "openai" in str(type(self.llm)).lower()
 
     def add_tool(self, api):
         """Add a new tool to the agent's tool registry and make it available for retrieval.
@@ -502,7 +542,10 @@ class A1:
             # First ensure the parent 'mcp_servers' module exists
             if "mcp_servers" not in sys.modules:
                 sys.modules["mcp_servers"] = types.ModuleType("mcp_servers")
-            mcp_module_name = f"mcp_servers.{server_name}"
+            # Sanitize server name to be a valid Python identifier
+            # (e.g., "okn-wobd" -> "okn_wobd") so the agent can import it
+            safe_server_name = server_name.replace("-", "_").replace(".", "_").replace(" ", "_")
+            mcp_module_name = f"mcp_servers.{safe_server_name}"
             if mcp_module_name not in sys.modules:
                 sys.modules[mcp_module_name] = types.ModuleType(mcp_module_name)
             server_module = sys.modules[mcp_module_name]
@@ -1112,8 +1155,8 @@ class A1:
                     # Include full content in system prompt (metadata already removed)
                     know_how_formatted.append(f"📚 {name}:\n{content}")
 
-        # Base prompt
-        prompt_modifier = """
+        # Base prompt — shared preamble for all providers
+        prompt_preamble = """
 You are a helpful biomedical assistant assigned with the task of problem-solving.
 To achieve this, you will be using an interactive coding environment equipped with a variety of tool functions, data, and softwares to assist you throughout the process.
 
@@ -1135,7 +1178,41 @@ If a step fails or needs modification, mark it with an X and explain why:
 4. [ ] Third step
 
 Always show the updated plan after each step so the user can track progress.
+"""
 
+        # Format instructions differ by provider
+        if self._is_openai_model:
+            # Structured-output mode: the response schema enforces the format,
+            # so the prompt only needs to explain the semantics.
+            prompt_format = """
+At each turn, your response will be structured with three fields: "reasoning", "action", and "content".
+
+- "reasoning": Provide your step-by-step thinking. Briefly note what you know so far and what you plan to do next.
+- "action": Choose exactly one of:
+    "execute" — to run NEW code and observe its result.
+    "solution" — to provide your final answer. Choose this as soon as you have the information needed to answer.
+- "content": The code to execute, or your final answer text.
+    For Python code (default): just write the code.
+    For R code: prefix with #!R on the first line.
+    For Bash scripts and commands: prefix with #!BASH on the first line.
+
+IMPORTANT: Once code has executed successfully and you have the result, move directly to action "solution". Do NOT re-execute the same code. Each "execute" action should run NEW code that makes progress toward the goal.
+
+You have many chances to interact with the environment. Decompose your work into multiple small steps.
+Don't overcomplicate the code. Keep it simple and easy to understand.
+When calling the existing python functions in the function dictionary, YOU MUST SAVE THE OUTPUT and PRINT OUT the result.
+For example, result = understand_scRNA(XXX) print(result)
+Otherwise the system will not be able to know what has been done.
+
+TASK COMPLETION REQUIREMENTS:
+Before choosing action "solution", verify that you have addressed the requirements in the original task:
+- If the task asks for "at least N" items, ensure you have found N or more
+- If your initial search doesn't meet requirements, try alternative search terms, broaden criteria, or search additional databases
+- Do NOT choose "solution" until all stated requirements are met, OR you have exhausted reasonable alternatives and explicitly explain why the requirements cannot be met
+"""
+        else:
+            # XML-tag mode for Claude and other providers
+            prompt_format = """
 At each turn, you should first provide your thinking and reasoning given the conversation history.
 After that, you have two options:
 
@@ -1159,6 +1236,8 @@ For Bash scripts and commands, use the #!BASH marker at the beginning of your co
 
 In each response, you must include EITHER <execute> or <solution> tag. Not both at the same time. Do not respond with messages without any tags. No empty messages.
 """
+
+        prompt_modifier = prompt_preamble + prompt_format
 
         # Add self-critic instructions if needed
         if self_critic:
@@ -1400,73 +1479,76 @@ Each library is listed with its description to help you understand its functiona
 
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
-            # Add OpenAI-specific formatting reminders if using OpenAI models
-            system_prompt = self.system_prompt
-            if hasattr(self.llm, "model_name") and (
-                "gpt" in str(self.llm.model_name).lower() or "openai" in str(type(self.llm)).lower()
-            ):
-                system_prompt += """
+            messages = [SystemMessage(content=self.system_prompt)] + state["messages"]
 
-CRITICAL FORMAT REQUIREMENTS:
-Every response MUST contain exactly ONE of these XML tags:
-1. <execute>your_code_here</execute> - For running Python/R/Bash code
-2. <solution>your_final_answer</solution> - For providing the final answer
+            # ----- OpenAI structured-output path -----
+            if self._is_openai_model:
+                try:
+                    structured_llm = self.llm.with_structured_output(AgentResponse)
+                    response: AgentResponse = structured_llm.invoke(messages)
 
-Example execute response:
-I will query the GEO database.
-<execute>
-from biomni.tool.database import query_geo
-result = query_geo(prompt="diabetic nephropathy RNA-seq", max_results=3)
-print(result)
-</execute>
+                    # Strip markdown code fences from content if present
+                    # (LLMs often wrap code in ```python ... ``` even in structured output)
+                    content = response.content
+                    if response.action == "execute":
+                        content = re.sub(r"^```(?:python|bash|r|shell|sh)?\s*\n?", "", content.strip())
+                        content = re.sub(r"\n?```\s*$", "", content)
 
-Example solution response:
-Based on my analysis, here are the results:
-<solution>
-The top 3 datasets are: GSE123, GSE456, GSE789
-</solution>
+                    # Reconstruct XML-tagged message so execute() and logging work unchanged
+                    tag = response.action  # "execute" or "solution"
+                    msg = f"{response.reasoning}\n<{tag}>{content}</{tag}>"
+                    state["messages"].append(AIMessage(content=msg.strip()))
 
-NEVER respond without one of these tags. Your response will fail if tags are missing.
+                    if response.action == "solution":
+                        state["next_step"] = "end"
+                    else:
+                        state["next_step"] = "execute"
+                    return state
 
-TASK COMPLETION REQUIREMENTS:
-Before providing a <solution>, you MUST verify that you have fully addressed all requirements in the original task:
-- If the task asks for "at least N" items (datasets, genes, etc.), ensure you have found N or more
-- If your initial search doesn't meet requirements, try alternative search terms, broaden criteria, or search additional databases
-- Do NOT provide a <solution> until all stated requirements are met, OR you have exhausted reasonable alternatives and explicitly explain why the requirements cannot be met
-- If you only found 2 datasets but the task asked for 4+, you MUST try additional searches before concluding
+                except Exception as e:
+                    # If structured output fails, fall through to XML parsing
+                    print(f"⚠️ Structured output failed ({e}), falling back to XML parsing...")
+                    response = self.llm.invoke(messages)
+                    content = response.content
+                    if isinstance(content, list):
+                        text_parts: list[str] = []
+                        for block in content:
+                            try:
+                                if isinstance(block, dict):
+                                    btype = block.get("type")
+                                    if btype in ("text", "output_text", "redacted_text"):
+                                        part = block.get("text") or block.get("content") or ""
+                                        if isinstance(part, str):
+                                            text_parts.append(part)
+                            except Exception:
+                                continue
+                        msg = "".join(text_parts)
+                    else:
+                        msg = str(content)
 
-PERSISTENCE:
-- Multi-step tasks require multiple rounds of execution
-- Keep working through your plan until ALL checkboxes are marked complete
-- If a step yields insufficient results, adapt your approach and try again
-- Only provide a <solution> when you have genuinely completed the task or exhausted all reasonable options"""
-
-            messages = [SystemMessage(content=system_prompt)] + state["messages"]
-            response = self.llm.invoke(messages)
-
-            # Normalize Responses API content blocks (list of dicts) into a plain string
-            content = response.content
-            if isinstance(content, list):
-                # Concatenate textual parts; ignore tool_use or other non-text blocks
-                text_parts: list[str] = []
-                for block in content:
-                    try:
-                        if isinstance(block, dict):
-                            btype = block.get("type")
-                            if btype in ("text", "output_text", "redacted_text"):
-                                part = block.get("text") or block.get("content") or ""
-                                if isinstance(part, str):
-                                    text_parts.append(part)
-                    except Exception:
-                        # Be conservative; skip malformed blocks
-                        continue
-                msg = "".join(text_parts)
+            # ----- XML parsing path (Claude and fallback) -----
             else:
-                # Fallback to string conversion for legacy content
-                msg = str(content)
+                response = self.llm.invoke(messages)
 
-            # Enhanced parsing for better OpenAI compatibility
-            # Check for incomplete tags and fix them
+                # Normalize Responses API content blocks (list of dicts) into a plain string
+                content = response.content
+                if isinstance(content, list):
+                    text_parts: list[str] = []
+                    for block in content:
+                        try:
+                            if isinstance(block, dict):
+                                btype = block.get("type")
+                                if btype in ("text", "output_text", "redacted_text"):
+                                    part = block.get("text") or block.get("content") or ""
+                                    if isinstance(part, str):
+                                        text_parts.append(part)
+                        except Exception:
+                            continue
+                    msg = "".join(text_parts)
+                else:
+                    msg = str(content)
+
+            # XML tag parsing (used by Claude directly, and as fallback for OpenAI)
             if "<execute>" in msg and "</execute>" not in msg:
                 msg += "</execute>"
             if "<solution>" in msg and "</solution>" not in msg:
@@ -1474,78 +1556,10 @@ PERSISTENCE:
             if "<think>" in msg and "</think>" not in msg:
                 msg += "</think>"
 
-            # More flexible pattern matching for different LLM styles
             think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL | re.IGNORECASE)
             execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL | re.IGNORECASE)
             answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL | re.IGNORECASE)
 
-            # Alternative patterns for OpenAI models that might use different formatting
-            if not execute_match:
-                # Try to find code blocks that might be intended as execute blocks
-                code_block_match = re.search(r"```(?:python|bash|r)?\s*(.*?)```", msg, re.DOTALL)
-                if code_block_match and not answer_match:
-                    # If we found a code block and no solution, treat it as execute
-                    execute_match = code_block_match
-
-            # For GPT models: if response looks like a final answer without tags, treat as solution
-            # Be conservative - only trigger for clear final conclusions, not interim summaries
-            if not execute_match and not answer_match and not think_match:
-                msg_lower = msg.lower()
-                # Check for indicators that this is NOT a final answer (still working)
-                still_working_indicators = [
-                    "let's execute",
-                    "let's proceed",
-                    "let's analyze",
-                    "let's continue",
-                    "let's search",
-                    "let's try",
-                    "let's refine",
-                    "next step",
-                    "step 2",
-                    "step 3",
-                    "step 4",
-                    "[ ]",  # Unchecked checkbox means more work to do
-                    "i will now",
-                    "let me ",
-                    "we need to",
-                    "we should",
-                    "i'll now",
-                    "now let's",
-                    "updated plan",
-                    "moving on to",
-                    "proceeding with",
-                    "however, we still need",
-                    "need to find more",
-                    "additional search",
-                    "try a different",
-                    "broaden the",
-                    "refine the search",
-                ]
-                is_still_working = any(ind in msg_lower for ind in still_working_indicators)
-
-                # Also check if the plan has uncompleted items
-                if "[✓]" in msg and "[ ]" in msg:
-                    is_still_working = True
-
-                # Only treat as final if it has strong final indicators AND is not still working
-                # Be very conservative - only auto-wrap explicit final conclusions
-                if not is_still_working:
-                    final_answer_indicators = [
-                        "in conclusion, here is the final",
-                        "to summarize the final answer",
-                        "the final answer is:",
-                        "my final recommendation is:",
-                        "this completes the full analysis",
-                        "analysis complete - here are the final",
-                        "task completed successfully",
-                        "all requirements have been met",
-                    ]
-                    if any(indicator in msg_lower for indicator in final_answer_indicators):
-                        # Wrap the response as a solution
-                        answer_match = True
-                        msg = f"{msg}\n<solution>See above</solution>"
-
-            # Add the message to the state before checking for errors
             state["messages"].append(AIMessage(content=msg.strip()))
 
             if answer_match:
@@ -1562,17 +1576,14 @@ PERSISTENCE:
                 )
 
                 if error_count >= 2:
-                    # If we've already tried to correct the model twice, just end the conversation
                     print("Detected repeated parsing errors, ending conversation")
                     state["next_step"] = "end"
-                    # Add a final message explaining the termination
                     state["messages"].append(
                         AIMessage(
                             content="Execution terminated due to repeated parsing errors. Please check your input and try again."
                         )
                     )
                 else:
-                    # Try to correct it
                     state["messages"].append(
                         HumanMessage(
                             content="Each response must include thinking process followed by either <execute> or <solution> tag. But there are no tags in the current response. Please follow the instruction, fix and regenerate the response again."
@@ -1580,6 +1591,8 @@ PERSISTENCE:
                     )
                     state["next_step"] = "generate"
             return state
+
+        _previous_code_blocks: list[str] = []
 
         def execute(state: AgentState) -> AgentState:
             last_message = state["messages"][-1].content
@@ -1590,6 +1603,25 @@ PERSISTENCE:
             execute_match = re.search(r"<execute>(.*?)</execute>", last_message, re.DOTALL)
             if execute_match:
                 code = execute_match.group(1)
+
+                # Detect duplicate code execution — if the model re-submits the same code
+                # it already ran, nudge it to move to the solution instead of re-running.
+                code_normalized = code.strip()
+                if code_normalized in _previous_code_blocks:
+                    observation = (
+                        "\n<observation>You already executed this exact code. "
+                        "The result was shown above. Do not re-run the same code. "
+                        "If you have the answer, choose action 'solution' now.</observation>"
+                    )
+                    state["messages"].append(AIMessage(content=observation.strip()))
+                    return state
+                _previous_code_blocks.append(code_normalized)
+
+                # Strip markdown code fences that LLMs (especially OpenAI) often wrap code in,
+                # even when using structured output. This is a safety net — generate() should
+                # already strip fences, but this catches fallback/edge cases.
+                code = re.sub(r"^```(?:python|bash|r|shell|sh)?\s*\n?", "", code.strip())
+                code = re.sub(r"\n?```\s*$", "", code)
 
                 # Set timeout duration (10 minutes = 600 seconds)
                 timeout = self.timeout_seconds
