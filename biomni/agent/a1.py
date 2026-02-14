@@ -471,7 +471,7 @@ class A1:
 
         def _shutdown_all_sessions():
             """Clean up all persistent MCP sessions on exit."""
-            for name, holder in getattr(self, "_mcp_sessions", {}).items():
+            for _name, holder in getattr(self, "_mcp_sessions", {}).items():
                 try:
                     shutdown_event = holder.get("shutdown_event")
                     loop = holder.get("loop")
@@ -502,9 +502,7 @@ class A1:
                     print(f"Warning: Skipping tool with no name attribute: {tool}")
             return discovered_tools
 
-        def make_mcp_wrapper(
-            server_name: str, tool_name: str, doc: str, param_names: list = None
-        ):
+        def make_mcp_wrapper(server_name: str, tool_name: str, doc: str, param_names: list = None):
             """Create a synchronous wrapper that calls a tool on the persistent session."""
             param_names = param_names or []
 
@@ -523,9 +521,7 @@ class A1:
                     session = holder["session"]
                     loop = holder["loop"]
 
-                    future = asyncio.run_coroutine_threadsafe(
-                        session.call_tool(tool_name, call_kwargs), loop
-                    )
+                    future = asyncio.run_coroutine_threadsafe(session.call_tool(tool_name, call_kwargs), loop)
                     result = future.result(timeout=300)  # 5 min timeout per tool call
                     content = result.content[0]
                     # Return the text payload, not the MCP envelope.

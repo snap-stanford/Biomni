@@ -195,9 +195,8 @@ class TestGenerateStructuredOutput:
         """
         import re
 
-        from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-
-        from biomni.agent.a1 import AgentResponse, AgentState
+        from biomni.agent.a1 import AgentResponse
+        from langchain_core.messages import AIMessage, SystemMessage
 
         mock_llm = MagicMock()
         mock_structured = MagicMock()
@@ -302,9 +301,8 @@ class TestGenerateStructuredOutput:
         mock_llm.with_structured_output.assert_called_once_with(AgentResponse)
 
     def test_solution_action_produces_solution_tag_and_ends(self):
-        from langchain_core.messages import AIMessage
-
         from biomni.agent.a1 import AgentResponse
+        from langchain_core.messages import AIMessage
 
         resp = AgentResponse(
             reasoning="All steps complete. Here are the results.",
@@ -388,9 +386,8 @@ class TestGenerateStructuredOutput:
 
     def test_markdown_fences_not_stripped_from_solution(self):
         """Markdown fences in solution content should be preserved (they may be intentional formatting)."""
-        from langchain_core.messages import AIMessage
-
         from biomni.agent.a1 import AgentResponse
+        from langchain_core.messages import AIMessage
 
         content_with_fences = "Here is the code:\n```python\nx = 42\n```"
         resp = AgentResponse(reasoning="Done.", action="solution", content=content_with_fences)
@@ -416,9 +413,8 @@ class TestGenerateXMLFallback:
     def test_fallback_on_structured_output_error(self):
         import re
 
+        from biomni.agent.a1 import AgentResponse
         from langchain_core.messages import AIMessage, SystemMessage
-
-        from biomni.agent.a1 import AgentResponse, AgentState
 
         mock_llm = MagicMock()
         mock_llm.model_name = "gpt-4o"

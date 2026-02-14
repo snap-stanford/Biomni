@@ -99,8 +99,7 @@ class TestOpenAIEndToEnd:
         # Count syntax errors - should be 0 or at most 1 (transient)
         syntax_errors = all_log_text.count("invalid syntax")
         assert syntax_errors <= 1, (
-            f"Agent looped on syntax errors ({syntax_errors} occurrences). "
-            f"Markdown fence stripping may not be working."
+            f"Agent looped on syntax errors ({syntax_errors} occurrences). Markdown fence stripping may not be working."
         )
 
         # Should have produced a solution
@@ -109,9 +108,7 @@ class TestOpenAIEndToEnd:
         )
 
         # The squares should appear somewhere
-        assert "1" in final and "4" in final and "9" in final, (
-            f"Expected square numbers in output, got: {final[:300]}"
-        )
+        assert "1" in final and "4" in final and "9" in final, f"Expected square numbers in output, got: {final[:300]}"
 
         print(f"\n  Log entries: {len(log)}")
         print(f"  Syntax errors seen: {syntax_errors}")
@@ -119,9 +116,7 @@ class TestOpenAIEndToEnd:
 
     def test_execute_tag_contains_clean_code(self, agent_4o_mini):
         """Verify that code inside <execute> tags has no markdown fences."""
-        log, final = agent_4o_mini.go(
-            "Execute Python code that prints 'biomni_test_marker_12345'. Just run it."
-        )
+        log, final = agent_4o_mini.go("Execute Python code that prints 'biomni_test_marker_12345'. Just run it.")
 
         all_log_text = "\n".join(str(entry) for entry in log)
 
@@ -130,26 +125,18 @@ class TestOpenAIEndToEnd:
         assert len(execute_blocks) >= 1, "Should have at least one execute block"
 
         for i, block in enumerate(execute_blocks):
-            assert not block.strip().startswith("```"), (
-                f"Execute block {i} starts with markdown fence: {block[:100]}"
-            )
-            assert not block.strip().endswith("```"), (
-                f"Execute block {i} ends with markdown fence: {block[-100:]}"
-            )
+            assert not block.strip().startswith("```"), f"Execute block {i} starts with markdown fence: {block[:100]}"
+            assert not block.strip().endswith("```"), f"Execute block {i} ends with markdown fence: {block[-100:]}"
 
         # The marker should have been printed
-        assert "biomni_test_marker_12345" in all_log_text, (
-            "The test marker should appear in execution output"
-        )
+        assert "biomni_test_marker_12345" in all_log_text, "The test marker should appear in execution output"
 
         print(f"\n  Execute blocks found: {len(execute_blocks)}")
         print(f"  First block (first 120 chars): {execute_blocks[0][:120]}")
 
     def test_gpt5_e2e_if_available(self, agent_gpt5):
         """Same test with gpt-5 to verify the Responses API path works end-to-end."""
-        log, final = agent_gpt5.go(
-            "Use Python to compute 2**10 and tell me the result. Execute the code."
-        )
+        log, final = agent_gpt5.go("Use Python to compute 2**10 and tell me the result. Execute the code.")
 
         assert len(log) >= 3, f"Expected at least 3 log entries, got {len(log)}"
 
@@ -194,9 +181,7 @@ class TestOpenAIWithRetriever:
             timeout_seconds=180,
         )
 
-        log, final = agent.go(
-            "Using Python, calculate the factorial of 10 and tell me the result."
-        )
+        log, final = agent.go("Using Python, calculate the factorial of 10 and tell me the result.")
 
         assert len(log) >= 3, f"Expected at least 3 log entries, got {len(log)}"
 
@@ -258,9 +243,7 @@ class TestOpenAIWithMCP:
         )
         agent.add_mcp(config_path=mcp_config)
 
-        log, final = agent.go(
-            "Using okn-wobd mcp, find me a geo dataset about osteoarthritis."
-        )
+        log, final = agent.go("Using okn-wobd mcp, find me a geo dataset about osteoarthritis.")
 
         all_log_text = "\n".join(str(entry) for entry in log)
 
@@ -274,9 +257,7 @@ class TestOpenAIWithMCP:
         final_lower = final.lower()
         has_geo = "gse" in final_lower or "geo" in final_lower
         has_oa = "osteoarthritis" in final_lower or "arthritis" in final_lower
-        assert has_geo or has_oa, (
-            f"Expected GEO dataset IDs or osteoarthritis mention in answer, got: {final[:500]}"
-        )
+        assert has_geo or has_oa, f"Expected GEO dataset IDs or osteoarthritis mention in answer, got: {final[:500]}"
 
         # No syntax error loop
         syntax_errors = all_log_text.count("invalid syntax")
