@@ -1,14 +1,12 @@
 import os
 from pathlib import Path
 
-import esm
 import gget
 import gseapy
 import numpy as np
 import pandas as pd
 import requests
 import scanpy as sc
-import torch
 from pybiomart import Dataset
 from tqdm import tqdm
 
@@ -336,6 +334,9 @@ def generate_gene_embeddings_with_ESM_models(
     Returns:
         String containing the steps performed during the embedding generation process
     """
+    import esm
+    import torch
+
     steps = []
     steps.append(f"Loading ESM model: {model_name}")
     # model loading take a while, once loaded for smaller models generation is relatively fast
@@ -2223,6 +2224,8 @@ def generate_embeddings_with_state(
     """
     import os
     import subprocess
+
+    import torch
 
     # Initialize steps list for logging
     steps = []
