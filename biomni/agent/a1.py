@@ -62,6 +62,8 @@ class A1:
         llm: str | None = None,
         source: SourceType | None = None,
         use_tool_retriever: bool | None = None,
+        # updated by Kyle: switch between single-stage and two-stage retrieval
+        use_two_stage_retrieval: bool | None = None,
         timeout_seconds: int | None = None,
         base_url: str | None = None,
         api_key: str | None = None,
@@ -90,6 +92,9 @@ class A1:
             source = default_config.source
         if use_tool_retriever is None:
             use_tool_retriever = default_config.use_tool_retriever
+        # updated by Kyle
+        if use_two_stage_retrieval is None:
+            use_two_stage_retrieval = getattr(default_config, "use_two_stage_retrieval", True)
         if timeout_seconds is None:
             timeout_seconds = default_config.timeout_seconds
         if base_url is None:
@@ -206,6 +211,8 @@ class A1:
         )
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
+        # updated by Kyle
+        self.use_two_stage_retrieval = use_two_stage_retrieval
 
         if self.use_tool_retriever:
             self.tool_registry = ToolRegistry(module2api)
@@ -1639,7 +1646,7 @@ Each library is listed with its description to help you understand its functiona
         self.app.checkpointer = self.checkpointer
         # display(Image(self.app.get_graph().draw_mermaid_png()))
 
-    # Update by Kyle
+    # updated by Kyle
     def _prepare_resources_for_retrieval(self, prompt):
         """Prepare resources for retrieval and return selected resource names.
 
@@ -1652,10 +1659,55 @@ Each library is listed with its description to help you understand its functiona
         if not self.use_tool_retriever:
             return None
 
-        # Gather all available resources
-        # 1. Tools SKILL.md tool name/description entries -- Kyle
-        # all_tools = self._get_tools_for_retrieval()
-        all_tools = self.tool_registry.tools if hasattr(self, "tool_registry") and self.tool_registry else []
+        # ============================================================
+        # updated by Kyle: retrieval strategy switch
+        # - two-stage: skill retrieval (SKILL.md) -> tool retrieval (selected skills only)
+        # - single-stage: tool retrieval over all tools (baseline)
+        # ============================================================
+
+        selected_skill_modules = set()
+        if self.use_two_stage_retrieval:
+            # --- Stage 1: skill retrieval (name + desc only) ---
+            # updated by Kyle
+            skill_entries = self._get_skills_for_retrieval()
+            skill_resources = {
+                # NOTE: Reuse retriever's "TOOLS" slot to mean "SKILLS" here.
+                "tools": skill_entries,
+                "data_lake": [],
+                "libraries": [],
+                "know_how": [],
+            }
+
+            print("\n" + "=" * 60)
+            print("🔍 SKILL RETRIEVAL (updated by Kyle)")
+            print("=" * 60)
+            selected_skills = self.retriever.prompt_based_retrieval(prompt, skill_resources, llm=self.llm)
+
+            for item in selected_skills.get("tools", []):
+                if isinstance(item, dict) and item.get("module"):
+                    selected_skill_modules.add(item["module"])
+
+            # Fallback: if no skills were selected, keep original behavior (all tools)
+            if not selected_skill_modules:
+                selected_skill_modules = set(self.module2api.keys()) if hasattr(self, "module2api") else set()
+        else:
+            # updated by Kyle: single-stage baseline (all tools)
+            selected_skill_modules = set(self.module2api.keys()) if hasattr(self, "module2api") else set()
+
+        # --- Stage 2: tool retrieval (tools under selected skills only) ---
+        # updated by Kyle
+        all_tools: list[dict] = []
+        if hasattr(self, "module2api") and self.module2api:
+            for module_name, api_list in self.module2api.items():
+                if module_name not in selected_skill_modules:
+                    continue
+                for api in api_list:
+                    tool_schema = dict(api)
+                    tool_schema["module"] = module_name
+                    all_tools.append(tool_schema)
+        elif hasattr(self, "tool_registry") and self.tool_registry:
+            # Fallback if module2api is unavailable
+            all_tools = self.tool_registry.tools
 
         # 2. Data lake items with descriptions
         data_lake_path = self.path + "/data_lake"
@@ -1696,32 +1748,12 @@ Each library is listed with its description to help you understand its functiona
             "know_how": know_how_summaries,
         }
 
-        print("\n[DEBUG] Checking tools structure before retrieval:")
-        if resources["tools"]:
-            first_tool = resources["tools"][0]
-            print("\n" + "=" * 60)
-            print("🔍 CHECKING TOOLS STRUCTURE (before retrieval)")
-            print("=" * 60)
-            print(f"Total tools: {len(resources['tools'])}")
-            print(f"First tool keys: {list(first_tool.keys())}")
-            print(f"First tool structure:")
-            import json
-            print(json.dumps(first_tool, indent=2))
-            
-            # 检查是否有非空的 parameters
-            has_params = False
-            for tool in resources["tools"][:5]:  # 检查前5个
-                if tool.get("required_parameters") and len(tool.get("required_parameters", [])) > 0:
-                    print(f"⚠️  Tool '{tool['name']}' has required_parameters: {tool['required_parameters']}")
-                    has_params = False
-                if tool.get("optional_parameters") and len(tool.get("optional_parameters", [])) > 0:
-                    print(f"⚠️  Tool '{tool['name']}' has optional_parameters: {tool['optional_parameters']}")
-                    has_params = False
-            if not has_params:
-                print("✓ All checked tools have empty required_parameters and optional_parameters")
-            print("=" * 60 + "\n")
-
-        # Use prompt-based retrieval with the agent's LLM
+        print("\n" + "=" * 60)
+        if self.use_two_stage_retrieval:
+            print("🔍 TOOL RETRIEVAL (updated by Kyle)")
+        else:
+            print("🔍 TOOL RETRIEVAL (single-stage baseline, updated by Kyle)")
+        print("=" * 60)
         selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
         print("\n" + "=" * 60)
         print("🔍 RESOURCE RETRIEVAL")
@@ -1778,6 +1810,56 @@ Each library is listed with its description to help you understand its functiona
         print("=" * 60 + "\n")
 
         return selected_resources_names
+
+    # updated by Kyle: stage-1 retrieval over skills (SKILL.md front-matter)
+    def _get_skills_for_retrieval(self) -> list[dict]:
+        """Load skill name/description entries from biomni/skills/*/SKILL.md files."""
+        skills_root = Path(__file__).resolve().parents[1] / "skills"
+        if not skills_root.exists():
+            return []
+
+        parsed_skills: list[dict] = []
+        for skill_md in sorted(skills_root.glob("*/SKILL.md")):
+            module_name = f"biomni.tool.{skill_md.parent.name}"
+            try:
+                content = skill_md.read_text(encoding="utf-8")
+            except OSError:
+                continue
+
+            skill_name = None
+            skill_desc = ""
+
+            # Parse simple SKILL.md front matter:
+            # ---
+            # name: xxx
+            # description: yyy
+            # ---
+            in_front_matter = False
+            for raw in content.splitlines():
+                line = raw.strip()
+                if line == "---":
+                    in_front_matter = not in_front_matter
+                    continue
+                if not in_front_matter:
+                    continue
+                if line.lower().startswith("name:"):
+                    skill_name = line.split(":", 1)[1].strip()
+                elif line.lower().startswith("description:"):
+                    skill_desc = line.split(":", 1)[1].strip()
+
+            if not skill_name:
+                # Fallback to folder name
+                skill_name = skill_md.parent.name
+
+            parsed_skills.append(
+                {
+                    "name": skill_name,
+                    "description": skill_desc,
+                    "module": module_name,
+                }
+            )
+
+        return parsed_skills
 
     ## added by Kyle
     def _get_tools_for_retrieval(self) -> list[dict]:

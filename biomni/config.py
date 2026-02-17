@@ -38,6 +38,8 @@ class BiomniConfig:
 
     # Tool settings
     use_tool_retriever: bool = True
+    # updated by Kyle: retrieval strategy switch (two-stage skill->tool retrieval)
+    use_two_stage_retrieval: bool = True
 
     # Data licensing settings
     commercial_mode: bool = False  # If True, excludes non-commercial datasets
@@ -64,6 +66,9 @@ class BiomniConfig:
             self.llm = os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL")
         if os.getenv("BIOMNI_USE_TOOL_RETRIEVER"):
             self.use_tool_retriever = os.getenv("BIOMNI_USE_TOOL_RETRIEVER").lower() == "true"
+        # updated by Kyle: toggle two-stage retrieval
+        if os.getenv("BIOMNI_TWO_STAGE_RETRIEVAL"):
+            self.use_two_stage_retrieval = os.getenv("BIOMNI_TWO_STAGE_RETRIEVAL").lower() == "true"
         if os.getenv("BIOMNI_COMMERCIAL_MODE"):
             self.commercial_mode = os.getenv("BIOMNI_COMMERCIAL_MODE").lower() == "true"
         if os.getenv("BIOMNI_TEMPERATURE"):
@@ -88,6 +93,7 @@ class BiomniConfig:
             "llm": self.llm,
             "temperature": self.temperature,
             "use_tool_retriever": self.use_tool_retriever,
+            "use_two_stage_retrieval": self.use_two_stage_retrieval,
             "commercial_mode": self.commercial_mode,
             "base_url": self.base_url,
             "api_key": self.api_key,
