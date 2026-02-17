@@ -1,3 +1,10 @@
+###########################################################################
+# Updated by Kyle:
+# - Enhanced retrieval logging in ToolRetriever.prompt_based_retrieval:
+#   - Added robust token usage extraction/printing (around Lines 100–170)
+#   - Helps compare single-stage vs two-stage (skills-based) retrieval runs
+###########################################################################
+
 import contextlib
 import re
 

@@ -3,6 +3,7 @@
 Main code changes:
 - Added Skills metadata (name/description) defined under [`biomni/skills/`](../biomni/skills/), e.g. `SKILL.md` files used for Stage 1 retrieval.
 - Two-stage retrieval routing implemented in [`biomni/agent/a1.py`](../biomni/agent/a1.py) (Stage 1 skill selection → Stage 2 tool selection).
+- Retrieval token usage logging updated in [`biomni/model/retriever.py`](../biomni/model/retriever.py) (`ToolRetriever.prompt_based_retrieval`).
 
 Experiments logs:
 - [test/retrieval_baseline_single_stage.log.txt](./retrieval_baseline_single_stage.log.txt)

@@ -1,8 +1,9 @@
 ###########################################################################
-#Updated by Kyle: implemented two-stage skill-based retrieval.
-#- Added A1._get_skills_for_retrieval (Line 1847)
-#- Modified A1._prepare_resources_for_retrieval (Line 1650)
-#- Modified A1.update_system_prompt_with_selected_resources (Line 2010)
+# Updated by Kyle:
+# - Implemented two-stage skill-based retrieval:
+#   - Added A1._get_skills_for_retrieval (Line 1847)
+#   - Modified A1._prepare_resources_for_retrieval (Line 1650)
+#   - Modified A1.update_system_prompt_with_selected_resources (Line 2010)
 ###########################################################################
 
 import glob
