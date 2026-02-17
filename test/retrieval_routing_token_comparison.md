@@ -12,7 +12,7 @@ Raw logs:
 - **Data lake selected**: 0
 - **Tokens**: Input 12,181 / Output 170 / Total 12,351
 
-### Two-stage
+### Two-stage(skills)
 - **Selected skills**: 6
 - **Tools selected**: 10
 - **Tools provided to LLM (Stage 2)**: 97
