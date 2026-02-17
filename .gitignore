@@ -234,3 +234,12 @@ data/ddinter_raw/
 /docs/source/api/
 biomni_env/setup_path.sh
 CLAUDE.md
+
+# Analysis data/outputs generated during test runs
+geo_data/
+outputs/
+outputs_dn_meta/
+dn_analysis/
+dn_glom_meta_probelevel.tsv
+test_dn_meta_analysis.py
+workspace/
