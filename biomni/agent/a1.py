@@ -1767,7 +1767,7 @@ Each library is listed with its description to help you understand its functiona
 
         print("\n" + "=" * 60)
         if self.use_two_stage_retrieval:
-            print("🔍 TOOL RETRIEVAL (updated by Kyle)")
+            print("🔍 TOOL RETRIEVAL (double-stage, updated by Kyle)")
         else:
             print("🔍 TOOL RETRIEVAL (single-stage baseline, updated by Kyle)")
         print("=" * 60)

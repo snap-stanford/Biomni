@@ -39,7 +39,7 @@ class BiomniConfig:
     # Tool settings
     use_tool_retriever: bool = True
     # updated by Kyle: retrieval strategy switch (two-stage skill->tool retrieval)
-    use_two_stage_retrieval: bool = True
+    use_two_stage_retrieval: bool = False
 
     # Data licensing settings
     commercial_mode: bool = False  # If True, excludes non-commercial datasets
