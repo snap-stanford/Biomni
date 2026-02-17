@@ -1654,7 +1654,8 @@ Each library is listed with its description to help you understand its functiona
 
         # Gather all available resources
         # 1. Tools SKILL.md tool name/description entries -- Kyle
-        all_tools = self._get_tools_for_retrieval()
+        # all_tools = self._get_tools_for_retrieval()
+        all_tools = self.tool_registry.tools if hasattr(self, "tool_registry") and self.tool_registry else []
 
         # 2. Data lake items with descriptions
         data_lake_path = self.path + "/data_lake"
