@@ -12,14 +12,14 @@ Loaded environment variables from .env
   Use Tool Retriever: True
   Use Two Stage Retrieval: False
   Commercial Mode: Academic (all datasets)
-  Base Url: https://cc.zhihuiapi.top/
-  Api Key: sk-RTq0GUXIac4ev1gff8HGBgZH4roCDkaqYzFGHIeIl7yKwUJu
+  Base Url: ***
+  Api Key: sk-***
   Source: Custom
 
 🤖 AGENT LLM (Constructor Override):
   LLM Model: claude-sonnet-4-20250514
   Source: Anthropic
-  Base URL: https://cc.zhihuiapi.top/
+  Base URL: ***
   API Key: ********wUJu
 ==================================================
 
