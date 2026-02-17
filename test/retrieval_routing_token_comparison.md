@@ -1,8 +1,8 @@
 # Retrieval Routing Token Comparison
 
 Raw logs:
-- `test/retrieval_baseline_single_stage.log.txt`
-- `test/retrieval_two_stage_skill_tool.log.txt`
+- [test/retrieval_baseline_single_stage.log.txt](./retrieval_baseline_single_stage.log.txt)
+- [test/retrieval_two_stage_skill_tool.log.txt](./retrieval_two_stage_skill_tool.log.txt)
 
 ### Single-stage (baseline)
 - **Tools provided to LLM**: 220
