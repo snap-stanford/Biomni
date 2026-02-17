@@ -1,5 +1,5 @@
 ---
-name: Cell Biology
+name: cell_biology
 description: Cell-level analysis, cell type annotation, and cell biology assays and workflows.
 ---
 

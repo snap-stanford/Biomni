@@ -1,5 +1,5 @@
 ---
-name: Protocols
+name: protocols
 description: Access and run experimental protocols from Protocols.io and related resources.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: Physiology
+name: physiology
 description: Physiological modeling, organ systems, and physiology-related analysis.
 ---
 

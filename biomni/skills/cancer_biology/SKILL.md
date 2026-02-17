@@ -1,5 +1,5 @@
 ---
-name: Cancer Biology
+name: cancer_biology
 description: Analyze cancer-related data, DDR networks, and cancer genomics or transcriptomics.
 ---
 

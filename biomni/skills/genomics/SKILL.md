@@ -1,5 +1,5 @@
 ---
-name: Genomics
+name: genomics
 description: Genomic and single-cell analysis including scRNA-seq, cell census, and transcriptomics pipelines.
 ---
 

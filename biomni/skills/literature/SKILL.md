@@ -1,5 +1,5 @@
 ---
-name: Literature Search
+name: literature
 description: Search and retrieve scientific literature from PubMed, arXiv, and other sources; fetch supplementary materials and citations.
 ---
 

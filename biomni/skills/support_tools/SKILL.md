@@ -1,5 +1,5 @@
 ---
-name: Support Tools
+name: support_tools
 description: General-purpose execution support including Python REPL and utility helpers.
 ---
 

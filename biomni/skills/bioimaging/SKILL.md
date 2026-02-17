@@ -1,5 +1,5 @@
 ---
-name: Bioimaging
+name: bioimaging
 description: Process and analyze biological images, including microscopy and medical imaging pipelines.
 ---
 

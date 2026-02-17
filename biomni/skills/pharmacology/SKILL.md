@@ -1,5 +1,5 @@
 ---
-name: Pharmacology
+name: pharmacology
 description: Drug discovery, ADMET, drug interactions, repurposing, and pharmacology datasets.
 ---
 

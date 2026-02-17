@@ -1,5 +1,5 @@
 ---
-name: Genetics
+name: genetics
 description: Genetic analysis, variant interpretation, and genetics-focused datasets and tools.
 ---
 

@@ -1639,6 +1639,7 @@ Each library is listed with its description to help you understand its functiona
         self.app.checkpointer = self.checkpointer
         # display(Image(self.app.get_graph().draw_mermaid_png()))
 
+    # Update by Kyle
     def _prepare_resources_for_retrieval(self, prompt):
         """Prepare resources for retrieval and return selected resource names.
 
@@ -1652,8 +1653,8 @@ Each library is listed with its description to help you understand its functiona
             return None
 
         # Gather all available resources
-        # 1. Tools from the registry
-        all_tools = self.tool_registry.tools if hasattr(self, "tool_registry") else []
+        # 1. Tools SKILL.md tool name/description entries -- Kyle
+        all_tools = self._get_tools_for_retrieval()
 
         # 2. Data lake items with descriptions
         data_lake_path = self.path + "/data_lake"
@@ -1693,6 +1694,17 @@ Each library is listed with its description to help you understand its functiona
             "libraries": library_descriptions,
             "know_how": know_how_summaries,
         }
+
+        print("\n[DEBUG] Checking tools structure before retrieval:")
+        if resources["tools"]:
+            sample = resources["tools"][0]
+            print(f"  Sample tool keys: {list(sample.keys())}")
+            print(f"  Sample tool: {sample}")
+            # 检查是否有非空的 parameters
+            if sample.get("required_parameters") and len(sample.get("required_parameters", [])) > 0:
+                print(f"  ⚠️  WARNING: Sample has required_parameters: {sample['required_parameters']}")
+            if sample.get("optional_parameters") and len(sample.get("optional_parameters", [])) > 0:
+                print(f"  ⚠️  WARNING: Sample has optional_parameters: {sample['optional_parameters']}")
 
         # Use prompt-based retrieval with the agent's LLM
         selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
@@ -1752,6 +1764,48 @@ Each library is listed with its description to help you understand its functiona
 
         return selected_resources_names
 
+    ## added by Kyle
+    def _get_tools_for_retrieval(self) -> list[dict]:
+        """Parse tool name/description entries from biomni/skills/*/SKILL.md files."""
+        skills_root = Path(__file__).resolve().parents[1] / "skills"
+        if not skills_root.exists():
+            return []
+
+        parsed_tools = []
+        pattern = re.compile(r"^\s*-\s+\*\*(?P<name>[^*]+)\*\*:\s*(?P<desc>.+?)\s*$")
+
+        for skill_md in sorted(skills_root.glob("*/SKILL.md")):
+            skill_module = f"biomni.tool.{skill_md.parent.name}"
+            try:
+                content = skill_md.read_text(encoding="utf-8")
+            except OSError:
+                continue
+
+            in_tools_section = False
+            for raw_line in content.splitlines():
+                line = raw_line.strip()
+                if line.startswith("## "):
+                    in_tools_section = line.lower() == "## tools"
+                    continue
+                if not in_tools_section:
+                    continue
+                if not line or line.startswith("<!--"):
+                    continue
+
+                match = pattern.match(raw_line)
+                if match:
+                    parsed_tools.append(
+                        {
+                            "name": match.group("name").strip(),
+                            "description": match.group("desc").strip(),
+                            "required_parameters": [],
+                            "optional_parameters": [],
+                            "module": skill_module,
+                        }
+                    )
+
+        return parsed_tools
+
     def go(self, prompt):
         """Execute the agent with the given prompt.
 
@@ -1763,6 +1817,8 @@ Each library is listed with its description to help you understand its functiona
         self.user_task = prompt
 
         if self.use_tool_retriever:
+            ## updated by Kyle
+            ##  change to SKILL.md to retrieve tools name and desc
             selected_resources_names = self._prepare_resources_for_retrieval(prompt)
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
@@ -1868,23 +1924,64 @@ Each library is listed with its description to help you understand its functiona
                     module_name = "biomni.tool.scRNA_tools"  # Default to scRNA_tools as a fallback
                     tool.module_name = module_name
 
-            if module_name not in tool_desc:
-                tool_desc[module_name] = []
-
             # Add the tool to the appropriate module
             if isinstance(tool, dict):
-                # Ensure the module is included in the tool description
-                if "module" not in tool:
-                    tool["module"] = module_name
-                tool_desc[module_name].append(tool)
+                tool_name = tool.get("name")
+                full_api = None
+                resolved_module_name = module_name
+                if tool_name and hasattr(self, "module2api"):
+                    for mod, apis in self.module2api.items():
+                        for api in apis:
+                            if api.get("name") == tool_name:
+                                full_api = dict(api)
+                                resolved_module_name = mod
+                                break
+                        if full_api is not None:
+                            break
+                if full_api is not None:
+                    full_api["module"] = resolved_module_name
+                    if resolved_module_name not in tool_desc:
+                        tool_desc[resolved_module_name] = []
+                    tool_desc[resolved_module_name].append(full_api)
+                else:
+                    tool_dict = dict(tool)
+                    tool_dict.setdefault("required_parameters", [])
+                    tool_dict.setdefault("optional_parameters", [])
+                    if "module" not in tool_dict:
+                        tool_dict["module"] = module_name
+                    if module_name not in tool_desc:
+                        tool_desc[module_name] = []
+                    tool_desc[module_name].append(tool_dict)
             else:
                 # Convert tool object to dictionary
-                tool_dict = {
-                    "name": getattr(tool, "name", str(tool)),
-                    "description": getattr(tool, "description", ""),
-                    "parameters": getattr(tool, "parameters", {}),
-                    "module": module_name,  # Explicitly include the module
-                }
+                tool_name = getattr(tool, "name", str(tool))
+                full_api = None
+                if hasattr(self, "module2api"):
+                    for apis in self.module2api.values():
+                        for api in apis:
+                            if api.get("name") == tool_name:
+                                full_api = api
+                                break
+                        if full_api is not None:
+                            break
+                if full_api is not None:
+                    tool_dict = {
+                        "name": full_api.get("name", tool_name),
+                        "description": full_api.get("description", getattr(tool, "description", "")),
+                        "required_parameters": full_api.get("required_parameters", []),
+                        "optional_parameters": full_api.get("optional_parameters", []),
+                        "module": module_name,
+                    }
+                else:
+                    tool_dict = {
+                        "name": tool_name,
+                        "description": getattr(tool, "description", ""),
+                        "required_parameters": getattr(tool, "required_parameters", []),
+                        "optional_parameters": getattr(tool, "optional_parameters", []),
+                        "module": module_name,
+                    }
+                if module_name not in tool_desc:
+                    tool_desc[module_name] = []
                 tool_desc[module_name].append(tool_dict)
 
         # Prepare data lake items with descriptions

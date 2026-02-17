@@ -1,5 +1,5 @@
 ---
-name: Systems Biology
+name: systems_biology
 description: Network analysis, pathway modeling, and systems-level biological analysis.
 ---
 

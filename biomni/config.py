@@ -33,8 +33,7 @@ class BiomniConfig:
     timeout_seconds: int = 600
 
     # LLM settings (API keys still from environment)
-    # llm: str = "claude-sonnet-4-5"
-    llm: str = "meta-llama/llama-3.3-70b-instruct:free"
+    llm: str = "claude-3-5-sonnet-20241022"
     temperature: float = 0.7
 
     # Tool settings
@@ -48,7 +47,7 @@ class BiomniConfig:
     api_key: str | None = None  # Only for custom models, not provider API keys
 
     # LLM source (auto-detected if None)
-    source: str | None = None
+    source: str | None = "Anthropic"
 
     # Third-party integrations
     protocols_io_access_token: str | None = None

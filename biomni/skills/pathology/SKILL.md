@@ -1,5 +1,5 @@
 ---
-name: Pathology
+name: pathology
 description: Pathological image and data analysis, histopathology, and pathology workflows.
 ---
 

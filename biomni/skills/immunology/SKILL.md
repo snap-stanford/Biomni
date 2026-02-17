@@ -1,5 +1,5 @@
 ---
-name: Immunology
+name: immunology
 description: Immunological data analysis, immune repertoire, and immunology-focused workflows.
 ---
 

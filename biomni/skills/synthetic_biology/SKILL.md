@@ -1,5 +1,5 @@
 ---
-name: Synthetic Biology
+name: synthetic_biology
 description: Synthetic biology design, genetic circuits, and synthetic biology workflows.
 ---
 

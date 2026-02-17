@@ -1,5 +1,5 @@
 ---
-name: Molecular Biology
+name: molecular_biology
 description: Molecular biology workflows including CRISPR design, sgRNA libraries, and sequence analysis.
 ---
 

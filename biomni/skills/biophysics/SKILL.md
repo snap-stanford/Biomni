@@ -1,5 +1,5 @@
 ---
-name: Biophysics
+name: biophysics
 description: Model and analyze biophysical systems, molecular dynamics, and structural biophysics.
 ---
 

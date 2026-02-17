@@ -1,5 +1,5 @@
 ---
-name: Lab Automation
+name: lab_automation
 description: Lab automation, liquid handling, and lab equipment control workflows.
 ---
 

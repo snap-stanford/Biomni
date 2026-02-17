@@ -1,5 +1,5 @@
 ---
-name: Microbiology
+name: microbiology
 description: Microbial analysis, microbiome, and microbiology-related datasets and tools.
 ---
 

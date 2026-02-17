@@ -1,5 +1,5 @@
 ---
-name: Glycoengineering
+name: glycoengineering
 description: Work with glycans, glycosylation, and glycoengineering-related data and tools.
 ---
 
