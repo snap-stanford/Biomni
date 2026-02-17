@@ -132,7 +132,7 @@ class TestAgentResponseSchema:
     def test_invalid_action_rejected(self):
         from biomni.agent.a1 import AgentResponse
 
-        with pytest.raises(Exception):  # ValidationError
+        with pytest.raises(ValueError):
             AgentResponse(reasoning="hmm", action="think", content="...")
 
     def test_json_schema_has_enum(self):
