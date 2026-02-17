@@ -1,4 +1,4 @@
-# Retrieval Routing Token Comparison
+# Skills implemention and experiments
 
 Raw logs:
 - [test/retrieval_baseline_single_stage.log.txt](./retrieval_baseline_single_stage.log.txt)
