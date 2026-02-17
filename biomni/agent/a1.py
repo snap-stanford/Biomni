@@ -1697,14 +1697,28 @@ Each library is listed with its description to help you understand its functiona
 
         print("\n[DEBUG] Checking tools structure before retrieval:")
         if resources["tools"]:
-            sample = resources["tools"][0]
-            print(f"  Sample tool keys: {list(sample.keys())}")
-            print(f"  Sample tool: {sample}")
+            first_tool = resources["tools"][0]
+            print("\n" + "=" * 60)
+            print("🔍 CHECKING TOOLS STRUCTURE (before retrieval)")
+            print("=" * 60)
+            print(f"Total tools: {len(resources['tools'])}")
+            print(f"First tool keys: {list(first_tool.keys())}")
+            print(f"First tool structure:")
+            import json
+            print(json.dumps(first_tool, indent=2))
+            
             # 检查是否有非空的 parameters
-            if sample.get("required_parameters") and len(sample.get("required_parameters", [])) > 0:
-                print(f"  ⚠️  WARNING: Sample has required_parameters: {sample['required_parameters']}")
-            if sample.get("optional_parameters") and len(sample.get("optional_parameters", [])) > 0:
-                print(f"  ⚠️  WARNING: Sample has optional_parameters: {sample['optional_parameters']}")
+            has_params = False
+            for tool in resources["tools"][:5]:  # 检查前5个
+                if tool.get("required_parameters") and len(tool.get("required_parameters", [])) > 0:
+                    print(f"⚠️  Tool '{tool['name']}' has required_parameters: {tool['required_parameters']}")
+                    has_params = False
+                if tool.get("optional_parameters") and len(tool.get("optional_parameters", [])) > 0:
+                    print(f"⚠️  Tool '{tool['name']}' has optional_parameters: {tool['optional_parameters']}")
+                    has_params = False
+            if not has_params:
+                print("✓ All checked tools have empty required_parameters and optional_parameters")
+            print("=" * 60 + "\n")
 
         # Use prompt-based retrieval with the agent's LLM
         selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)

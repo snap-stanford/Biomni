@@ -97,6 +97,72 @@ IMPORTANT GUIDELINES:
             # For LangChain-style LLMs
             response = llm.invoke([HumanMessage(content=prompt)])
             response_content = response.content
+
+            # Extract token usage -- Kyle
+            token_usage = {}
+            
+            # Try to extract token usage from response_metadata
+            if hasattr(response, "response_metadata") and response.response_metadata:
+                metadata = response.response_metadata
+                
+                if isinstance(metadata, dict):
+                    input_tokens = (
+                        metadata.get("input_tokens") or 
+                        metadata.get("prompt_tokens") or
+                        (metadata.get("usage", {}) if isinstance(metadata.get("usage"), dict) else {}).get("input_tokens") or
+                        (metadata.get("usage", {}) if isinstance(metadata.get("usage"), dict) else {}).get("prompt_tokens") or
+                        0
+                    )
+                    output_tokens = (
+                        metadata.get("output_tokens") or 
+                        metadata.get("completion_tokens") or
+                        (metadata.get("usage", {}) if isinstance(metadata.get("usage"), dict) else {}).get("output_tokens") or
+                        (metadata.get("usage", {}) if isinstance(metadata.get("usage"), dict) else {}).get("completion_tokens") or
+                        0
+                    )
+                    
+                    if input_tokens > 0 or output_tokens > 0:
+                        token_usage = {
+                            "input_tokens": input_tokens,
+                            "output_tokens": output_tokens,
+                            "cache_creation_input_tokens": metadata.get("cache_creation_input_tokens", 0),
+                            "cache_read_input_tokens": metadata.get("cache_read_input_tokens", 0),
+                        }
+            
+            # Fallback: try usage_metadata
+            if not token_usage and hasattr(response, "usage_metadata") and response.usage_metadata:
+                usage_meta = response.usage_metadata
+                input_tokens = (
+                    getattr(usage_meta, "input_tokens", None) or 
+                    getattr(usage_meta, "prompt_tokens", None) or
+                    0
+                )
+                output_tokens = (
+                    getattr(usage_meta, "output_tokens", None) or 
+                    getattr(usage_meta, "completion_tokens", None) or
+                    0
+                )
+                
+                if input_tokens > 0 or output_tokens > 0:
+                    token_usage = {
+                        "input_tokens": input_tokens,
+                        "output_tokens": output_tokens,
+                    }
+            
+            # Print token usage summary
+            if token_usage and (token_usage.get("input_tokens", 0) > 0 or token_usage.get("output_tokens", 0) > 0):
+                total = token_usage.get("input_tokens", 0) + token_usage.get("output_tokens", 0)
+                print("\n" + "=" * 60)
+                print("📊 RETRIEVER TOKEN USAGE")
+                print("=" * 60)
+                print(f"  Input tokens:  {token_usage.get('input_tokens', 0)}")
+                print(f"  Output tokens: {token_usage.get('output_tokens', 0)}")
+                if token_usage.get("cache_creation_input_tokens"):
+                    print(f"  Cache creation tokens: {token_usage.get('cache_creation_input_tokens')}")
+                if token_usage.get("cache_read_input_tokens"):
+                    print(f"  Cache read tokens: {token_usage.get('cache_read_input_tokens')}")
+                print(f"  Total tokens:  {total}")
+                print("=" * 60 + "\n")
         else:
             # For other LLM interfaces
             response_content = str(llm(prompt))
