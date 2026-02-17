@@ -1683,13 +1683,26 @@ Each library is listed with its description to help you understand its functiona
             print("=" * 60)
             selected_skills = self.retriever.prompt_based_retrieval(prompt, skill_resources, llm=self.llm)
 
+            # updated by Kyle: print which skills were selected
+            selected_skill_items: list[dict] = []
             for item in selected_skills.get("tools", []):
                 if isinstance(item, dict) and item.get("module"):
                     selected_skill_modules.add(item["module"])
+                    selected_skill_items.append(item)
+
+            print("\n" + "-" * 60)
+            print("📌 SELECTED SKILLS (updated by Kyle):")
+            if selected_skill_items:
+                for s in selected_skill_items:
+                    print(f"  - {s.get('name', 'Unknown')}: {s.get('module', '')}")
+            else:
+                print("  (none)")
 
             # Fallback: if no skills were selected, keep original behavior (all tools)
             if not selected_skill_modules:
                 selected_skill_modules = set(self.module2api.keys()) if hasattr(self, "module2api") else set()
+                # updated by Kyle
+                print("  ↳ Fallback to ALL skill modules (no skills selected)")
         else:
             # updated by Kyle: single-stage baseline (all tools)
             selected_skill_modules = set(self.module2api.keys()) if hasattr(self, "module2api") else set()
@@ -1708,6 +1721,10 @@ Each library is listed with its description to help you understand its functiona
         elif hasattr(self, "tool_registry") and self.tool_registry:
             # Fallback if module2api is unavailable
             all_tools = self.tool_registry.tools
+
+        # updated by Kyle: print how many tools are provided to LLM in stage 2
+        print("\n" + "-" * 60)
+        print(f"🧰 TOOLS PROVIDED TO LLM (updated by Kyle): {len(all_tools)}")
 
         # 2. Data lake items with descriptions
         data_lake_path = self.path + "/data_lake"
@@ -1755,6 +1772,21 @@ Each library is listed with its description to help you understand its functiona
             print("🔍 TOOL RETRIEVAL (single-stage baseline, updated by Kyle)")
         print("=" * 60)
         selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
+
+        # updated by Kyle: print how many tools LLM selected in stage 2
+        selected_tool_names: list[str] = []
+        for t in selected_resources.get("tools", []):
+            if isinstance(t, dict) and t.get("name"):
+                selected_tool_names.append(t["name"])
+            else:
+                selected_tool_names.append(str(t))
+
+        print("\n" + "-" * 60)
+        print(f"✅ TOOLS SELECTED BY LLM (updated by Kyle): {len(selected_tool_names)}")
+        if selected_tool_names:
+            preview = ", ".join(selected_tool_names[:20])
+            more = "" if len(selected_tool_names) <= 20 else f" ... (+{len(selected_tool_names) - 20} more)"
+            print(f"  {preview}{more}")
         print("\n" + "=" * 60)
         print("🔍 RESOURCE RETRIEVAL")
         print("=" * 60)
