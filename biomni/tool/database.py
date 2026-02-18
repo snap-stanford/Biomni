@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 import json
 import os
 import pickle
 import time
+
 # from typing import Any
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any
 
 import requests
 from Bio.Blast import NCBIWWW, NCBIXML
@@ -13,10 +14,11 @@ from Bio.Seq import Seq
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from biomni.llm import get_llm
-from biomni.utils import parse_hpo_obo
 from biomni.tools.kp_tool import KPClient
+from biomni.utils import parse_hpo_obo
 
-
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 # Function to map HPO terms to names
@@ -4984,9 +4986,9 @@ _default_client = KPClient()
 
 
 def ensure_fresh(
-    max_age_seconds: Optional[Union[int, float]] = 24 * 3600,
+    max_age_seconds: int | float | None = 24 * 3600,
     force: bool = False,
-    cache_path: Optional[Union[str, Path]] = None,
+    cache_path: str | Path | None = None,
     **_ignored_kwargs: Any,
 ) -> dict:
     if cache_path is not None:
@@ -4997,7 +4999,7 @@ def ensure_fresh(
 def list_kps(
     max_age_seconds: int = 24 * 3600,
     *,
-    cache_path: Optional[Union[str, Path]] = None,
+    cache_path: str | Path | None = None,
 ) -> dict:
     if cache_path is not None:
         return KPClient(cache_path=cache_path, max_age_seconds=max_age_seconds).list()
@@ -5013,7 +5015,7 @@ def describe_kp(
     kp_id: str,
     max_age_seconds: int = 24 * 3600,
     *,
-    cache_path: Optional[Union[str, Path]] = None,
+    cache_path: str | Path | None = None,
     **_ignored_kwargs: Any,
 ) -> dict:
     if cache_path is not None:
@@ -5033,18 +5035,26 @@ def query_kp(
     normalize: bool = False,
     include_raw_hits: bool = False,
     max_age_seconds: int = 24 * 3600,
-    cache_path: Optional[Union[str, Path]] = None,
+    cache_path: str | Path | None = None,
     timeout_s: float = 30.0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if cache_path is not None:
         return KPClient(cache_path=cache_path, max_age_seconds=max_age_seconds).query(
-            kp_id, q, normalize=normalize, include_raw_hits=include_raw_hits, timeout_s=timeout_s,
+            kp_id,
+            q,
+            normalize=normalize,
+            include_raw_hits=include_raw_hits,
+            timeout_s=timeout_s,
         )
     old = _default_client._max_age
     _default_client._max_age = max_age_seconds
     try:
         return _default_client.query(
-            kp_id, q, normalize=normalize, include_raw_hits=include_raw_hits, timeout_s=timeout_s,
+            kp_id,
+            q,
+            normalize=normalize,
+            include_raw_hits=include_raw_hits,
+            timeout_s=timeout_s,
         )
     finally:
         _default_client._max_age = old
@@ -5057,18 +5067,26 @@ def batch_query_kp(
     normalize: bool = False,
     include_raw_hits: bool = False,
     max_age_seconds: int = 24 * 3600,
-    cache_path: Optional[Union[str, Path]] = None,
+    cache_path: str | Path | None = None,
     timeout_s: float = 30.0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if cache_path is not None:
         return KPClient(cache_path=cache_path, max_age_seconds=max_age_seconds).query_batch(
-            kp_id, queries, normalize=normalize, include_raw_hits=include_raw_hits, timeout_s=timeout_s,
+            kp_id,
+            queries,
+            normalize=normalize,
+            include_raw_hits=include_raw_hits,
+            timeout_s=timeout_s,
         )
     old = _default_client._max_age
     _default_client._max_age = max_age_seconds
     try:
         return _default_client.query_batch(
-            kp_id, queries, normalize=normalize, include_raw_hits=include_raw_hits, timeout_s=timeout_s,
+            kp_id,
+            queries,
+            normalize=normalize,
+            include_raw_hits=include_raw_hits,
+            timeout_s=timeout_s,
         )
     finally:
         _default_client._max_age = old
@@ -5077,22 +5095,30 @@ def batch_query_kp(
 def scroll_kp(
     kp_id: str,
     *,
-    q: Optional[str] = None,
-    scroll_id: Optional[str] = None,
+    q: str | None = None,
+    scroll_id: str | None = None,
     size: int = 100,
     timeout_s: float = 30.0,
     max_age_seconds: int = 24 * 3600,
-    cache_path: Optional[Union[str, Path]] = None,
-) -> Dict[str, Any]:
+    cache_path: str | Path | None = None,
+) -> dict[str, Any]:
     if cache_path is not None:
         return KPClient(cache_path=cache_path, max_age_seconds=max_age_seconds).scroll(
-            kp_id, q=q, scroll_id=scroll_id, size=size, timeout_s=timeout_s,
+            kp_id,
+            q=q,
+            scroll_id=scroll_id,
+            size=size,
+            timeout_s=timeout_s,
         )
     old = _default_client._max_age
     _default_client._max_age = max_age_seconds
     try:
         return _default_client.scroll(
-            kp_id, q=q, scroll_id=scroll_id, size=size, timeout_s=timeout_s,
+            kp_id,
+            q=q,
+            scroll_id=scroll_id,
+            size=size,
+            timeout_s=timeout_s,
         )
     finally:
         _default_client._max_age = old

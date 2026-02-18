@@ -16,9 +16,12 @@ import random
 import tempfile
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any
 
 import httpx
+
+if TYPE_CHECKING:
+    import builtins
 
 __all__ = [
     "KPClient",
@@ -45,12 +48,8 @@ class KPClient:
 
     # -- class-level constants ----------------------------------------------
 
-    SMARTAPI_BASE = os.environ.get(
-        "SMARTAPI_ENDPOINT", "https://smart-api.info/api"
-    ).rstrip("/")
-    SMARTAPI_QUERY_URL = os.environ.get(
-        "SMARTAPI_REGISTRY_URL", f"{SMARTAPI_BASE}/query"
-    )
+    SMARTAPI_BASE = os.environ.get("SMARTAPI_ENDPOINT", "https://smart-api.info/api").rstrip("/")
+    SMARTAPI_QUERY_URL = os.environ.get("SMARTAPI_REGISTRY_URL", f"{SMARTAPI_BASE}/query")
     SMARTAPI_TRAPI_TAG = os.environ.get("SMARTAPI_TRAPI_TAG", "trapi")
     SMARTAPI_BIOTHINGS_TAG = os.environ.get("SMARTAPI_BIOTHINGS_TAG", "biothings")
 
@@ -63,13 +62,13 @@ class KPClient:
 
     def __init__(
         self,
-        cache_path: Optional[Union[str, Path]] = None,
-        max_age_seconds: Optional[Union[int, float]] = 24 * 3600,
+        cache_path: str | Path | None = None,
+        max_age_seconds: int | float | None = 24 * 3600,
     ) -> None:
         self._cache = self._coerce_path(cache_path, default=self._default_cache_path())
         self._max_age = max_age_seconds
-        self._registry: Optional[Dict[str, Any]] = None
-        self._last_fresh: Optional[Dict[str, Any]] = None
+        self._registry: dict[str, Any] | None = None
+        self._last_fresh: dict[str, Any] | None = None
 
     # -----------------------------------------------------------------------
     # Time / misc helpers
@@ -114,7 +113,7 @@ class KPClient:
         return cls._cache_root() / "kp_registry" / "biothings_transltr_kps.json"
 
     @staticmethod
-    def _coerce_path(p: Union[str, Path, None], *, default: Union[str, Path]) -> Path:
+    def _coerce_path(p: str | Path | None, *, default: str | Path) -> Path:
         if p is None:
             p = default
         return Path(str(p)).expanduser().resolve()
@@ -168,8 +167,8 @@ class KPClient:
         message: str,
         *,
         retryable: bool = False,
-        details: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        details: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         return {
             "type": type_,
             "message": message,
@@ -178,7 +177,7 @@ class KPClient:
         }
 
     @staticmethod
-    def _wrap(*args: Any, **kwargs: Any) -> Dict[str, Any]:
+    def _wrap(*args: Any, **kwargs: Any) -> dict[str, Any]:
         """Backward-compatible wrapper constructor.
 
         Style A:
@@ -196,7 +195,7 @@ class KPClient:
             data = kwargs.get("data")
             meta = kwargs.get("meta") or {}
             provenance = kwargs.get("provenance") or {}
-            out: Dict[str, Any] = {
+            out: dict[str, Any] = {
                 "ok": bool(ok),
                 "data": data,
                 "errors": errors,
@@ -225,12 +224,10 @@ class KPClient:
         return {
             "ok": False,
             "data": None,
-            "errors": [
-                {"type": "wrap_bad_call", "message": "Invalid _wrap() call signature"}
-            ],
+            "errors": [{"type": "wrap_bad_call", "message": "Invalid _wrap() call signature"}],
             "meta": {
                 "args_len": len(args),
-                "kwargs_keys": sorted(list(kwargs.keys())),
+                "kwargs_keys": sorted(kwargs.keys()),
             },
         }
 
@@ -243,20 +240,18 @@ class KPClient:
         *,
         method: str,
         url: str,
-        params: Optional[Dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
         json_body: Any = None,
         timeout_s: float = 30.0,
         retries: int = 2,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         start = self._now_ts()
         attempt = 0
 
         while True:
             try:
                 connect = min(10.0, float(timeout_s))
-                timeout = httpx.Timeout(
-                    connect=connect, read=timeout_s, write=timeout_s, pool=connect
-                )
+                timeout = httpx.Timeout(connect=connect, read=timeout_s, write=timeout_s, pool=connect)
                 with httpx.Client(timeout=timeout, follow_redirects=True) as c:
                     r = c.request(method, url, params=params, json=json_body)
 
@@ -270,9 +265,7 @@ class KPClient:
                 }
 
                 if r.status_code >= 400:
-                    retryable = (r.status_code in self._RETRY_STATUS) and attempt < int(
-                        retries
-                    )
+                    retryable = (r.status_code in self._RETRY_STATUS) and attempt < int(retries)
                     e = self._err(
                         "HTTPError",
                         f"HTTP {r.status_code}",
@@ -288,9 +281,7 @@ class KPClient:
                 try:
                     data = r.json()
                 except Exception as je:
-                    e = self._err(
-                        "JSONDecodeError", str(je), details={"text": r.text[:500]}
-                    )
+                    e = self._err("JSONDecodeError", str(je), details={"text": r.text[:500]})
                     return self._wrap(False, None, [e], meta=meta)
 
                 return self._wrap(True, data, [], meta=meta)
@@ -322,7 +313,7 @@ class KPClient:
     # -----------------------------------------------------------------------
 
     @staticmethod
-    def _extract_smartapi_hits(payload: Any) -> List[dict]:
+    def _extract_smartapi_hits(payload: Any) -> builtins.list[dict]:
         if not isinstance(payload, dict):
             return []
         hits = payload.get("hits")
@@ -333,7 +324,7 @@ class KPClient:
         return []
 
     @staticmethod
-    def _unwrap_smartapi_hit(hit: Any) -> Tuple[Optional[str], dict]:
+    def _unwrap_smartapi_hit(hit: Any) -> tuple[str | None, dict]:
         if not isinstance(hit, dict):
             return None, {}
         if isinstance(hit.get("doc"), dict):
@@ -345,7 +336,7 @@ class KPClient:
         return hit.get("_id") or hit.get("id"), hit
 
     @classmethod
-    def _stable_kp_id_from_doc(cls, doc: dict, smartapi_id: Optional[str]) -> str:
+    def _stable_kp_id_from_doc(cls, doc: dict, smartapi_id: str | None) -> str:
         if smartapi_id:
             return str(smartapi_id)
 
@@ -358,10 +349,7 @@ class KPClient:
         info = doc.get("info") if isinstance(doc.get("info"), dict) else {}
         title = str(info.get("title") or "")
         version = str(info.get("version") or "")
-        key = (
-            f"{title}||{version}||"
-            f"{json.dumps(servers, sort_keys=True, default=str) if servers else ''}"
-        )
+        key = f"{title}||{version}||{json.dumps(servers, sort_keys=True, default=str) if servers else ''}"
         h = hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
         return f"kp_{h}"
 
@@ -385,8 +373,8 @@ class KPClient:
         return "unknown"
 
     @classmethod
-    def _endpoint_index(cls, openapi: dict) -> Dict[str, List[str]]:
-        out: Dict[str, List[str]] = {}
+    def _endpoint_index(cls, openapi: dict) -> dict[str, builtins.list[str]]:
+        out: dict[str, list[str]] = {}
         paths = openapi.get("paths") if isinstance(openapi, dict) else None
         if not isinstance(paths, dict):
             return out
@@ -394,27 +382,19 @@ class KPClient:
             if not isinstance(p, str) or not isinstance(methods, dict):
                 continue
             m = [
-                k.lower().strip()
-                for k in methods.keys()
-                if isinstance(k, str) and k.lower().strip() in cls._HTTP_VERBS
+                k.lower().strip() for k in methods.keys() if isinstance(k, str) and k.lower().strip() in cls._HTTP_VERBS
             ]
             if m:
                 out[p] = sorted(set(m))
         return out
 
     @classmethod
-    def _endpoint_flags(cls, openapi: dict, kp_type: str) -> Dict[str, Any]:
+    def _endpoint_flags(cls, openapi: dict, kp_type: str) -> dict[str, Any]:
         idx = cls._endpoint_index(openapi)
         has_query = "/query" in idx
-        has_querymany = ("/querymany" in idx) or any(
-            "querymany" in p for p in idx.keys()
-        )
+        has_querymany = ("/querymany" in idx) or any("querymany" in p for p in idx.keys())
         has_metadata = ("/metadata" in idx) or ("/meta" in idx)
-        has_trapi_query = bool(
-            kp_type == "trapi"
-            and "/query" in idx
-            and "post" in (idx.get("/query") or [])
-        )
+        has_trapi_query = bool(kp_type == "trapi" and "/query" in idx and "post" in (idx.get("/query") or []))
         return {
             "has_query": bool(has_query),
             "has_querymany": bool(has_querymany),
@@ -445,11 +425,7 @@ class KPClient:
         doc = kp.get("_doc")
         if isinstance(doc, dict):
             servers = doc.get("servers")
-            if (
-                isinstance(servers, list)
-                and servers
-                and isinstance(servers[0], dict)
-            ):
+            if isinstance(servers, list) and servers and isinstance(servers[0], dict):
                 u = cls._normalize_server_url(servers[0].get("url"))
                 if u:
                     return u
@@ -457,11 +433,7 @@ class KPClient:
         openapi = kp.get("openapi")
         if isinstance(openapi, dict):
             servers = openapi.get("servers")
-            if (
-                isinstance(servers, list)
-                and servers
-                and isinstance(servers[0], dict)
-            ):
+            if isinstance(servers, list) and servers and isinstance(servers[0], dict):
                 u = cls._normalize_server_url(servers[0].get("url"))
                 if u:
                     return u
@@ -469,7 +441,7 @@ class KPClient:
         return ""
 
     @classmethod
-    def _build_kp_record(cls, hit: dict) -> Optional[dict]:
+    def _build_kp_record(cls, hit: dict) -> dict | None:
         smartapi_id, doc = cls._unwrap_smartapi_hit(hit)
         if not isinstance(doc, dict) or not doc:
             return None
@@ -513,20 +485,14 @@ class KPClient:
             "kp_type": kp_type,
             "type": kp_type,
             "x_translator": doc.get("x-translator"),
-            "paths": (
-                list((doc.get("paths") or {}).keys())
-                if isinstance(doc.get("paths"), dict)
-                else []
-            ),
+            "paths": (list((doc.get("paths") or {}).keys()) if isinstance(doc.get("paths"), dict) else []),
             "endpoints": endpoints,
             "trapi": trapi,
             "_doc": doc,
             "fetched_at": cls._utc_epoch(),
         }
 
-    def _fetch_registry_from_smartapi(
-        self, *, max_size: int = 500, timeout_s: float = 30.0
-    ) -> Dict[str, Any]:
+    def _fetch_registry_from_smartapi(self, *, max_size: int = 500, timeout_s: float = 30.0) -> dict[str, Any]:
         q = f'tags.name:("{self.SMARTAPI_TRAPI_TAG}" OR "{self.SMARTAPI_BIOTHINGS_TAG}")'
         res = self._request_json(
             method="GET",
@@ -538,9 +504,7 @@ class KPClient:
         )
 
         if not res.get("ok"):
-            msg = (res.get("errors") or [{}])[0].get(
-                "message", "SmartAPI fetch failed"
-            )
+            msg = (res.get("errors") or [{}])[0].get("message", "SmartAPI fetch failed")
             return self._wrap(
                 False,
                 None,
@@ -562,7 +526,7 @@ class KPClient:
         payload = res.get("data") if isinstance(res.get("data"), dict) else {}
         hits = self._extract_smartapi_hits(payload)
 
-        items: List[Dict[str, Any]] = []
+        items: list[dict[str, Any]] = []
         seen: set = set()
         dup_count = 0
 
@@ -581,9 +545,7 @@ class KPClient:
             seen.add(key)
 
             rec_id = rec.get("id") or base_url
-            if rec_id and any(
-                (isinstance(x, dict) and x.get("id") == rec_id) for x in items
-            ):
+            if rec_id and any((isinstance(x, dict) and x.get("id") == rec_id) for x in items):
                 if smartapi_id:
                     rec["id"] = f"{rec_id}|{smartapi_id}"
                 else:
@@ -608,10 +570,10 @@ class KPClient:
         )
 
     @staticmethod
-    def _normalize_registry(obj: Any) -> Dict[str, Any]:
+    def _normalize_registry(obj: Any) -> dict[str, Any]:
         """Canonical shape: ``{"kps": list, "by_id": dict, "meta": dict}``."""
-        kps: List[dict] = []
-        meta: Dict[str, Any] = {}
+        kps: list[dict] = []
+        meta: dict[str, Any] = {}
 
         if isinstance(obj, dict) and "kps" in obj:
             kps = obj.get("kps") if isinstance(obj.get("kps"), list) else []
@@ -621,11 +583,7 @@ class KPClient:
             kps = obj.get("items") or []
             meta = {"timestamp": obj.get("timestamp"), "source": obj.get("source")}
 
-        elif (
-            isinstance(obj, dict)
-            and obj.get("ok") is True
-            and isinstance(obj.get("data"), dict)
-        ):
+        elif isinstance(obj, dict) and obj.get("ok") is True and isinstance(obj.get("data"), dict):
             data = obj.get("data") or {}
             if isinstance(data.get("items"), list):
                 kps = data.get("items") or []
@@ -635,7 +593,7 @@ class KPClient:
                     "smartapi_meta": obj.get("meta") or {},
                 }
 
-        by_id: Dict[str, dict] = {}
+        by_id: dict[str, dict] = {}
         for kp in kps:
             if isinstance(kp, dict) and kp.get("id") is not None:
                 by_id[str(kp["id"])] = kp
@@ -645,7 +603,7 @@ class KPClient:
 
         return {"kps": kps, "by_id": by_id, "meta": meta}
 
-    def _load_registry(self) -> Dict[str, Any]:
+    def _load_registry(self) -> dict[str, Any]:
         obj = self._read_json(self._cache, default={"kps": [], "by_id": {}, "meta": {}})
         return self._normalize_registry(obj)
 
@@ -664,15 +622,15 @@ class KPClient:
 
     def _call_kp(
         self,
-        kp_meta: Union[Dict[str, Any], str],
+        kp_meta: dict[str, Any] | str,
         path: str,
         *,
         method: str = "POST",
-        params: Optional[Dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
         json_body: Any = None,
         timeout_s: float = 30.0,
         retries: int = 2,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if isinstance(kp_meta, str):
             base_url = kp_meta.rstrip("/")
         elif isinstance(kp_meta, dict):
@@ -712,28 +670,21 @@ class KPClient:
 
     @staticmethod
     def _is_trapi_kp(kp: dict) -> bool:
-        endpoints = (
-            kp.get("endpoints") if isinstance(kp.get("endpoints"), dict) else {}
-        )
+        endpoints = kp.get("endpoints") if isinstance(kp.get("endpoints"), dict) else {}
         return bool(
             kp.get("trapi")
             or kp.get("kp_type") == "trapi"
             or kp.get("type") == "trapi"
             or (
                 isinstance(endpoints, dict)
-                and (
-                    endpoints.get("supports_trapi_query")
-                    or endpoints.get("has_trapi_query")
-                )
+                and (endpoints.get("supports_trapi_query") or endpoints.get("has_trapi_query"))
             )
         )
 
     @staticmethod
-    def _normalize_biothings_result(
-        raw: Any, *, include_raw: bool = False
-    ) -> Dict[str, Any]:
+    def _normalize_biothings_result(raw: Any, *, include_raw: bool = False) -> dict[str, Any]:
         if raw is None:
-            out: Dict[str, Any] = {"hits": [], "total": 0}
+            out: dict[str, Any] = {"hits": [], "total": 0}
             return {**out, "raw": raw} if include_raw else out
 
         if isinstance(raw, list):
@@ -748,9 +699,7 @@ class KPClient:
             if isinstance(hits, list):
                 if isinstance(total, int):
                     out = {"hits": hits, "total": total, "scroll_id": scroll_id}
-                elif isinstance(total, dict) and isinstance(
-                    total.get("value"), int
-                ):
+                elif isinstance(total, dict) and isinstance(total.get("value"), int):
                     out = {
                         "hits": hits,
                         "total": int(total["value"]),
@@ -771,27 +720,19 @@ class KPClient:
     # Shared plumbing (registry init, KP lookup, response post-processing)
     # -----------------------------------------------------------------------
 
-    def _ensure_registry(self, force: bool = False) -> Dict[str, Any]:
+    def _ensure_registry(self, force: bool = False) -> dict[str, Any]:
         """Refresh if needed, (re)load from disk, cache in ``self._registry``."""
         fresh = self._do_refresh(force=force)
         self._last_fresh = fresh
         self._registry = self._load_registry()
         return fresh
 
-    def _do_refresh(self, force: bool = False) -> Dict[str, Any]:
+    def _do_refresh(self, force: bool = False) -> dict[str, Any]:
         t0 = self._now_ts()
         try:
             age = self._cache_age_seconds()
-            threshold = (
-                float("inf")
-                if self._max_age is None
-                else float(self._max_age)
-            )
-            need = (
-                bool(force)
-                or (not self._registry_exists())
-                or (age > threshold)
-            )
+            threshold = float("inf") if self._max_age is None else float(self._max_age)
+            need = bool(force) or (not self._registry_exists()) or (age > threshold)
 
             if not need:
                 return self._wrap(
@@ -803,20 +744,14 @@ class KPClient:
                     },
                 )
 
-            fetched = self._fetch_registry_from_smartapi(
-                max_size=500, timeout_s=30.0
-            )
+            fetched = self._fetch_registry_from_smartapi(max_size=500, timeout_s=30.0)
             if not fetched.get("ok"):
                 fallback_age = self._cache_age_seconds()
                 return self._wrap(
                     False,
                     {
                         "refreshed": False,
-                        "age_seconds": (
-                            None
-                            if fallback_age == float("inf")
-                            else fallback_age
-                        ),
+                        "age_seconds": (None if fallback_age == float("inf") else fallback_age),
                         "fallback_cache_used": bool(self._registry_exists()),
                     },
                     fetched.get("errors")
@@ -851,11 +786,7 @@ class KPClient:
                 False,
                 {
                     "refreshed": False,
-                    "age_seconds": (
-                        None
-                        if fallback_age == float("inf")
-                        else fallback_age
-                    ),
+                    "age_seconds": (None if fallback_age == float("inf") else fallback_age),
                     "fallback_cache_used": bool(self._registry_exists()),
                 },
                 [
@@ -871,7 +802,7 @@ class KPClient:
                 },
             )
 
-    def _get_kp(self, kp_id: str) -> Tuple[Optional[dict], dict, dict]:
+    def _get_kp(self, kp_id: str) -> tuple[dict | None, dict, dict]:
         """Return ``(kp_record | None, fresh_result, error_wrapper | {})``."""
         fresh = self._ensure_registry()
         reg = self._registry
@@ -903,11 +834,7 @@ class KPClient:
             kp = by_id.get(kp_id)
         if kp is None and isinstance(reg.get("kps"), list):
             kp = next(
-                (
-                    x
-                    for x in reg["kps"]
-                    if isinstance(x, dict) and x.get("id") == kp_id
-                ),
+                (x for x in reg["kps"] if isinstance(x, dict) and x.get("id") == kp_id),
                 None,
             )
 
@@ -941,15 +868,11 @@ class KPClient:
         return kp, fresh, {}
 
     @staticmethod
-    def _validate_trapi_response(res: Dict[str, Any]) -> None:
+    def _validate_trapi_response(res: dict[str, Any]) -> None:
         """Validate / unwrap a TRAPI response in-place."""
         if res.get("ok") and isinstance(res.get("data"), dict):
             d = res["data"]
-            if (
-                "message" not in d
-                and isinstance(d.get("data"), dict)
-                and "message" in d["data"]
-            ):
+            if "message" not in d and isinstance(d.get("data"), dict) and "message" in d["data"]:
                 res["data"] = d["data"]
             elif "message" not in d:
                 res.setdefault("errors", []).append(
@@ -962,7 +885,7 @@ class KPClient:
 
     @staticmethod
     def _maybe_normalize_biothings(
-        res: Dict[str, Any],
+        res: dict[str, Any],
         normalize: bool,
         include_raw_hits: bool,
     ) -> None:
@@ -973,21 +896,15 @@ class KPClient:
                     res.get("data"), include_raw=include_raw_hits
                 )
             except Exception as e:
-                res.setdefault("errors", []).append(
-                    {"type": "normalize_failed", "message": str(e)}
-                )
+                res.setdefault("errors", []).append({"type": "normalize_failed", "message": str(e)})
                 res["ok"] = False
                 res["meta"]["normalized"] = None
 
     @staticmethod
-    def _attach_refresh_errors(
-        res: Dict[str, Any], fresh: Dict[str, Any]
-    ) -> None:
+    def _attach_refresh_errors(res: dict[str, Any], fresh: dict[str, Any]) -> None:
         """Propagate registry-refresh warnings into *res*."""
         if not fresh.get("ok"):
-            res.setdefault("meta", {})["refresh_errors"] = (
-                fresh.get("errors") or []
-            )
+            res.setdefault("meta", {})["refresh_errors"] = fresh.get("errors") or []
 
     # ===================================================================
     # Public API
@@ -995,7 +912,7 @@ class KPClient:
 
     def refresh(
         self,
-        max_age_seconds: Optional[Union[int, float]] = None,
+        max_age_seconds: int | float | None = None,
         force: bool = False,
         **_ignored_kwargs: Any,
     ) -> dict:
@@ -1014,7 +931,7 @@ class KPClient:
         reg = self._registry or {}
         kps = reg.get("kps") if isinstance(reg, dict) else []
 
-        errors: List[dict] = []
+        errors: list[dict] = []
         if not fresh.get("ok"):
             errors.extend(fresh.get("errors") or [])
         if not isinstance(kps, list) or not kps:
@@ -1062,7 +979,7 @@ class KPClient:
         normalize: bool = False,
         include_raw_hits: bool = False,
         timeout_s: float = 30.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         kp, fresh, err = self._get_kp(kp_id)
         if err:
             return err
@@ -1123,7 +1040,7 @@ class KPClient:
         normalize: bool = False,
         include_raw_hits: bool = False,
         timeout_s: float = 30.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         kp, fresh, err = self._get_kp(kp_id)
         if err:
             return err
@@ -1152,8 +1069,8 @@ class KPClient:
                     meta={"kp_id": kp_id},
                 )
 
-            out: List[Dict[str, Any]] = []
-            errors: List[Dict[str, Any]] = []
+            out: list[dict[str, Any]] = []
+            errors: list[dict[str, Any]] = []
             for i, item in enumerate(queries):
                 body = item if isinstance(item, dict) else {"message": item}
                 r = self._call_kp(
@@ -1194,7 +1111,7 @@ class KPClient:
 
         # BioThings batch
         if isinstance(queries, list):
-            payload: Dict[str, Any] = {"q": queries}
+            payload: dict[str, Any] = {"q": queries}
         elif isinstance(queries, dict):
             payload = dict(queries)
         else:
@@ -1228,9 +1145,7 @@ class KPClient:
             )
 
         res.setdefault("meta", {})
-        res["meta"].update(
-            {"kp_id": kp_id, "kp_type": "biothings", "queries": queries}
-        )
+        res["meta"].update({"kp_id": kp_id, "kp_type": "biothings", "queries": queries})
         self._maybe_normalize_biothings(res, normalize, include_raw_hits)
         self._attach_refresh_errors(res, fresh)
         return res
@@ -1239,11 +1154,11 @@ class KPClient:
         self,
         kp_id: str,
         *,
-        q: Optional[str] = None,
-        scroll_id: Optional[str] = None,
+        q: str | None = None,
+        scroll_id: str | None = None,
         size: int = 100,
         timeout_s: float = 30.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         kp, fresh, err = self._get_kp(kp_id)
         if err:
             return err
@@ -1261,7 +1176,7 @@ class KPClient:
                 meta={"kp_id": kp_id},
             )
 
-        params: Dict[str, Any] = {"scroll_id": scroll_id, "size": int(size)}
+        params: dict[str, Any] = {"scroll_id": scroll_id, "size": int(size)}
         if q is not None:
             params["q"] = q
 
