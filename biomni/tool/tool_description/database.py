@@ -729,63 +729,475 @@ description = [
         ],
     },
     {
-        "name": "query_biothings",
-        "description": "Query BioThings.info endpoints (MyVariant.info, MyChem.info, MyDisease.info, MyGene.info, MyTaxon.info) to retrieve biomedical annotations. Supports three operations: query (search by IDs, free-text queries, or VCF→HGVS conversion), fields (list available field names), and metadata (retrieve endpoint metadata).",
+        "name": "ensure_fresh",
+        "description": (
+            "KP REGISTRY REFRESH for KG/BTE workflows (Translator/SmartAPI). "
+            "Run once per session before heavy Knowledge Graph / BioThings Explorer querying "
+            "to ensure the KP inventory is current. "
+            "For gene-drug-disease triad/two-hop tasks, run this first so provider capabilities are up to date.\n\n"
+            "USE WHEN:\n"
+            "  - 'What KPs are available right now?'\n"
+            "  - 'Why can't it find KP X anymore?'\n"
+            "  - 'I keep getting 404/capabilities changed -- can you refresh?'\n"
+            "  - You're about to run many kp_tool calls in a long session\n\n"
+            "TRIGGER KEYWORDS:\n"
+            "  refresh registry | stale cache | SmartAPI changed | new KP | missing KP\n\n"
+            "EXAMPLE WORKFLOW:\n"
+            "  1) ensure_fresh(force=True)\n"
+            "  2) list_kps()\n"
+            "  3) describe_kp(kp_id=...)\n"
+            "  4) query_kp(...)\n\n"
+            "RETURNS:\n"
+            "  A dict with keys: ok (bool), data (dict), errors (list), meta (dict).\n"
+            "  Access values via dict keys, e.g. result['ok'], result['data'].\n"
+            "  On success:\n"
+            "    data = {'refreshed': True/False, 'age_seconds': float}\n"
+            "    meta = {'cache_path': str, 'elapsed_s': float}\n"
+            "  On failure:\n"
+            "    data = {'refreshed': False, 'age_seconds': float or None, 'fallback_cache_used': bool}\n"
+            "    errors = [{'type': 'refresh_failed', 'message': str, 'retryable': True}]"
+        ),
+        "required_parameters": [],
+        "optional_parameters": [
+            {
+                "name": "max_age_seconds",
+                "type": "int or float or None",
+                "description": (
+                    "Max allowed registry cache age (seconds) before refresh.\n"
+                    "  3600  -> refresh if cache older than 1 hour\n"
+                    "  86400 -> refresh if cache older than 1 day (default)\n"
+                    "  None  -> never refresh due to age (still refresh if missing or force=True)"
+                ),
+                "default": 86400,
+            },
+            {
+                "name": "force",
+                "type": "bool",
+                "description": (
+                    "Force refresh regardless of cache age.\n"
+                    "Example: ensure_fresh(force=True) after SmartAPI/Translator outage or suspected updates."
+                ),
+                "default": False,
+            },
+            {
+                "name": "cache_path",
+                "type": "str or None",
+                "description": (
+                    "Optional filesystem path to the registry cache JSON file.\n"
+                    "Example: '/tmp/kp_registry_cache.json' to share cache across runs."
+                ),
+                "default": None,
+            },
+        ],
+    },
+    {
+        "name": "list_kps",
+        "description": (
+            "LIST AVAILABLE KNOWLEDGE GRAPH PROVIDERS (TRAPI + BioThings/BTE). "
+            "Discover current KPs for knowledge-graph queries (Translator TRAPI KPs and BioThings APIs used by BTE). "
+            "Use this to choose a TRAPI KP specialized in gene-drug and drug-disease predicates for triad/two-hop tasks; "
+            "otherwise go straight to query_kp.\n\n"
+            "USE WHEN:\n"
+            "  - 'Which KPs can answer gene-disease questions?'\n"
+            "  - 'Show me all BioThings annotation KPs'\n"
+            "  - 'What TRAPI endpoints exist right now?'\n\n"
+            "TRIGGER KEYWORDS:\n"
+            "  list KPs | available providers | kp inventory | SmartAPI registry\n\n"
+            "EXAMPLE OUTPUT (illustrative):\n"
+            "  result['data'][0] = {\n"
+            "    'id': 'abc123...',\n"
+            "    'smartapi_id': 'abc123...',\n"
+            "    'name': 'BioThings Gene API',\n"
+            "    'kp_type': 'biothings',       # or 'trapi' or 'unknown'\n"
+            "    'type': 'biothings',           # alias for kp_type\n"
+            "    'trapi': False,                # True if KP supports TRAPI\n"
+            "    'base_url': 'https://mygene.info/v3',\n"
+            "    'url': 'https://mygene.info/v3',  # alias for base_url\n"
+            "    'endpoints': {\n"
+            "      'has_query': True,\n"
+            "      'has_querymany': True,\n"
+            "      'has_metadata': True,\n"
+            "      'has_trapi_query': False,\n"
+            "      'supports_trapi_query': False,\n"
+            "      'paths': {'/query': ['get','post'], ...}\n"
+            "    },\n"
+            "    'description': '...',\n"
+            "    'version': '...',\n"
+            "    'paths': ['/query', '/querymany', '/metadata', ...],\n"
+            "    'fetched_at': 1700000000\n"
+            "  }\n\n"
+            "RETURNS:\n"
+            "  A dict with keys: ok (bool), data (list), errors (list), meta (dict).\n"
+            "  Access values via dict keys, e.g. result['ok'], result['data'].\n"
+            "  On success, data is a list of KP record dicts (see example above).\n"
+            "  meta includes: cache_path, cache_age_seconds, registry_meta, refresh."
+        ),
+        "required_parameters": [],
+        "optional_parameters": [
+            {
+                "name": "max_age_seconds",
+                "type": "int",
+                "description": (
+                    "Max allowed registry cache age (seconds) before refresh.\n"
+                    "Example: max_age_seconds=0 forces a refresh-like behavior without setting force=True."
+                ),
+                "default": 86400,
+            },
+            {
+                "name": "cache_path",
+                "type": "str or None",
+                "description": (
+                    "Optional filesystem path to the registry cache JSON file.\n"
+                    "Example: use a shared path in multi-process environments."
+                ),
+                "default": None,
+            },
+        ],
+    },
+    {
+        "name": "describe_kp",
+        "description": (
+            "DESCRIBE A KP FOR KG/BTE QUERIES (TRAPI vs BioThings). "
+            "Check whether a provider supports TRAPI POST /query, BioThings /query or /querymany, and related capabilities. "
+            "Use to confirm predicates/categories for gene-drug-disease triad and two-hop tasks before running query_kp.\n\n"
+            "USE WHEN:\n"
+            "  - 'Does this KP support multi-hop TRAPI queries?'\n"
+            "  - 'Can I bulk-annotate with querymany?'\n"
+            "  - 'Which predicates does KP X provide?'\n\n"
+            "TRIGGER KEYWORDS:\n"
+            "  capabilities | predicates | categories | supports querymany | TRAPI vs BioThings\n\n"
+            "EXAMPLE:\n"
+            "  result = describe_kp(kp_id='abc123...')\n"
+            "  result['data'] = {\n"
+            "    'id': 'abc123...',\n"
+            "    'name': 'BioThings Gene API',\n"
+            "    'kp_type': 'biothings',\n"
+            "    'trapi': False,\n"
+            "    'base_url': 'https://mygene.info/v3',\n"
+            "    'endpoints': {\n"
+            "      'has_query': True,\n"
+            "      'has_querymany': True,\n"
+            "      'has_metadata': True,\n"
+            "      'has_trapi_query': False,\n"
+            "      'supports_trapi_query': False,\n"
+            "      'paths': {'/query': ['get','post'], ...}\n"
+            "    },\n"
+            "    ...  # full KP record (same shape as list_kps items)\n"
+            "  }\n\n"
+            "RETURNS:\n"
+            "  A dict with keys: ok (bool), data (dict), errors (list), meta (dict).\n"
+            "  Access values via dict keys, e.g. result['ok'], result['data'].\n"
+            "  On success, data is the full KP record dict.\n"
+            "  Check data['endpoints']['has_querymany'] for batch support,\n"
+            "  data['trapi'] or data['endpoints']['supports_trapi_query'] for TRAPI support.\n"
+            "  meta includes: kp_id, cache_path, refresh."
+        ),
         "required_parameters": [
             {
-                "name": "biothings_type",
+                "name": "kp_id",
                 "type": "str",
-                "description": 'BioThings endpoint type (e.g., "gene", "chem", "disease", "taxon", "variant")',
+                "description": (
+                    "Stable KP identifier (from list_kps, i.e. the 'id' field of a KP record).\n"
+                    "This is typically a SmartAPI ID string or a derived stable identifier.\n"
+                    "Example: the 'id' value from list_kps() result['data'][0]['id']."
+                ),
                 "default": None,
             }
         ],
         "optional_parameters": [
             {
-                "name": "operation",
-                "type": "str",
-                "description": 'One of "query", "fields", or "metadata"',
-                "default": "query",
+                "name": "max_age_seconds",
+                "type": "int",
+                "description": "Max allowed registry cache age (seconds) before refresh (e.g., 86400 for 1 day).",
+                "default": 86400,
             },
             {
-                "name": "search_term",
+                "name": "cache_path",
+                "type": "str or None",
+                "description": "Optional filesystem path to the registry cache JSON file (e.g., '/tmp/kp_cache.json').",
+                "default": None,
+            },
+        ],
+    },
+    {
+        "name": "query_kp",
+        "description": (
+            "KNOWLEDGE GRAPH / BIOTHINGS EXPLORER QUERY (TRAPI + BioThings routing). "
+            "FIRST CHOICE for gene-drug-disease triad or two-hop association tasks, e.g., "
+            "'identify drugs which target EGFR and all diseases associated with those drugs and EGFR'. "
+            "Default first choice for questions about relationships/associations across biomedical entities or when the user mentions:\n"
+            "  knowledge graph | KG | BioThings Explorer | BTE | Translator | TRAPI | biolink | predicates | edges | multi-hop\n\n"
+            "Use this to answer: gene-disease, drug-target, variant-disease, pathway membership, protein-protein interactions, "
+            "and other KG-backed lookups. "
+            "Prefer this over database-specific tools (OpenTargets, ChEMBL, DisGeNET, GtoPdb) when relationship graphs, "
+            "edges/predicates, or evidence are required, but do not omit other database tools -- combine the results.\n"
+            "Automatically routes to TRAPI-capable KPs or BioThings KPs based on the selected provider.\n\n"
+            "USE BEFORE database-specific tools when the task implies a graph/association/evidence-backed answer.\n\n"
+            "TRIGGER KEYWORDS:\n"
+            "  knowledge graph | KG | BioThings | BioThings Explorer | BTE | Translator | TRAPI | biolink | predicates | "
+            "edges | multi-hop | association | related to | connected to | interacts with | pathway | network | "
+            "evidence-backed | gene-drug-disease triad | two-hop | triad | EGFR\n\n"
+            "EXAMPLE QUERIES (illustrative):\n"
+            "  BioThings-style:\n"
+            "    kp_id='<biothings KP id>', q='BRCA1'  ->  gene record + aliases + IDs\n"
+            "    kp_id='<biothings KP id>', q={'q': 'rs7412', 'size': 5}  ->  top variant hits\n"
+            "  TRAPI-style (auto-detected when KP has trapi=True):\n"
+            "    kp_id='<a TRAPI KP id>', q={\n"
+            "      'message': {\n"
+            "        'query_graph': {\n"
+            "          'nodes': {'n0': {'categories': ['biolink:Gene']},\n"
+            "                    'n1': {'categories': ['biolink:Disease']}},\n"
+            "          'edges': {'e0': {'subject': 'n0', 'object': 'n1',\n"
+            "                           'predicates': ['biolink:associated_with']}}\n"
+            "        }\n"
+            "      }\n"
+            "    }  ->  KG nodes/edges/results with provenance\n\n"
+            "RETURNS:\n"
+            "  A dict with keys: ok (bool), data (any), errors (list), meta (dict).\n"
+            "  Access values via dict keys, e.g. result['ok'], result['data'].\n\n"
+            "  TRAPI KPs:\n"
+            "    result['data'] is the TRAPI response dict containing a top-level 'message' key\n"
+            "    with 'knowledge_graph' (nodes/edges), 'results', and 'query_graph'.\n"
+            "    result['meta']['kp_type'] == 'trapi'\n\n"
+            "  BioThings KPs:\n"
+            "    result['data'] is the raw API response from the KP (dict or list).\n"
+            "    For string queries (q='BRCA1'), this is typically a dict with 'hits', 'total', and '_scroll_id' keys.\n"
+            "    Set normalize=True to get a standardized view at result['meta']['normalized'] with keys:\n"
+            "      {'hits': list, 'total': int, 'scroll_id': str or None}\n"
+            "    result['meta']['kp_type'] == 'biothings'\n\n"
+            "NOT FOR:\n"
+            "  wet-lab protocols, clinical advice, or full-text literature retrieval."
+        ),
+        "required_parameters": [
+            {
+                "name": "kp_id",
                 "type": "str",
-                "description": "Field-name filter for the fields operation",
+                "description": (
+                    "Stable KP identifier (from list_kps, i.e. the 'id' field of a KP record).\n"
+                    "Example: the 'id' value from list_kps() result['data'][0]['id']."
+                ),
                 "default": None,
             },
             {
-                "name": "ids",
+                "name": "q",
+                "type": "any",
+                "description": (
+                    "The query payload. Type depends on the KP:\n"
+                    "  BioThings KP with string: q='BRCA1' -> GET /query?q=BRCA1\n"
+                    "  BioThings KP with dict: q={'q': 'rs7412', 'size': 5} -> POST /query\n"
+                    "  TRAPI KP with dict: q={'message': {'query_graph': {...}}} -> POST /query\n"
+                    "  TRAPI KP with non-dict: auto-wrapped as {'message': q}"
+                ),
+                "default": None,
+            },
+        ],
+        "optional_parameters": [
+            {
+                "name": "normalize",
+                "type": "bool",
+                "description": (
+                    "BioThings only. If True, adds result['meta']['normalized'] with standardized shape:\n"
+                    "  {'hits': list, 'total': int, 'scroll_id': str or None}.\n"
+                    "Ignored for TRAPI KPs."
+                ),
+                "default": False,
+            },
+            {
+                "name": "include_raw_hits",
+                "type": "bool",
+                "description": "BioThings only. If True and normalize=True, includes raw response under result['meta']['normalized']['raw'].",
+                "default": False,
+            },
+            {
+                "name": "max_age_seconds",
+                "type": "int",
+                "description": "Max allowed registry cache age (seconds) before refresh.",
+                "default": 86400,
+            },
+            {
+                "name": "cache_path",
+                "type": "str or Path",
+                "description": "Override registry cache path. Defaults to internal cache location.",
+                "default": "_REGISTRY_CACHE",
+            },
+            {
+                "name": "timeout_s",
+                "type": "float",
+                "description": "HTTP timeout seconds for the KP call.",
+                "default": 30.0,
+            },
+        ],
+    },
+    {
+        "name": "batch_query_kp",
+        "description": (
+            "BULK KG/BTE LOOKUPS (TRAPI + BioThings). "
+            "Use this for large lists when the user mentions knowledge graph/KG, BioThings Explorer/BTE, Translator/TRAPI, "
+            "or associations across many entities. Ideal for many-gene triads (e.g., EGFR, BRAF, KRAS) to retrieve drugs "
+            "and diseases in one KG-backed workflow. "
+            "BioThings KPs: prefers POST /querymany; falls back to /query if 404/405. "
+            "TRAPI KPs: best-effort sequential TRAPI /query calls.\n\n"
+            "USE BEFORE database-specific batch tools when the task is about graph/association evidence across many inputs. "
+            "Prefer this over OpenTargets/ChEMBL/DisGeNET/GtoPdb when you need edges/predicates and provenance, "
+            "but do not omit other database tools -- combine the results.\n\n"
+            "TRIGGER KEYWORDS:\n"
+            "  batch | bulk | list of genes | table of variants | annotate many | knowledge graph | KG | BTE | TRAPI | "
+            "predicates | edges | multi-hop | gene-drug-disease triad | two-hop | EGFR\n\n"
+            "EXAMPLES (illustrative):\n"
+            "  BioThings:\n"
+            "    kp_id='<biothings KP id>', queries=['BRCA1','TP53','APOE']  ->  per-item gene records\n"
+            "  TRAPI:\n"
+            "    kp_id='<a TRAPI KP id>', queries=[{TRAPI body 1}, {TRAPI body 2}, ...]  ->  list of wrapper dicts\n\n"
+            "RETURNS:\n"
+            "  A dict with keys: ok (bool), data (any), errors (list), meta (dict).\n"
+            "  Access values via dict keys, e.g. result['ok'], result['data'].\n\n"
+            "  BioThings KPs:\n"
+            "    result['data'] is the raw response from POST /querymany (typically a list of record dicts).\n"
+            "    Set normalize=True to get result['meta']['normalized'] with standardized shape.\n"
+            "    result['meta']['kp_type'] == 'biothings'\n\n"
+            "  TRAPI KPs:\n"
+            "    If queries is a dict: delegates to query_kp (single TRAPI call).\n"
+            "    If queries is a list: result['data'] is a list of wrapper dicts, each with\n"
+            "      {'ok': bool, 'data': <TRAPI response>, 'errors': list, 'meta': dict}.\n"
+            "    result['meta']['kp_type'] == 'trapi', result['meta']['count'] == len(queries)."
+        ),
+        "required_parameters": [
+            {
+                "name": "kp_id",
                 "type": "str",
-                "description": "Direct ID lookup mode for query operation. Mutually exclusive with queries and input_vcf_file_path",
+                "description": (
+                    "Stable KP identifier (from list_kps, i.e. the 'id' field of a KP record).\n"
+                    "Example: the 'id' value from list_kps() result['data'][0]['id']."
+                ),
                 "default": None,
             },
             {
                 "name": "queries",
-                "type": "str",
-                "description": "Term search mode for query operation. Mutually exclusive with ids and input_vcf_file_path",
+                "type": "any",
+                "description": (
+                    "The batch query payload:\n"
+                    "  BioThings: list of query strings, e.g. ['BRCA1', 'TP53'], or a dict payload for POST /querymany.\n"
+                    "  TRAPI: a single TRAPI body dict (delegates to query_kp), or a list of TRAPI body dicts (sequential calls)."
+                ),
                 "default": None,
             },
+        ],
+        "optional_parameters": [
             {
-                "name": "input_vcf_file_path",
-                "type": "str",
-                "description": "Path to VCF file for variant-to-HGVS conversion (variant endpoints only). Mutually exclusive with ids and queries",
-                "default": None,
-            },
-            {
-                "name": "fields",
-                "type": "str",
-                "description": "Comma-separated list of fields to return for query operation",
-                "default": None,
-            },
-            {
-                "name": "normalize_hits",
+                "name": "normalize",
                 "type": "bool",
-                "description": 'If True, normalize single-query responses with "hits" key to return hits and meta.total',
-                "default": True,
+                "description": (
+                    "BioThings only. If True, adds result['meta']['normalized'] with standardized shape:\n"
+                    "  {'hits': list, 'total': int, 'scroll_id': str or None}."
+                ),
+                "default": False,
             },
             {
-                "name": "params",
-                "type": "dict",
-                "description": "Endpoint-specific parameters forwarded to the underlying client method",
+                "name": "include_raw_hits",
+                "type": "bool",
+                "description": "BioThings only. If True and normalize=True, includes raw response under result['meta']['normalized']['raw'].",
+                "default": False,
+            },
+            {
+                "name": "max_age_seconds",
+                "type": "int",
+                "description": "Max allowed registry cache age (seconds) before refresh.",
+                "default": 86400,
+            },
+            {
+                "name": "cache_path",
+                "type": "str or Path",
+                "description": "Override registry cache path. Defaults to internal cache location.",
+                "default": "_REGISTRY_CACHE",
+            },
+            {
+                "name": "timeout_s",
+                "type": "float",
+                "description": "HTTP timeout seconds per KP call.",
+                "default": 30.0,
+            },
+        ],
+    },
+    {
+        "name": "scroll_kp",
+        "description": (
+            "SCROLL/PAGINATE BIOTHINGS RESULTS (BioThings KPs only). "
+            "Paginate large BioThings result sets using scroll_id. NOT supported for TRAPI KPs (returns an error).\n\n"
+            "USE WHEN:\n"
+            "  - 'Show me more than the first 100 hits'\n"
+            "  - 'Keep paging through results'\n"
+            "  - 'Continue the BioThings search'\n\n"
+            "TRIGGER KEYWORDS:\n"
+            "  scroll_id | next page | paginate | more results | continue search\n\n"
+            "EXAMPLE WORKFLOW (illustrative):\n"
+            "  1) res = query_kp(kp_id=..., q={'q': 'BRCA*', 'size': 100}, normalize=True)\n"
+            "     scroll_id = res['meta']['normalized']['scroll_id']\n"
+            "  2) res2 = scroll_kp(kp_id=..., scroll_id=scroll_id)\n"
+            "     -> next page of hits\n\n"
+            "RETURNS:\n"
+            "  A dict with keys: ok (bool), data (any), errors (list), meta (dict).\n"
+            "  Access values via dict keys, e.g. result['ok'], result['data'].\n"
+            "  On success, data is the raw BioThings scroll response.\n"
+            "  meta includes: kp_id, kp_type ('biothings'), q, scroll_id, size.\n"
+            "  If the KP is TRAPI, returns ok=False with error type 'not_supported'."
+        ),
+        "required_parameters": [
+            {
+                "name": "kp_id",
+                "type": "str",
+                "description": (
+                    "Stable KP identifier (from list_kps). Must be a BioThings-capable KP for scrolling.\n"
+                    "Example: the 'id' value from a KP record where kp_type='biothings'."
+                ),
+                "default": None,
+            }
+        ],
+        "optional_parameters": [
+            {
+                "name": "q",
+                "type": "str or None",
+                "description": (
+                    "Optional query string to initiate a scroll (BioThings).\n"
+                    "Example: q='symbol:BRCA*' (prefer using query_kp first so you get scroll_id explicitly)."
+                ),
+                "default": None,
+            },
+            {
+                "name": "scroll_id",
+                "type": "str or None",
+                "description": (
+                    "Scroll identifier returned by a previous BioThings response.\n"
+                    "Obtain from a previous query_kp call: result['meta']['normalized']['scroll_id']\n"
+                    "or from the raw response: result['data']['_scroll_id']."
+                ),
+                "default": None,
+            },
+            {
+                "name": "size",
+                "type": "int",
+                "description": (
+                    "Batch size per scroll page.\n"
+                    "  100 -> standard page size\n"
+                    "  500 -> fewer round-trips (may be heavier on some KPs)"
+                ),
+                "default": 100,
+            },
+            {
+                "name": "timeout_s",
+                "type": "float",
+                "description": "HTTP timeout (seconds) for the KP call (e.g., 30.0; raise if the KP is slow).",
+                "default": 30.0,
+            },
+            {
+                "name": "max_age_seconds",
+                "type": "int",
+                "description": "Max allowed registry cache age (seconds) before refresh (e.g., 86400).",
+                "default": 86400,
+            },
+            {
+                "name": "cache_path",
+                "type": "str or None",
+                "description": "Optional filesystem path to the registry cache JSON file.",
                 "default": None,
             },
         ],
