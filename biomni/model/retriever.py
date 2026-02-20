@@ -91,6 +91,7 @@ IMPORTANT GUIDELINES:
         if llm is None:
             from biomni.config import BiomniConfig
             from biomni.llm import get_llm
+
             llm = get_llm(config=BiomniConfig())
 
         # Invoke the LLM
