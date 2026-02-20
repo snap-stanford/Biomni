@@ -1643,17 +1643,14 @@ Each library is listed with its description to help you understand its functiona
             else:
                 # Check if any code has been executed yet (observations exist)
                 has_executed = any(
-                    "<observation>" in (m.content if isinstance(m.content, str) else "")
-                    for m in state["messages"]
+                    "<observation>" in (m.content if isinstance(m.content, str) else "") for m in state["messages"]
                 )
 
                 if not has_executed:
                     # No code executed yet and no tags — treat as a direct
                     # conversational response (e.g. user said "hello").
                     # Wrap in <solution> so downstream pipeline handles it.
-                    state["messages"][-1] = AIMessage(
-                        content=f"<solution>{msg.strip()}</solution>"
-                    )
+                    state["messages"][-1] = AIMessage(content=f"<solution>{msg.strip()}</solution>")
                     state["next_step"] = "end"
                 else:
                     print("parsing error...")
