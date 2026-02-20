@@ -1641,27 +1641,42 @@ Each library is listed with its description to help you understand its functiona
             elif think_match:
                 state["next_step"] = "generate"
             else:
-                print("parsing error...")
-
-                error_count = sum(
-                    1 for m in state["messages"] if isinstance(m, AIMessage) and "There are no tags" in m.content
+                # Check if any code has been executed yet (observations exist)
+                has_executed = any(
+                    "<observation>" in (m.content if isinstance(m.content, str) else "")
+                    for m in state["messages"]
                 )
 
-                if error_count >= 2:
-                    print("Detected repeated parsing errors, ending conversation")
+                if not has_executed:
+                    # No code executed yet and no tags — treat as a direct
+                    # conversational response (e.g. user said "hello").
+                    # Wrap in <solution> so downstream pipeline handles it.
+                    state["messages"][-1] = AIMessage(
+                        content=f"<solution>{msg.strip()}</solution>"
+                    )
                     state["next_step"] = "end"
-                    state["messages"].append(
-                        AIMessage(
-                            content="Execution terminated due to repeated parsing errors. Please check your input and try again."
-                        )
-                    )
                 else:
-                    state["messages"].append(
-                        HumanMessage(
-                            content="Each response must include thinking process followed by either <execute> or <solution> tag. But there are no tags in the current response. Please follow the instruction, fix and regenerate the response again."
-                        )
+                    print("parsing error...")
+
+                    error_count = sum(
+                        1 for m in state["messages"] if isinstance(m, AIMessage) and "There are no tags" in m.content
                     )
-                    state["next_step"] = "generate"
+
+                    if error_count >= 2:
+                        print("Detected repeated parsing errors, ending conversation")
+                        state["next_step"] = "end"
+                        state["messages"].append(
+                            AIMessage(
+                                content="Execution terminated due to repeated parsing errors. Please check your input and try again."
+                            )
+                        )
+                    else:
+                        state["messages"].append(
+                            HumanMessage(
+                                content="Each response must include thinking process followed by either <execute> or <solution> tag. But there are no tags in the current response. Please follow the instruction, fix and regenerate the response again."
+                            )
+                        )
+                        state["next_step"] = "generate"
             return state
 
         _previous_code_blocks: list[str] = []
@@ -1685,7 +1700,7 @@ Each library is listed with its description to help you understand its functiona
                         "The result was shown above. Do not re-run the same code. "
                         "If you have the answer, choose action 'solution' now.</observation>"
                     )
-                    state["messages"].append(AIMessage(content=observation.strip()))
+                    state["messages"].append(HumanMessage(content=observation.strip()))
                     return state
                 _previous_code_blocks.append(code_normalized)
 
@@ -1765,7 +1780,7 @@ Each library is listed with its description to help you understand its functiona
                 self._execution_results.append(execution_entry)
 
                 observation = f"\n<observation>{result}</observation>"
-                state["messages"].append(AIMessage(content=observation.strip()))
+                state["messages"].append(HumanMessage(content=observation.strip()))
 
             return state
 
