@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any, Literal, TypedDict
 
 import pandas as pd
-from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
@@ -44,9 +43,7 @@ from biomni.utils import (
     textify_api_dict,
 )
 
-if os.path.exists(".env"):
-    load_dotenv(".env", override=False)
-    print("Loaded environment variables from .env")
+# .env is loaded early in biomni.config to ensure default_config sees env vars
 
 
 class AgentState(TypedDict):

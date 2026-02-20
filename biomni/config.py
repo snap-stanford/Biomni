@@ -7,6 +7,16 @@ Maintains full backward compatibility with existing code.
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load .env before anything reads os.getenv so that default_config (created at
+# module level below) picks up the values.  override=False keeps real
+# environment variables authoritative.
+_env_path = Path(__file__).resolve().parents[1] / ".env"
+if _env_path.is_file():
+    load_dotenv(_env_path, override=False)
 
 
 @dataclass
