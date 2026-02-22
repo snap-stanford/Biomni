@@ -14,8 +14,8 @@ from Bio.Seq import Seq
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from biomni.llm import get_llm
-from biomni.tools.kp_tool import KPClient
 from biomni.utils import parse_hpo_obo
+from biomni.tool.kp_tool import KPClient
 
 if TYPE_CHECKING:
     from pathlib import Path
