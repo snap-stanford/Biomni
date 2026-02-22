@@ -728,4 +728,322 @@ description = [
             },
         ],
     },
+    {
+        "name": "ensure_fresh",
+        "description": (
+            "Refresh the SmartAPI KP registry cache (Translator/BioThings).\n\n"
+            "Use at session start, after stale/missing KP errors, or before heavy KP use.\n\n"
+            "Not a terminal step for data questions: if the user asks for provider/source data "
+            "(Reactome, STRING, DGIdb, DrugCentral, MyGene, MyVariant, etc.), follow with "
+            "query_kp or batch_query_kp in the same workflow.\n\n"
+            "Returns dict: ok, data, errors, meta."
+        ),
+        "required_parameters": [],
+        "optional_parameters": [
+            {
+                "name": "max_age_seconds",
+                "type": "int or float or None",
+                "description": (
+                    "Max allowed registry cache age (seconds) before refresh.\n"
+                    "  3600  -> refresh if cache older than 1 hour\n"
+                    "  86400 -> refresh if cache older than 1 day (default)\n"
+                    "  None  -> never refresh due to age (still refresh if missing or force=True)"
+                ),
+                "default": 86400,
+            },
+            {
+                "name": "force",
+                "type": "bool",
+                "description": (
+                    "Force refresh regardless of cache age.\n"
+                    "Example: ensure_fresh(force=True) after SmartAPI/Translator outage or suspected updates."
+                ),
+                "default": False,
+            },
+            {
+                "name": "cache_path",
+                "type": "str or None",
+                "description": (
+                    "Optional filesystem path to the registry cache JSON file.\n"
+                    "Example: '/tmp/kp_registry_cache.json' to share cache across runs."
+                ),
+                "default": None,
+            },
+        ],
+    },
+    {
+        "name": "list_kps",
+        "description": (
+            "List available KPs from the SmartAPI-backed registry (TRAPI + BioThings).\n\n"
+            "Use for provider discovery and kp_id lookup.\n\n"
+            "Discovery only: for source-data questions, follow with query_kp or batch_query_kp.\n\n"
+            "Returns dict: ok, data (KP records), errors, meta."
+        ),
+        "required_parameters": [],
+        "optional_parameters": [
+            {
+                "name": "max_age_seconds",
+                "type": "int",
+                "description": (
+                    "Max allowed registry cache age (seconds) before refresh.\n"
+                    "Example: max_age_seconds=0 forces a refresh-like behavior without setting force=True."
+                ),
+                "default": 86400,
+            },
+            {
+                "name": "cache_path",
+                "type": "str or None",
+                "description": (
+                    "Optional filesystem path to the registry cache JSON file.\n"
+                    "Example: use a shared path in multi-process environments."
+                ),
+                "default": None,
+            },
+        ],
+    },
+    {
+        "name": "describe_kp",
+        "description": (
+            "Describe one KP (capabilities/endpoints/type).\n\n"
+            "Use to confirm TRAPI support, /querymany support, and endpoint shape before querying.\n\n"
+            "Capability only: for actual data retrieval, still call query_kp or batch_query_kp.\n\n"
+            "Returns dict: ok, data (KP record), errors, meta."
+        ),
+        "required_parameters": [
+            {
+                "name": "kp_id",
+                "type": "str",
+                "description": (
+                    "Stable KP identifier (from list_kps, i.e. the 'id' field of a KP record).\n"
+                    "This is typically a SmartAPI ID string or a derived stable identifier.\n"
+                    "Example: the 'id' value from list_kps() result['data'][0]['id']."
+                ),
+                "default": None,
+            }
+        ],
+        "optional_parameters": [
+            {
+                "name": "max_age_seconds",
+                "type": "int",
+                "description": "Max allowed registry cache age (seconds) before refresh (e.g., 86400 for 1 day).",
+                "default": 86400,
+            },
+            {
+                "name": "cache_path",
+                "type": "str or None",
+                "description": "Optional filesystem path to the registry cache JSON file (e.g., '/tmp/kp_cache.json').",
+                "default": None,
+            },
+        ],
+    },
+    {
+        "name": "query_kp",
+        "description": (
+            "Primary KP retrieval tool for SmartAPI provider families (TRAPI + BioThings), including "
+            "Reactome, STRING, DGIdb, DrugCentral, MyGene, MyVariant, MyChem, MyDisease, GO/HPO/Mondo/DOID/UBERON, "
+            "HGNC/HMDB/IntAct, and Translator providers (ARAX, BTE, MolePro, SPOKE, COHD, mediKanren, RTX KG2).\n\n"
+            "Use for KP-backed data retrieval and KG-style evidence tasks: entity associations, pathways, interaction networks, "
+            "ontology links, and multi-hop relations (e.g., gene-disease, drug-target, variant-disease, pathway membership, PPI).\n\n"
+            "ALWAYS include query_kp when prompts mention those providers/sources.\n\n"
+            "Provider-family data requests are incomplete without at least one query_kp call in the execution path.\n\n"
+            "When source-specific database tools are also applicable, include query_kp alongside them to preserve "
+            "KP/KG-backed evidence coverage.\n\n"
+            "Use batch_query_kp when input is multi-entity/list/table.\n\n"
+            "Returns dict: ok, data, errors, meta."
+        ),
+        "required_parameters": [
+            {
+                "name": "kp_id",
+                "type": "str",
+                "description": (
+                    "Stable KP identifier (from list_kps, i.e. the 'id' field of a KP record).\n"
+                    "Example: the 'id' value from list_kps() result['data'][0]['id']."
+                ),
+                "default": None,
+            },
+            {
+                "name": "q",
+                "type": "any",
+                "description": (
+                    "The query payload. Type depends on the KP:\n"
+                    "  BioThings KP with string: q='BRCA1' -> GET /query?q=BRCA1\n"
+                    "  BioThings KP with dict: q={'q': 'rs7412', 'size': 5} -> POST /query\n"
+                    "  TRAPI KP with dict: q={'message': {'query_graph': {...}}} -> POST /query\n"
+                    "  TRAPI KP with non-dict: auto-wrapped as {'message': q}"
+                ),
+                "default": None,
+            },
+        ],
+        "optional_parameters": [
+            {
+                "name": "normalize",
+                "type": "bool",
+                "description": (
+                    "BioThings only. If True, adds result['meta']['normalized'] with standardized shape:\n"
+                    "  {'hits': list, 'total': int, 'scroll_id': str or None}.\n"
+                    "Ignored for TRAPI KPs."
+                ),
+                "default": False,
+            },
+            {
+                "name": "include_raw_hits",
+                "type": "bool",
+                "description": "BioThings only. If True and normalize=True, includes raw response under result['meta']['normalized']['raw'].",
+                "default": False,
+            },
+            {
+                "name": "max_age_seconds",
+                "type": "int",
+                "description": "Max allowed registry cache age (seconds) before refresh.",
+                "default": 86400,
+            },
+            {
+                "name": "cache_path",
+                "type": "str or Path",
+                "description": "Override registry cache path. Defaults to internal cache location.",
+                "default": "_REGISTRY_CACHE",
+            },
+            {
+                "name": "timeout_s",
+                "type": "float",
+                "description": "HTTP timeout seconds for the KP call.",
+                "default": 30.0,
+            },
+        ],
+    },
+    {
+        "name": "batch_query_kp",
+        "description": (
+            "Bulk KP retrieval for multi-entity inputs (lists/tables/many genes/variants).\n\n"
+            "Use when prompts mention KP-backed sources and ask for many items in one workflow.\n"
+            "Prefer this over repeated single query_kp calls.\n\n"
+            "BioThings: uses /querymany (fallback /query). TRAPI: sequential /query calls.\n\n"
+            "Returns dict: ok, data, errors, meta."
+        ),
+        "required_parameters": [
+            {
+                "name": "kp_id",
+                "type": "str",
+                "description": (
+                    "Stable KP identifier (from list_kps, i.e. the 'id' field of a KP record).\n"
+                    "Example: the 'id' value from list_kps() result['data'][0]['id']."
+                ),
+                "default": None,
+            },
+            {
+                "name": "queries",
+                "type": "any",
+                "description": (
+                    "The batch query payload:\n"
+                    "  BioThings: list of query strings, e.g. ['BRCA1', 'TP53'], or a dict payload for POST /querymany.\n"
+                    "  TRAPI: a single TRAPI body dict (delegates to query_kp), or a list of TRAPI body dicts (sequential calls)."
+                ),
+                "default": None,
+            },
+        ],
+        "optional_parameters": [
+            {
+                "name": "normalize",
+                "type": "bool",
+                "description": (
+                    "BioThings only. If True, adds result['meta']['normalized'] with standardized shape:\n"
+                    "  {'hits': list, 'total': int, 'scroll_id': str or None}."
+                ),
+                "default": False,
+            },
+            {
+                "name": "include_raw_hits",
+                "type": "bool",
+                "description": "BioThings only. If True and normalize=True, includes raw response under result['meta']['normalized']['raw'].",
+                "default": False,
+            },
+            {
+                "name": "max_age_seconds",
+                "type": "int",
+                "description": "Max allowed registry cache age (seconds) before refresh.",
+                "default": 86400,
+            },
+            {
+                "name": "cache_path",
+                "type": "str or Path",
+                "description": "Override registry cache path. Defaults to internal cache location.",
+                "default": "_REGISTRY_CACHE",
+            },
+            {
+                "name": "timeout_s",
+                "type": "float",
+                "description": "HTTP timeout seconds per KP call.",
+                "default": 30.0,
+            },
+        ],
+    },
+    {
+        "name": "scroll_kp",
+        "description": (
+            "Paginate BioThings KP results using scroll_id (BioThings only).\n\n"
+            "Use after query_kp when more hits/pages are needed.\n"
+            "Not supported for TRAPI KPs.\n\n"
+            "Returns dict: ok, data, errors, meta."
+        ),
+        "required_parameters": [
+            {
+                "name": "kp_id",
+                "type": "str",
+                "description": (
+                    "Stable KP identifier (from list_kps). Must be a BioThings-capable KP for scrolling.\n"
+                    "Example: the 'id' value from a KP record where kp_type='biothings'."
+                ),
+                "default": None,
+            }
+        ],
+        "optional_parameters": [
+            {
+                "name": "q",
+                "type": "str or None",
+                "description": (
+                    "Optional query string to initiate a scroll (BioThings).\n"
+                    "Example: q='symbol:BRCA*' (prefer using query_kp first so you get scroll_id explicitly)."
+                ),
+                "default": None,
+            },
+            {
+                "name": "scroll_id",
+                "type": "str or None",
+                "description": (
+                    "Scroll identifier returned by a previous BioThings response.\n"
+                    "Obtain from a previous query_kp call: result['meta']['normalized']['scroll_id']\n"
+                    "or from the raw response: result['data']['_scroll_id']."
+                ),
+                "default": None,
+            },
+            {
+                "name": "size",
+                "type": "int",
+                "description": (
+                    "Batch size per scroll page.\n"
+                    "  100 -> standard page size\n"
+                    "  500 -> fewer round-trips (may be heavier on some KPs)"
+                ),
+                "default": 100,
+            },
+            {
+                "name": "timeout_s",
+                "type": "float",
+                "description": "HTTP timeout (seconds) for the KP call (e.g., 30.0; raise if the KP is slow).",
+                "default": 30.0,
+            },
+            {
+                "name": "max_age_seconds",
+                "type": "int",
+                "description": "Max allowed registry cache age (seconds) before refresh (e.g., 86400).",
+                "default": 86400,
+            },
+            {
+                "name": "cache_path",
+                "type": "str or None",
+                "description": "Optional filesystem path to the registry cache JSON file.",
+                "default": None,
+            },
+        ],
+    },
 ]
