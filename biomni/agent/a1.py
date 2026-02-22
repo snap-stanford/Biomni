@@ -389,11 +389,24 @@ class A1:
         Add MCP (Model Context Protocol) tools from configuration file.
 
         This method dynamically registers MCP server tools as callable functions within
-        the biomni agent system. Each MCP server is started as a persistent process with
-        a long-lived session so that stateful tools (background jobs, caching) work correctly
-        across multiple calls.
+        the biomni agent system. Each MCP server gets a long-lived session so that
+        stateful tools (background jobs, caching) work correctly across multiple calls.
 
-        Supports both manual tool definitions and automatic tool discovery from MCP servers.
+        Supports three transports:
+
+        - **stdio** (local process): set ``command`` in the YAML entry.
+        - **SSE** (remote): set ``url`` and ``transport: sse``.
+        - **Streamable HTTP** (remote, default for ``url``): set ``url``
+          (optionally ``transport: streamable-http``).
+
+        Remote servers may include a ``headers`` mapping for authentication::
+
+            mcp_servers:
+              my-remote:
+                url: "https://example.com/mcp"
+                transport: sse          # or streamable-http (default)
+                headers:
+                  Authorization: "Bearer ${MY_TOKEN}"
 
         Args:
             config_path: Path to the MCP configuration YAML file containing server
@@ -410,6 +423,7 @@ class A1:
         import sys
         import threading
         import types
+        from contextlib import asynccontextmanager
         from pathlib import Path
 
         import nest_asyncio
@@ -425,8 +439,83 @@ class A1:
         if not hasattr(self, "_mcp_sessions"):
             self._mcp_sessions: dict[str, dict] = {}  # server_name -> {session, cleanup, loop, thread}
 
-        def _start_persistent_session(server_name: str, server_params: StdioServerParameters) -> ClientSession:
-            """Start an MCP server process and keep the session alive in a background thread."""
+        def _make_transport_context(server_meta: dict):
+            """Return an async context manager that yields (read_stream, write_stream).
+
+            Supports three transports:
+            - **stdio** (default): launches a local process via ``command``.
+            - **sse**: connects to a remote SSE endpoint via ``url`` (``transport: sse``).
+            - **streamable-http**: connects via the modern Streamable HTTP protocol
+              (``transport: streamable-http``, or auto-detected as the default for
+              ``url``-based servers).
+
+            For SSE / Streamable HTTP the optional ``headers`` mapping in the YAML
+            config is forwarded to the underlying HTTP client. Values may use
+            ``${ENV_VAR}`` substitution just like ``env``.
+            """
+            url = server_meta.get("url")
+            if url:
+                # ---- Remote HTTP-based transport ----
+                transport = server_meta.get("transport", "streamable-http").lower().replace("_", "-")
+
+                # Resolve ${VAR} placeholders in header values
+                raw_headers = server_meta.get("headers", {})
+                headers: dict[str, str] = {}
+                for k, v in raw_headers.items():
+                    if isinstance(v, str) and v.startswith("${") and v.endswith("}"):
+                        headers[k] = os.getenv(v[2:-1], "")
+                    else:
+                        headers[k] = str(v)
+
+                if transport == "sse":
+                    from mcp.client.sse import sse_client
+
+                    @asynccontextmanager
+                    async def _ctx():
+                        async with sse_client(url, headers=headers or None) as (reader, writer):
+                            yield reader, writer
+
+                    return _ctx()
+
+                else:
+                    # streamable-http (default for url-based servers)
+                    from mcp.client.streamable_http import streamable_http_client
+
+                    @asynccontextmanager
+                    async def _ctx():
+                        import httpx
+
+                        http_client = httpx.AsyncClient(headers=headers) if headers else None
+                        async with streamable_http_client(url, http_client=http_client) as (reader, writer, _get_sid):
+                            yield reader, writer
+
+                    return _ctx()
+            else:
+                # ---- Local stdio transport (original behaviour) ----
+                cmd_list = server_meta.get("command", [])
+                cmd, *args = cmd_list
+
+                env_vars = server_meta.get("env", {})
+                if env_vars:
+                    processed_env = {}
+                    for key, value in env_vars.items():
+                        if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+                            processed_env[key] = os.getenv(value[2:-1], "")
+                        else:
+                            processed_env[key] = value
+                    env_vars = processed_env
+
+                server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
+
+                @asynccontextmanager
+                async def _ctx():
+                    async with stdio_client(server_params) as (reader, writer):
+                        yield reader, writer
+
+                return _ctx()
+
+        def _start_persistent_session(server_name: str, server_meta: dict) -> ClientSession:
+            """Start an MCP server (local or remote) and keep the session alive in a background thread."""
 
             ready_event = threading.Event()
             session_holder: dict = {}
@@ -437,7 +526,7 @@ class A1:
                 session_holder["loop"] = loop
 
                 async def _keep_alive():
-                    async with stdio_client(server_params) as (reader, writer):
+                    async with _make_transport_context(server_meta) as (reader, writer):
                         async with ClientSession(reader, writer) as session:
                             await session.initialize()
                             session_holder["session"] = session
@@ -564,25 +653,13 @@ class A1:
             if not server_meta.get("enabled", True):
                 continue
 
-            # Validate command configuration
+            # Validate: must have either "command" (stdio) or "url" (remote HTTP)
+            has_url = bool(server_meta.get("url"))
             cmd_list = server_meta.get("command", [])
-            if not cmd_list or not isinstance(cmd_list, list):
-                print(f"Warning: Invalid command configuration for server '{server_name}'")
+            has_cmd = bool(cmd_list) and isinstance(cmd_list, list)
+            if not has_url and not has_cmd:
+                print(f"Warning: Server '{server_name}' has neither 'url' nor valid 'command', skipping")
                 continue
-
-            cmd, *args = cmd_list
-
-            # Process environment variables
-            env_vars = server_meta.get("env", {})
-            if env_vars:
-                processed_env = {}
-                for key, value in env_vars.items():
-                    if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
-                        var_name = value[2:-1]
-                        processed_env[key] = os.getenv(var_name, "")
-                    else:
-                        processed_env[key] = value
-                env_vars = processed_env
 
             # Create module namespace for this MCP server
             # First ensure the parent 'mcp_servers' module exists
@@ -596,10 +673,9 @@ class A1:
                 sys.modules[mcp_module_name] = types.ModuleType(mcp_module_name)
             server_module = sys.modules[mcp_module_name]
 
-            # Start a persistent session for this MCP server
-            server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
+            # Start a persistent session for this MCP server (stdio, SSE, or Streamable HTTP)
             try:
-                session = _start_persistent_session(server_name, server_params)
+                session = _start_persistent_session(server_name, server_meta)
             except Exception as e:
                 print(f"Failed to start persistent session for {server_name}: {e}")
                 continue
