@@ -146,7 +146,11 @@ class react:
         wrapped_tools = []
         for tool in tools:
             wrapped_tool = tool
-            wrapped_tool.func = create_timed_func(tool.func, self.timeout_seconds)
+            # Skip multiprocessing timeout for MCP tools — their session objects
+            # cannot survive process forking.  They already carry their own
+            # asyncio-level timeout (future.result(timeout=...)).
+            if not getattr(tool.func, "_is_mcp_tool", False):
+                wrapped_tool.func = create_timed_func(tool.func, self.timeout_seconds)
             wrapped_tools.append(wrapped_tool)
 
         return wrapped_tools

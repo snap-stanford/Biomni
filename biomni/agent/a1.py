@@ -628,6 +628,7 @@ class A1:
 
             sync_tool_wrapper.__name__ = tool_name
             sync_tool_wrapper.__doc__ = doc
+            sync_tool_wrapper._is_mcp_tool = True
             return sync_tool_wrapper
 
         # Initialize registries if they don't exist
