@@ -251,6 +251,96 @@ description = [
         ],
     },
     {
+        "description": "Download and parse data from a GEO accession (GSE series or GSM sample). Returns expression matrix and sample metadata.",
+        "name": "download_geo",
+        "optional_parameters": [
+            {
+                "name": "output_dir",
+                "type": "str",
+                "description": "Directory to save downloaded files (defaults to workspace/geo_data)",
+                "default": None,
+            },
+            {
+                "name": "return_expression_matrix",
+                "type": "bool",
+                "description": "Whether to return expression matrix",
+                "default": True,
+            },
+            {
+                "name": "return_metadata",
+                "type": "bool",
+                "description": "Whether to return sample metadata",
+                "default": True,
+            },
+        ],
+        "required_parameters": [
+            {
+                "name": "accession",
+                "type": "str",
+                "description": "GEO accession ID (e.g., 'GSE123456' for series, 'GSM123456' for sample)",
+                "default": None,
+            }
+        ],
+    },
+    {
+        "description": "Download GPL platform annotation file with probe-to-gene mappings. Essential for cross-platform meta-analysis to map probe IDs to common gene identifiers.",
+        "name": "download_gpl_annotation",
+        "optional_parameters": [
+            {
+                "name": "output_dir",
+                "type": "str",
+                "description": "Directory to save downloaded files (defaults to workspace/geo_data/gpl_annotations)",
+                "default": None,
+            },
+            {
+                "name": "gene_symbol_column",
+                "type": "str",
+                "description": "Column name containing gene symbols. If None, auto-detects from common column names.",
+                "default": None,
+            },
+        ],
+        "required_parameters": [
+            {
+                "name": "gpl_id",
+                "type": "str",
+                "description": "GPL platform ID (e.g., 'GPL571', 'GPL17586')",
+                "default": None,
+            }
+        ],
+    },
+    {
+        "description": "Map probe-level expression data to gene-level using GPL annotations. Use this for cross-platform meta-analysis after downloading GEO datasets.",
+        "name": "map_expression_to_genes",
+        "optional_parameters": [
+            {
+                "name": "gpl_id",
+                "type": "str",
+                "description": "GPL platform ID to download annotations from (if probe_to_gene not provided)",
+                "default": None,
+            },
+            {
+                "name": "probe_to_gene",
+                "type": "dict",
+                "description": "Pre-computed probe-to-gene mapping dict",
+                "default": None,
+            },
+            {
+                "name": "aggregation",
+                "type": "str",
+                "description": "Method to aggregate multiple probes per gene: 'mean', 'median', 'max', 'sum'",
+                "default": "mean",
+            },
+        ],
+        "required_parameters": [
+            {
+                "name": "expression_matrix",
+                "type": "pandas.DataFrame",
+                "description": "Expression matrix with probe IDs as index and samples as columns",
+                "default": None,
+            }
+        ],
+    },
+    {
         "description": "Query the NCBI dbSNP database using natural language or direct search term.",
         "name": "query_dbsnp",
         "optional_parameters": [

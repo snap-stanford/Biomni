@@ -93,6 +93,7 @@ library_content_dict = {
     "biotite": "[Python Package] A comprehensive library for computational molecular biology, providing tools for sequence analysis, structure analysis, and more.",
     "lazyslide": "[Python Package] A Python framework that brings interoperable, reproducible whole slide image analysis, enabling seamless histopathology workflows from preprocessing to deep learning.",
     # Genomics & Variant Analysis (Python)
+    "GEOparse": "[Python Package] A library for downloading and parsing data from NCBI GEO (Gene Expression Omnibus). Use GEOparse.get_GEO(geo='GSE12345', destdir='./output') to download series or sample data.",
     "gget": "[Python Package] A toolkit for accessing genomic databases and retrieving sequences, annotations, and other genomic data.",
     "lifelines": "[Python Package] A complete survival analysis library for fitting models, plotting, and statistical tests.",
     # "scvi-tools": "[Python Package] A package for probabilistic modeling of single-cell omics data, including deep generative models.",

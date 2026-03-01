@@ -1,14 +1,12 @@
 import os
 from pathlib import Path
 
-import esm
 import gget
 import gseapy
 import numpy as np
 import pandas as pd
 import requests
 import scanpy as sc
-import torch
 from pybiomart import Dataset
 from tqdm import tqdm
 
@@ -336,6 +334,9 @@ def generate_gene_embeddings_with_ESM_models(
     Returns:
         String containing the steps performed during the embedding generation process
     """
+    import esm
+    import torch
+
     steps = []
     steps.append(f"Loading ESM model: {model_name}")
     # model loading take a while, once loaded for smaller models generation is relatively fast
@@ -466,7 +467,7 @@ def annotate_celltype_scRNA(
     data_info,
     data_lake_path,
     cluster="leiden",
-    llm="claude-3-5-sonnet-20241022",
+    llm=None,  # Uses default_config.llm_lite if None
     composition=None,
 ):
     """Annotate cell types based on gene markers and transferred labels using LLM.
@@ -541,6 +542,12 @@ No numbers before name or spaces before number.
 """
     # Some can be a mixture of multiple cell types.
 
+    # Use default config if llm is None
+    # Cell type annotation is a classification task, so use the lite model
+    if llm is None:
+        from biomni.config import default_config
+
+        llm = default_config.llm_lite
     llm = get_llm(llm)
     prompt = PromptTemplate(input_variables=["cluster_info"], template=prompt_template)
     chain = prompt | llm
@@ -557,9 +564,11 @@ No numbers before name or spaces before number.
         while True:
             response = chain.invoke({"cluster_info": cluster_info})
 
-            # Handle different response types
+            # Handle different response types (including OpenAI Responses API list format)
+            from biomni.utils import normalize_llm_content
+
             if hasattr(response, "content"):  # For AIMessage
-                response = response.content
+                response = normalize_llm_content(response.content)
             elif isinstance(response, dict) and "text" in response:
                 response = response["text"]
             elif isinstance(response, str):
@@ -2215,6 +2224,8 @@ def generate_embeddings_with_state(
     """
     import os
     import subprocess
+
+    import torch
 
     # Initialize steps list for logging
     steps = []

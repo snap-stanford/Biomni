@@ -8,11 +8,11 @@ from pathlib import Path
 from typing import Any, Literal, TypedDict
 
 import pandas as pd
-from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
+from pydantic import BaseModel, Field
 
 from biomni.config import default_config
 from biomni.know_how import KnowHowLoader
@@ -43,14 +43,34 @@ from biomni.utils import (
     textify_api_dict,
 )
 
-if os.path.exists(".env"):
-    load_dotenv(".env", override=False)
-    print("Loaded environment variables from .env")
+# .env is loaded early in biomni.config to ensure default_config sees env vars
 
 
 class AgentState(TypedDict):
     messages: list[BaseMessage]
     next_step: str | None
+
+
+class AgentResponse(BaseModel):
+    """Structured response schema for OpenAI models.
+
+    Used with structured outputs (constrained decoding) to guarantee
+    format compliance instead of relying on XML tag parsing.
+    """
+
+    reasoning: str = Field(
+        description="Your step-by-step reasoning about the current state, what observations mean, and what to do next."
+    )
+    action: Literal["execute", "solution"] = Field(
+        description="'execute' to run code (Python/R/Bash), 'solution' to provide the final answer."
+    )
+    content: str = Field(
+        description=(
+            "If action is 'execute': the code to run. Python by default. "
+            "Prefix with #!R for R code, #!BASH for Bash scripts. "
+            "If action is 'solution': the final answer text."
+        ),
+    )
 
 
 class A1:
@@ -202,6 +222,17 @@ class A1:
             api_key=api_key,
             config=default_config,
         )
+
+        # If the constructor overrides the LLM to a different provider,
+        # update default_config.llm_lite to match so that all lite-model
+        # consumers (database.py, genomics.py, utils.py) use the same provider.
+        from biomni.config import BiomniConfig
+
+        inferred_lite = BiomniConfig._infer_lite_model(llm)
+        if inferred_lite != default_config.llm_lite:
+            default_config.llm_lite = inferred_lite
+            print(f"  Lite Model: {default_config.llm_lite} (updated to match agent provider)")
+
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
 
@@ -221,6 +252,12 @@ class A1:
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
         self.configure()
+
+    @property
+    def _is_openai_model(self) -> bool:
+        """Check if the current LLM is an OpenAI model (supports structured outputs)."""
+        model_name = getattr(self.llm, "model_name", "") or getattr(self.llm, "model", "")
+        return str(model_name).lower().startswith("gpt-") or "openai" in str(type(self.llm)).lower()
 
     def add_tool(self, api):
         """Add a new tool to the agent's tool registry and make it available for retrieval.
@@ -352,10 +389,24 @@ class A1:
         Add MCP (Model Context Protocol) tools from configuration file.
 
         This method dynamically registers MCP server tools as callable functions within
-        the biomni agent system. Each MCP server is loaded as an independent module
-        with its tools exposed as synchronous wrapper functions.
+        the biomni agent system. Each MCP server gets a long-lived session so that
+        stateful tools (background jobs, caching) work correctly across multiple calls.
 
-        Supports both manual tool definitions and automatic tool discovery from MCP servers.
+        Supports three transports:
+
+        - **stdio** (local process): set ``command`` in the YAML entry.
+        - **SSE** (remote): set ``url`` and ``transport: sse``.
+        - **Streamable HTTP** (remote, default for ``url``): set ``url``
+          (optionally ``transport: streamable-http``).
+
+        Remote servers may include a ``headers`` mapping for authentication::
+
+            mcp_servers:
+              my-remote:
+                url: "https://example.com/mcp"
+                transport: sse          # or streamable-http (default)
+                headers:
+                  Authorization: "Bearer ${MY_TOKEN}"
 
         Args:
             config_path: Path to the MCP configuration YAML file containing server
@@ -367,9 +418,12 @@ class A1:
             RuntimeError: If MCP server initialization fails
         """
         import asyncio
+        import atexit
         import os
         import sys
+        import threading
         import types
+        from contextlib import asynccontextmanager
         from pathlib import Path
 
         import nest_asyncio
@@ -379,68 +433,202 @@ class A1:
 
         nest_asyncio.apply()
 
-        def discover_mcp_tools_sync(server_params: StdioServerParameters) -> list[dict]:
-            """Discover available tools from MCP server synchronously."""
-            try:
+        # ---- Persistent MCP session management ----
+        # Each MCP server gets a single long-lived process and session so that
+        # stateful patterns (background jobs, caching) work across tool calls.
+        if not hasattr(self, "_mcp_sessions"):
+            self._mcp_sessions: dict[str, dict] = {}  # server_name -> {session, cleanup, loop, thread}
 
-                async def _discover_async():
+        def _make_transport_context(server_meta: dict):
+            """Return an async context manager that yields (read_stream, write_stream).
+
+            Supports three transports:
+            - **stdio** (default): launches a local process via ``command``.
+            - **sse**: connects to a remote SSE endpoint via ``url`` (``transport: sse``).
+            - **streamable-http**: connects via the modern Streamable HTTP protocol
+              (``transport: streamable-http``, or auto-detected as the default for
+              ``url``-based servers).
+
+            For SSE / Streamable HTTP the optional ``headers`` mapping in the YAML
+            config is forwarded to the underlying HTTP client. Values may use
+            ``${ENV_VAR}`` substitution just like ``env``.
+            """
+            url = server_meta.get("url")
+            if url:
+                # ---- Remote HTTP-based transport ----
+                transport = server_meta.get("transport", "streamable-http").lower().replace("_", "-")
+
+                # Resolve ${VAR} placeholders in header values
+                raw_headers = server_meta.get("headers", {})
+                headers: dict[str, str] = {}
+                for k, v in raw_headers.items():
+                    if isinstance(v, str) and v.startswith("${") and v.endswith("}"):
+                        headers[k] = os.getenv(v[2:-1], "")
+                    else:
+                        headers[k] = str(v)
+
+                if transport == "sse":
+                    from mcp.client.sse import sse_client
+
+                    @asynccontextmanager
+                    async def _ctx():
+                        async with sse_client(url, headers=headers or None) as (reader, writer):
+                            yield reader, writer
+
+                    return _ctx()
+
+                else:
+                    # streamable-http (default for url-based servers)
+                    from mcp.client.streamable_http import streamable_http_client
+
+                    @asynccontextmanager
+                    async def _ctx():
+                        import httpx
+
+                        http_client = httpx.AsyncClient(headers=headers) if headers else None
+                        async with streamable_http_client(url, http_client=http_client) as (reader, writer, _get_sid):
+                            yield reader, writer
+
+                    return _ctx()
+            else:
+                # ---- Local stdio transport (original behaviour) ----
+                cmd_list = server_meta.get("command", [])
+                cmd, *args = cmd_list
+
+                env_vars = server_meta.get("env", {})
+                if env_vars:
+                    processed_env = {}
+                    for key, value in env_vars.items():
+                        if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+                            processed_env[key] = os.getenv(value[2:-1], "")
+                        else:
+                            processed_env[key] = value
+                    env_vars = processed_env
+
+                server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
+
+                @asynccontextmanager
+                async def _ctx():
                     async with stdio_client(server_params) as (reader, writer):
+                        yield reader, writer
+
+                return _ctx()
+
+        def _start_persistent_session(server_name: str, server_meta: dict) -> ClientSession:
+            """Start an MCP server (local or remote) and keep the session alive in a background thread."""
+
+            ready_event = threading.Event()
+            session_holder: dict = {}
+
+            def _run_event_loop():
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                session_holder["loop"] = loop
+
+                async def _keep_alive():
+                    async with _make_transport_context(server_meta) as (reader, writer):
                         async with ClientSession(reader, writer) as session:
                             await session.initialize()
+                            session_holder["session"] = session
+                            ready_event.set()
+                            # Block until we're told to shut down
+                            session_holder["shutdown_event"] = asyncio.Event()
+                            await session_holder["shutdown_event"].wait()
 
-                            # Get available tools
-                            tools_result = await session.list_tools()
-                            tools = tools_result.tools if hasattr(tools_result, "tools") else tools_result
-
-                            discovered_tools = []
-                            for tool in tools:
-                                if hasattr(tool, "name"):
-                                    discovered_tools.append(
-                                        {
-                                            "name": tool.name,
-                                            "description": tool.description,
-                                            "inputSchema": tool.inputSchema,
-                                        }
-                                    )
-                                else:
-                                    print(f"Warning: Skipping tool with no name attribute: {tool}")
-
-                            return discovered_tools
-
-                return asyncio.run(_discover_async())
-            except Exception as e:
-                print(f"Failed to discover tools: {e}")
-                return []
-
-        def make_mcp_wrapper(cmd: str, args: list[str], tool_name: str, doc: str, env_vars: dict = None):
-            """Create a synchronous wrapper for an async MCP tool call."""
-
-            def sync_tool_wrapper(**kwargs):
-                """Synchronous wrapper for MCP tool execution."""
                 try:
-                    server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
+                    loop.run_until_complete(_keep_alive())
+                except Exception:
+                    ready_event.set()  # unblock caller even on failure
+                finally:
+                    loop.close()
 
-                    async def async_tool_call():
-                        async with stdio_client(server_params) as (reader, writer):
-                            async with ClientSession(reader, writer) as session:
-                                await session.initialize()
-                                result = await session.call_tool(tool_name, kwargs)
-                                content = result.content[0]
-                                if hasattr(content, "json"):
-                                    return content.json()
-                                return content.text
+            thread = threading.Thread(target=_run_event_loop, daemon=True, name=f"mcp-{server_name}")
+            thread.start()
 
+            # Wait for the session to be ready (up to 30 seconds)
+            if not ready_event.wait(timeout=30):
+                raise RuntimeError(f"MCP server '{server_name}' failed to start within 30 seconds")
+
+            if "session" not in session_holder:
+                raise RuntimeError(f"MCP server '{server_name}' session failed to initialize")
+
+            self._mcp_sessions[server_name] = session_holder
+            return session_holder["session"]
+
+        def _shutdown_all_sessions():
+            """Clean up all persistent MCP sessions on exit."""
+            for _name, holder in getattr(self, "_mcp_sessions", {}).items():
+                try:
+                    shutdown_event = holder.get("shutdown_event")
+                    loop = holder.get("loop")
+                    if shutdown_event and loop and loop.is_running():
+                        loop.call_soon_threadsafe(shutdown_event.set)
+                except Exception:
+                    pass
+
+        atexit.register(_shutdown_all_sessions)
+
+        def discover_mcp_tools_via_session(session: ClientSession, loop: asyncio.AbstractEventLoop) -> list[dict]:
+            """Discover tools using an already-running persistent session."""
+            future = asyncio.run_coroutine_threadsafe(session.list_tools(), loop)
+            tools_result = future.result(timeout=30)
+            tools = tools_result.tools if hasattr(tools_result, "tools") else tools_result
+
+            discovered_tools = []
+            for tool in tools:
+                if hasattr(tool, "name"):
+                    discovered_tools.append(
+                        {
+                            "name": tool.name,
+                            "description": tool.description,
+                            "inputSchema": tool.inputSchema,
+                        }
+                    )
+                else:
+                    print(f"Warning: Skipping tool with no name attribute: {tool}")
+            return discovered_tools
+
+        def make_mcp_wrapper(server_name: str, tool_name: str, doc: str, param_names: list = None):
+            """Create a synchronous wrapper that calls a tool on the persistent session."""
+            param_names = param_names or []
+
+            def sync_tool_wrapper(*args_positional, **kwargs):
+                """Synchronous wrapper for MCP tool execution via persistent session."""
+                try:
+                    call_kwargs = dict(kwargs)
+                    for i, arg in enumerate(args_positional):
+                        if i < len(param_names):
+                            call_kwargs[param_names[i]] = arg
+
+                    holder = self._mcp_sessions.get(server_name)
+                    if not holder or "session" not in holder:
+                        raise RuntimeError(f"MCP session for '{server_name}' is not available")
+
+                    session = holder["session"]
+                    loop = holder["loop"]
+
+                    future = asyncio.run_coroutine_threadsafe(session.call_tool(tool_name, call_kwargs), loop)
+                    result = future.result(timeout=300)  # 5 min timeout per tool call
+                    content = result.content[0]
+                    # Return the text payload, not the MCP envelope.
+                    # content is a Pydantic TextContent model — .json() would serialize
+                    # the entire envelope (type, text, annotations, meta), but tools
+                    # expect just the inner text (e.g. a JSON string with job_id).
+                    # Auto-parse JSON so the agent gets dicts directly.
+                    text = content.text
                     try:
-                        loop = asyncio.get_running_loop()
-                        return loop.create_task(async_tool_call())
-                    except RuntimeError:
-                        return asyncio.run(async_tool_call())
+                        import json as _json
+
+                        return _json.loads(text)
+                    except (ValueError, TypeError):
+                        return text
 
                 except Exception as e:
                     raise RuntimeError(f"MCP tool execution failed for '{tool_name}': {e}") from e
 
             sync_tool_wrapper.__name__ = tool_name
             sync_tool_wrapper.__doc__ = doc
+            sync_tool_wrapper._is_mcp_tool = True
             return sync_tool_wrapper
 
         # Initialize registries if they don't exist
@@ -466,38 +654,41 @@ class A1:
             if not server_meta.get("enabled", True):
                 continue
 
-            # Validate command configuration
+            # Validate: must have either "command" (stdio) or "url" (remote HTTP)
+            has_url = bool(server_meta.get("url"))
             cmd_list = server_meta.get("command", [])
-            if not cmd_list or not isinstance(cmd_list, list):
-                print(f"Warning: Invalid command configuration for server '{server_name}'")
+            has_cmd = bool(cmd_list) and isinstance(cmd_list, list)
+            if not has_url and not has_cmd:
+                print(f"Warning: Server '{server_name}' has neither 'url' nor valid 'command', skipping")
                 continue
 
-            cmd, *args = cmd_list
-
-            # Process environment variables
-            env_vars = server_meta.get("env", {})
-            if env_vars:
-                processed_env = {}
-                for key, value in env_vars.items():
-                    if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
-                        var_name = value[2:-1]
-                        processed_env[key] = os.getenv(var_name, "")
-                    else:
-                        processed_env[key] = value
-                env_vars = processed_env
-
             # Create module namespace for this MCP server
-            mcp_module_name = f"mcp_servers.{server_name}"
+            # First ensure the parent 'mcp_servers' module exists
+            if "mcp_servers" not in sys.modules:
+                sys.modules["mcp_servers"] = types.ModuleType("mcp_servers")
+            # Sanitize server name to be a valid Python identifier
+            # (e.g., "okn-wobd" -> "okn_wobd") so the agent can import it
+            safe_server_name = server_name.replace("-", "_").replace(".", "_").replace(" ", "_")
+            mcp_module_name = f"mcp_servers.{safe_server_name}"
             if mcp_module_name not in sys.modules:
                 sys.modules[mcp_module_name] = types.ModuleType(mcp_module_name)
             server_module = sys.modules[mcp_module_name]
+
+            # Start a persistent session for this MCP server (stdio, SSE, or Streamable HTTP)
+            try:
+                session = _start_persistent_session(server_name, server_meta)
+            except Exception as e:
+                print(f"Failed to start persistent session for {server_name}: {e}")
+                continue
+
+            holder = self._mcp_sessions[server_name]
+            loop = holder["loop"]
 
             tools_config = server_meta.get("tools", [])
 
             if not tools_config:
                 try:
-                    server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
-                    tools_config = discover_mcp_tools_sync(server_params)
+                    tools_config = discover_mcp_tools_via_session(session, loop)
 
                     if tools_config:
                         print(f"Discovered {len(tools_config)} tools from {server_name} MCP server")
@@ -534,8 +725,11 @@ class A1:
                     print(f"Warning: Skipping tool with no name in {server_name}")
                     continue
 
-                # Create wrapper function
-                wrapper_function = make_mcp_wrapper(cmd, args, tool_name, description, env_vars)
+                # Get ordered list of parameter names for positional arg support
+                param_names_ordered = list(parameters.keys())
+
+                # Create wrapper function using the persistent session
+                wrapper_function = make_mcp_wrapper(server_name, tool_name, description, param_names_ordered)
 
                 # Add to module namespace
                 setattr(server_module, tool_name, wrapper_function)
@@ -1094,8 +1288,8 @@ class A1:
                     # Include full content in system prompt (metadata already removed)
                     know_how_formatted.append(f"📚 {name}:\n{content}")
 
-        # Base prompt
-        prompt_modifier = """
+        # Base prompt — shared preamble for all providers
+        prompt_preamble = """
 You are a helpful biomedical assistant assigned with the task of problem-solving.
 To achieve this, you will be using an interactive coding environment equipped with a variety of tool functions, data, and softwares to assist you throughout the process.
 
@@ -1117,7 +1311,41 @@ If a step fails or needs modification, mark it with an X and explain why:
 4. [ ] Third step
 
 Always show the updated plan after each step so the user can track progress.
+"""
 
+        # Format instructions differ by provider
+        if self._is_openai_model:
+            # Structured-output mode: the response schema enforces the format,
+            # so the prompt only needs to explain the semantics.
+            prompt_format = """
+At each turn, your response will be structured with three fields: "reasoning", "action", and "content".
+
+- "reasoning": Provide your step-by-step thinking. Briefly note what you know so far and what you plan to do next.
+- "action": Choose exactly one of:
+    "execute" — to run NEW code and observe its result.
+    "solution" — to provide your final answer. Choose this as soon as you have the information needed to answer.
+- "content": The code to execute, or your final answer text.
+    For Python code (default): just write the code.
+    For R code: prefix with #!R on the first line.
+    For Bash scripts and commands: prefix with #!BASH on the first line.
+
+IMPORTANT: Once code has executed successfully and you have the result, move directly to action "solution". Do NOT re-execute the same code. Each "execute" action should run NEW code that makes progress toward the goal.
+
+You have many chances to interact with the environment. Decompose your work into multiple small steps.
+Don't overcomplicate the code. Keep it simple and easy to understand.
+When calling the existing python functions in the function dictionary, YOU MUST SAVE THE OUTPUT and PRINT OUT the result.
+For example, result = understand_scRNA(XXX) print(result)
+Otherwise the system will not be able to know what has been done.
+
+TASK COMPLETION REQUIREMENTS:
+Before choosing action "solution", verify that you have addressed the requirements in the original task:
+- If the task asks for "at least N" items, ensure you have found N or more
+- If your initial search doesn't meet requirements, try alternative search terms, broaden criteria, or search additional databases
+- Do NOT choose "solution" until all stated requirements are met, OR you have exhausted reasonable alternatives and explicitly explain why the requirements cannot be met
+"""
+        else:
+            # XML-tag mode for Claude and other providers
+            prompt_format = """
 At each turn, you should first provide your thinking and reasoning given the conversation history.
 After that, you have two options:
 
@@ -1142,6 +1370,8 @@ For Bash scripts and commands, use the #!BASH marker at the beginning of your co
 In each response, you must include EITHER <execute> or <solution> tag. Not both at the same time. Do not respond with messages without any tags. No empty messages.
 """
 
+        prompt_modifier = prompt_preamble + prompt_format
+
         # Add self-critic instructions if needed
         if self_critic:
             prompt_modifier += """
@@ -1152,6 +1382,9 @@ You may or may not receive feedbacks from human. If so, address the feedbacks by
         prompt_modifier += """
 PROTOCOL GENERATION:
 If the user requests an experimental protocol, use search_protocols(), advanced_web_search_claude(), list_local_protocols(), and read_local_protocol() to generate an accurate protocol. Include details such as reagents (with catalog numbers if available), equipment specifications, replicate requirements, error handling, and troubleshooting - but ONLY include information found in these resources. Do not make up specifications, catalog numbers, or equipment details. Prioritize accuracy over completeness.
+
+DATABASE QUERIES:
+IMPORTANT: For querying biological databases (NCBI, GEO, PubMed, ClinVar, dbSNP, UniProt, etc.), ALWAYS use the provided Python tool functions like query_geo(), query_pubmed(), query_clinvar(), query_dbsnp(), etc. Do NOT attempt to use command-line tools like esearch, efetch, or other NCBI E-utilities commands via Bash - these are not installed. The Python functions use REST APIs and will work reliably.
 """
 
         # Add custom resources section first (highlighted)
@@ -1379,39 +1612,92 @@ Each library is listed with its description to help you understand its functiona
 
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
-            # Add OpenAI-specific formatting reminders if using OpenAI models
-            system_prompt = self.system_prompt
-            if hasattr(self.llm, "model_name") and (
-                "gpt" in str(self.llm.model_name).lower() or "openai" in str(type(self.llm)).lower()
-            ):
-                system_prompt += "\n\nIMPORTANT FOR GPT MODELS: You MUST use XML tags <execute> or <solution> in EVERY response. Do not use markdown code blocks (```) - use <execute> tags instead."
+            messages = [SystemMessage(content=self.system_prompt)] + state["messages"]
 
-            messages = [SystemMessage(content=system_prompt)] + state["messages"]
-            response = self.llm.invoke(messages)
+            # ----- OpenAI structured-output path -----
+            if self._is_openai_model:
+                try:
+                    structured_llm = self.llm.with_structured_output(AgentResponse)
+                    response: AgentResponse = structured_llm.invoke(messages)
 
-            # Normalize Responses API content blocks (list of dicts) into a plain string
-            content = response.content
-            if isinstance(content, list):
-                # Concatenate textual parts; ignore tool_use or other non-text blocks
-                text_parts: list[str] = []
-                for block in content:
-                    try:
-                        if isinstance(block, dict):
-                            btype = block.get("type")
-                            if btype in ("text", "output_text", "redacted_text"):
-                                part = block.get("text") or block.get("content") or ""
-                                if isinstance(part, str):
-                                    text_parts.append(part)
-                    except Exception:
-                        # Be conservative; skip malformed blocks
-                        continue
-                msg = "".join(text_parts)
+                    # Strip markdown code fences from content if present
+                    # (LLMs often wrap code in ```python ... ``` even in structured output)
+                    content = response.content
+                    if response.action == "execute":
+                        content = re.sub(r"^```(?:python|bash|r|shell|sh)?\s*\n?", "", content.strip())
+                        content = re.sub(r"\n?```\s*$", "", content)
+
+                    # Reconstruct XML-tagged message so execute() and logging work unchanged
+                    tag = response.action  # "execute" or "solution"
+                    msg = f"{response.reasoning}\n<{tag}>{content}</{tag}>"
+                    state["messages"].append(AIMessage(content=msg.strip()))
+
+                    if response.action == "solution":
+                        # Guard: reject premature solutions when no code has been executed.
+                        # Check if any <observation> exists in prior messages (observations
+                        # are only added after code execution).
+                        has_executed = any(
+                            "<observation>" in (m.content if isinstance(m.content, str) else "")
+                            for m in state["messages"]
+                        )
+                        if not has_executed:
+                            nudge = (
+                                "\n<observation>You chose 'solution' but have not executed any code yet. "
+                                "You MUST run code using the available tools before providing a final answer. "
+                                "Choose action 'execute' and write code to accomplish the task.</observation>"
+                            )
+                            state["messages"].append(AIMessage(content=nudge.strip()))
+                            state["next_step"] = "generate"
+                        else:
+                            state["next_step"] = "end"
+                    else:
+                        state["next_step"] = "execute"
+                    return state
+
+                except Exception as e:
+                    # If structured output fails, fall through to XML parsing
+                    print(f"⚠️ Structured output failed ({e}), falling back to XML parsing...")
+                    response = self.llm.invoke(messages)
+                    content = response.content
+                    if isinstance(content, list):
+                        text_parts: list[str] = []
+                        for block in content:
+                            try:
+                                if isinstance(block, dict):
+                                    btype = block.get("type")
+                                    if btype in ("text", "output_text", "redacted_text"):
+                                        part = block.get("text") or block.get("content") or ""
+                                        if isinstance(part, str):
+                                            text_parts.append(part)
+                            except Exception:
+                                continue
+                        msg = "".join(text_parts)
+                    else:
+                        msg = str(content)
+
+            # ----- XML parsing path (Claude and fallback) -----
             else:
-                # Fallback to string conversion for legacy content
-                msg = str(content)
+                response = self.llm.invoke(messages)
 
-            # Enhanced parsing for better OpenAI compatibility
-            # Check for incomplete tags and fix them
+                # Normalize Responses API content blocks (list of dicts) into a plain string
+                content = response.content
+                if isinstance(content, list):
+                    text_parts: list[str] = []
+                    for block in content:
+                        try:
+                            if isinstance(block, dict):
+                                btype = block.get("type")
+                                if btype in ("text", "output_text", "redacted_text"):
+                                    part = block.get("text") or block.get("content") or ""
+                                    if isinstance(part, str):
+                                        text_parts.append(part)
+                        except Exception:
+                            continue
+                    msg = "".join(text_parts)
+                else:
+                    msg = str(content)
+
+            # XML tag parsing (used by Claude directly, and as fallback for OpenAI)
             if "<execute>" in msg and "</execute>" not in msg:
                 msg += "</execute>"
             if "<solution>" in msg and "</solution>" not in msg:
@@ -1419,20 +1705,10 @@ Each library is listed with its description to help you understand its functiona
             if "<think>" in msg and "</think>" not in msg:
                 msg += "</think>"
 
-            # More flexible pattern matching for different LLM styles
             think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL | re.IGNORECASE)
             execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL | re.IGNORECASE)
             answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL | re.IGNORECASE)
 
-            # Alternative patterns for OpenAI models that might use different formatting
-            if not execute_match:
-                # Try to find code blocks that might be intended as execute blocks
-                code_block_match = re.search(r"```(?:python|bash|r)?\s*(.*?)```", msg, re.DOTALL)
-                if code_block_match and not answer_match:
-                    # If we found a code block and no solution, treat it as execute
-                    execute_match = code_block_match
-
-            # Add the message to the state before checking for errors
             state["messages"].append(AIMessage(content=msg.strip()))
 
             if answer_match:
@@ -1442,31 +1718,42 @@ Each library is listed with its description to help you understand its functiona
             elif think_match:
                 state["next_step"] = "generate"
             else:
-                print("parsing error...")
-
-                error_count = sum(
-                    1 for m in state["messages"] if isinstance(m, AIMessage) and "There are no tags" in m.content
+                # Check if any code has been executed yet (observations exist)
+                has_executed = any(
+                    "<observation>" in (m.content if isinstance(m.content, str) else "") for m in state["messages"]
                 )
 
-                if error_count >= 2:
-                    # If we've already tried to correct the model twice, just end the conversation
-                    print("Detected repeated parsing errors, ending conversation")
+                if not has_executed:
+                    # No code executed yet and no tags — treat as a direct
+                    # conversational response (e.g. user said "hello").
+                    # Wrap in <solution> so downstream pipeline handles it.
+                    state["messages"][-1] = AIMessage(content=f"<solution>{msg.strip()}</solution>")
                     state["next_step"] = "end"
-                    # Add a final message explaining the termination
-                    state["messages"].append(
-                        AIMessage(
-                            content="Execution terminated due to repeated parsing errors. Please check your input and try again."
-                        )
-                    )
                 else:
-                    # Try to correct it
-                    state["messages"].append(
-                        HumanMessage(
-                            content="Each response must include thinking process followed by either <execute> or <solution> tag. But there are no tags in the current response. Please follow the instruction, fix and regenerate the response again."
-                        )
+                    print("parsing error...")
+
+                    error_count = sum(
+                        1 for m in state["messages"] if isinstance(m, AIMessage) and "There are no tags" in m.content
                     )
-                    state["next_step"] = "generate"
+
+                    if error_count >= 2:
+                        print("Detected repeated parsing errors, ending conversation")
+                        state["next_step"] = "end"
+                        state["messages"].append(
+                            AIMessage(
+                                content="Execution terminated due to repeated parsing errors. Please check your input and try again."
+                            )
+                        )
+                    else:
+                        state["messages"].append(
+                            HumanMessage(
+                                content="Each response must include thinking process followed by either <execute> or <solution> tag. But there are no tags in the current response. Please follow the instruction, fix and regenerate the response again."
+                            )
+                        )
+                        state["next_step"] = "generate"
             return state
+
+        _previous_code_blocks: list[str] = []
 
         def execute(state: AgentState) -> AgentState:
             last_message = state["messages"][-1].content
@@ -1477,6 +1764,25 @@ Each library is listed with its description to help you understand its functiona
             execute_match = re.search(r"<execute>(.*?)</execute>", last_message, re.DOTALL)
             if execute_match:
                 code = execute_match.group(1)
+
+                # Detect duplicate code execution — if the model re-submits the same code
+                # it already ran, nudge it to move to the solution instead of re-running.
+                code_normalized = code.strip()
+                if code_normalized in _previous_code_blocks:
+                    observation = (
+                        "\n<observation>You already executed this exact code. "
+                        "The result was shown above. Do not re-run the same code. "
+                        "If you have the answer, choose action 'solution' now.</observation>"
+                    )
+                    state["messages"].append(HumanMessage(content=observation.strip()))
+                    return state
+                _previous_code_blocks.append(code_normalized)
+
+                # Strip markdown code fences that LLMs (especially OpenAI) often wrap code in,
+                # even when using structured output. This is a safety net — generate() should
+                # already strip fences, but this catches fallback/edge cases.
+                code = re.sub(r"^```(?:python|bash|r|shell|sh)?\s*\n?", "", code.strip())
+                code = re.sub(r"\n?```\s*$", "", code)
 
                 # Set timeout duration (10 minutes = 600 seconds)
                 timeout = self.timeout_seconds
@@ -1548,7 +1854,7 @@ Each library is listed with its description to help you understand its functiona
                 self._execution_results.append(execution_entry)
 
                 observation = f"\n<observation>{result}</observation>"
-                state["messages"].append(AIMessage(content=observation.strip()))
+                state["messages"].append(HumanMessage(content=observation.strip()))
 
             return state
 

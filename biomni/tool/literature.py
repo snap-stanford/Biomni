@@ -215,14 +215,76 @@ def search_google(query: str, num_results: int = 3, language: str = "en") -> lis
     return results_string
 
 
+def advanced_web_search(
+    query: str,
+    num_results: int = 5,
+    max_retries: int = 3,
+) -> str:
+    """
+    Perform an advanced web search using Google search and content extraction.
+    Works with any LLM provider (OpenAI, Claude, etc.).
+
+    Parameters
+    ----------
+    query : str
+        The search phrase to look up.
+    num_results : int, optional
+        Number of search results to retrieve (default: 5).
+    max_retries : int, optional
+        Maximum number of retry attempts.
+
+    Returns
+    -------
+    str
+        A formatted string containing the search results with titles, URLs, and content snippets.
+    """
+    import random
+
+    delay = random.randint(1, 3)
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            results = []
+            search_results = search_google(query, num_results=num_results)
+
+            if search_results:
+                return search_results
+
+            # If search_google returns empty, try direct Google search
+            for res in search(query, num_results=num_results, lang="en", advanced=True):
+                result_text = f"Title: {res.title}\nURL: {res.url}\nDescription: {res.description}\n"
+                try:
+                    # Try to get more content from the page
+                    content = extract_url_content(res.url)
+                    if content and len(content) > 100:
+                        result_text += f"Content Preview: {content[:500]}...\n"
+                except Exception:
+                    pass
+                results.append(result_text)
+
+            if results:
+                return "\n---\n".join(results)
+            return "No search results found."
+
+        except Exception as e:
+            if attempt < max_retries:
+                time.sleep(delay)
+                delay *= 2
+                continue
+            return f"Error performing web search after {max_retries} attempts: {str(e)}"
+
+
 def advanced_web_search_claude(
     query: str,
     max_searches: int = 1,
     max_retries: int = 3,
-) -> tuple[str, list[dict[str, str]], list]:
+) -> str:
     """
     Initiate an advanced web search by launching a specialized agent to collect relevant information and citations through multiple rounds of web searches for a given query.
     Craft the query carefully for the search agent to find the most relevant information.
+
+    Note: This function requires a Claude model with web search capabilities.
+    If Claude is not available, it will automatically fall back to advanced_web_search().
 
     Parameters
     ----------
@@ -240,8 +302,6 @@ def advanced_web_search_claude(
     """
     import random
 
-    import anthropic
-
     try:
         from biomni.config import default_config
 
@@ -253,11 +313,17 @@ def advanced_web_search_claude(
         model = "claude-4-sonnet-latest"
         api_key = os.getenv("ANTHROPIC_API_KEY")
 
-    if "claude" not in model:
-        raise ValueError("Model must be a Claude model.")
+    # Fall back to provider-agnostic search if not using Claude
+    if "claude" not in model.lower():
+        print(f"Note: advanced_web_search_claude requires Claude model, but {model} is configured.")
+        print("Falling back to advanced_web_search()...")
+        return advanced_web_search(query, num_results=max_searches * 5, max_retries=max_retries)
 
     if not api_key:
-        raise ValueError("Set your api_key explicitly.")
+        print("No ANTHROPIC_API_KEY found. Falling back to advanced_web_search()...")
+        return advanced_web_search(query, num_results=max_searches * 5, max_retries=max_retries)
+
+    import anthropic
 
     client = anthropic.Anthropic(api_key=api_key)
     tool_def = {

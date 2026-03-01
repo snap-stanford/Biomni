@@ -7,6 +7,16 @@ Maintains full backward compatibility with existing code.
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load .env before anything reads os.getenv so that default_config (created at
+# module level below) picks up the values.  override=False keeps real
+# environment variables authoritative.
+_env_path = Path(__file__).resolve().parents[1] / ".env"
+if _env_path.is_file():
+    load_dotenv(_env_path, override=False)
 
 
 @dataclass
@@ -29,11 +39,13 @@ class BiomniConfig:
     """
 
     # Data and execution settings
-    path: str = "./data"
+    path: str = "./data"  # Data lake path (input data)
+    workspace: str = "./workspace"  # Output directory for generated files
     timeout_seconds: int = 600
 
     # LLM settings (API keys still from environment)
-    llm: str = "claude-sonnet-4-5"
+    llm: str = "claude-sonnet-4-5"  # Primary model for agent reasoning
+    llm_lite: str | None = None  # Lightweight model for simple tasks; auto-inferred from llm provider if not set
     temperature: float = 0.7
 
     # Tool settings
@@ -58,10 +70,14 @@ class BiomniConfig:
         # Support both old and new names for backwards compatibility
         if os.getenv("BIOMNI_PATH") or os.getenv("BIOMNI_DATA_PATH"):
             self.path = os.getenv("BIOMNI_PATH") or os.getenv("BIOMNI_DATA_PATH")
+        if os.getenv("BIOMNI_WORKSPACE"):
+            self.workspace = os.getenv("BIOMNI_WORKSPACE")
         if os.getenv("BIOMNI_TIMEOUT_SECONDS"):
             self.timeout_seconds = int(os.getenv("BIOMNI_TIMEOUT_SECONDS"))
         if os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL"):
             self.llm = os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL")
+        if os.getenv("BIOMNI_LLM_LITE"):
+            self.llm_lite = os.getenv("BIOMNI_LLM_LITE")
         if os.getenv("BIOMNI_USE_TOOL_RETRIEVER"):
             self.use_tool_retriever = os.getenv("BIOMNI_USE_TOOL_RETRIEVER").lower() == "true"
         if os.getenv("BIOMNI_COMMERCIAL_MODE"):
@@ -80,12 +96,34 @@ class BiomniConfig:
         if env_token:
             self.protocols_io_access_token = env_token
 
+        # Auto-infer llm_lite from the main llm's provider if not explicitly set
+        if self.llm_lite is None:
+            self.llm_lite = self._infer_lite_model(self.llm)
+
+    @staticmethod
+    def _infer_lite_model(model: str) -> str:
+        """Return a lightweight model that matches the provider of the given model."""
+        _LITE_MODELS = {
+            "claude-": "claude-haiku-4-5",
+            "gpt-": "gpt-5-mini",
+            "gemini-": "gemini-1.5-flash",
+            "groq": "llama-3.1-8b-instant",
+        }
+        model_lower = model.lower()
+        for prefix, lite in _LITE_MODELS.items():
+            if model_lower.startswith(prefix) or prefix in model_lower:
+                return lite
+        # Fallback: same provider detection as llm.py
+        return "claude-haiku-4-5"
+
     def to_dict(self) -> dict:
         """Convert config to dictionary for easy access."""
         return {
             "path": self.path,
+            "workspace": self.workspace,
             "timeout_seconds": self.timeout_seconds,
             "llm": self.llm,
+            "llm_lite": self.llm_lite,
             "temperature": self.temperature,
             "use_tool_retriever": self.use_tool_retriever,
             "commercial_mode": self.commercial_mode,
