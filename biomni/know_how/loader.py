@@ -39,7 +39,7 @@ class KnowHowLoader:
                 continue
 
             # Read the document
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 content = f.read()
 
             # Extract title, description, and metadata from the document
