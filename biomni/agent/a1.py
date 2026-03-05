@@ -2,6 +2,7 @@ import glob
 import inspect
 import os
 import re
+import uuid
 from collections.abc import Generator
 from datetime import datetime
 from pathlib import Path
@@ -65,14 +66,18 @@ class A1:
         api_key: str | None = None,
         commercial_mode: bool | None = None,
         expected_data_lake_files: list | None = None,
+        system_message_prefix: str | None = None,
+        minimal_mode: bool = False,
     ):
         """Initialize the biomni agent.
 
         Args:
             path: Path to the data
             llm: LLM to use for the agent
+            minimal_mode: If True, only include data lake info in system prompt (no tools, code execution, R/Python)
             source (str): Source provider: "OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", or "Custom"
             use_tool_retriever: If True, use a tool retriever
+            system_message_prefix: Custom system message to prepend (role, context, instructions)
             timeout_seconds: Timeout for code execution in seconds
             base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
             api_key: API key for the custom LLM
@@ -220,7 +225,40 @@ class A1:
 
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
+        # Store custom system message prefix
+        self.system_message_prefix = system_message_prefix
+        # Store minimal mode flag
+        self.minimal_mode = minimal_mode
         self.configure()
+
+    def set_system_message_prefix(self, prefix: str):
+        """Set a custom system message prefix to provide role and context.
+
+        This prefix is prepended to the auto-generated system prompt when the agent runs.
+
+        Args:
+            prefix: Custom system message (e.g., role definition, context, instructions)
+
+        Example:
+            agent.set_system_message_prefix(
+                "You are a molecular biology expert specializing in CRISPR gene editing. "
+                "Always prioritize safety considerations in your responses."
+            )
+        """
+        self.system_message_prefix = prefix
+
+    def get_full_system_prompt(self) -> str:
+        """Return the complete system prompt that will be sent to the LLM.
+
+        This includes the custom prefix (if set) followed by the auto-generated prompt.
+
+        Returns:
+            The full system prompt string
+        """
+        system_prompt = self.system_prompt
+        if self.system_message_prefix:
+            system_prompt = self.system_message_prefix + "\n\n" + system_prompt
+        return system_prompt
 
     def add_tool(self, api):
         """Add a new tool to the agent's tool registry and make it available for retrieval.
@@ -924,6 +962,34 @@ class A1:
             The generated system prompt
 
         """
+        # MINIMAL MODE: Return simple prompt with only data lake info
+        if getattr(self, 'minimal_mode', False):
+            data_lake_path = self.path + "/data_lake"
+            
+            # Format data lake items
+            data_lake_formatted = []
+            for item in data_lake_content:
+                if isinstance(item, dict):
+                    name = item.get("name", "")
+                    desc = item.get("description", "")
+                    data_lake_formatted.append(f"{name}: {desc}")
+                else:
+                    desc = self.data_lake_dict.get(item, f"Data lake item: {item}")
+                    data_lake_formatted.append(f"{item}: {desc}")
+            
+            minimal_prompt = f"""
+Available Data Resources:
+
+You have access to a biological data lake at: {data_lake_path}
+
+Datasets available:
+----
+{chr(10).join(data_lake_formatted)}
+----
+
+Respond directly with your answer. Do not write or execute code.
+"""
+            return minimal_prompt
 
         def format_item_with_description(name, description):
             """Format an item with its description in a readable way."""
@@ -1096,50 +1162,7 @@ class A1:
 
         # Base prompt
         prompt_modifier = """
-You are a helpful biomedical assistant assigned with the task of problem-solving.
-To achieve this, you will be using an interactive coding environment equipped with a variety of tool functions, data, and softwares to assist you throughout the process.
-
-Given a task, make a plan first. The plan should be a numbered list of steps that you will take to solve the task. Be specific and detailed.
-Format your plan as a checklist with empty checkboxes like this:
-1. [ ] First step
-2. [ ] Second step
-3. [ ] Third step
-
-Follow the plan step by step. After completing each step, update the checklist by replacing the empty checkbox with a checkmark:
-1. [✓] First step (completed)
-2. [ ] Second step
-3. [ ] Third step
-
-If a step fails or needs modification, mark it with an X and explain why:
-1. [✓] First step (completed)
-2. [✗] Second step (failed because...)
-3. [ ] Modified second step
-4. [ ] Third step
-
-Always show the updated plan after each step so the user can track progress.
-
-At each turn, you should first provide your thinking and reasoning given the conversation history.
-After that, you have two options:
-
-1) Interact with a programming environment and receive the corresponding output within <observe></observe>. Your code should be enclosed using "<execute>" tag, for example: <execute> print("Hello World!") </execute>. IMPORTANT: You must end the code block with </execute> tag.
-   - For Python code (default): <execute> print("Hello World!") </execute>
-   - For R code: <execute> #!R\nlibrary(ggplot2)\nprint("Hello from R") </execute>
-   - For Bash scripts and commands: <execute> #!BASH\necho "Hello from Bash"\nls -la </execute>
-   - For CLI softwares, use Bash scripts.
-
-2) When you think it is ready, directly provide a solution that adheres to the required format for the given task to the user. Your solution should be enclosed using "<solution>" tag, for example: The answer is <solution> A </solution>. IMPORTANT: You must end the solution block with </solution> tag.
-
-You have many chances to interact with the environment to receive the observation. So you can decompose your code into multiple steps.
-Don't overcomplicate the code. Keep it simple and easy to understand.
-When writing the code, please print out the steps and results in a clear and concise manner, like a research log.
-When calling the existing python functions in the function dictionary, YOU MUST SAVE THE OUTPUT and PRINT OUT the result.
-For example, result = understand_scRNA(XXX) print(result)
-Otherwise the system will not be able to know what has been done.
-
-For R code, use the #!R marker at the beginning of your code block to indicate it's R code.
-For Bash scripts and commands, use the #!BASH marker at the beginning of your code block. This allows for both simple commands and multi-line scripts with variables, loops, conditionals, loops, and other Bash features.
-
-In each response, you must include EITHER <execute> or <solution> tag. Not both at the same time. Do not respond with messages without any tags. No empty messages.
+To achieve this, you will be using an interactive coding environment equipped with a variety of data to assist you throughout the process.
 """
 
         # Add self-critic instructions if needed
@@ -1236,10 +1259,6 @@ Each library is listed with its description to help you understand its functiona
 ----
 {library_content_formatted}
 ----
-
-- Note on using R packages and Bash scripts:
-  - R packages: Use subprocess.run(['Rscript', '-e', 'your R code here']) in Python, or use the #!R marker in your execute block.
-  - Bash scripts and commands: Use the #!BASH marker in your execute block for both simple commands and complex shell scripts with variables, loops, conditionals, etc.
         """
 
         # Set appropriate text based on whether this is initial configuration or after retrieval
@@ -1381,10 +1400,17 @@ Each library is listed with its description to help you understand its functiona
         def generate(state: AgentState) -> AgentState:
             # Add OpenAI-specific formatting reminders if using OpenAI models
             system_prompt = self.system_prompt
-            if hasattr(self.llm, "model_name") and (
-                "gpt" in str(self.llm.model_name).lower() or "openai" in str(type(self.llm)).lower()
-            ):
-                system_prompt += "\n\nIMPORTANT FOR GPT MODELS: You MUST use XML tags <execute> or <solution> in EVERY response. Do not use markdown code blocks (```) - use <execute> tags instead."
+            
+            # Prepend custom system message prefix if provided
+            if self.system_message_prefix:
+                system_prompt = self.system_message_prefix + "\n\n" + system_prompt
+            
+            # Skip OpenAI-specific formatting in minimal mode (no code execution)
+            if not getattr(self, 'minimal_mode', False):
+                if hasattr(self.llm, "model_name") and (
+                    "gpt" in str(self.llm.model_name).lower() or "openai" in str(type(self.llm)).lower()
+                ):
+                    system_prompt += "\n\nIMPORTANT FOR GPT MODELS: You MUST use XML tags <execute> or <solution> in EVERY response. Do not use markdown code blocks (```) - use <execute> tags instead."
 
             messages = [SystemMessage(content=system_prompt)] + state["messages"]
             response = self.llm.invoke(messages)
@@ -1409,6 +1435,12 @@ Each library is listed with its description to help you understand its functiona
             else:
                 # Fallback to string conversion for legacy content
                 msg = str(content)
+
+            # MINIMAL MODE: Skip tag parsing, just return the response directly
+            if getattr(self, 'minimal_mode', False):
+                state["messages"].append(AIMessage(content=msg.strip()))
+                state["next_step"] = "end"
+                return state
 
             # Enhanced parsing for better OpenAI compatibility
             # Check for incomplete tags and fix them
@@ -1700,10 +1732,12 @@ Each library is listed with its description to help you understand its functiona
 
         # Use prompt-based retrieval with the agent's LLM
         selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
-        print("\n" + "=" * 60)
-        print("🔍 RESOURCE RETRIEVAL")
-        print("=" * 60)
-        print("Using prompt-based retrieval with the agent's LLM")
+
+        if not self.minimal_mode:
+            print("\n" + "=" * 60)
+            print("🔍 RESOURCE RETRIEVAL")
+            print("=" * 60)
+            print("Using prompt-based retrieval with the agent's LLM")
 
         # Extract the names from the selected resources for the system prompt
         selected_resources_names = {
@@ -1726,13 +1760,15 @@ Each library is listed with its description to help you understand its functiona
 
         # Process know-how documents - get the full content for selected documents
         if "know_how" in selected_resources and selected_resources["know_how"]:
-            print("\n📚 Know-How Documents Retrieved:")
+            if not self.minimal_mode:
+                print("\n📚 Know-How Documents Retrieved:")
             for item in selected_resources["know_how"]:
                 if isinstance(item, dict):
                     doc_id = item["id"]
                     doc = self.know_how_loader.get_document_by_id(doc_id)
                     if doc:
-                        print(f"  ✓ {doc['name']}")
+                        if not self.minimal_mode:
+                            print(f"  ✓ {doc['name']}")
                         # Create a copy with content_without_metadata for agent context
                         doc_for_agent = {
                             "id": doc["id"],
@@ -1743,16 +1779,18 @@ Each library is listed with its description to help you understand its functiona
                         }
                         selected_resources_names["know_how"].append(doc_for_agent)
         else:
-            print("\n📚 Know-How: None retrieved for this query")
+            if not self.minimal_mode:
+                print("\n📚 Know-How: None retrieved for this query")
 
         # Print summary of what was retrieved
-        print("\n" + "-" * 60)
-        print("📊 RETRIEVAL SUMMARY:")
-        print(f"  🔧 Tools: {len(selected_resources_names['tools'])} selected")
-        print(f"  📊 Data Lake: {len(selected_resources_names['data_lake'])} selected")
-        print(f"  ⚙️  Libraries: {len(selected_resources_names['libraries'])} selected")
-        print(f"  📚 Know-How: {len(selected_resources_names['know_how'])} selected")
-        print("=" * 60 + "\n")
+        if not self.minimal_mode:
+            print("\n" + "-" * 60)
+            print("📊 RETRIEVAL SUMMARY:")
+            print(f"  🔧 Tools: {len(selected_resources_names['tools'])} selected")
+            print(f"  📊 Data Lake: {len(selected_resources_names['data_lake'])} selected")
+            print(f"  ⚙️  Libraries: {len(selected_resources_names['libraries'])} selected")
+            print(f"  📚 Know-How: {len(selected_resources_names['know_how'])} selected")
+            print("=" * 60 + "\n")
 
         return selected_resources_names
 
@@ -1771,7 +1809,8 @@ Each library is listed with its description to help you understand its functiona
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
-        config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
+        # Use unique thread_id for each call to ensure fresh conversation state
+        config = {"recursion_limit": 500, "configurable": {"thread_id": str(uuid.uuid4())}}
         self.log = []
 
         # Store the final conversation state for markdown generation
@@ -1808,7 +1847,8 @@ Each library is listed with its description to help you understand its functiona
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
-        config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
+        # Use unique thread_id for each call to ensure fresh conversation state
+        config = {"recursion_limit": 500, "configurable": {"thread_id": str(uuid.uuid4())}}
         self.log = []
 
         # Store the final conversation state for markdown generation
