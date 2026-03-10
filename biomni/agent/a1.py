@@ -24,14 +24,23 @@ from langgraph.graph import END, START, StateGraph
 
 # Load .env as early as possible so modules like `biomni.config` can read env vars
 # during import-time initialization (e.g., default_config).
-if os.path.exists(".env"):
-    load_dotenv(".env", override=False)
+_loaded_env = False
+_repo_env = Path(__file__).resolve().parents[2] / ".env"
+if _repo_env.exists():
+    load_dotenv(_repo_env, override=False)
+    _loaded_env = True
+_cwd_env = Path(".env").resolve()
+if _cwd_env.exists() and _cwd_env != _repo_env.resolve():
+    load_dotenv(_cwd_env, override=False)
+    _loaded_env = True
+if _loaded_env:
     print("Loaded environment variables from .env")
 
 from biomni.config import default_config
 from biomni.know_how import KnowHowLoader
 from biomni.llm import SourceType, get_llm
 from biomni.model.retriever import ToolRetriever
+from biomni.startup_checks import run_post_retrieval_tool_checks, run_startup_checks
 from biomni.tool.support_tools import run_python_repl
 from biomni.tool.tool_registry import ToolRegistry
 from biomni.utils import (
@@ -146,6 +155,8 @@ class A1:
         config_dict = default_config.to_dict()
         for key, value in config_dict.items():
             if value is not None:
+                if key in {"api_key"}:
+                    continue
                 # Special formatting for commercial_mode
                 if key == "commercial_mode":
                     mode_text = "Commercial (licensed datasets only)" if value else "Academic (all datasets)"
@@ -161,8 +172,6 @@ class A1:
                 print(f"  Source: {agent_source}")
             if base_url is not None:
                 print(f"  Base URL: {base_url}")
-            if api_key is not None and api_key != "EMPTY":
-                print(f"  API Key: {'*' * 8 + api_key[-4:] if len(api_key) > 8 else '***'}")
 
         print("=" * 50 + "\n")
 
@@ -171,6 +180,16 @@ class A1:
         if not os.path.exists(path):
             os.makedirs(path)
             print(f"Created directory: {path}")
+
+        run_startup_checks(
+            path=path,
+            llm=llm,
+            retrieval_llm=retrieval_llm,
+            source=source,
+            base_url=base_url,
+            api_key=api_key,
+            config=default_config,
+        )
 
         # --- Begin custom folder/file checks ---
         benchmark_dir = os.path.join(path, "biomni_data", "benchmark")
@@ -224,7 +243,14 @@ class A1:
         )
         # updated by Kyle: Stage 1 skill retrieval uses a cheaper model if configured
         if retrieval_llm:
-            self.retrieval_llm = get_llm(retrieval_llm, config=default_config)
+            # Keep provider settings aligned with main llm unless explicitly overridden elsewhere.
+            self.retrieval_llm = get_llm(
+                retrieval_llm,
+                source=source,
+                base_url=base_url,
+                api_key=api_key,
+                config=default_config,
+            )
         else:
             self.retrieval_llm = self.llm
         self.module2api = module2api
@@ -1827,6 +1853,8 @@ Each library is listed with its description to help you understand its functiona
             preview = ", ".join(selected_tool_names[:20])
             more = "" if len(selected_tool_names) <= 20 else f" ... (+{len(selected_tool_names) - 20} more)"
             print(f"  {preview}{more}")
+        # Dependency checks are derived from the selected tool list above.
+        run_post_retrieval_tool_checks(selected_resources.get("tools", []))
         print("\n" + "=" * 60)
         print("🔍 RESOURCE RETRIEVAL")
         print("=" * 60)

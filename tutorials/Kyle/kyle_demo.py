@@ -13,7 +13,8 @@ agent = A1(
     path='./data',
     expected_data_lake_files=[],
     source='Anthropic',
-    llm='claude-sonnet-4-20250514'
+    # llm='claude-sonnet-4-20250514'
+    llm='claude-haiku-4-5-20251001'
 )
 # agent.go("Plan a CRISPR screen to identify genes that regulate T cell exhaustion, generate 32 genes that maximize the perturbation effect.")
 # agent.go("Perform scRNA-seq annotation at [PATH] and generate meaningful hypothesis")
