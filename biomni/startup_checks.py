@@ -321,22 +321,40 @@ def run_post_retrieval_tool_checks(selected_tools: list[dict | str] | None) -> N
         return
 
     selected_modules: set[str] = set()
+    selected_tool_names: list[str] = []
+    tools_without_module: list[str] = []
     for tool in selected_tools or []:
         if isinstance(tool, dict):
+            tool_name = str(tool.get("name") or "<unnamed_tool>")
+            selected_tool_names.append(tool_name)
             module_name = tool.get("module")
             if isinstance(module_name, str) and module_name:
                 selected_modules.add(module_name)
-
-    if not selected_modules:
-        print("⚠️ Post-retrieval tool dependency check skipped: no selected tool modules available.")
-        return
+            else:
+                tools_without_module.append(tool_name)
+        else:
+            selected_tool_names.append(str(tool))
+            tools_without_module.append(str(tool))
 
     print("\n" + "=" * 50)
     print("🧩 POST-RETRIEVAL TOOL DEP CHECK")
     print("=" * 50)
-    print(f"  Selected modules: {', '.join(sorted(selected_modules))}")
+    print(f"  Selected tools: {', '.join(selected_tool_names) if selected_tool_names else '(none)'}")
+    print(f"  Derived modules: {', '.join(sorted(selected_modules)) if selected_modules else '(none)'}")
     print(f"  Mode: {tool_dep_mode}")
     print(f"  Auto install: {_is_truthy_env('BIOMNI_AUTO_INSTALL_MISSING_DEPS', 'false')}")
+    if tools_without_module:
+        print(f"  Tools missing module metadata: {', '.join(tools_without_module)}")
+
+    if not selected_modules:
+        if tool_dep_mode == "strict":
+            print("  Errors:")
+            print("    - No module metadata found on selected tools; cannot perform dependency checks reliably.")
+            print("=" * 50 + "\n")
+            raise RuntimeError("Post-retrieval dependency check failed: missing module metadata on selected tools.")
+        print("  Status: WARN (skipped due to missing module metadata)")
+        print("=" * 50 + "\n")
+        return
 
     messages, _usage, missing_pkgs = _tool_dependency_messages(target_modules=selected_modules)
     if missing_pkgs:
