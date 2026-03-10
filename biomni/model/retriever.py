@@ -7,8 +7,14 @@
 
 import contextlib
 # Updated by Kyle
+import copy
+import hashlib
+import json
 import os
 import re
+import time
+from collections import OrderedDict
+from pathlib import Path
 
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
@@ -18,9 +24,202 @@ class ToolRetriever:
     """Retrieve tools from the tool registry."""
 
     def __init__(self):
-        pass
+        # Updated by Kyle
+        # Retrieval cache (in-memory + optional file persistence).
+        self._retrieval_cache: OrderedDict[str, dict] = OrderedDict()
+        self._retriever_prompt_version = "retriever_prompt_v1"
+        self._cache_persist_enabled = self._env_bool("BIOMNI_RETRIEVAL_CACHE_PERSIST_ENABLED", True)
+        self._cache_file_path = self._resolve_cache_file_path()
+        self._load_cache_from_disk()
 
-    def prompt_based_retrieval(self, query: str, resources: dict, llm=None) -> dict:
+    # Updated by Kyle
+    @staticmethod
+    def _env_bool(name: str, default: bool) -> bool:
+        raw = os.getenv(name)
+        if raw is None:
+            return default
+        return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+    # Updated by Kyle
+    @staticmethod
+    def _env_int(name: str, default: int, min_value: int = 1) -> int:
+        raw = os.getenv(name)
+        if raw is None:
+            return default
+        with contextlib.suppress(ValueError):
+            return max(int(raw), min_value)
+        return default
+
+    # Updated by Kyle
+    @staticmethod
+    def _resolve_cache_file_path() -> str:
+        raw = os.getenv("BIOMNI_RETRIEVAL_CACHE_PATH", "").strip()
+        if raw:
+            return str(Path(raw).expanduser().resolve())
+        return str((Path.cwd() / "data" / "retrieval_cache.json").resolve())
+
+    # Updated by Kyle
+    @staticmethod
+    def _normalize_query(query: str) -> str:
+        return " ".join(str(query).strip().lower().split())
+
+    # Updated by Kyle
+    @staticmethod
+    def _resource_item_for_hash(item) -> dict:
+        if isinstance(item, dict):
+            return {
+                "name": str(item.get("name", "")),
+                "module": str(item.get("module", "")),
+                "description": str(item.get("description", "")),
+            }
+        return {"name": str(item), "module": "", "description": ""}
+
+    # Updated by Kyle
+    def _resources_hash(self, resources: dict) -> str:
+        payload = {
+            "tools": [self._resource_item_for_hash(x) for x in resources.get("tools", [])],
+            "data_lake": [self._resource_item_for_hash(x) for x in resources.get("data_lake", [])],
+            "libraries": [self._resource_item_for_hash(x) for x in resources.get("libraries", [])],
+            "know_how": [self._resource_item_for_hash(x) for x in resources.get("know_how", [])],
+        }
+        stable = json.dumps(payload, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
+        return hashlib.sha256(stable.encode("utf-8")).hexdigest()
+
+    # Updated by Kyle
+    @staticmethod
+    def _llm_model_id(llm) -> str:
+        for attr in ("model_name", "model", "model_id"):
+            value = getattr(llm, attr, None)
+            if value:
+                return str(value)
+        return str(type(llm))
+
+    # Updated by Kyle
+    def _cache_key(self, stage: str, model_id: str, query: str, resources: dict) -> str:
+        key_payload = {
+            "stage": stage,
+            "model_id": model_id,
+            "query_norm": self._normalize_query(query),
+            "resources_hash": self._resources_hash(resources),
+            "retriever_prompt_version": self._retriever_prompt_version,
+        }
+        stable = json.dumps(key_payload, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
+        return hashlib.sha256(stable.encode("utf-8")).hexdigest()
+
+    # Updated by Kyle
+    def _cache_get(self, key: str) -> dict | None:
+        now = time.time()
+        changed = False
+        entry = self._retrieval_cache.get(key)
+        if not entry:
+            return None
+        if now >= entry.get("expires_at", 0):
+            self._retrieval_cache.pop(key, None)
+            changed = True
+            if changed:
+                self._persist_cache_to_disk()
+            return None
+        self._retrieval_cache.move_to_end(key)
+        return entry
+
+    # Updated by Kyle
+    def _cache_set(self, key: str, selected_resources: dict, ttl_seconds: int, max_entries: int, latency_ms: float) -> None:
+        now = time.time()
+        self._retrieval_cache[key] = {
+            "selected_resources": copy.deepcopy(selected_resources),
+            "meta": {
+                "created_at": now,
+                "latency_ms": latency_ms,
+                "cache_version": self._retriever_prompt_version,
+            },
+            "expires_at": now + ttl_seconds,
+        }
+        self._retrieval_cache.move_to_end(key)
+        self._prune_cache(max_entries=max_entries, now=now)
+        self._persist_cache_to_disk()
+
+    # Updated by Kyle
+    def _prune_cache(self, max_entries: int, now: float | None = None) -> None:
+        now = now if now is not None else time.time()
+
+        # Drop expired entries first.
+        expired_keys = [k for k, v in self._retrieval_cache.items() if now >= v.get("expires_at", 0)]
+        for key in expired_keys:
+            self._retrieval_cache.pop(key, None)
+
+        # Enforce LRU size limit.
+        while len(self._retrieval_cache) > max_entries:
+            self._retrieval_cache.popitem(last=False)
+
+    # Updated by Kyle
+    def _load_cache_from_disk(self) -> None:
+        if not self._cache_persist_enabled:
+            return
+
+        path = Path(self._cache_file_path)
+        if not path.exists():
+            return
+
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return
+
+        entries = raw.get("entries", [])
+        loaded: OrderedDict[str, dict] = OrderedDict()
+        if isinstance(entries, list):
+            for item in entries:
+                if not isinstance(item, dict):
+                    continue
+                key = item.get("key")
+                value = item.get("value")
+                if isinstance(key, str) and isinstance(value, dict):
+                    loaded[key] = value
+
+        self._retrieval_cache = loaded
+        self._prune_cache(max_entries=self._env_int("BIOMNI_RETRIEVAL_CACHE_MAX_ENTRIES", 2000, min_value=1))
+
+    # Updated by Kyle
+    def _persist_cache_to_disk(self) -> None:
+        if not self._cache_persist_enabled:
+            return
+
+        path = Path(self._cache_file_path)
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            payload = {
+                "version": 1,
+                "entries": [{"key": k, "value": v} for k, v in self._retrieval_cache.items()],
+            }
+            tmp_path = path.with_suffix(path.suffix + ".tmp")
+            tmp_path.write_text(json.dumps(payload, ensure_ascii=True, separators=(",", ":")), encoding="utf-8")
+            os.replace(tmp_path, path)
+        except Exception:
+            # Best-effort persistence; retrieval should continue even if disk cache fails.
+            return
+
+    # Updated by Kyle
+    def _log_cache_line(self, *, stage: str, model_id: str, cache_hit: int, latency_ms: float, selected_resources: dict) -> None:
+        print(
+            "[RETRIEVAL] "
+            f"stage={stage} model={model_id} cache_hit={cache_hit} "
+            f"latency_ms={latency_ms:.1f} selected_tools_count={len(selected_resources.get('tools', []))}"
+        )
+
+    # Updated by Kyle
+    @staticmethod
+    def _suspected_parse_failure(response_content, selected_indices: dict, resources: dict) -> bool:
+        if not resources.get("tools") or selected_indices.get("tools"):
+            return False
+
+        text = response_content if isinstance(response_content, str) else str(response_content)
+        normalized = text.replace("**", "").replace("__", "")
+        tools_match = re.search(r"TOOLS\s*:\s*\[(.*?)\]", normalized, re.IGNORECASE | re.DOTALL)
+        if tools_match:
+            return bool(tools_match.group(1).strip())
+        return "TOOLS" in normalized.upper()
+
+    def prompt_based_retrieval(self, query: str, resources: dict, llm=None, stage: str = "retrieval") -> dict:
         """Use a prompt-based approach to retrieve the most relevant resources for a query.
 
         Args:
@@ -28,11 +227,44 @@ class ToolRetriever:
             resources: A dictionary with keys 'tools', 'data_lake', 'libraries', and 'know_how',
                       each containing a list of available resources
             llm: Optional LLM instance to use for retrieval (if None, will create a new one)
+            stage: Retrieval stage label for logging/caching (e.g., skill_retrieval/tool_retrieval)
 
         Returns:
             A dictionary with the same keys, but containing only the most relevant resources
 
         """
+        retrieval_start = time.perf_counter()
+
+        # Use the provided LLM or create a new one
+        if llm is None:
+            llm = ChatOpenAI(model="gpt-4o")
+
+        # Updated by Kyle
+        # Retrieval cache lookup
+        cache_enabled = self._env_bool("BIOMNI_RETRIEVAL_CACHE_ENABLED", True)
+        cache_debug = self._env_bool("BIOMNI_RETRIEVAL_CACHE_DEBUG", False)
+        cache_ttl = self._env_int("BIOMNI_RETRIEVAL_CACHE_TTL_SECONDS", 86400, min_value=1)
+        cache_max_entries = self._env_int("BIOMNI_RETRIEVAL_CACHE_MAX_ENTRIES", 2000, min_value=1)
+        model_id = self._llm_model_id(llm)
+        cache_key = self._cache_key(stage=stage, model_id=model_id, query=query, resources=resources)
+
+        if cache_enabled:
+            cached_entry = self._cache_get(cache_key)
+            if cached_entry:
+                latency_ms = (time.perf_counter() - retrieval_start) * 1000.0
+                cached_resources = copy.deepcopy(cached_entry["selected_resources"])
+                print(f"[RETRIEVAL CACHE HIT] stage={stage} model={model_id}")
+                if cache_debug:
+                    print(f"[RETRIEVAL CACHE DEBUG] key={cache_key} entries={len(self._retrieval_cache)}")
+                self._log_cache_line(
+                    stage=stage,
+                    model_id=model_id,
+                    cache_hit=1,
+                    latency_ms=latency_ms,
+                    selected_resources=cached_resources,
+                )
+                return cached_resources
+
         # Build prompt sections for available resources
         prompt_sections = []
         prompt_sections.append(f"""
@@ -96,10 +328,6 @@ IMPORTANT GUIDELINES:
 """
 
         prompt = "\n".join(prompt_sections) + response_format
-
-        # Use the provided LLM or create a new one
-        if llm is None:
-            llm = ChatOpenAI(model="gpt-4o")
 
         # Invoke the LLM
         if hasattr(llm, "invoke"):
@@ -216,6 +444,31 @@ IMPORTANT GUIDELINES:
                 if i < len(resources.get("know_how", []))
             ]
 
+        # Updated by Kyle
+        # Cache write on miss (skip suspected parser-failure empties).
+        latency_ms = (time.perf_counter() - retrieval_start) * 1000.0
+        parse_failure_suspected = self._suspected_parse_failure(response_content, selected_indices, resources)
+        if cache_enabled and not parse_failure_suspected:
+            self._cache_set(
+                key=cache_key,
+                selected_resources=selected_resources,
+                ttl_seconds=cache_ttl,
+                max_entries=cache_max_entries,
+                latency_ms=latency_ms,
+            )
+            print(f"[RETRIEVAL CACHE MISS -> STORE] stage={stage} model={model_id}")
+            if cache_debug:
+                print(f"[RETRIEVAL CACHE DEBUG] key={cache_key} entries={len(self._retrieval_cache)}")
+        elif cache_enabled and parse_failure_suspected:
+            print(f"[RETRIEVAL CACHE SKIP] stage={stage} reason=suspected_parse_failure")
+
+        self._log_cache_line(
+            stage=stage,
+            model_id=model_id,
+            cache_hit=0,
+            latency_ms=latency_ms,
+            selected_resources=selected_resources,
+        )
         return selected_resources
 
     def _format_resources_for_prompt(self, resources: list) -> str:
@@ -257,34 +510,30 @@ IMPORTANT GUIDELINES:
             response = "\n".join([p for p in parts if p])
         elif not isinstance(response, str):
             response = str(response)
+        # Updated by Kyle
+        # Normalize simple markdown emphasis to improve downstream regex parsing.
+        response = response.replace("**", "").replace("__", "")
         selected_indices = {"tools": [], "data_lake": [], "libraries": [], "know_how": []}
 
-        # Extract indices for each category
-        tools_match = re.search(r"TOOLS:\s*\[(.*?)\]", response, re.IGNORECASE)
-        if tools_match and tools_match.group(1).strip():
-            with contextlib.suppress(ValueError):
-                selected_indices["tools"] = [int(idx.strip()) for idx in tools_match.group(1).split(",") if idx.strip()]
+        # Updated by Kyle
+        # Accept common markdown and label variants, e.g.:
+        # TOOLS: [1,2], **TOOLS:** [1,2], DATA-LAKE: [...], KNOW HOW: [...]
+        def extract_indices(label_pattern: str) -> list[int]:
+            patterns = [
+                rf"\*{{0,2}}\s*{label_pattern}\s*\*{{0,2}}\s*:\s*\[(.*?)\]",
+                rf"{label_pattern}\s*:\s*\*{{0,2}}\s*\[(.*?)\]",
+                rf"{label_pattern}\s*:\s*\[(.*?)\]",
+            ]
+            for pattern in patterns:
+                match = re.search(pattern, response, re.IGNORECASE | re.DOTALL)
+                if match and match.group(1).strip():
+                    with contextlib.suppress(ValueError):
+                        return [int(idx.strip()) for idx in match.group(1).split(",") if idx.strip()]
+            return []
 
-        data_lake_match = re.search(r"DATA_LAKE:\s*\[(.*?)\]", response, re.IGNORECASE)
-        if data_lake_match and data_lake_match.group(1).strip():
-            with contextlib.suppress(ValueError):
-                selected_indices["data_lake"] = [
-                    int(idx.strip()) for idx in data_lake_match.group(1).split(",") if idx.strip()
-                ]
-
-        libraries_match = re.search(r"LIBRARIES:\s*\[(.*?)\]", response, re.IGNORECASE)
-        if libraries_match and libraries_match.group(1).strip():
-            with contextlib.suppress(ValueError):
-                selected_indices["libraries"] = [
-                    int(idx.strip()) for idx in libraries_match.group(1).split(",") if idx.strip()
-                ]
-
-        # Extract know-how indices
-        know_how_match = re.search(r"KNOW[-_]HOW:\s*\[(.*?)\]", response, re.IGNORECASE)
-        if know_how_match and know_how_match.group(1).strip():
-            with contextlib.suppress(ValueError):
-                selected_indices["know_how"] = [
-                    int(idx.strip()) for idx in know_how_match.group(1).split(",") if idx.strip()
-                ]
+        selected_indices["tools"] = extract_indices(r"TOOLS")
+        selected_indices["data_lake"] = extract_indices(r"DATA[\s_-]*LAKE")
+        selected_indices["libraries"] = extract_indices(r"LIBRARIES")
+        selected_indices["know_how"] = extract_indices(r"KNOW[\s_-]*HOW")
 
         return selected_indices

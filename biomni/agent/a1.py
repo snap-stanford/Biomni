@@ -1745,7 +1745,13 @@ Each library is listed with its description to help you understand its functiona
             print("🔍 SKILL RETRIEVAL (updated by Kyle)")
             print("=" * 60)
             # set llm for skills retrieval
-            selected_skills = self.retriever.prompt_based_retrieval(prompt, skill_resources, llm=self.retrieval_llm)
+            # Updated by Kyle
+            selected_skills = self.retriever.prompt_based_retrieval(
+                prompt,
+                skill_resources,
+                llm=self.retrieval_llm,
+                stage="skill_retrieval",
+            )
 
             # updated by Kyle: print which skills were selected
             selected_skill_items: list[dict] = []
@@ -1837,7 +1843,13 @@ Each library is listed with its description to help you understand its functiona
         print("=" * 60)
         # set llm for tools retrieval
         # selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
-        selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.retrieval_llm)
+        # Updated by Kyle
+        selected_resources = self.retriever.prompt_based_retrieval(
+            prompt,
+            resources,
+            llm=self.retrieval_llm,
+            stage="tool_retrieval",
+        )
 
         # updated by Kyle: print how many tools LLM selected in stage 2
         selected_tool_names: list[str] = []
@@ -3254,21 +3266,37 @@ Each library is listed with its description to help you understand its functiona
             with main_interface_container:
                 with gr.Row():
                     with gr.Column(scale=1):
-                        main_chatbot = gr.Chatbot(
-                            label="Biomni A1 Agent",
-                            type="messages",
-                            height=800,
-                            show_copy_button=True,
-                            show_share_button=True,
-                        )
+                        # Updated by Kyle
+                        # Gradio API compatibility: v5 uses type/show_*_button, v6 uses buttons.
+                        try:
+                            main_chatbot = gr.Chatbot(
+                                label="Biomni A1 Agent",
+                                type="messages",
+                                height=800,
+                                show_copy_button=True,
+                                show_share_button=True,
+                            )
+                        except TypeError:
+                            main_chatbot = gr.Chatbot(
+                                label="Biomni A1 Agent",
+                                height=800,
+                                buttons=["copy", "share"],
+                            )
                     with gr.Column(scale=1):
-                        innerloop_chatbot = gr.Chatbot(
-                            label="Biomni Executor",
-                            type="messages",
-                            height=800,
-                            show_copy_button=True,
-                            show_share_button=True,
-                        )
+                        try:
+                            innerloop_chatbot = gr.Chatbot(
+                                label="Biomni Executor",
+                                type="messages",
+                                height=800,
+                                show_copy_button=True,
+                                show_share_button=True,
+                            )
+                        except TypeError:
+                            innerloop_chatbot = gr.Chatbot(
+                                label="Biomni Executor",
+                                height=800,
+                                buttons=["copy", "share"],
+                            )
 
                 with gr.Row():
                     prompt_input = gr.MultimodalTextbox(
