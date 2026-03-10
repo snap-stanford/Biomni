@@ -6,6 +6,8 @@
 ###########################################################################
 
 import contextlib
+# Updated by Kyle
+import os
 import re
 
 from langchain_core.messages import HumanMessage
@@ -176,6 +178,18 @@ IMPORTANT GUIDELINES:
 
         # Parse the response to extract the selected indices
         selected_indices = self._parse_llm_response(response_content)
+
+        # Updated by Kyle
+        # Debug assist: help diagnose parser-vs-model misses.
+        debug_retriever = os.getenv("BIOMNI_RETRIEVER_DEBUG", "true").strip().lower() in {"1", "true", "yes", "on"}
+        if debug_retriever and not selected_indices.get("tools") and resources.get("tools"):
+            snippet = response_content if isinstance(response_content, str) else str(response_content)
+            snippet = snippet[:1200].replace("\n", "\\n")
+            print("\n" + "=" * 60)
+            print("⚠️ RETRIEVER DEBUG: parsed TOOLS is empty")
+            print("Raw LLM response snippet:")
+            print(snippet)
+            print("=" * 60 + "\n")
 
         # Get the selected resources
         selected_resources = {
