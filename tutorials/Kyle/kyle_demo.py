@@ -12,7 +12,7 @@ from biomni.agent.a1 import A1
 agent = A1(
     path='./data',
     expected_data_lake_files=[],
-    source='Anthropic'
+    source='Anthropic',
     llm='claude-sonnet-4-20250514'
 )
 # agent.go("Plan a CRISPR screen to identify genes that regulate T cell exhaustion, generate 32 genes that maximize the perturbation effect.")
