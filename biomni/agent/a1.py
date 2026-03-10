@@ -72,6 +72,8 @@ class A1:
         use_tool_retriever: bool | None = None,
         # updated by Kyle: switch between single-stage and two-stage retrieval
         use_two_stage_retrieval: bool | None = None,
+        # updated by Kyle: cheaper model for Stage 1 skill retrieval (None = use main llm)
+        retrieval_llm: str | None = None,
         timeout_seconds: int | None = None,
         base_url: str | None = None,
         api_key: str | None = None,
@@ -103,6 +105,9 @@ class A1:
         # updated by Kyle
         if use_two_stage_retrieval is None:
             use_two_stage_retrieval = getattr(default_config, "use_two_stage_retrieval", True)
+        # updated by Kyle: retrieval_llm for Stage 1 skill selection
+        if retrieval_llm is None:
+            retrieval_llm = getattr(default_config, "retrieval_llm", None)
         if timeout_seconds is None:
             timeout_seconds = default_config.timeout_seconds
         if base_url is None:
@@ -217,6 +222,11 @@ class A1:
             api_key=api_key,
             config=default_config,
         )
+        # updated by Kyle: Stage 1 skill retrieval uses a cheaper model if configured
+        if retrieval_llm:
+            self.retrieval_llm = get_llm(retrieval_llm, config=default_config)
+        else:
+            self.retrieval_llm = self.llm
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
         # updated by Kyle
@@ -1392,13 +1402,32 @@ Each library is listed with its description to help you understand its functiona
         def generate(state: AgentState) -> AgentState:
             # Add OpenAI-specific formatting reminders if using OpenAI models
             system_prompt = self.system_prompt
-            if hasattr(self.llm, "model_name") and (
+            # if hasattr(self.llm, "model_name") and (
+            if hasattr(self.retrieval_llm, "model_name") and (
                 "gpt" in str(self.llm.model_name).lower() or "openai" in str(type(self.llm)).lower()
             ):
                 system_prompt += "\n\nIMPORTANT FOR GPT MODELS: You MUST use XML tags <execute> or <solution> in EVERY response. Do not use markdown code blocks (```) - use <execute> tags instead."
 
             messages = [SystemMessage(content=system_prompt)] + state["messages"]
+
+            # Anthropic Claude models do not accept assistant-prefill style requests:
+            # the conversation must end with a user message.
+            llm_type = str(type(self.llm)).lower()
+            llm_model_name = str(getattr(self.llm, "model_name", "")).lower()
+            is_anthropic_like = "anthropic" in llm_type or "claude" in llm_model_name
+            if is_anthropic_like and len(messages) > 1 and isinstance(messages[-1], AIMessage):
+                messages.append(
+                    HumanMessage(
+                        content=(
+                            "Continue from the context above. "
+                            "Respond with either <execute>...</execute> or <solution>...</solution>."
+                        )
+                    )
+                )
             response = self.llm.invoke(messages)
+            # response = self.retrieval_llm.invoke(messages)
+            print("FINAL_LLM response_metadata:", getattr(response, "response_metadata", None))
+            print("FINAL_LLM usage_metadata:", getattr(response, "usage_metadata", None))
 
             # Normalize Responses API content blocks (list of dicts) into a plain string
             content = response.content
@@ -1689,7 +1718,8 @@ Each library is listed with its description to help you understand its functiona
             print("\n" + "=" * 60)
             print("🔍 SKILL RETRIEVAL (updated by Kyle)")
             print("=" * 60)
-            selected_skills = self.retriever.prompt_based_retrieval(prompt, skill_resources, llm=self.llm)
+            # set llm for skills retrieval
+            selected_skills = self.retriever.prompt_based_retrieval(prompt, skill_resources, llm=self.retrieval_llm)
 
             # updated by Kyle: print which skills were selected
             selected_skill_items: list[dict] = []
@@ -1779,7 +1809,9 @@ Each library is listed with its description to help you understand its functiona
         else:
             print("🔍 TOOL RETRIEVAL (single-stage baseline, updated by Kyle)")
         print("=" * 60)
-        selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
+        # set llm for tools retrieval
+        # selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.llm)
+        selected_resources = self.retriever.prompt_based_retrieval(prompt, resources, llm=self.retrieval_llm)
 
         # updated by Kyle: print how many tools LLM selected in stage 2
         selected_tool_names: list[str] = []

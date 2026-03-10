@@ -28,21 +28,27 @@ class BiomniConfig:
         config.path = "./custom_data"
     """
 
+    # Custom parameters added by Kyle
+    # updated by Kyle: retrieval strategy switch (two-stage skill->tool retrieval)
+    use_two_stage_retrieval: bool = True
+    # Retrieval model for Stage 1 skill selection (None = use main llm)
+    retrieval_llm: str | None = "claude-haiku-4-5-20251001"
+
+
     # Data and execution settings
     path: str = "./data"
     timeout_seconds: int = 600
 
-    # Kyle added retrieval_llm
-    retrieval_llm = "claude-3-5-haiku-20241022"
-
     # LLM settings (API keys still from environment)
-    llm: str = "claude-3-5-sonnet-20241022"
+    # llm: str = "claude-3-5-sonnet-20241022"
+    llm: str = "claude-sonnet-4-6"
+
     temperature: float = 0.7
 
     # Tool settings
     use_tool_retriever: bool = True
-    # updated by Kyle: retrieval strategy switch (two-stage skill->tool retrieval)
-    use_two_stage_retrieval: bool = False
+    
+
 
     # Data licensing settings
     commercial_mode: bool = False  # If True, excludes non-commercial datasets
@@ -67,6 +73,8 @@ class BiomniConfig:
             self.timeout_seconds = int(os.getenv("BIOMNI_TIMEOUT_SECONDS"))
         if os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL"):
             self.llm = os.getenv("BIOMNI_LLM") or os.getenv("BIOMNI_LLM_MODEL")
+        if os.getenv("BIOMNI_RETRIEVAL_LLM"):
+            self.retrieval_llm = os.getenv("BIOMNI_RETRIEVAL_LLM")
         if os.getenv("BIOMNI_USE_TOOL_RETRIEVER"):
             self.use_tool_retriever = os.getenv("BIOMNI_USE_TOOL_RETRIEVER").lower() == "true"
         # updated by Kyle: toggle two-stage retrieval
@@ -94,6 +102,7 @@ class BiomniConfig:
             "path": self.path,
             "timeout_seconds": self.timeout_seconds,
             "llm": self.llm,
+            "retrieval_llm": self.retrieval_llm,
             "temperature": self.temperature,
             "use_tool_retriever": self.use_tool_retriever,
             "use_two_stage_retrieval": self.use_two_stage_retrieval,
