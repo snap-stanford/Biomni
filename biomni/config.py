@@ -33,7 +33,7 @@ class BiomniConfig:
     timeout_seconds: int = 600
 
     # Kyle added retrieval_llm
-    retrieval_llm = claude-3-5-haiku-20241022
+    retrieval_llm = "claude-3-5-haiku-20241022"
 
     # LLM settings (API keys still from environment)
     llm: str = "claude-3-5-sonnet-20241022"
