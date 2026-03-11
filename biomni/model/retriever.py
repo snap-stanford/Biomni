@@ -31,6 +31,11 @@ class ToolRetriever:
         self._cache_persist_enabled = self._env_bool("BIOMNI_RETRIEVAL_CACHE_PERSIST_ENABLED", True)
         self._cache_file_path = self._resolve_cache_file_path()
         self._load_cache_from_disk()
+        if self._env_bool("BIOMNI_RETRIEVAL_CACHE_DEBUG", False):
+            print(
+                f"[RETRIEVAL CACHE INIT] persist={int(self._cache_persist_enabled)} "
+                f"path={self._cache_file_path} loaded_entries={len(self._retrieval_cache)}"
+            )
 
     # Updated by Kyle
     @staticmethod
@@ -56,7 +61,8 @@ class ToolRetriever:
         raw = os.getenv("BIOMNI_RETRIEVAL_CACHE_PATH", "").strip()
         if raw:
             return str(Path(raw).expanduser().resolve())
-        return str((Path.cwd() / "data" / "retrieval_cache.json").resolve())
+        # Default to repo-root/data so path is stable across different launch CWDs.
+        return str((Path(__file__).resolve().parents[2] / "data" / "retrieval_cache.json").resolve())
 
     # Updated by Kyle
     @staticmethod
@@ -76,11 +82,17 @@ class ToolRetriever:
 
     # Updated by Kyle
     def _resources_hash(self, resources: dict) -> str:
+        def sorted_items(items):
+            normalized = [self._resource_item_for_hash(x) for x in items]
+            normalized.sort(key=lambda it: (it.get("name", ""), it.get("module", ""), it.get("description", "")))
+            return normalized
+
         payload = {
-            "tools": [self._resource_item_for_hash(x) for x in resources.get("tools", [])],
-            "data_lake": [self._resource_item_for_hash(x) for x in resources.get("data_lake", [])],
-            "libraries": [self._resource_item_for_hash(x) for x in resources.get("libraries", [])],
-            "know_how": [self._resource_item_for_hash(x) for x in resources.get("know_how", [])],
+            # Use order-insensitive hashing so semantically identical candidate sets hit cache.
+            "tools": sorted_items(resources.get("tools", [])),
+            "data_lake": sorted_items(resources.get("data_lake", [])),
+            "libraries": sorted_items(resources.get("libraries", [])),
+            "know_how": sorted_items(resources.get("know_how", [])),
         }
         stable = json.dumps(payload, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
         return hashlib.sha256(stable.encode("utf-8")).hexdigest()
@@ -218,6 +230,42 @@ class ToolRetriever:
         if tools_match:
             return bool(tools_match.group(1).strip())
         return "TOOLS" in normalized.upper()
+
+    # Updated by Kyle
+    def _response_to_text(self, response_content) -> str:
+        """Normalize heterogeneous provider responses into plain text for parsing/logging."""
+        if isinstance(response_content, str):
+            return response_content
+        if response_content is None:
+            return ""
+
+        if isinstance(response_content, dict):
+            if isinstance(response_content.get("text"), str):
+                return response_content["text"]
+            if "content" in response_content:
+                return self._response_to_text(response_content.get("content"))
+            if "delta" in response_content:
+                return self._response_to_text(response_content.get("delta"))
+            text_values = [v for v in response_content.values() if isinstance(v, str)]
+            if text_values:
+                return "\n".join(text_values)
+            return str(response_content)
+
+        if isinstance(response_content, list):
+            parts = []
+            for item in response_content:
+                part = self._response_to_text(item)
+                if part:
+                    parts.append(part)
+            return "\n".join(parts)
+
+        text_attr = getattr(response_content, "text", None)
+        if isinstance(text_attr, str):
+            return text_attr
+        content_attr = getattr(response_content, "content", None)
+        if content_attr is not None:
+            return self._response_to_text(content_attr)
+        return str(response_content)
 
     def prompt_based_retrieval(self, query: str, resources: dict, llm=None, stage: str = "retrieval") -> dict:
         """Use a prompt-based approach to retrieve the most relevant resources for a query.
@@ -404,14 +452,17 @@ IMPORTANT GUIDELINES:
             # For other LLM interfaces
             response_content = str(llm(prompt))
 
+        # Updated by Kyle
+        normalized_response_text = self._response_to_text(response_content)
+
         # Parse the response to extract the selected indices
-        selected_indices = self._parse_llm_response(response_content)
+        selected_indices = self._parse_llm_response(normalized_response_text)
 
         # Updated by Kyle
         # Debug assist: help diagnose parser-vs-model misses.
-        debug_retriever = os.getenv("BIOMNI_RETRIEVER_DEBUG", "true").strip().lower() in {"1", "true", "yes", "on"}
+        debug_retriever = os.getenv("BIOMNI_RETRIEVER_DEBUG", "false").strip().lower() in {"1", "true", "yes", "on"}
         if debug_retriever and not selected_indices.get("tools") and resources.get("tools"):
-            snippet = response_content if isinstance(response_content, str) else str(response_content)
+            snippet = normalized_response_text
             snippet = snippet[:1200].replace("\n", "\\n")
             print("\n" + "=" * 60)
             print("⚠️ RETRIEVER DEBUG: parsed TOOLS is empty")
@@ -447,7 +498,7 @@ IMPORTANT GUIDELINES:
         # Updated by Kyle
         # Cache write on miss (skip suspected parser-failure empties).
         latency_ms = (time.perf_counter() - retrieval_start) * 1000.0
-        parse_failure_suspected = self._suspected_parse_failure(response_content, selected_indices, resources)
+        parse_failure_suspected = self._suspected_parse_failure(normalized_response_text, selected_indices, resources)
         if cache_enabled and not parse_failure_suspected:
             self._cache_set(
                 key=cache_key,

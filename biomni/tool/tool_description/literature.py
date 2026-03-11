@@ -55,7 +55,10 @@ description = [
         ],
     },
     {
-        "description": "Query PubMed for papers based on the provided search query.",
+        # Updated by Kyle
+        "description": "Query PubMed for papers based on the provided search query. "
+        "Returns a list of paper dicts: [{'title': str, 'abstract': str, 'journal': str}]. "
+        "Do not treat the result as a single text string.",
         "name": "query_pubmed",
         "optional_parameters": [
             {

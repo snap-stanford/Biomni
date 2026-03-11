@@ -140,8 +140,8 @@ def query_scholar(query: str) -> str:
     except Exception as e:
         return f"Error querying Google Scholar: {e}"
 
-
-def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
+# Updated by Kyle
+def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> list[dict[str, str]]:
     """Query PubMed for papers based on the provided search query.
 
     Parameters
@@ -152,7 +152,9 @@ def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
 
     Returns
     -------
-    - str: The formatted search results or an error message.
+    - list[dict[str, str]]: Structured paper results with keys: title, abstract, journal.
+      Returns an empty list when no papers are found.
+      Returns a single-item list with an 'error' key on failure.
 
     """
     from pymed import PubMed
@@ -172,15 +174,23 @@ def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
             time.sleep(1)  # Add delay between requests
             papers = list(pubmed.query(simplified_query, max_results=max_papers))
 
+        # Updated by Kyle
+        # Return structured rows so downstream loops iterate by paper, not by character.
         if papers:
-            results = "\n\n".join(
-                [f"Title: {paper.title}\nAbstract: {paper.abstract}\nJournal: {paper.journal}" for paper in papers]
-            )
-            return results
-        else:
-            return "No papers found on PubMed after multiple query attempts."
+            structured_results = []
+            for paper in papers:
+                structured_results.append(
+                    {
+                        "title": str(paper.title) if paper.title else "",
+                        "abstract": str(paper.abstract) if paper.abstract else "",
+                        "journal": str(paper.journal) if paper.journal else "",
+                    }
+                )
+            return structured_results
+
+        return []
     except Exception as e:
-        return f"Error querying PubMed: {e}"
+        return [{"error": f"Error querying PubMed: {e}"}]
 
 
 def search_google(query: str, num_results: int = 3, language: str = "en") -> list[dict]:
