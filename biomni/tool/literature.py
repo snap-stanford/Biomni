@@ -401,3 +401,103 @@ def extract_pdf_content(url: str) -> str:
         return f"Error downloading PDF: {str(e)}"
     except Exception as e:
         return f"Error extracting text from PDF: {str(e)}"
+
+
+def query_disgenet_evidence(
+    prompt: str,
+    verbose: bool = False,
+):
+    """Query DISGENET for literature evidence supporting gene-disease or variant-disease associations.
+
+    DISGENET is included in the literature tools category because it provides curated evidence from scientific literature sources that support associations between genes, variants, and diseases. 
+    This function specifically targets the evidence endpoints of DISGENET which return detailed publication metadata, PubMed IDs or NCTIDs, and association types.
+
+    WHY DISGENET IS A LITERATURE TOOL:
+    ----------------------------------
+    DISGENET aggregates and curates data from multiple literature sources to establish gene-disease and variant-disease associations. Unlike typical databases that only store static data, DISGENET provides:
+    
+    1. LITERATURE EVIDENCE: Each association is backed by evidence from scientific publications,
+       with PubMed IDs or NCTIDs, publication dates, and citation counts.
+    
+    2. EVIDENCE SOURCES: Data is extracted from multiple literature sources including:
+       - PubMed abstracts (text mining),  ClinicalTrials, ClinGen, Biobak, ClinVar, Curated, FinnGen, GenCC, GWASCat, HPO, Inferred, MGD_HUMAN, MGD_MOUSE, MODELS, ORPHANET, Phewascat, Psygenet, RGD_HUMAN, RGD_RAT, TEXTMINING_HUMAN, TEXTMINING_MODELS, UKBiobnk, UNIPORT
+    
+    3. Association Types: Returns specific association types such as:
+       - Genetic variation associations from case-control studies
+       - Biomarker evidences from diagnostic studies
+       - Therapeutic evidences from clinical trials
+       - Altered expression evidences from genomic studies
+    
+    WHEN TO USE THIS FUNCTION:
+    -------------------------
+    Use this function when you need to:
+    - Find published literature evidence for gene-disease associations
+    - Retrieve PubMed articles supporting specific genetic associations
+    - Get evidence details including sentence snippets from papers
+    - Explore the bibliographic basis of gene-disease or variant-disease links
+    - Order evidence by publication year (pmYear) to see latest research
+    - Access evidence metadata including source databases and confidence scores
+
+    Examples of queries suitable for this function:
+    - "Find literature evidence linking BRCA1 to breast cancer"
+    - "Show me published studies about TP53 variants in cancer"
+    - "What publications support the association between APOE and Alzheimer's"
+    - "Get recent evidence papers for CFTR mutations in cystic fibrosis"
+    - "Find biomarker evidence for Parkinson's disease genes"
+
+    The function automatically redirects to query_disgenet_api, which handles:
+    - Entity normalization (gene names → NCBI IDs, disease names → UMLS CUIs)
+    - API endpoint selection (/gda/evidence or /vda/evidence)
+    - Proper parameter formatting for evidence queries
+
+    Parameters
+    ----------
+    prompt : str
+        Use a single, detailed, natural language query per call about literature evidence for gene-disease or variant-disease associations. Supports ordering results by DISGENET score, DSI, DPI, pLI, or publication year (pmYear) and additionally by polyphen, sift, odds_ratio, beta in case of VDA. Supports disease class queries. Supports filtering by a vast number of parameters to assess the strength, relevance, and confidence of GDAs and VDAs.
+        The query should specify:
+        - The gene(s) or variant(s) of interest
+        - The disease(s) or phenotype(s) of interest  
+        - Optional: ordering preference (e.g., "order by ...")
+        - Optional: parameters to filter by
+        
+        Examples:
+        - "Find evidence papers linking BRCA1 to ovarian cancer, order by pmYear"
+        - "Show clinical evidence for CFTR variants in cystic fibrosis"
+        - "Get biomarker evidence for APP gene in Alzheimer's disease"
+        
+    verbose : bool, optional
+        If True, returns detailed results including:
+        - Entity normalization steps
+        - Resolved API endpoint
+        - Full evidence metadata
+        Default is False for concise results.
+
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - success: bool indicating if query succeeded
+        - result: List of evidence entries with publication details including:
+            - PubMed IDs (pmid) or NCTIDs (nctId)
+            - Publication year (pmYear)
+            - Evidence sentence snippets
+            - Source databases
+            - Association scores
+            - Association type classifications
+        - normalization: Details about entity ID resolution (if verbose=True)
+        - error: Error message if query failed
+
+    Notes
+    -----
+    This function is a specialized wrapper around query_disgenet_api that emphasizes the literature/evidence aspects of DISGENET. It's designed to make DISGENET discoverable as a literature tool since its primary value is providing curated literature evidence for genetic associations.
+    
+    The DISGENET API returns paginated results (100 items per page). If you need more results, increment the page_number parameter in subsequent queries.
+
+    """
+    from biomni.tool.database import query_disgenet_api
+
+    # Enhance prompt to target evidence endpoints specifically
+    evidence_prompt = f"{prompt}. Focus on retrieving evidence entries with publication details and PubMed IDs or NCTIDs or both."
+    
+    # Call the main DISGENET API function
+    return query_disgenet_api(prompt=evidence_prompt, verbose=verbose)

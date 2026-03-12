@@ -19,7 +19,6 @@ data_lake_dict = {
     # "ddinter_hormonal.csv": "Drug-drug interactions for systemic hormonal preparations from DDInter 2.0 database.",  # CC BY-NC-SA 4.0 - Non-commercial only
     # "ddinter_respiratory.csv": "Drug-drug interactions for respiratory system drugs from DDInter 2.0 database.",  # CC BY-NC-SA 4.0 - Non-commercial only
     # "ddinter_various.csv": "Drug-drug interactions for various drugs from DDInter 2.0 database.",  # CC BY-NC-SA 4.0 - Non-commercial only
-    # "DisGeNET.parquet": "Gene-disease associations from multiple sources.",  # CC BY-NC-SA 4.0 - Non-commercial only
     "dosage_growth_defect.parquet": "Gene dosage changes affecting growth.",
     # "enamine_cloud_library_smiles.pkl": "Compounds from Enamine REAL library with SMILES annotations.",  # Proprietary - Requires license
     # "evebio_assay_table.csv": "Assay metadata with one row per assay from EveBio pharmome mapping.",  # Proprietary - Requires permission

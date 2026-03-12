@@ -401,5 +401,5 @@ description = [
                 "type": "str",
             }
         ],
-    },
-]
+    }
+    ]

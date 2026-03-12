@@ -158,4 +158,39 @@ description = [
             }
         ],
     },
+    {
+        "description": "Query DISGENET for literature evidence supporting gene-disease or variant-disease associations. "
+        "DISGENET is included as a literature tool because it aggregates curated evidence from multiple literature sources "
+        "such as PubMed abstracts (text mining), ClinGen, Biobak, ClinicalTrials, ClinVar, Curated, FinnGen, GenCC, GWASCat, HPO, Inferred, MGD_HUMAN, MGD_MOUSE, MODELS, ORPHANET, Phewascat, Psygenet, RGD_HUMAN, RGD_RAT, TEXTMINING_HUMAN, TEXTMINING_MODELS, UKBiobnk, UNIPORT."
+        "DISGENET provides literature-backed evidence including PubMed IDs or NCTIDs, publication years, sentence snippets from papers, "
+        "and association type classifications. "
+        "Use this when you need: "
+        "(1) Published literature evidence for gene/variant-disease associations, "
+        "(2) Evidence details with publication metadata, "
+        "(3) Filter evidence by source database, association type, publication year, scores, etc. "
+        "(4) Order evidence by publication year, scores, etc. "
+        "This function specifically targets DISGENET's evidence endpoints (/gda/evidence, /vda/evidence) which return "
+        "detailed publication metadata rather than just association summaries. "
+        "The function automatically handles entity normalization (gene names to NCBI IDs, disease names to UMLS CUIs) ",
+        "name": "query_disgenet_evidence",
+        "optional_parameters": [
+            {
+                "default": False,
+                "description": "If True, returns detailed results including entity normalization steps, resolved API endpoint, and full evidence metadata.",
+                "name": "verbose",
+                "type": "bool",
+            }
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Use a single, detailed, natural language query per call about literature evidence for gene-disease or variant-disease associations. Supports ordering results by score, DSI, DPI, pLI, or publication year (pmYear). Supports disease class queries. Supports filtering by a vast number of parameters to assess the strength, relevance, and confidence of GDAs and VDAs."
+                "Examples: 'Find evidence papers linking BRCA1 to ovarian cancer, order by pmYear', "
+                "'Show clinical evidence for CFTR variants in cystic fibrosis', "
+                "'Get biomarker evidence for APP gene in Alzheimer's disease'",
+                "name": "prompt",
+                "type": "str",
+            }
+        ],
+    }
 ]
