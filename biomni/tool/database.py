@@ -86,15 +86,15 @@ def _query_llm_for_api(prompt, schema, system_template):
         # Query the LLM
         response = llm.invoke(messages)
         content = response.content
-        
+
         # Handle response.content - based on actual runtime type
         # Test output shows: [{'type': 'text', 'text': '...', 'annotations': []}]
         if isinstance(content, list):
             # List of content blocks (OpenAI Responses API format)
             text_parts = []
             for block in content:
-                if isinstance(block, dict) and 'text' in block:
-                    text_parts.append(block['text'])
+                if isinstance(block, dict) and "text" in block:
+                    text_parts.append(block["text"])
             llm_text = " ".join(text_parts).strip()
         elif isinstance(content, str):
             # Direct string content (legacy format)
@@ -121,7 +121,9 @@ def _query_llm_for_api(prompt, schema, system_template):
             "success": False,
             "error": f"Failed to parse LLM response: {str(e)}",
             "raw_response": llm_text if "llm_text" in locals() else "No content found",
-            "raw_response_preview": llm_text[:500] if "llm_text" in locals() and len(llm_text) > 500 else (llm_text if "llm_text" in locals() else "No content found"),
+            "raw_response_preview": llm_text[:500]
+            if "llm_text" in locals() and len(llm_text) > 500
+            else (llm_text if "llm_text" in locals() else "No content found"),
         }
     except Exception as e:
         return {"success": False, "error": f"Error querying LLM: {str(e)}"}
@@ -179,7 +181,7 @@ def _query_rest_api(endpoint, method="GET", params=None, headers=None, json_data
                 "endpoint": endpoint,
                 "method": method,
                 "description": description,
-                "full_url": response.url, # QUITAR ANTES DE PEDIR MERGE A BIOMNI TEAM
+                "full_url": response.url,  # QUITAR ANTES DE PEDIR MERGE A BIOMNI TEAM
             },
             "result": result,
         }
@@ -3898,6 +3900,7 @@ def query_emdb(
 
     return api_result
 
+
 def query_synapse(
     prompt: str | None = None,
     query_term: str | list[str] | None = None,
@@ -5003,7 +5006,7 @@ def query_disgenet_api(
     1. LLM-based API resolution: Translates natural language to base API URL
     2. Entity normalization: Normalizes disease and gene names to DISGENET identifiers
     3. Final API call: Executes the query with normalized parameters
-    
+
     NOTE: This function returns only ONE page of results (page_number=0, 100 items). To get all results, increment the page_number parameter until no more results are returned.
     Example query: Find diseases associated with BRAF V157A...
 
@@ -5013,7 +5016,7 @@ def query_disgenet_api(
 
     Page 0: fetched 100 results (cumulative: 100/613)
 
-    If the user wants more results, increment the page_number parameter for 100 more results. 
+    If the user wants more results, increment the page_number parameter for 100 more results.
     For example, to get the next 100 results, query:
 
     ================================================================================
@@ -5053,13 +5056,15 @@ def query_disgenet_api(
         - error: Error message if failed
 
     IMPORTANT: Inspect result payload if verbose=True following the example below:
-    >>> query_result = query_disgenet_api("Find genes associated with Alzheimer's disease, order them by pmYear", verbose=True)
-    >>> result = query_result.get('result') if isinstance(query_result, dict) else None
-    >>> payload = result.get('payload') if isinstance(result, dict) else None
+    >>> query_result = query_disgenet_api(
+    ...     "Find genes associated with Alzheimer's disease, order them by pmYear", verbose=True
+    ... )
+    >>> result = query_result.get("result") if isinstance(query_result, dict) else None
+    >>> payload = result.get("payload") if isinstance(result, dict) else None
     >>> Search the swagger documentation for the DTO (Data Transfer Object) and the field names to access the data.
     """
     # Constants
-    DISGENET_API_BASE = os.getenv("DISGENET_API_SERVER_HOST", "https://api.disgenet.com") 
+    DISGENET_API_BASE = os.getenv("DISGENET_API_SERVER_HOST", "https://api.disgenet.com")
     SWAGGER_URL = f"{DISGENET_API_BASE}/v2/api-docs"
 
     # Validate inputs
@@ -5088,7 +5093,7 @@ def query_disgenet_api(
     {schema}
 
     Based on the user's natural language request, generate the appropriate API endpoint and parameters.
-    
+
     IMPORTANT GUIDELINES:
     1. Read the DISGENET API Swagger documentation to understand the endpoints and parameters available.
     2. Main endpoints:
@@ -5159,7 +5164,7 @@ def query_disgenet_api(
     endpoint = query_info.get("endpoint", "")
     method = query_info.get("method", "GET")
     params = query_info.get("params", {})
-    
+
     if not endpoint:
         return {
             "error": "Failed to generate a valid API endpoint from the prompt",
@@ -5169,7 +5174,7 @@ def query_disgenet_api(
     # STEP 2: Entity Normalization - Normalize disease and gene names to DISGENET IDs
     normalized_params = {}
     normalization_log = {}
-    
+
     for param_key, param_value in params.items():
         # Check if this parameter needs normalization
         if param_key in ["disease"] and param_value:
@@ -5181,8 +5186,12 @@ def query_disgenet_api(
             else:
                 # Fallback to original value
                 normalized_params[param_key] = param_value
-                normalization_log[param_key] = {"original": param_value, "normalized": None, "note": "normalization failed, using original"}
-                
+                normalization_log[param_key] = {
+                    "original": param_value,
+                    "normalized": None,
+                    "note": "normalization failed, using original",
+                }
+
         elif param_key in ["gene"] and param_value:
             # Normalize gene name to NCBI ID
             normalized_id = _normalize_disgenet_entity(param_value, "gene", DISGENET_API_BASE)
@@ -5193,27 +5202,34 @@ def query_disgenet_api(
             else:
                 # Fallback: use gene symbol
                 normalized_params["gene"] = param_value
-                normalization_log["gene"] = {"original": param_value, "normalized": None, "note": "normalization failed, using original"}
-                
+                normalization_log["gene"] = {
+                    "original": param_value,
+                    "normalized": None,
+                    "note": "normalization failed, using original",
+                }
+
         elif param_key in ["variant"] and param_value:
             # Variants typically don't need normalization
             normalized_params[param_key] = param_value
-            normalization_log[param_key] = {"original": param_value, "normalized": param_value, "note": "no normalization needed"}
+            normalization_log[param_key] = {
+                "original": param_value,
+                "normalized": param_value,
+                "note": "no normalization needed",
+            }
         else:
             # Pass through other parameters unchanged
             normalized_params[param_key] = param_value
 
     # STEP 3: Execute the Final API Call with normalized parameters
     full_url = f"{DISGENET_API_BASE}{endpoint}"
-    
+
     # Print the generated endpoint for debugging
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"PROMPT: {prompt}")
     print(f"API ENDPOINT: {endpoint}")
     print(f"METHOD: {method}")
     print(f"PARAMS: {params}")
     print(f"NORMALIZATION: {normalization_log}")
-    
 
     api_result = _query_rest_api(
         endpoint=full_url,
@@ -5228,23 +5244,23 @@ def query_disgenet_api(
         api_result["normalization"] = normalization_log
         api_result["original_params"] = params
         api_result["normalized_params"] = normalized_params
-        
+
         # Format results if not verbose
         if not verbose and "result" in api_result:
             api_result["result"] = _format_query_results(api_result["result"])
 
     # Print full URL for debugging (only if query_info exists)
     if "query_info" in api_result:
-        full_url = api_result['query_info'].get('full_url', 'API call failed')
+        full_url = api_result["query_info"].get("full_url", "API call failed")
         print(f"FULL API URL: {full_url}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     return api_result
 
 
 def _normalize_disgenet_entity(term_list: str, entity_type: str, api_base: str) -> str | None:
     """Normalize entity names to DISGENET identifiers using the DISGENET API embeddings/normalize endpoint.
-    
+
     Parameters
     ----------
     term_list : str
@@ -5253,8 +5269,8 @@ def _normalize_disgenet_entity(term_list: str, entity_type: str, api_base: str) 
     entity_type : str
         The type of entity ("disease", "gene", "chemical")
     api_base : str
-        The DISGENET API base URL 
-        
+        The DISGENET API base URL
+
     Returns
     -------
     str | None
@@ -5265,7 +5281,7 @@ def _normalize_disgenet_entity(term_list: str, entity_type: str, api_base: str) 
         - gene: "672" (NCBI ID)
         - chemical: "chemical_id" (chemical ID)
         Returns None if normalization fails
-        
+
     Notes
     -----
     - Requires DISGENET_API_KEY environment variable to be set
@@ -5279,125 +5295,118 @@ def _normalize_disgenet_entity(term_list: str, entity_type: str, api_base: str) 
     # Validate API key
     api_key = os.getenv("DISGENET_API_KEY")
     if not api_key:
-        print(f"ERROR: DISGENET_API_KEY environment variable not set. API key is required for DISGENET API access.")
+        print("ERROR: DISGENET_API_KEY environment variable not set. API key is required for DISGENET API access.")
         return None
 
     # Validate term_list format and count
     if not term_list or not term_list.strip():
-        print(f"ERROR: term_list cannot be empty")
+        print("ERROR: term_list cannot be empty")
         return None
-    
+
     # Normalize separators: convert commas and semicolons to pipes
     # This allows users to pass terms in formats like "term1, term2" or "term1; term2"
-    original_term_list = term_list
-    term_list = term_list.replace(',', '|').replace(';', '|')
-    
+    term_list = term_list.replace(",", "|").replace(";", "|")
+
     # Clean up: remove extra whitespace and collapse multiple pipes
-    terms = [t.strip() for t in term_list.split('|') if t.strip()]
-    term_list = '|'.join(terms)
-    
+    terms = [t.strip() for t in term_list.split("|") if t.strip()]
+    term_list = "|".join(terms)
+
     # Count terms and validate maximum
     if len(terms) > 100:
         print(f"ERROR: term_list contains {len(terms)} terms, but maximum is 100")
         return None
-    
+
     # Map entity types to API endpoints and response fields
     endpoint = "/api/v1/embeddings/normalize"
-    
+
     # Construct the full URL by combining api_base with endpoint
     # Remove trailing slash from api_base if present, and ensure endpoint starts with /
-    api_base_clean = api_base.rstrip('/')
-    endpoint_clean = endpoint if endpoint.startswith('/') else f'/{endpoint}'
+    api_base_clean = api_base.rstrip("/")
+    endpoint_clean = endpoint if endpoint.startswith("/") else f"/{endpoint}"
     full_url = f"{api_base_clean}{endpoint_clean}"
-    
+
     # Prepare query parameters including entity_type
     # term_list is passed as-is (pipe-separated format)
-    query_params = {
-        "entity_type": entity_type,
-        "term_list": term_list
-    }
-    
+    query_params = {"entity_type": entity_type, "term_list": term_list}
+
     # Print normalization call information
-    print(f"\n{'~'*80}")
+    print(f"\n{'~' * 80}")
     print(f"NORMALIZING {entity_type.upper()}: '{term_list}'")
     print(f"NORMALIZATION ENDPOINT: {endpoint}")
     print(f"NORMALIZATION PARAMS: {query_params}")
-    
+
     # Show the actual URL that will be called
-    from urllib.parse import urlencode, quote
+    from urllib.parse import quote, urlencode
+
     query_string = urlencode(query_params, quote_via=quote)
     full_url_with_params = f"{full_url}?{query_string}"
     print(f"FULL URL: {full_url_with_params}")
-    
+
     try:
         # Make request to entity endpoint
         api_response = _query_rest_api(
-            endpoint=full_url,
-            method="GET",
-            params=query_params,
-            headers={"Authorization": f"Bearer {api_key}"}
+            endpoint=full_url, method="GET", params=query_params, headers={"Authorization": f"Bearer {api_key}"}
         )
-        
+
         print(f"RESPONSE SUCCESS: {api_response.get('success', False)}")
-        
+
         if api_response.get("success"):
             # Extract the result data from the API response
             data = api_response.get("result", {})
-            
+
             # The API returns a payload with results
             if isinstance(data, dict) and "payload" in data:
                 payload = data["payload"]
                 print(f"PAYLOAD LENGTH: {len(payload) if payload else 0}")
-                
+
                 if payload and len(payload) > 0:
                     # Extract normalized IDs - keep only the first ID for each unique term
                     # The API returns multiple matches per term (similarity > 0.8), but we want only the best match
                     normalized_ids = []
                     seen_terms = set()
-                    
-                    for idx, result in enumerate(payload):
+
+                    for _idx, result in enumerate(payload):
                         term = result.get("term", "")
                         similarity = result.get("similarity", 0.0)
                         extracted_value = result.get("normalizedId")
-                        
-                        
+
                         # Only process the first occurrence of each term (highest similarity)
                         if term and term not in seen_terms:
                             seen_terms.add(term)
-                            
+
                             if extracted_value:
                                 # For disease, ensure UMLS_ prefix
                                 if entity_type == "disease" and not str(extracted_value).startswith("UMLS_"):
                                     normalized_value = f"UMLS_{extracted_value}"
                                 else:
                                     normalized_value = str(extracted_value)
-                                
+
                                 normalized_ids.append(normalized_value)
                                 print(f"{entity_type}: {term}, Similarity={similarity}, normalizedId={extracted_value}")
                             else:
                                 print(f"  → WARNING: Could not extract value for term '{term}'")
-                    
+
                     if normalized_ids:
                         # Join all normalized IDs with commas
                         final_result = ",".join(normalized_ids)
                         print(f"NORMALIZED VALUES ({len(normalized_ids)} total): {final_result}")
-                        print(f"{'~'*80}\n")
+                        print(f"{'~' * 80}\n")
                         return final_result
                     else:
                         print(f"WARNING: Could not extract any values for entity type '{entity_type}'")
                 else:
-                    print(f"WARNING: Empty payload")
+                    print("WARNING: Empty payload")
             else:
-                print(f"WARNING: Invalid response format - no payload")
+                print("WARNING: Invalid response format - no payload")
                 print(f"RESPONSE DATA: {data}")
         else:
             error_msg = api_response.get("error", "Unknown error")
             print(f"WARNING: API call failed - {error_msg}")
-        
-        print(f"{'~'*80}\n")
+
+        print(f"{'~' * 80}\n")
         return None
-            
+
     except Exception as e:
         print(f"ERROR: Failed to normalize {entity_type} '{term_list}': {str(e)}")
-        print(f"{'~'*80}\n")
+        print(f"{'~' * 80}\n")
         return None

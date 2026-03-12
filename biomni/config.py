@@ -33,7 +33,7 @@ class BiomniConfig:
 
     # LLM settings (API keys still from environment): claude-3-5-sonnet-20241022 || gpt-4o-mini-2024-07-18
     llm: str = os.getenv("BIOMNI_LLM", "gpt-5-mini-2025-08-07")
-    temperature: float = float(os.getenv("BIOMNI_TEMPERATURE", "1")) # 0.7
+    temperature: float = float(os.getenv("BIOMNI_TEMPERATURE", "1"))  # 0.7
 
     timeout_seconds: int = 600
     # Tool settings

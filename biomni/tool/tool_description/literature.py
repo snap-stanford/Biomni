@@ -192,5 +192,5 @@ description = [
                 "type": "str",
             }
         ],
-    }
+    },
 ]
