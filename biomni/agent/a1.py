@@ -2,6 +2,7 @@ import glob
 import inspect
 import os
 import re
+import sys
 from collections.abc import Generator
 from datetime import datetime
 from pathlib import Path
@@ -9,6 +10,11 @@ from typing import Any, Literal, TypedDict
 
 import pandas as pd
 from dotenv import load_dotenv
+
+if os.path.exists(".env"):
+    load_dotenv(".env", override=False)
+    print("Loaded environment variables from .env")
+
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
@@ -43,10 +49,6 @@ from biomni.utils import (
     textify_api_dict,
 )
 
-if os.path.exists(".env"):
-    load_dotenv(".env", override=False)
-    print("Loaded environment variables from .env")
-
 
 class AgentState(TypedDict):
     messages: list[BaseMessage]
@@ -79,6 +81,10 @@ class A1:
             commercial_mode: If True, excludes datasets that require commercial licenses or are non-commercial only
 
         """
+        # --- DISGENET API key preflight (warn early, before the agent tries to select DISGENET tools) ---
+        # Note: We never prompt in non-interactive contexts (e.g., Flask/gunicorn); we only warn.
+        self.disgenet_api_available = self._disgenet_api_key_check()
+
         # Use default_config values for unspecified parameters
         if path is None:
             path = default_config.path
@@ -221,6 +227,47 @@ class A1:
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
         self.configure()
+
+    _DISGENET_KEY_WARNED: bool = False
+    _DISGENET_KEY_PROMPTED: bool = False
+
+    def _disgenet_api_key_check(self) -> bool:
+        """One-time DISGENET_API_KEY check.
+
+        - If missing, prints a warning early during agent init.
+        - If stdin is a TTY, prompts once per process for a key (press Enter to skip).
+        """
+        existing = os.getenv("DISGENET_API_KEY")
+        if existing:
+            return True
+
+        if not A1._DISGENET_KEY_WARNED:
+            print(
+                "⚠️  DISGENET_API_KEY is not set. Please provide the DISGENET API KEY in the environment in order to get full access to DISGENET tools."
+            )
+            A1._DISGENET_KEY_WARNED = True
+
+        # Never block in non-interactive contexts (e.g., Flask/gunicorn, CI).
+        if not sys.stdin.isatty():
+            return False
+
+        # Avoid repeatedly prompting if the agent is re-initialized in a loop.
+        if A1._DISGENET_KEY_PROMPTED:
+            return False
+        A1._DISGENET_KEY_PROMPTED = True
+
+        try:
+            from getpass import getpass
+
+            entered = getpass("Enter DISGENET_API_KEY (leave blank to skip): ").strip()
+            if not entered:
+                return False
+            os.environ["DISGENET_API_KEY"] = entered
+            print("✅ DISGENET_API_KEY set for this process.")
+            return True
+        except Exception:
+            # If prompting fails for any reason, just keep going with the warning-only behavior.
+            return False
 
     def add_tool(self, api):
         """Add a new tool to the agent's tool registry and make it available for retrieval.
