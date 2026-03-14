@@ -10,11 +10,11 @@ from biomni.agent.a1 import A1
 # agent = A1(path="./biomni_data", llm="claude-sonnet-4-5-20250929")
 
 agent = A1(
-    path='./data',
+    path="./data",
     expected_data_lake_files=[],
-    source='Anthropic',
+    source="Anthropic",
     # llm='claude-sonnet-4-20250514'
-    llm='claude-haiku-4-5-20251001'
+    llm="claude-haiku-4-5-20251001",
 )
 # agent.go("Plan a CRISPR screen to identify genes that regulate T cell exhaustion, generate 32 genes that maximize the perturbation effect.")
 # agent.go("Perform scRNA-seq annotation at [PATH] and generate meaningful hypothesis")

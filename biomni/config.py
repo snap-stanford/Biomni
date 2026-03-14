@@ -34,7 +34,6 @@ class BiomniConfig:
     # Retrieval model for Stage 1 skill selection (None = use main llm)
     retrieval_llm: str | None = "claude-haiku-4-5-20251001"
 
-
     # Data and execution settings
     path: str = "./data"
     timeout_seconds: int = 600
@@ -47,8 +46,6 @@ class BiomniConfig:
 
     # Tool settings
     use_tool_retriever: bool = True
-    
-
 
     # Data licensing settings
     commercial_mode: bool = False  # If True, excludes non-commercial datasets

@@ -171,11 +171,11 @@ print("=" * 80)
 if results:
     # Split the results by "Title:" to separate individual papers
     papers = results.split("Title: ")[1:]  # Skip the first empty element
-    
+
     for i, paper in enumerate(papers[:5], 1):
         print(f"\nPAPER {i}:")
         print("-" * 50)
-        
+
         # Extract title (everything before "Abstract:")
         if "Abstract:" in paper:
             title_part = paper.split("Abstract:")[0].strip()
@@ -185,7 +185,7 @@ if results:
             title_part = paper.split("Journal:")[0].strip()
             abstract_part = "Not Available"
             journal_part = paper.split("Journal:")[-1].strip() if "Journal:" in paper else "Not Available"
-        
+
         print(f"Title: {title_part}")
         print(f"Journal: {journal_part}")
         print(f"Abstract: {abstract_part[:500]}{'...' if len(abstract_part) > 500 else ''}")
@@ -288,4 +288,4 @@ I successfully queried PubMed for CRISPR papers and retrieved 5 recent results. 
 - Integration of AI/computational tools with CRISPR is an active area of development
 - Therapeutic applications continue to expand across diverse disease models
 </solution>
-(bio_env_py310) kyle@Kyles-MBP-3 Biomni % 
+(bio_env_py310) kyle@Kyles-MBP-3 Biomni %

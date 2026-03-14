@@ -140,6 +140,7 @@ def query_scholar(query: str) -> str:
     except Exception as e:
         return f"Error querying Google Scholar: {e}"
 
+
 # Updated by Kyle
 def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> list[dict[str, str]]:
     """Query PubMed for papers based on the provided search query.

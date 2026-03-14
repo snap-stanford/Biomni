@@ -10,6 +10,7 @@ Goal:
 from __future__ import annotations
 
 import argparse
+
 # Updated by Kyle
 import sys
 from pathlib import Path
@@ -23,7 +24,6 @@ if str(PROJECT_ROOT) not in sys.path:
 from biomni.config import default_config
 from biomni.llm import get_llm
 from biomni.model.retriever import ToolRetriever
-
 
 TEST_CASES: list[tuple[str, list[str]]] = [
     ("Query PubMed for papers about CRISPR and return 5 results", ["literature"]),

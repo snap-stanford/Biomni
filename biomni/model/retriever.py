@@ -6,6 +6,7 @@
 ###########################################################################
 
 import contextlib
+
 # Updated by Kyle
 import copy
 import hashlib
@@ -135,7 +136,9 @@ class ToolRetriever:
         return entry
 
     # Updated by Kyle
-    def _cache_set(self, key: str, selected_resources: dict, ttl_seconds: int, max_entries: int, latency_ms: float) -> None:
+    def _cache_set(
+        self, key: str, selected_resources: dict, ttl_seconds: int, max_entries: int, latency_ms: float
+    ) -> None:
         now = time.time()
         self._retrieval_cache[key] = {
             "selected_resources": copy.deepcopy(selected_resources),
@@ -211,7 +214,9 @@ class ToolRetriever:
             return
 
     # Updated by Kyle
-    def _log_cache_line(self, *, stage: str, model_id: str, cache_hit: int, latency_ms: float, selected_resources: dict) -> None:
+    def _log_cache_line(
+        self, *, stage: str, model_id: str, cache_hit: int, latency_ms: float, selected_resources: dict
+    ) -> None:
         print(
             "[RETRIEVAL] "
             f"stage={stage} model={model_id} cache_hit={cache_hit} "
@@ -385,27 +390,35 @@ IMPORTANT GUIDELINES:
 
             # Extract token usage -- Kyle
             token_usage = {}
-            
+
             # Try to extract token usage from response_metadata
             if hasattr(response, "response_metadata") and response.response_metadata:
                 metadata = response.response_metadata
-                
+
                 if isinstance(metadata, dict):
                     input_tokens = (
-                        metadata.get("input_tokens") or 
-                        metadata.get("prompt_tokens") or
-                        (metadata.get("usage", {}) if isinstance(metadata.get("usage"), dict) else {}).get("input_tokens") or
-                        (metadata.get("usage", {}) if isinstance(metadata.get("usage"), dict) else {}).get("prompt_tokens") or
-                        0
+                        metadata.get("input_tokens")
+                        or metadata.get("prompt_tokens")
+                        or (metadata.get("usage", {}) if isinstance(metadata.get("usage"), dict) else {}).get(
+                            "input_tokens"
+                        )
+                        or (metadata.get("usage", {}) if isinstance(metadata.get("usage"), dict) else {}).get(
+                            "prompt_tokens"
+                        )
+                        or 0
                     )
                     output_tokens = (
-                        metadata.get("output_tokens") or 
-                        metadata.get("completion_tokens") or
-                        (metadata.get("usage", {}) if isinstance(metadata.get("usage"), dict) else {}).get("output_tokens") or
-                        (metadata.get("usage", {}) if isinstance(metadata.get("usage"), dict) else {}).get("completion_tokens") or
-                        0
+                        metadata.get("output_tokens")
+                        or metadata.get("completion_tokens")
+                        or (metadata.get("usage", {}) if isinstance(metadata.get("usage"), dict) else {}).get(
+                            "output_tokens"
+                        )
+                        or (metadata.get("usage", {}) if isinstance(metadata.get("usage"), dict) else {}).get(
+                            "completion_tokens"
+                        )
+                        or 0
                     )
-                    
+
                     if input_tokens > 0 or output_tokens > 0:
                         token_usage = {
                             "input_tokens": input_tokens,
@@ -413,27 +426,23 @@ IMPORTANT GUIDELINES:
                             "cache_creation_input_tokens": metadata.get("cache_creation_input_tokens", 0),
                             "cache_read_input_tokens": metadata.get("cache_read_input_tokens", 0),
                         }
-            
+
             # Fallback: try usage_metadata
             if not token_usage and hasattr(response, "usage_metadata") and response.usage_metadata:
                 usage_meta = response.usage_metadata
                 input_tokens = (
-                    getattr(usage_meta, "input_tokens", None) or 
-                    getattr(usage_meta, "prompt_tokens", None) or
-                    0
+                    getattr(usage_meta, "input_tokens", None) or getattr(usage_meta, "prompt_tokens", None) or 0
                 )
                 output_tokens = (
-                    getattr(usage_meta, "output_tokens", None) or 
-                    getattr(usage_meta, "completion_tokens", None) or
-                    0
+                    getattr(usage_meta, "output_tokens", None) or getattr(usage_meta, "completion_tokens", None) or 0
                 )
-                
+
                 if input_tokens > 0 or output_tokens > 0:
                     token_usage = {
                         "input_tokens": input_tokens,
                         "output_tokens": output_tokens,
                     }
-            
+
             # Print token usage summary
             if token_usage and (token_usage.get("input_tokens", 0) > 0 or token_usage.get("output_tokens", 0) > 0):
                 total = token_usage.get("input_tokens", 0) + token_usage.get("output_tokens", 0)

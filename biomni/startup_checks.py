@@ -55,11 +55,7 @@ def _detect_missing_tool_dependencies(target_modules: set[str] | None = None) ->
     tool_dir = Path(__file__).resolve().parent / "tool"
     stdlib_modules = set(getattr(sys, "stdlib_module_names", set()))
     ignored = {"biomni"}
-    extra_ignored = {
-        x.strip()
-        for x in os.getenv("BIOMNI_TOOL_DEP_IGNORE", "").split(",")
-        if x.strip()
-    }
+    extra_ignored = {x.strip() for x in os.getenv("BIOMNI_TOOL_DEP_IGNORE", "").split(",") if x.strip()}
     ignored |= extra_ignored
 
     package_to_files: dict[str, set[str]] = {}
@@ -128,7 +124,9 @@ def _tool_dependency_messages(
             "Set BIOMNI_TOOL_DEP_IGNORE to skip specific imports."
         )
         first_pkg = missing_pkgs[0]
-        messages.append(f"Example missing package usage: `{first_pkg}` imported by {', '.join(usage.get(first_pkg, []))}.")
+        messages.append(
+            f"Example missing package usage: `{first_pkg}` imported by {', '.join(usage.get(first_pkg, []))}."
+        )
     return messages, usage, missing_pkgs
 
 

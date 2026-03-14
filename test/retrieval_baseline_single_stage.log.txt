@@ -123,7 +123,7 @@ print(f"Number of results: {len(results) if hasattr(results, '__len__') else 'N/
 if isinstance(results, list) and len(results) > 0:
     print(f"\nFirst result type: {type(results[0])}")
     print(f"First result: {results[0]}")
-    
+
     # If results are strings, display them directly
     if isinstance(results[0], str):
         print("\nCRISPR Papers from PubMed:")
@@ -204,7 +204,7 @@ I successfully queried PubMed for papers about CRISPR and retrieved 5 results. H
 - Key finding: Successfully reduced A. fumigatus pathogenicity through multigene editing approach
 
 **2. CRISPR-Cas9 screening identifies ATOX1-driven cisplatin resistance mechanisms in liver cancer and evaluates targeted inhibitor efficacy**
-- Journal: Communications biology  
+- Journal: Communications biology
 - Focus: Using genome-wide CRISPR-Cas9 screening to identify genes associated with cisplatin resistance in liver cancer
 - Key finding: ATOX1 identified as critical for cisplatin resistance; compound 8 developed as targeted inhibitor
 
