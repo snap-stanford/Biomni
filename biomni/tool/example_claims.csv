@@ -1,0 +1,12 @@
+upstream_gene,downstream_gene,predicted_direction,cell_type_context,source
+SLC30A1,MT2A,DOWN,,known_biology_zinc_response
+GATA1,TYROBP,DOWN,,known_biology_hematopoietic
+CHMP6,SOD2,DOWN,,known_biology_stress_response
+SMC1A,CTSC,DOWN,,known_biology_cohesin
+PTPN1,TNFSF10,DOWN,,known_biology_phosphatase
+GATA1,CSF3R,DOWN,,known_biology_hematopoietic
+SLC30A1,MT2A,UP,,wrong_direction_control
+GATA1,TYROBP,UP,,wrong_direction_control
+BRCA1,TP53,UP,,negative_control_weak_signal
+RB1,VEGFA,DOWN,,negative_control_weak_signal
+FOXP2,CNTNAP2,UP,,untestable_not_in_dataset
