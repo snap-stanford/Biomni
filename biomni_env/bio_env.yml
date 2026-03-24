@@ -4,7 +4,7 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - python>=3.11
+  - python=3.11
   - blast
   - samtools
   - bowtie2
