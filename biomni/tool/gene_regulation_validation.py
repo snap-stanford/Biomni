@@ -23,8 +23,9 @@ Data requirement: Replogle Perturb-seq knockdown effects parquet file(s).
 Install: biomni_env/new_software_truthseq.sh
 """
 
-import os
 import logging
+import os
+
 import numpy as np
 import pandas as pd
 from scipy import stats as sp_stats
@@ -39,6 +40,7 @@ PERCENTILE_PARTIAL = 50
 
 
 # ── Internal helpers (not exposed as tools) ────────────────────────────────
+
 
 def _load_replogle(data_lake_path: str):
     """Load Replogle perturbation data from the Biomni datalake."""
@@ -87,10 +89,7 @@ def _parse_claims(claims_input):
     elif isinstance(claims_input, pd.DataFrame):
         df = claims_input
     else:
-        raise ValueError(
-            f"claims_input must be a CSV path, list of dicts, or DataFrame. "
-            f"Got: {type(claims_input)}"
-        )
+        raise ValueError(f"claims_input must be a CSV path, list of dicts, or DataFrame. Got: {type(claims_input)}")
 
     required = ["upstream_gene", "downstream_gene", "predicted_direction"]
     missing = [c for c in required if c not in df.columns]
@@ -137,36 +136,22 @@ def _grade_claim(percentile, direction_match, perturb_status, de_sig=False):
         if direction_match is False:
             return "CONTRADICTED", "Effect direction opposes prediction."
         elif percentile >= PERCENTILE_VALIDATED and direction_match and de_sig:
-            return "VALIDATED", (
-                f"Top {100 - percentile:.0f}% effect, direction matches, "
-                f"disease tissue confirms."
-            )
+            return "VALIDATED", (f"Top {100 - percentile:.0f}% effect, direction matches, disease tissue confirms.")
         elif percentile >= PERCENTILE_VALIDATED and direction_match:
             return "PARTIALLY_SUPPORTED", (
-                f"Top {100 - percentile:.0f}% effect, direction matches. "
-                f"No disease tissue confirmation."
+                f"Top {100 - percentile:.0f}% effect, direction matches. No disease tissue confirmation."
             )
         elif percentile >= PERCENTILE_PARTIAL and direction_match:
-            return "PARTIALLY_SUPPORTED", (
-                f"Moderate effect ({percentile:.0f}th percentile), "
-                f"direction matches."
-            )
+            return "PARTIALLY_SUPPORTED", (f"Moderate effect ({percentile:.0f}th percentile), direction matches.")
         else:
-            return "WEAK", (
-                f"Effect not stronger than random ({percentile:.0f}th percentile)."
-            )
+            return "WEAK", (f"Effect not stronger than random ({percentile:.0f}th percentile).")
     elif perturb_status == "BELOW_THRESHOLD":
         if de_sig:
-            return "PARTIALLY_SUPPORTED", (
-                "Below |Z|>1 in perturbation, but disease tissue shows "
-                "dysregulation."
-            )
+            return "PARTIALLY_SUPPORTED", ("Below |Z|>1 in perturbation, but disease tissue shows dysregulation.")
         return "WEAK", "Below |Z|>1 in perturbation, no disease tissue support."
     elif perturb_status == "UPSTREAM_NOT_TESTED":
         if de_sig:
-            return "PARTIALLY_SUPPORTED", (
-                "No perturbation data, but disease tissue shows dysregulation."
-            )
+            return "PARTIALLY_SUPPORTED", ("No perturbation data, but disease tissue shows dysregulation.")
         return "UNTESTABLE", "Upstream gene not in knockdown dataset."
     return "UNTESTABLE", f"Insufficient data ({perturb_status})."
 
@@ -174,6 +159,7 @@ def _grade_claim(percentile, direction_match, perturb_status, de_sig=False):
 # ══════════════════════════════════════════════════════════════════════════
 # TOOL 1: Validate gene regulatory claims
 # ══════════════════════════════════════════════════════════════════════════
+
 
 def validate_gene_regulatory_claims(
     claims_input: str,
@@ -217,11 +203,14 @@ def validate_gene_regulatory_claims(
     steps.append("Step 2: Loading Replogle Perturb-seq knockdown data...")
     replogle_df = _load_replogle(data_lake_path)
     if replogle_df is None:
-        return "\n".join(steps + [
-            "  ERROR: No Replogle data found. Expected parquet files in "
-            f"{data_lake_path}/truthseq/. Run the install script first: "
-            "biomni_env/new_software_truthseq.sh"
-        ])
+        return "\n".join(
+            steps
+            + [
+                "  ERROR: No Replogle data found. Expected parquet files in "
+                f"{data_lake_path}/truthseq/. Run the install script first: "
+                "biomni_env/new_software_truthseq.sh"
+            ]
+        )
 
     # Filter by cell type if requested
     if cell_type != "all" and "cell_line" in replogle_df.columns:
@@ -244,24 +233,26 @@ def validate_gene_regulatory_claims(
     all_kd = available_kd | stats_kd
 
     results = []
-    for idx, row in claims.iterrows():
+    for _idx, row in claims.iterrows():
         upstream = row["upstream_gene"]
         downstream = row["downstream_gene"]
         predicted_dir = row["predicted_direction"]
 
         if upstream not in all_kd:
             grade, reason = _grade_claim(0, None, "UPSTREAM_NOT_TESTED")
-            results.append({
-                "upstream_gene": upstream,
-                "downstream_gene": downstream,
-                "predicted_direction": predicted_dir,
-                "confidence_grade": grade,
-                "z_score": None,
-                "percentile": None,
-                "direction_match": None,
-                "cell_line": None,
-                "reason": reason,
-            })
+            results.append(
+                {
+                    "upstream_gene": upstream,
+                    "downstream_gene": downstream,
+                    "predicted_direction": predicted_dir,
+                    "confidence_grade": grade,
+                    "z_score": None,
+                    "percentile": None,
+                    "direction_match": None,
+                    "cell_line": None,
+                    "reason": reason,
+                }
+            )
             continue
 
         # Look up the effect
@@ -299,45 +290,51 @@ def validate_gene_regulatory_claims(
                     best_z, best_pct, best_ct, best_dir_match = z, pct, ct, dir_match
 
             grade, reason = _grade_claim(best_pct, best_dir_match, "DATA_FOUND")
-            results.append({
-                "upstream_gene": upstream,
-                "downstream_gene": downstream,
-                "predicted_direction": predicted_dir,
-                "confidence_grade": grade,
-                "z_score": round(best_z, 4),
-                "percentile": round(best_pct, 1),
-                "direction_match": best_dir_match,
-                "cell_line": best_ct,
-                "reason": reason,
-            })
+            results.append(
+                {
+                    "upstream_gene": upstream,
+                    "downstream_gene": downstream,
+                    "predicted_direction": predicted_dir,
+                    "confidence_grade": grade,
+                    "z_score": round(best_z, 4),
+                    "percentile": round(best_pct, 1),
+                    "direction_match": best_dir_match,
+                    "cell_line": best_ct,
+                    "reason": reason,
+                }
+            )
 
         elif stats_df is not None and upstream in stats_kd:
             # Below threshold
             grade, reason = _grade_claim(0, None, "BELOW_THRESHOLD")
-            results.append({
-                "upstream_gene": upstream,
-                "downstream_gene": downstream,
-                "predicted_direction": predicted_dir,
-                "confidence_grade": grade,
-                "z_score": None,
-                "percentile": None,
-                "direction_match": None,
-                "cell_line": "K562",
-                "reason": reason,
-            })
+            results.append(
+                {
+                    "upstream_gene": upstream,
+                    "downstream_gene": downstream,
+                    "predicted_direction": predicted_dir,
+                    "confidence_grade": grade,
+                    "z_score": None,
+                    "percentile": None,
+                    "direction_match": None,
+                    "cell_line": "K562",
+                    "reason": reason,
+                }
+            )
         else:
             grade, reason = _grade_claim(0, None, "BELOW_THRESHOLD")
-            results.append({
-                "upstream_gene": upstream,
-                "downstream_gene": downstream,
-                "predicted_direction": predicted_dir,
-                "confidence_grade": grade,
-                "z_score": None,
-                "percentile": None,
-                "direction_match": None,
-                "cell_line": None,
-                "reason": reason,
-            })
+            results.append(
+                {
+                    "upstream_gene": upstream,
+                    "downstream_gene": downstream,
+                    "predicted_direction": predicted_dir,
+                    "confidence_grade": grade,
+                    "z_score": None,
+                    "percentile": None,
+                    "direction_match": None,
+                    "cell_line": None,
+                    "reason": reason,
+                }
+            )
 
     results_df = pd.DataFrame(results)
 
@@ -372,6 +369,7 @@ def validate_gene_regulatory_claims(
 # ══════════════════════════════════════════════════════════════════════════
 # TOOL 2: Test regulatory specificity
 # ══════════════════════════════════════════════════════════════════════════
+
 
 def test_regulatory_specificity(
     claims_input: str,
@@ -417,10 +415,9 @@ def test_regulatory_specificity(
 
     replogle_df = _load_replogle(data_lake_path)
     if replogle_df is None:
-        return "\n".join(steps + [
-            "  ERROR: No Replogle data found. Expected parquet files in "
-            f"{data_lake_path}/truthseq/"
-        ])
+        return "\n".join(
+            steps + [f"  ERROR: No Replogle data found. Expected parquet files in {data_lake_path}/truthseq/"]
+        )
     steps.append(f"  Loaded {len(replogle_df):,} knockdown-effect pairs")
 
     # Step 2: Set up comparison pool
@@ -455,10 +452,13 @@ def test_regulatory_specificity(
     else:
         sim_df = replogle_df
 
-    pair_z = dict(zip(
-        zip(sim_df["knocked_down_gene"], sim_df["affected_gene"]),
-        sim_df["z_score"],
-    ))
+    pair_z = dict(
+        zip(
+            zip(sim_df["knocked_down_gene"], sim_df["affected_gene"], strict=False),
+            sim_df["z_score"],
+            strict=False,
+        )
+    )
 
     # Per-knockdown |Z| distributions
     kd_abs_z = {}
@@ -486,7 +486,7 @@ def test_regulatory_specificity(
         percentiles = []
         n_dir_match = 0
         n_testable = 0
-        for up, down, pred_dir in zip(upstreams, downstreams, directions):
+        for up, down, pred_dir in zip(upstreams, downstreams, directions, strict=False):
             if up not in set(pool_genes) and up not in kd_abs_z:
                 continue
             n_testable += 1
@@ -527,9 +527,9 @@ def test_regulatory_specificity(
     null_percentiles = []
     null_dir_matches = []
 
-    for i in range(n_permutations):
+    for _i in range(n_permutations):
         random_pool_sample = np.random.choice(pool_genes, n_unique_ups, replace=False)
-        upstream_map = dict(zip(sorted(set(user_ups)), random_pool_sample))
+        upstream_map = dict(zip(sorted(set(user_ups)), random_pool_sample, strict=False))
         random_ups = [upstream_map.get(u, np.random.choice(pool_genes)) for u in user_ups]
         perm_score = score_set(random_ups, user_downs, user_dirs)
         null_supported.append(perm_score["n_supported"])
@@ -621,6 +621,7 @@ def test_regulatory_specificity(
     }
 
     import json
+
     out_path = os.path.join(output_folder, "truthseq_specificity_results.json")
     with open(out_path, "w") as f:
         json.dump(result_dict, f, indent=2)

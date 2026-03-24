@@ -36,17 +36,14 @@ description = [
             {
                 "name": "output_folder",
                 "type": "str",
-                "description": (
-                    "Directory for output files. Results CSV will be saved here."
-                ),
+                "description": ("Directory for output files. Results CSV will be saved here."),
                 "default": "./tmp/",
             },
             {
                 "name": "cell_type",
                 "type": "str",
                 "description": (
-                    "Which cell line to validate against: 'K562', 'RPE1', or "
-                    "'all' (uses both). Default is 'all'."
+                    "Which cell line to validate against: 'K562', 'RPE1', or 'all' (uses both). Default is 'all'."
                 ),
                 "default": "all",
             },
@@ -73,8 +70,7 @@ description = [
                 "name": "claims_input",
                 "type": "str",
                 "description": (
-                    "Path to a CSV file with columns: upstream_gene, "
-                    "downstream_gene, predicted_direction (UP or DOWN)."
+                    "Path to a CSV file with columns: upstream_gene, downstream_gene, predicted_direction (UP or DOWN)."
                 ),
                 "default": None,
             },
