@@ -222,6 +222,25 @@ class A1:
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
         self.configure()
 
+        # Create a per-session figure directory co-located with Gradio's temp folder
+        # so that generated figures are served by Gradio without extra configuration.
+        try:
+            import tempfile
+            import uuid as _uuid
+
+            from biomni.tool.support_tools import set_figure_dir
+
+            try:
+                from gradio.utils import get_upload_folder
+
+                _gradio_base = get_upload_folder()
+            except Exception:
+                _gradio_base = os.path.join(tempfile.gettempdir(), "gradio")
+
+            set_figure_dir(os.path.join(_gradio_base, f"biomni_plots_{_uuid.uuid4().hex[:8]}"))
+        except Exception as _e:
+            print(f"Warning: Could not set figure directory: {_e}")
+
     def add_tool(self, api):
         """Add a new tool to the agent's tool registry and make it available for retrieval.
 
@@ -2532,9 +2551,10 @@ Each library is listed with its description to help you understand its functiona
             any exceptions gracefully to prevent execution failures.
         """
         try:
-            from biomni.tool.support_tools import clear_captured_plots
+            from biomni.tool.support_tools import clear_captured_plots, clear_saved_figure_paths
 
             clear_captured_plots()
+            clear_saved_figure_paths()
         except Exception as e:
             print(f"Warning: Could not clear execution plots: {e}")
 
@@ -2644,12 +2664,15 @@ Each library is listed with its description to help you understand its functiona
             raise ImportError("Gradio is not installed. Please install it with: pip install gradio") from None
 
         import os
+        import threading
         from time import time
 
         # Define supported file extensions
         SUPPORTED_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".pdf")
 
         self.main_history_copy = []
+        self.uploaded_files = []  # Persists all uploaded files for the session
+        self._stop_event = threading.Event()
 
         # Available access codes (if verification is required)
         available_access_codes = ["Biomni2025"]
@@ -2665,7 +2688,11 @@ Each library is listed with its description to help you understand its functiona
                     gr.update(value="Incorrect access code. Please check your access code.", visible=True),
                 )
 
+        def stop_generation():
+            self._stop_event.set()
+
         def generate_response(prompt_input, inner_history=None, main_history=None):
+            self._stop_event.clear()
             if main_history is None:
                 main_history = []
             if inner_history is None:
@@ -2680,10 +2707,17 @@ Each library is listed with its description to help you understand its functiona
             main_history.append(ChatMessage(role="assistant", content="Executor is working on it 👉"))
             yield inner_history, main_history
 
-            # Process uploaded files if any
+            # Accumulate newly uploaded files into session memory
             for file_info in files:
                 file_path = file_info
-                text_input += f"\n\n User uploaded this file: {file_path}\n Please use it if needed."
+                if file_path not in self.uploaded_files:
+                    self.uploaded_files.append(file_path)
+
+            # Inject all session-uploaded files into the current prompt
+            if self.uploaded_files:
+                text_input += "\n\nFiles available for this session:"
+                for file_path in self.uploaded_files:
+                    text_input += f"\n- {file_path}"
 
             agent_messages = []
             for msg in self.main_history_copy:
@@ -2734,6 +2768,17 @@ Each library is listed with its description to help you understand its functiona
 
             # Stream the agent's responses
             for s in self.app.stream(inputs, stream_mode="values", config=config):
+                if self._stop_event.is_set():
+                    inner_history.append(
+                        ChatMessage(
+                            role="assistant",
+                            content="⏹ Generation stopped by user.",
+                            metadata={"title": "⏹ Stopped"},
+                        )
+                    )
+                    yield inner_history, main_history
+                    return
+
                 t_step = time() - t
                 message = s["messages"][-1]
 
@@ -2894,6 +2939,39 @@ Each library is listed with its description to help you understand its functiona
 
                                 yield inner_history, main_history
 
+                        # Explicitly render any figures saved to disk that were not
+                        # already surfaced via the observation text regex above.
+                        try:
+                            from biomni.tool.support_tools import get_saved_figure_paths as _get_figs
+
+                            _obs_shown: set = set()
+                            if isinstance(observation, str):
+                                for _fp in re.findall(
+                                    r"(\S+?(?:\.png|\.jpg|\.jpeg|\.gif|\.bmp|\.webp))",
+                                    observation,
+                                ):
+                                    _fp = _fp.strip("\"'").strip()
+                                    if os.path.isabs(_fp) and os.path.exists(_fp):
+                                        _obs_shown.add(_fp)
+
+                            _new_figs = [
+                                _png
+                                for _png, _svg in _get_figs()
+                                if os.path.exists(_png) and _png not in _obs_shown
+                            ]
+                            if _new_figs:
+                                for _fig_png in _new_figs:
+                                    inner_history.append(
+                                        ChatMessage(
+                                            role="assistant",
+                                            content=gr.Image(_fig_png),
+                                            metadata={"title": "📊 Generated Figure"},
+                                        )
+                                    )
+                                yield inner_history, main_history
+                        except Exception as _fig_err:
+                            print(f"Warning: Could not display saved figures: {_fig_err}")
+
                 t = time()
 
             # If no solution was found, add the final message
@@ -2943,7 +3021,18 @@ Each library is listed with its description to help you understand its functiona
             print(f"Index: {data.index}, Liked: {data.liked}")
 
         # Create the Gradio interface
-        with gr.Blocks() as demo:
+        custom_css = """
+            #stop-btn {
+                background-color: #b91c1c !important;
+                border-color: #991b1b !important;
+            }
+            #stop-btn:hover {
+                background-color: #7f1d1d !important;
+                border-color: #7f1d1d !important;
+            }
+        """
+
+        with gr.Blocks(css=custom_css) as demo:
             # Verification page (if enabled)
             verification_container = gr.Group(visible=require_verification)
             main_interface_container = gr.Group(visible=not require_verification)
@@ -2981,12 +3070,15 @@ Each library is listed with its description to help you understand its functiona
                         )
 
                 with gr.Row():
-                    prompt_input = gr.MultimodalTextbox(
-                        interactive=True,
-                        file_count="multiple",
-                        placeholder="Ask something or upload a file...",
-                        show_label=False,
-                    )
+                    with gr.Column(scale=10):
+                        prompt_input = gr.MultimodalTextbox(
+                            interactive=True,
+                            file_count="multiple",
+                            placeholder="Ask something or upload a file...",
+                            show_label=False,
+                        )
+                    with gr.Column(scale=1, min_width=80):
+                        stop_btn = gr.Button("⏹ Stop", variant="stop", elem_id="stop-btn")
 
                 # Bind submission
                 prompt_input.submit(
@@ -2994,6 +3086,7 @@ Each library is listed with its description to help you understand its functiona
                     [prompt_input, innerloop_chatbot, main_chatbot],
                     [innerloop_chatbot, main_chatbot],
                 ).then(lambda: gr.MultimodalTextbox(value=None), None, [prompt_input])
+                stop_btn.click(fn=stop_generation, inputs=None, outputs=None)
                 main_chatbot.like(like)
 
         # Launch
