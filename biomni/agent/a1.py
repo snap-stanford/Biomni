@@ -2955,9 +2955,7 @@ Each library is listed with its description to help you understand its functiona
                                         _obs_shown.add(_fp)
 
                             _new_figs = [
-                                _png
-                                for _png, _svg in _get_figs()
-                                if os.path.exists(_png) and _png not in _obs_shown
+                                _png for _png, _svg in _get_figs() if os.path.exists(_png) and _png not in _obs_shown
                             ]
                             if _new_figs:
                                 for _fig_png in _new_figs:
