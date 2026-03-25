@@ -1,4 +1,4 @@
-FROM condaforge/mambaforge:latest AS base
+FROM condaforge/mambaforge:latest AS conda-base
 
 WORKDIR /app
 
@@ -14,17 +14,39 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #   biomni_env/bio_env.yml    — full (~30GB, includes R)
 ARG ENV_FILE=biomni_env/fixed_env.yml
 COPY ${ENV_FILE} /app/environment.yml
-RUN mamba env create -f /app/environment.yml -n biomni && \
-    mamba clean -afy
 
-# Activate the environment by default
+# Split: extract conda deps (no pip section) and install them first
+RUN sed '/^  - pip:/,$d' /app/environment.yml > /app/conda_only.yml && \
+    mamba env create -f /app/conda_only.yml -n biomni && \
+    mamba clean -afy && \
+    rm /app/conda_only.yml
+
+# Activate the environment
 ENV PATH=/opt/conda/envs/biomni/bin:$PATH
 ENV CONDA_DEFAULT_ENV=biomni
+
+# Install pip deps as a separate layer
+RUN sed -n '/^  - pip:/,$ { s/^      - //p }' /app/environment.yml > /app/pip_requirements.txt && \
+    if [ -s /app/pip_requirements.txt ]; then \
+        pip install --no-cache-dir -r /app/pip_requirements.txt; \
+    fi && \
+    rm /app/pip_requirements.txt
+
+# Remove caches and unnecessary files to slim down
+RUN find /opt/conda/envs/biomni -name '*.pyc' -delete && \
+    find /opt/conda/envs/biomni -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null; \
+    find /opt/conda/envs/biomni -name '*.a' -delete 2>/dev/null; \
+    rm -rf /opt/conda/envs/biomni/share/doc \
+           /opt/conda/envs/biomni/share/man \
+           /opt/conda/envs/biomni/share/info \
+           /opt/conda/envs/biomni/lib/python3.11/test \
+           /opt/conda/envs/biomni/lib/python3.11/unittest \
+    ; true
 
 # Install biomni package
 COPY pyproject.toml README.md MANIFEST.in /app/
 COPY biomni/ /app/biomni/
-RUN pip install --no-cache-dir ".[gradio]"
+RUN pip install --no-cache-dir --no-deps ".[gradio]"
 
 # Copy entrypoint
 COPY docker/entrypoint.py /app/entrypoint.py
