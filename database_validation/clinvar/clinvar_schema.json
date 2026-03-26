@@ -1,0 +1,214 @@
+{
+  "fields": {
+    "gene": {
+      "tag": "[gene]",
+      "description": "Symbol for a gene of interest.",
+      "type": "free_text",
+      "syntax": "BRCA1[gene]"
+    },
+    "vartype": {
+      "tag": "[vartype]",
+      "description": "Type of variation represented in the record.",
+      "type": "controlled",
+      "syntax": "\"deletion\"[vartype]",
+      "valid_values": [
+        "complex",
+        "deletion",
+        "duplication",
+        "indel",
+        "insertion",
+        "inversion",
+        "microsatellite",
+        "tandem duplication",
+        "translocation",
+        "variation",
+        "copy number gain",
+        "copy number loss",
+        "fusion",
+        "protein only",
+        "single nucleotide variant"
+      ]
+    },
+    "revstat": {
+      "tag": "[revstat]",
+      "description": "Review status of the record.",
+      "type": "controlled",
+      "syntax": "\"reviewed by expert panel\"[revstat]",
+      "valid_values": [
+        "criteria provided, conflicting classifications",
+        "criteria provided, multiple submitters, no conflicts",
+        "criteria provided, single submitter",
+        "no assertion criteria provided",
+        "no classification for the single variant",
+        "no classification provided",
+        "no classifications from unflagged records",
+        "practice guideline",
+        "reviewed by expert panel"
+      ]
+    },
+    "molcons": {
+      "tag": "[molcons]",
+      "description": "Molecular consequence of the variant on the transcript, as predicted by the sequence change. Calculated by NCBI, not submitted.",
+      "type": "controlled",
+      "syntax": "\"missense variant\"[molcons]",
+      "valid_values": [
+        "missense variant",
+        "nonsense",
+        "frameshift variant",
+        "splice donor variant",
+        "splice acceptor variant",
+        "inframe deletion",
+        "inframe insertion",
+        "synonymous variant",
+        "intron variant",
+        "5 prime utr variant",
+        "3 prime utr variant",
+        "stop lost",
+        "no sequence alteration"
+      ]
+    },
+    "origin": {
+      "tag": "[origin]",
+      "description": "The origin of the variant allele.",
+      "type": "controlled",
+      "syntax": "\"germline\"[origin]",
+      "valid_values": [
+        "biparental",
+        "de novo",
+        "germline",
+        "inherited",
+        "maternal",
+        "not applicable",
+        "not provided",
+        "not-reported",
+        "paternal",
+        "somatic",
+        "uniparental",
+        "unknown"
+      ]
+    },
+    "prop": {
+      "tag": "[prop]",
+      "description": "Standard properties used to categorize ClinVar records. Use this field for clinical significance, mode of inheritance, and gene relationships.",
+      "type": "controlled",
+      "syntax": "\"clinsig pathogenic\"[prop]",
+      "note": "Clinical significance MUST be queried through this field, not through [clinsig] which does not exist.",
+      "valid_values": {
+        "clinical_significance": [
+          "clinsig pathogenic",
+          "clinsig likely pathogenic",
+          "clinsig benign",
+          "clinsig likely benign",
+          "clinsig vus",
+          "clinsig has conflicts",
+          "clinsig drug response",
+          "clinsig risk factor",
+          "clinsig other",
+          "clinsig not provided"
+        ],
+        "mode_of_inheritance": [
+          "moi autosomal dominant",
+          "moi autosomal recessive",
+          "moi autosomal unknown",
+          "moi X-linked dominant",
+          "moi X-linked recessive",
+          "moi mitochondrial",
+          "moi sporadic",
+          "moi sex-limited autosomal dominant",
+          "moi other"
+        ],
+        "gene_relationship": [
+          "single gene",
+          "multiple gene",
+          "spans multiple genes",
+          "in overlapping genes",
+          "gene acmg incidental 2013",
+          "gene asserted not computed"
+        ]
+      }
+    },
+    "dis": {
+      "tag": "[dis]",
+      "description": "Disease or phenotype. Not an exact search — e.g. 'autism' returns Autism, Autism spectrum disorder, etc.",
+      "type": "free_text",
+      "syntax": "\"breast cancer\"[dis]"
+    },
+    "chr": {
+      "tag": "[chr]",
+      "description": "Chromosome on which a variant is found.",
+      "type": "controlled",
+      "syntax": "17[chr]",
+      "valid_values": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","x","y","mt"]
+    },
+    "chrpos": {
+      "tag": "[chrpos]",
+      "description": "Chromosome base position on GRCh38.",
+      "type": "numeric_range",
+      "syntax": "43000000:44000000[chrpos]"
+    },
+    "chrpos37": {
+      "tag": "[chrpos37]",
+      "description": "Chromosome base position on GRCh37/hg19.",
+      "type": "numeric_range",
+      "syntax": "43000000:44000000[chrpos37]"
+    },
+    "varlen": {
+      "tag": "[varlen]",
+      "description": "Length of the variant. For structural variant queries, use range syntax.",
+      "type": "numeric_range",
+      "syntax": "50:999999999[varlen]"
+    },
+    "uid": {
+      "tag": "[uid]",
+      "description": "ClinVar Variation ID.",
+      "type": "numeric_id",
+      "syntax": "7105[uid]"
+    },
+    "alleleid": {
+      "tag": "[alleleid]",
+      "description": "ClinVar Allele ID for an individual nucleotide change.",
+      "type": "numeric_id",
+      "syntax": "15041[alleleid]"
+    },
+    "geneid": {
+      "tag": "[geneid]",
+      "description": "NCBI Gene ID.",
+      "type": "numeric_id",
+      "syntax": "672[geneid]"
+    },
+    "clv_acc": {
+      "tag": "[clv_acc]",
+      "description": "SCV, RCV, or VCV accession  from ClinVar.",
+      "type": "free_text",
+      "syntax": "VCV000007105[clv_acc]"
+    },
+    "varnam": {
+      "tag": "[varnam]",
+      "description": "Variant name including HGVS expressions, protein changes, legacy names.",
+      "type": "free_text",
+      "syntax": "V600E[varnam]"
+    },
+    "pmid": {
+      "tag": "[pmid]",
+      "description": "PubMed IDs linked to the record.",
+      "type": "numeric_id",
+      "syntax": "25741868[pmid]"
+    },
+    "traitid": {
+      "tag": "[traitid]",
+      "description": "Disease or phenotype identifier (CUI, HPO, OMIM, ORPHA, MeSH).",
+      "type": "free_text",
+      "syntax": "\"HP 0000077\"[traitid]"
+    }
+  },
+  "query_rules": {
+    "boolean_operators": "AND, OR, NOT — must be uppercase",
+    "grouping": "Use parentheses for OR groups: (\"deletion\"[vartype] OR \"duplication\"[vartype])",
+    "quoting": "Multi-word values MUST be quoted: \"clinsig pathogenic\"[prop]",
+    "sorting": "Add &sort=relevance to align API results with web interface order",
+    "invalid_fields": [
+      "[clinsig] — does not exist, use [prop] with clinsig prefix instead",
+      "[variant type] — does not exist, use [vartype]"
+    ]
+  }
+}

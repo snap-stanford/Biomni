@@ -1,3 +1,6 @@
+# Repo specific
+database_validation/clinvar/variant_summary.*
+
 .gitignore
 .buildplan
 .env
