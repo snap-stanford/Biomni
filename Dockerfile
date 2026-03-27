@@ -46,7 +46,7 @@ RUN find /opt/conda/envs/biomni -name '*.pyc' -delete && \
 # Install biomni package
 COPY pyproject.toml README.md MANIFEST.in /app/
 COPY biomni/ /app/biomni/
-RUN pip install --no-cache-dir --no-deps ".[gradio]"
+RUN pip install --no-cache-dir --no-deps ".[gradio,bedrock]"
 
 # Copy entrypoint
 COPY docker/entrypoint.py /app/entrypoint.py
