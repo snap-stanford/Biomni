@@ -2701,7 +2701,7 @@ Each library is listed with its description to help you understand its functiona
         self.uploaded_files = []  # Persists all uploaded files for the session
         self._stop_event = threading.Event()
         self._session_images = []  # Accumulates image paths for the results panel
-        self._session_files = []   # Accumulates non-image file paths for the results panel
+        self._session_files = []  # Accumulates non-image file paths for the results panel
 
         # Available access codes (if verification is required)
         available_access_codes = ["Biomni2025"]

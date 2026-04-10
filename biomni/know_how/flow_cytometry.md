@@ -74,7 +74,7 @@ This agent provides best practices, workflows, and automation for flow cytometry
 - Clustering: flowSOM, CATALYST
 - Automatic gating: flowClust
 
-### Python 
+### Python
 - core: FlowKit, pandas, numpy
 - Transformation, normalization, compensation, and unmixing: FlowUtils
 - Data visualization: matplotlib, seaborn
