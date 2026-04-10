@@ -47,6 +47,7 @@ examples/tmp*
 bioagentos/task/lab_bench.py
 *database/
 .history/
+tmp/
 
 temp.*
 

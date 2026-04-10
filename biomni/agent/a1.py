@@ -1148,6 +1148,8 @@ After that, you have two options:
 
 2) When you think it is ready, directly provide a solution that adheres to the required format for the given task to the user. Your solution should be enclosed using "<solution>" tag, for example: The answer is <solution> A </solution>. IMPORTANT: You must end the solution block with </solution> tag.
 
+3) If the task is ambiguous or compute-heavy, ask a concise question using the <clarify> tag: <clarify> Your question here </clarify>.
+
 You have many chances to interact with the environment to receive the observation. So you can decompose your code into multiple steps.
 Don't overcomplicate the code. Keep it simple and easy to understand.
 When writing the code, please print out the steps and results in a clear and concise manner, like a research log.
@@ -1158,7 +1160,7 @@ Otherwise the system will not be able to know what has been done.
 For R code, use the #!R marker at the beginning of your code block to indicate it's R code.
 For Bash scripts and commands, use the #!BASH marker at the beginning of your code block. This allows for both simple commands and multi-line scripts with variables, loops, conditionals, loops, and other Bash features.
 
-In each response, you must include EITHER <execute> or <solution> tag. Not both at the same time. Do not respond with messages without any tags. No empty messages.
+In each response, you must include ONE of the following tags: <execute>, <solution>, or <clarify>. Not more than one at the same time. Do not respond with messages without any tags. No empty messages.
 """
 
         # Add self-critic instructions if needed
@@ -1442,13 +1444,19 @@ Each library is listed with its description to help you understand its functiona
             think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL | re.IGNORECASE)
             execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL | re.IGNORECASE)
             answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL | re.IGNORECASE)
+            clarify_match = re.search(r"<clarify>(.*?)</clarify>", msg, re.DOTALL | re.IGNORECASE)
+
+            # Fix incomplete clarify tag
+            if "<clarify>" in msg and "</clarify>" not in msg:
+                msg += "</clarify>"
+                clarify_match = re.search(r"<clarify>(.*?)</clarify>", msg, re.DOTALL | re.IGNORECASE)
 
             # Alternative patterns for OpenAI models that might use different formatting
             if not execute_match:
                 # Try to find code blocks that might be intended as execute blocks
                 code_block_match = re.search(r"```(?:python|bash|r)?\s*(.*?)```", msg, re.DOTALL)
-                if code_block_match and not answer_match:
-                    # If we found a code block and no solution, treat it as execute
+                if code_block_match and not answer_match and not clarify_match:
+                    # If we found a code block and no solution/clarify, treat it as execute
                     execute_match = code_block_match
 
             # Add the message to the state before checking for errors
@@ -1456,6 +1464,8 @@ Each library is listed with its description to help you understand its functiona
 
             if answer_match:
                 state["next_step"] = "end"
+            elif clarify_match:
+                state["next_step"] = "clarify"
             elif execute_match:
                 state["next_step"] = "execute"
             elif think_match:
@@ -1481,7 +1491,7 @@ Each library is listed with its description to help you understand its functiona
                     # Try to correct it
                     state["messages"].append(
                         HumanMessage(
-                            content="Each response must include thinking process followed by either <execute> or <solution> tag. But there are no tags in the current response. Please follow the instruction, fix and regenerate the response again."
+                            content="Each response must include thinking process followed by one of: <execute>, <solution>, or <clarify> tag. But there are no tags in the current response. Please follow the instruction, fix and regenerate the response again."
                         )
                     )
                     state["next_step"] = "generate"
@@ -1571,14 +1581,27 @@ Each library is listed with its description to help you understand its functiona
 
             return state
 
+        def clarify(state: AgentState) -> AgentState:
+            """Pause execution to surface the clarifying question to the user.
+
+            The graph ends here so the Gradio loop can display the question and
+            wait for the user's next message.  When the user replies, go() /
+            go_stream() will re-enter the graph with the full history, and the
+            LLM will continue from where it left off.
+            """
+            state["next_step"] = "end"
+            return state
+
         def routing_function(
             state: AgentState,
-        ) -> Literal["execute", "generate", "end"]:
+        ) -> Literal["execute", "generate", "clarify", "end"]:
             next_step = state.get("next_step")
             if next_step == "execute":
                 return "execute"
             elif next_step == "generate":
                 return "generate"
+            elif next_step == "clarify":
+                return "clarify"
             elif next_step == "end":
                 return "end"
             else:
@@ -1628,6 +1651,7 @@ Each library is listed with its description to help you understand its functiona
         # Add nodes
         workflow.add_node("generate", generate)
         workflow.add_node("execute", execute)
+        workflow.add_node("clarify", clarify)
 
         if self_critic:
             workflow.add_node("self_critic", execute_self_critic)
@@ -1638,6 +1662,7 @@ Each library is listed with its description to help you understand its functiona
                 path_map={
                     "execute": "execute",
                     "generate": "generate",
+                    "clarify": "clarify",
                     "end": "self_critic",
                 },
             )
@@ -1651,8 +1676,9 @@ Each library is listed with its description to help you understand its functiona
             workflow.add_conditional_edges(
                 "generate",
                 routing_function,
-                path_map={"execute": "execute", "generate": "generate", "end": END},
+                path_map={"execute": "execute", "generate": "generate", "clarify": "clarify", "end": END},
             )
+        workflow.add_edge("clarify", END)
         workflow.add_edge("execute", "generate")
         workflow.add_edge(START, "generate")
 
@@ -1776,20 +1802,20 @@ Each library is listed with its description to help you understand its functiona
         return selected_resources_names
 
     def go(self, prompt):
-        """Execute the agent with the given prompt.
-
-        Args:
-            prompt: The user's query
-
-        """
+        """Execute the agent with the given prompt, preserving conversation history."""
         self.critic_count = 0
         self.user_task = prompt
+
+        # Maintain conversation history across calls
+        if not hasattr(self, "_conversation_messages"):
+            self._conversation_messages = []
+        self._conversation_messages.append(HumanMessage(content=prompt))
 
         if self.use_tool_retriever:
             selected_resources_names = self._prepare_resources_for_retrieval(prompt)
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
-        inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
+        inputs = {"messages": list(self._conversation_messages), "next_step": None}
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
         self.log = []
 
@@ -1804,29 +1830,27 @@ Each library is listed with its description to help you understand its functiona
 
         # Store the conversation state for markdown generation
         self._conversation_state = final_state
+        # Sync conversation history
+        if final_state:
+            self._conversation_messages = list(final_state["messages"])
 
         return self.log, message.content
 
     def go_stream(self, prompt) -> Generator[dict, None, None]:
-        """Execute the agent with the given prompt and return a generator that yields each step.
-
-        This function returns a generator that yields each step of the agent's execution,
-        allowing for real-time monitoring of the agent's progress.
-
-        Args:
-            prompt: The user's query
-
-        Yields:
-            dict: Each step of the agent's execution containing the current message and state
-        """
+        """Execute the agent with the given prompt and return a generator that yields each step, preserving conversation history."""
         self.critic_count = 0
         self.user_task = prompt
+
+        # Maintain conversation history across calls
+        if not hasattr(self, "_conversation_messages"):
+            self._conversation_messages = []
+        self._conversation_messages.append(HumanMessage(content=prompt))
 
         if self.use_tool_retriever:
             selected_resources_names = self._prepare_resources_for_retrieval(prompt)
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
-        inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
+        inputs = {"messages": list(self._conversation_messages), "next_step": None}
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
         self.log = []
 
@@ -1844,6 +1868,9 @@ Each library is listed with its description to help you understand its functiona
 
         # Store the conversation state for markdown generation
         self._conversation_state = final_state
+        # Sync conversation history
+        if final_state:
+            self._conversation_messages = list(final_state["messages"])
 
     def update_system_prompt_with_selected_resources(self, selected_resources):
         """Update the system prompt with the selected resources."""
@@ -2673,6 +2700,8 @@ Each library is listed with its description to help you understand its functiona
         self.main_history_copy = []
         self.uploaded_files = []  # Persists all uploaded files for the session
         self._stop_event = threading.Event()
+        self._session_images = []  # Accumulates image paths for the results panel
+        self._session_files = []   # Accumulates non-image file paths for the results panel
 
         # Available access codes (if verification is required)
         available_access_codes = ["Biomni2025"]
@@ -2700,12 +2729,23 @@ Each library is listed with its description to help you understand its functiona
             text_input = prompt_input.get("text", "")
             files = prompt_input.get("files", [])
 
+            # Helper: always yields all three outputs together
+            def cur():
+                all_files = self._session_images + self._session_files
+                choices = [(os.path.basename(p), p) for p in all_files]
+                latest = all_files[-1] if all_files else None
+                return (
+                    inner_history,
+                    main_history,
+                    gr.update(choices=choices, value=latest),
+                )
+
             self.main_history_copy += [{"role": "user", "content": text_input}]
             main_history.append(ChatMessage(role="user", content=text_input if text_input else "[Uploaded file]"))
 
             # Add "Executor is working on it" message
             main_history.append(ChatMessage(role="assistant", content="Executor is working on it 👉"))
-            yield inner_history, main_history
+            yield cur()
 
             # Accumulate newly uploaded files into session memory
             for file_info in files:
@@ -2719,23 +2759,19 @@ Each library is listed with its description to help you understand its functiona
                 for file_path in self.uploaded_files:
                     text_input += f"\n- {file_path}"
 
-            agent_messages = []
-            for msg in self.main_history_copy:
-                if msg["role"] == "user":
-                    agent_messages.append(HumanMessage(content=msg["content"]))
-                elif msg["role"] == "assistant":
-                    if msg["content"] not in ["Executor is working on it 👉"]:
-                        agent_messages.append(AIMessage(content=msg["content"]))
-
-            agent_messages.append(HumanMessage(content=text_input))
+            # Use persistent full conversation history (includes all intermediate steps/observations)
+            if not hasattr(self, "_conversation_messages"):
+                self._conversation_messages = []
+            self._conversation_messages.append(HumanMessage(content=text_input))
 
             # Prepare inputs for the agent
-            inputs = {"messages": agent_messages, "next_step": None}
+            inputs = {"messages": list(self._conversation_messages), "next_step": None}
             config = {"recursion_limit": 500, "configurable": {"thread_id": thread_id}}
 
             # Stream the agent's responses
             t = time()
             solution_found = False
+            final_state = None
 
             # Configure the agent with tool retrieval if needed
             if self.use_tool_retriever:
@@ -2746,7 +2782,7 @@ Each library is listed with its description to help you understand its functiona
                         content="Retrieving relevant tools, data lake items, and libraries...",
                     )
                 )
-                yield inner_history, main_history
+                yield cur()
 
                 try:
                     selected_resources_names = self._prepare_resources_for_retrieval(text_input)
@@ -2761,13 +2797,14 @@ Each library is listed with its description to help you understand its functiona
                             content="Tool retrieval unavailable, proceeding with all tools...",
                         )
                     )
-                    yield inner_history, main_history
+                    yield cur()
 
             # Keep track of code execution messages
             code_execution_messages = []
 
             # Stream the agent's responses
             for s in self.app.stream(inputs, stream_mode="values", config=config):
+                final_state = s
                 if self._stop_event.is_set():
                     inner_history.append(
                         ChatMessage(
@@ -2776,7 +2813,9 @@ Each library is listed with its description to help you understand its functiona
                             metadata={"title": "⏹ Stopped"},
                         )
                     )
-                    yield inner_history, main_history
+                    yield cur()
+                    if final_state:
+                        self._conversation_messages = list(final_state["messages"])
                     return
 
                 t_step = time() - t
@@ -2789,9 +2828,26 @@ Each library is listed with its description to help you understand its functiona
 
                 # Process the message
                 if isinstance(message.content, str):
+                    # Check for clarifying question — surface to user and stop streaming
+                    clarify_match = re.search(r"<clarify>(.*?)</clarify>", message.content, re.DOTALL)
+                    if clarify_match:
+                        question = clarify_match.group(1).strip()
+                        main_history.append(
+                            ChatMessage(
+                                role="assistant",
+                                content=question,
+                                metadata={"title": "❓ Clarification needed"},
+                            )
+                        )
+                        self.main_history_copy += [{"role": "assistant", "content": question}]
+                        if final_state:
+                            self._conversation_messages = list(final_state["messages"])
+                        yield cur()
+                        return
+
                     # Extract thinking/reasoning part (text before any tags)
                     tag_positions = []
-                    for tag in ["<execute>", "<solution>", "<observation>"]:
+                    for tag in ["<execute>", "<solution>", "<observation>", "<clarify>"]:
                         pos = message.content.find(tag)
                         if pos != -1:
                             tag_positions.append(pos)
@@ -2808,7 +2864,7 @@ Each library is listed with its description to help you understand its functiona
                                     metadata={"title": "🤔 Reasoning", "log": "Agent's thinking process"},
                                 )
                             )
-                            yield inner_history, main_history
+                            yield cur()
 
                     # Check for solution tag
                     solution_match = re.search(r"<solution>(.*?)</solution>", message.content, re.DOTALL)
@@ -2823,7 +2879,7 @@ Each library is listed with its description to help you understand its functiona
                         )
                         self.main_history_copy += [{"role": "assistant", "content": solution}]
                         solution_found = True
-                        yield inner_history, main_history
+                        yield cur()
 
                     # Check for execute tag
                     execute_match = re.search(r"<execute>(.*?)</execute>", message.content, re.DOTALL)
@@ -2849,7 +2905,7 @@ Each library is listed with its description to help you understand its functiona
                         )
                         inner_history.append(code_msg)
                         code_execution_messages.append(code_msg)
-                        yield inner_history, main_history
+                        yield cur()
 
                     # Check for observation
                     observation_match = re.search(r"<observation>(.*?)</observation>", message.content, re.DOTALL)
@@ -2881,9 +2937,9 @@ Each library is listed with its description to help you understand its functiona
                                 },
                             )
                         )
-                        yield inner_history, main_history
+                        yield cur()
 
-                        # Check for file paths in the observation
+                        # Route file outputs to the results panel (not inline)
                         if isinstance(observation, str) and any(ext in observation for ext in SUPPORTED_EXTENSIONS):
                             matches = re.findall(r"(\S+?(?:\.png|\.jpg|\.jpeg|\.gif|\.bmp|\.webp|\.pdf))", observation)
 
@@ -2896,14 +2952,6 @@ Each library is listed with its description to help you understand its functiona
                                         valid_matches.append(match)
 
                             if valid_matches:
-                                inner_history.append(
-                                    ChatMessage(
-                                        role="assistant",
-                                        content="",
-                                        metadata={"title": "📁 Files", "log": "Files generated by the agent"},
-                                    )
-                                )
-
                                 for file_path in valid_matches:
                                     file_path = file_path.strip("\"'").strip()
 
@@ -2921,26 +2969,15 @@ Each library is listed with its description to help you understand its functiona
 
                                     if abs_path:
                                         if file_path.lower().endswith(".pdf"):
-                                            inner_history.append(
-                                                ChatMessage(
-                                                    role="assistant",
-                                                    content=f"Found PDF at: {abs_path}",
-                                                    metadata={"title": "📄 PDF File"},
-                                                )
-                                            )
+                                            if abs_path not in self._session_files:
+                                                self._session_files.append(abs_path)
                                         else:
-                                            inner_history.append(
-                                                ChatMessage(
-                                                    role="assistant",
-                                                    content=gr.Image(abs_path),
-                                                    metadata={"title": "🖼️ Image Preview"},
-                                                )
-                                            )
+                                            if abs_path not in self._session_images:
+                                                self._session_images.append(abs_path)
 
-                                yield inner_history, main_history
+                                yield cur()
 
-                        # Explicitly render any figures saved to disk that were not
-                        # already surfaced via the observation text regex above.
+                        # Explicitly render any figures saved to disk not already captured above
                         try:
                             from biomni.tool.support_tools import get_saved_figure_paths as _get_figs
 
@@ -2959,18 +2996,17 @@ Each library is listed with its description to help you understand its functiona
                             ]
                             if _new_figs:
                                 for _fig_png in _new_figs:
-                                    inner_history.append(
-                                        ChatMessage(
-                                            role="assistant",
-                                            content=gr.Image(_fig_png),
-                                            metadata={"title": "📊 Generated Figure"},
-                                        )
-                                    )
-                                yield inner_history, main_history
+                                    if _fig_png not in self._session_images:
+                                        self._session_images.append(_fig_png)
+                                yield cur()
                         except Exception as _fig_err:
                             print(f"Warning: Could not display saved figures: {_fig_err}")
 
                 t = time()
+
+            # Sync full conversation history so follow-up questions see all prior steps
+            if final_state:
+                self._conversation_messages = list(final_state["messages"])
 
             # If no solution was found, add the final message
             if not solution_found:
@@ -3012,11 +3048,22 @@ Each library is listed with its description to help you understand its functiona
                     metadata={"title": "🔄 Complete"},
                 )
             )
-            yield inner_history, main_history
+            yield cur()
 
         def like(data: gr.LikeData):
             print("User liked the response")
             print(f"Index: {data.index}, Liked: {data.liked}")
+
+        IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp")
+
+        def preview_file(selected_path):
+            """Show image preview or file path depending on file type."""
+            if not selected_path:
+                return gr.update(visible=False), gr.update(visible=False)
+            if selected_path.lower().endswith(IMAGE_EXTS):
+                return gr.update(value=selected_path, visible=True), gr.update(visible=False)
+            else:
+                return gr.update(visible=False), gr.update(value=f"📄 {selected_path}", visible=True)
 
         # Create the Gradio interface
         custom_css = """
@@ -3028,9 +3075,12 @@ Each library is listed with its description to help you understand its functiona
                 background-color: #7f1d1d !important;
                 border-color: #7f1d1d !important;
             }
+            #results-file-list { overflow-y: auto; max-height: 220px; }
+            #results-file-list .wrap { gap: 4px !important; }
+            #results-file-list label span { font-size: 0.82rem; word-break: break-all; }
         """
 
-        with gr.Blocks(css=custom_css) as demo:
+        with gr.Blocks(theme=gr.themes.Soft()) as demo:
             # Verification page (if enabled)
             verification_container = gr.Group(visible=require_verification)
             main_interface_container = gr.Group(visible=not require_verification)
@@ -3053,18 +3103,29 @@ Each library is listed with its description to help you understand its functiona
                     with gr.Column(scale=1):
                         main_chatbot = gr.Chatbot(
                             label="Biomni A1 Agent",
-                            type="messages",
                             height=800,
-                            show_copy_button=True,
-                            show_share_button=True,
                         )
                     with gr.Column(scale=1):
                         innerloop_chatbot = gr.Chatbot(
                             label="Biomni Executor",
-                            type="messages",
-                            height=800,
-                            show_copy_button=True,
-                            show_share_button=True,
+                            height=400,
+                        )
+                        gr.Markdown("### 📁 Results Explorer")
+                        results_file_list = gr.Radio(
+                            choices=[],
+                            label="Generated Files & Figures",
+                            interactive=True,
+                            elem_id="results-file-list",
+                        )
+                        results_preview = gr.Image(
+                            label="🖼️ Image Preview",
+                            visible=False,
+                            height=350,
+                        )
+                        results_pdf_path = gr.Textbox(
+                            label="📄 File Path",
+                            interactive=False,
+                            visible=False,
                         )
 
                 with gr.Row():
@@ -3078,15 +3139,22 @@ Each library is listed with its description to help you understand its functiona
                     with gr.Column(scale=1, min_width=80):
                         stop_btn = gr.Button("⏹ Stop", variant="stop", elem_id="stop-btn")
 
+                # File explorer: clicking a file previews it
+                results_file_list.change(
+                    fn=preview_file,
+                    inputs=[results_file_list],
+                    outputs=[results_preview, results_pdf_path],
+                )
+
                 # Bind submission
                 prompt_input.submit(
                     generate_response,
                     [prompt_input, innerloop_chatbot, main_chatbot],
-                    [innerloop_chatbot, main_chatbot],
+                    [innerloop_chatbot, main_chatbot, results_file_list],
                 ).then(lambda: gr.MultimodalTextbox(value=None), None, [prompt_input])
                 stop_btn.click(fn=stop_generation, inputs=None, outputs=None)
                 main_chatbot.like(like)
 
         # Launch
         print(f"Launching Gradio demo on {server_name}:7860")
-        demo.launch(share=share, server_name=server_name)
+        demo.launch(share=share, server_name=server_name, css=custom_css)
