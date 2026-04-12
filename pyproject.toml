@@ -3,36 +3,38 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "biomni"
-dynamic = ["version"]
-description = "Biomni"
+name = "CAi"
+version = "0.1.0"  # 1. 这里改为了静态版本号，彻底解决找不到模块的报错
+description = "CAi"
 readme = "README.md"
-license = "Apache-2.0"
-license-files = ["LICENSE"]
+license = {text = "Apache-2.0"}
 authors = [
-    {name = "Biomni Team", email = "kexinh@cs.stanford.edu"}
+    {name = "CAi Team", email = "kexinh@cs.stanford.edu"}
 ]
 requires-python = ">=3.11"
-dependencies = ["pydantic", "langchain", "python-dotenv"]
+dependencies = [
+    "pydantic", 
+    "langchain", 
+    "python-dotenv"
+]
 
 [project.urls]
-Homepage = "https://github.com/snap-stanford/biomni"
-Repository = "https://github.com/snap-stanford/biomni"
+Homepage = "https://github.com/snap-stanford/CAi"
+Repository = "https://github.com/snap-stanford/CAi"
 
 [project.optional-dependencies]
 gradio = ["gradio>=5.0,<6.0"]
+chemistry = ["pyyaml"]  # biomiplus 化学工具的可选依赖
 
 [tool.setuptools]
 include-package-data = true
 
-[tool.setuptools.dynamic]
-version = {attr = "biomni.version.__version__"}
-
 [tool.setuptools.packages.find]
+include = ["CAi*","base_CAi*"]  # 2. 删除了之前重复的 "CAi*"
 exclude = ["test*", "tutorials*"]
 
 [tool.ruff]
-src = ["src"]
+# 3. 移除了 src = ["src"]，因为你的代码直接在根目录下
 line-length = 120
 
 [tool.ruff.format]
