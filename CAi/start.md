@@ -111,7 +111,7 @@ cd /path/to/Biomni_molecule/CAi
 python additional_tools/server/app.py
 
 # 终端 2：启动 Agent UI
-cd projects/Biomni_molecule/CAi/test
+cd projects/Biomni_molecule/CAi/
 python test_web.py
 ```
 
