@@ -4,7 +4,7 @@ import json
 import requests
 from typing import Dict, Any, Optional, List
 
-TOOL_SERVER_HOST = os.environ.get("TOOL_SERVER_HOST", "100.103.118.42")
+TOOL_SERVER_HOST = os.environ.get("TOOL_SERVER_HOST", "100.103.118.47")
 TOOL_SERVER_PORT = os.environ.get("TOOL_SERVER_PORT", "8001")
 BASE_URL = f"http://{TOOL_SERVER_HOST}:{TOOL_SERVER_PORT}"
 
@@ -157,11 +157,11 @@ def predict_molecule_toxicity(smiles: str) -> str:
     result = _call_worker_api("toxicity", payload)
     
     if "error" in result:
-        return result["error"]
-        
+        return json.dumps({"error": result["error"]})
+
     summary = result.get("summary", {})
     results_data = result.get("results", {})
-    
+
     agent_response = {
         "verdict": "Toxic" if summary.get("is_toxic") else "Non-Toxic",
         "toxicity_probability": summary.get("toxicity_probability"),
@@ -184,7 +184,7 @@ def predict_molecule_toxicity(smiles: str) -> str:
         agent_response["vision_prompt"] = "The structure interpretation image has been saved locally. Please look at the image to analyze the toxic fragments."
 
 
-    import json
+    
     return json.dumps(agent_response, ensure_ascii=False)
 
 
@@ -270,33 +270,39 @@ def generate_libinvent_decorations(smiles: str, num_decorations: int = 32) -> st
         str: A JSON-formatted string containing the successfully generated decorated molecules and their properties, or an error message.
     """
     if "*" not in smiles and "[" not in smiles:
-        return "Error: The input scaffold SMILES must contain an attachment point (like '*' or '[*:1]')."
-        
+        return json.dumps({"error": "The input scaffold SMILES must contain an attachment point (like '*' or '[*:1]')."})
+
     payload = {
         "smiles": smiles,
         "number_of_decorations_per_scaffold": num_decorations
     }
-    
-    result = _call_worker_api("libinvent", payload) # 注意工具名是否匹配
-    
+
+    result = _call_worker_api("libinvent", payload)
+
     if "error" in result:
-        return result["error"]
-        
+        return json.dumps({"error": result["error"]})
+
     summary = result.get("summary", {})
-    
-    # 提取生成的分子数据
-    # 注意：你需要根据 Lib-INVENT 实际的 CSV 列名修改 'SMILES' 的键名
-    molecules_data = []
-    for row in summary.get("preview", []):
-        molecules_data.append(row)
-    
+    columns = summary.get("columns", [])
+    preview_rows = summary.get("preview", [])
+
+    # Extract complete molecule SMILES — Lib-INVENT CSV typically has a "SMILES" column
+    # with the fully decorated molecule. Fall back to returning the raw rows with column info
+    # so the agent knows exactly which key to read.
+    smiles_key = next((c for c in columns if c.upper() == "SMILES"), None)
+    if smiles_key:
+        molecules_smiles = [row[smiles_key] for row in preview_rows if row.get(smiles_key)]
+    else:
+        molecules_smiles = []
+
     agent_response = {
         "status": "success",
         "generated_count": summary.get("row_count"),
-        "decorated_molecules_preview": molecules_data
+        "csv_columns": columns,
+        "molecules_smiles": molecules_smiles,
+        "decorated_molecules_preview": preview_rows,
     }
-    
-    import json
+
     return json.dumps(agent_response, ensure_ascii=False)
 
 # ==========================================
@@ -323,10 +329,10 @@ def predict_antibacterial_pmic(smiles: str) -> str:
     result = _call_worker_api("pmic", payload)
     
     if "error" in result:
-        return result["error"]
-        
+        return json.dumps({"error": result["error"]})
+
     summary = result.get("summary", {})
-    
+
     agent_response = {
         "status": "success",
         "pMIC_value": summary.get("pMIC_value"),
@@ -334,7 +340,7 @@ def predict_antibacterial_pmic(smiles: str) -> str:
         "interpretation": "Higher pMIC means stronger activity. A typical threshold for active compounds is often pMIC > 5.0 (MIC < 10 µM)."
     }
     
-    import json
+    
     return json.dumps(agent_response, ensure_ascii=False)
 
 # ==========================================
@@ -364,7 +370,7 @@ def generate_molecules_for_pocket(protein_pdb_path: str, center_xyz: list = None
                 - "proxy_score" (float): Vina proxy score (binding affinity estimation).
     """
     if not center_xyz and not ref_ligand_path:
-        return 'Error: You must provide either "center_xyz" coordinates OR a "ref_ligand_path" to define the binding pocket.'
+        return json.dumps({"error": 'You must provide either "center_xyz" coordinates OR a "ref_ligand_path" to define the binding pocket.'})
         
     payload = {
         "protein_pdb_path": protein_pdb_path,
@@ -378,10 +384,10 @@ def generate_molecules_for_pocket(protein_pdb_path: str, center_xyz: list = None
         
     # 这个工具跑得比较慢，允许 15 分钟超时
     result = _call_worker_api("rxnflow", payload, timeout_mins=15)
-    
+
     if "error" in result:
-        return result["error"]
-        
+        return json.dumps({"error": result["error"]})
+
     summary = result.get("summary", {})
     results_data = result.get("results", {})
     
@@ -393,7 +399,7 @@ def generate_molecules_for_pocket(protein_pdb_path: str, center_xyz: list = None
         "top_molecules_preview": results_data.get("generated_preview", [])
     }
     
-    import json
+    
     return json.dumps(agent_response, ensure_ascii=False)
 
 # ==========================================
@@ -430,10 +436,10 @@ def perform_molecular_docking_vina(receptor_pdbqt_path: str, ligand_pdbqt_path: 
         
     # 分子对接可能非常耗时，特别是 exhaustiveness > 32 时，设置 20 分钟超时
     result = _call_worker_api("vina", payload, timeout_mins=20)
-    
+
     if "error" in result:
-        return result["error"]
-        
+        return json.dumps({"error": result["error"]})
+
     summary = result.get("summary", {})
     results_data = result.get("results", {})
     
@@ -445,7 +451,7 @@ def perform_molecular_docking_vina(receptor_pdbqt_path: str, ligand_pdbqt_path: 
         "interpretation": "More negative scores indicate stronger binding affinity."
     }
     
-    import json
+    
     return json.dumps(agent_response, ensure_ascii=False)
 
 
@@ -474,16 +480,16 @@ def score_molecules_reinvent(smiles_list: list) -> str:
                 - "alerts" (str): Structural alerts or toxicity warnings (empty string if none).
     """
     if not smiles_list or not isinstance(smiles_list, list):
-        return 'Error: Please provide a valid list of SMILES strings.'
-        
+        return json.dumps({"error": "Please provide a valid list of SMILES strings."})
+
     payload = {
         "smiles_list": smiles_list
     }
-        
-    result = _call_worker_api("reinvent4", payload,action="score" ,timeout_mins=5)
-    
+
+    result = _call_worker_api("reinvent4", payload, action="score", timeout_mins=5)
+
     if "error" in result:
-        return result["error"]
+        return json.dumps({"error": result["error"]})
         
     summary = result.get("summary", {})
     scores_data = result.get("results", {}).get("scored_data", [])
@@ -497,7 +503,7 @@ def score_molecules_reinvent(smiles_list: list) -> str:
         "top_molecules_sorted_by_score": sorted_scores[:20] # 如果分子太多，只返回前 20 个避免超出上下文
     }
     
-    import json
+    
     return json.dumps(agent_response, ensure_ascii=False)
 
 # ==========================================
@@ -518,10 +524,10 @@ def generate_molecules_reinvent(num_samples: int = 50) -> str:
         "num_samples": num_samples
     }
         
-    result = _call_worker_api("reinvent4", payload,action = "sample" ,timeout_mins=10)
-    
+    result = _call_worker_api("reinvent4", payload, action="sample", timeout_mins=10)
+
     if "error" in result:
-        return result["error"]
+        return json.dumps({"error": result["error"]})
         
     summary = result.get("summary", {})
     molecules_data = result.get("results", {}).get("molecules", [])
@@ -535,7 +541,7 @@ def generate_molecules_reinvent(num_samples: int = 50) -> str:
         "molecules_smiles": smiles_list
     }
     
-    import json
+    
     return json.dumps(agent_response, ensure_ascii=False)
 
 # ==========================================
@@ -566,9 +572,10 @@ def generate_molecules_drugex(input_fragments: str = "arl_test_graph.txt", gener
                 - "qsarpred_a2ar" (float): Predicted activity score for the A2AR target.
     """
     payload = {"input_fragments": input_fragments, "generator": generator_model, "num_samples": num_samples}
-    result = _call_worker_api("drugex", payload, timeout_mins=10)
+    result = _call_worker_api("drugex", payload, action = "generate",timeout_mins=10)
     
-    if "error" in result: return result["error"]
+    if "error" in result:
+        return json.dumps({"error": result["error"]})
     
     summary = result.get("summary", {})
     agent_response = {
@@ -578,5 +585,5 @@ def generate_molecules_drugex(input_fragments: str = "arl_test_graph.txt", gener
         "total_generated": summary.get("total_molecules_generated"),
         "top_molecules_preview": result.get("results", {}).get("molecules_preview", [])
     }
-    import json
+    
     return json.dumps(agent_response, ensure_ascii=False)

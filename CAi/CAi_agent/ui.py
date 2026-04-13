@@ -6,6 +6,8 @@ from typing import List, Dict, Any, Tuple, Optional
 import gradio as gr
 from langchain_core.messages import AIMessage, HumanMessage
 
+from CAi.config import WORKSPACE_DIR
+
 
 class AgentGradioUI:
     """Gradio UI wrapper for the agent with file management and chat interface."""
@@ -23,7 +25,7 @@ class AgentGradioUI:
             self.agent.main_history_copy = []
 
         self.available_access_codes = ["CAi"]
-        self.workspace_dir = os.path.abspath(os.path.join(os.getcwd(), "agent_workspace"))
+        self.workspace_dir = str((WORKSPACE_DIR / "agent_workspace").resolve())
         os.makedirs(self.workspace_dir, exist_ok=True)
 
     # ========== Access Control ==========
@@ -231,6 +233,7 @@ class AgentGradioUI:
         display_text = text_input
         uploaded_filenames = []
 
+        agent_prompt += f"\n\n[系统规则]: 你的指定工作目录是 '{self.workspace_dir}'。请将你在执行任务期间生成的所有文件（如图片、CSV、PDF等）直接保存到该绝对路径下。"
         # Process newly uploaded files
         for file_path in files:
             file_name = os.path.basename(file_path)
