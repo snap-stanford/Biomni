@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import json
-import os
 import sys
 import warnings
 from pathlib import Path
@@ -17,8 +15,9 @@ except ImportError as e:
     sys.exit(1)
 
 
-def vina_docking(cwd_path, receptor_pdbqt_file, ligand_pdbqt_file, center, box_size,
-                 exhaustiveness=32, n_poses=20, sf_name="vina"):
+def vina_docking(
+    cwd_path, receptor_pdbqt_file, ligand_pdbqt_file, center, box_size, exhaustiveness=32, n_poses=20, sf_name="vina"
+):
     """
     使用 AutoDock Vina 进行分子对接。
     ...
@@ -27,7 +26,7 @@ def vina_docking(cwd_path, receptor_pdbqt_file, ligand_pdbqt_file, center, box_s
     receptor_path = Path(receptor_pdbqt_file)
     if not receptor_path.is_absolute():
         receptor_path = cwd_path / receptor_path
-        
+
     ligand_path = Path(ligand_pdbqt_file)
     if not ligand_path.is_absolute():
         ligand_path = cwd_path / ligand_path
@@ -59,7 +58,7 @@ def vina_docking(cwd_path, receptor_pdbqt_file, ligand_pdbqt_file, center, box_s
     # 6. 全局对接 (Docking)
     v.dock(exhaustiveness=exhaustiveness, n_poses=n_poses)
     v.write_poses(str(output_path), n_poses=5, overwrite=True)
-    
+
     # 尝试获取对接后的最优构象打分
     try:
         energies = v.energies()
@@ -86,7 +85,7 @@ def main():
         if not params_file.exists():
             raise FileNotFoundError("当前沙盒目录下未找到 params.json")
 
-        with open(params_file, "r", encoding="utf-8") as f:
+        with open(params_file, encoding="utf-8") as f:
             params = json.load(f)
 
         # 2. 执行对接计算
@@ -106,7 +105,7 @@ def main():
         result_payload["summary"] = {
             "task": "Molecular Docking (AutoDock Vina)",
             "best_docking_score": data["best_docking_score"],
-            "score_after_minimization": data["score_after_minimization"]
+            "score_after_minimization": data["score_after_minimization"],
         }
         result_payload["results"] = data
         del result_payload["error"]
@@ -120,7 +119,9 @@ def main():
         json.dump(result_payload, f, ensure_ascii=False, indent=2)
 
     if result_payload.get("success"):
-        print(f"🎉 对接完成！最佳对接打分 (Best Docking Score): {result_payload['summary']['best_docking_score']} kcal/mol")
+        print(
+            f"🎉 对接完成！最佳对接打分 (Best Docking Score): {result_payload['summary']['best_docking_score']} kcal/mol"
+        )
     else:
         print(f"❌ 工具运行失败: {result_payload.get('error')}", file=sys.stderr)
 

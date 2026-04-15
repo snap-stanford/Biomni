@@ -1,5 +1,3 @@
-
-
 class GenerativeModelRegimeEnum:
     INFERENCE = "inference"
     TRAINING = "training"

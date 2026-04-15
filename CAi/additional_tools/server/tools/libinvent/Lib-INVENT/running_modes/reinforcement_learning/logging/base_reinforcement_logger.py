@@ -3,9 +3,7 @@ from abc import ABC, abstractmethod
 
 import torch
 from reinvent_scoring.scoring.enums.scoring_function_component_enum import ScoringFunctionComponentNameEnum
-
 from reinvent_scoring.scoring.score_summary import FinalSummary
-
 from running_modes.configurations.log_configuration import LogConfiguration
 
 
@@ -18,9 +16,17 @@ class BaseReinforcementLogger(ABC):
         raise NotImplementedError("log_message method is not implemented")
 
     @abstractmethod
-    def timestep_report(self, start_time, n_steps, step, score_summary: FinalSummary,
-                        agent_likelihood: torch.tensor, prior_likelihood: torch.tensor,
-                        augmented_likelihood: torch.tensor, diversity_filter):
+    def timestep_report(
+        self,
+        start_time,
+        n_steps,
+        step,
+        score_summary: FinalSummary,
+        agent_likelihood: torch.tensor,
+        prior_likelihood: torch.tensor,
+        augmented_likelihood: torch.tensor,
+        diversity_filter,
+    ):
         raise NotImplementedError("timestep_report method is not implemented")
 
     def save_filter_memory(self, diversity_filter):
@@ -29,7 +35,6 @@ class BaseReinforcementLogger(ABC):
         self.save_to_csv(diversity_memory, self._configuration.logging_path)
 
     def save_to_csv(self, scaffold_memory, path, job_name="default_job"):
-
         sf_enum = ScoringFunctionComponentNameEnum()
         if not os.path.isdir(path):
             os.makedirs(path)

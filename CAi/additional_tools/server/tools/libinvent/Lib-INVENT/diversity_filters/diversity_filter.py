@@ -4,9 +4,7 @@ from diversity_filters.diversity_filter_parameters import DiversityFilterParamet
 
 
 class DiversityFilter:
-
     def __new__(cls, parameters: DiversityFilterParameters) -> BaseDiversityFilter:
-        all_filters = dict(NoFilter=NoFilter,
-                           NoFilterWithPenalty=NoFilterWithPenalty)
+        all_filters = {"NoFilter": NoFilter, "NoFilterWithPenalty": NoFilterWithPenalty}
         div_filter = all_filters.get(parameters.name)
         return div_filter(parameters)

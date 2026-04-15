@@ -1,4 +1,5 @@
 """启动脚本 - 同时启动 FastAPI 后端和 React 前端"""
+
 import subprocess
 import sys
 import time
@@ -35,6 +36,7 @@ def start_backend(agent, host=WEB_BACKEND_HOST, port=WEB_BACKEND_PORT):
     print(f"🚀 Starting backend on http://localhost:{port}")
 
     import uvicorn
+
     uvicorn.run(api.app, host=host, port=port)
 
 
@@ -58,19 +60,14 @@ def launch_web_ui(agent, backend_port=WEB_BACKEND_PORT):
     """
     import threading
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("🌐 CAi Agent Web UI")
-    print("="*60)
+    print("=" * 60)
 
     check_dependencies()
 
     # 在单独的线程中启动后端
-    backend_thread = threading.Thread(
-        target=start_backend,
-        args=(agent,),
-        kwargs={"port": backend_port},
-        daemon=True
-    )
+    backend_thread = threading.Thread(target=start_backend, args=(agent,), kwargs={"port": backend_port}, daemon=True)
     backend_thread.start()
 
     # 等待后端启动

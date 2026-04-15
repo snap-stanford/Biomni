@@ -14,29 +14,38 @@ Additional Tools for A1pro Agent
     def my_tool(param1: str, param2: int) -> dict:
         '''
         工具描述
-        
+
         Parameters:
             param1: 参数1描述
             param2: 参数2描述
-        
+
         Returns:
             返回值描述
         '''
         # 在函数内部导入依赖
         import pandas as pd
-        
+
         # 工具逻辑
         result = ...
-        
+
         return result
 """
 
 # 从子模块导入所有工具
 
-from .template_tools import (calculate_scscore,generate_scaffold_analogs,
-                            generate_libinvent_decorations,predict_molecule_toxicity,
-                            perform_molecular_docking_vina,predict_antibacterial_pmic,generate_molecules_reinvent,
-                            generate_molecules_for_pocket,score_molecules_reinvent,generate_molecules_drugex)
+from .template_tools import (
+    calculate_scscore,
+    generate_libinvent_decorations,
+    generate_molecules_drugex,
+    generate_molecules_for_pocket,
+    generate_molecules_reinvent,
+    generate_scaffold_analogs,
+    perform_molecular_docking_vina,
+    predict_antibacterial_pmic,
+    predict_molecule_toxicity,
+    score_molecules_reinvent,
+)
+
 # 导入化学工具（包括 SCScore - 跨环境调用）
 # from .chemistry_tools import (
 #     calculate_scscore,
@@ -50,15 +59,14 @@ from .template_tools import (calculate_scscore,generate_scaffold_analogs,
 # from .data_tools import *
 
 __all__ = [
-    
-    'calculate_scscore',
-    'generate_scaffold_analogs',
-    'predict_molecule_toxicity',
-    'generate_molecules_for_pocket',
-    'generate_libinvent_decorations',
-    'predict_antibacterial_pmic',
-    'perform_molecular_docking_vina',
-    'score_molecules_reinvent',
-    'generate_molecules_reinvent',
-    'generate_molecules_drugex'
+    "calculate_scscore",
+    "generate_scaffold_analogs",
+    "predict_molecule_toxicity",
+    "generate_molecules_for_pocket",
+    "generate_libinvent_decorations",
+    "predict_antibacterial_pmic",
+    "perform_molecular_docking_vina",
+    "score_molecules_reinvent",
+    "generate_molecules_reinvent",
+    "generate_molecules_drugex",
 ]

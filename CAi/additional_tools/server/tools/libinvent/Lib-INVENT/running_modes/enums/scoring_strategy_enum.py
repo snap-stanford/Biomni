@@ -10,4 +10,3 @@ class ScoringStrategyEnum:
     # prohibit any attempt to set any values
     def __setattr__(self, key, value):
         raise ValueError("No changes allowed.")
-

@@ -1,4 +1,3 @@
-
 class RunningModeEnum:
     TRANSFER_LEARNING = "transfer_learning"
     REINFORCEMENT_LEARNING = "reinforcement_learning"

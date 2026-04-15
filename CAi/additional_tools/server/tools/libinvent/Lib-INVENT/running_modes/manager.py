@@ -2,13 +2,19 @@ import json
 import os
 
 from dacite import from_dict
-
 from models.model import DecoratorModel
-from running_modes.configurations import ReinforcementLearningConfiguration, ScaffoldDecoratingConfiguration, \
-    TransferLearningConfiguration, ConfigurationEnvelope, ScoringConfiguration
+
+from running_modes.configurations import (
+    ConfigurationEnvelope,
+    ReinforcementLearningConfiguration,
+    ScaffoldDecoratingConfiguration,
+    ScoringConfiguration,
+    TransferLearningConfiguration,
+)
 from running_modes.configurations.create_model_configuration import CreateModelConfiguration
-from running_modes.configurations.tuples_likelihood_computation_configuration import \
-    TuplesLikelihoodComputationConfiguration
+from running_modes.configurations.tuples_likelihood_computation_configuration import (
+    TuplesLikelihoodComputationConfiguration,
+)
 from running_modes.create_model.create_model import CreateModel
 from running_modes.enums import GenerativeModelRegimeEnum, RunningModeEnum
 from running_modes.reinforcement_learning.logging import ReinforcementLogger
@@ -17,12 +23,12 @@ from running_modes.scaffold_decorating.logging.scaffold_decorating_logger import
 from running_modes.scaffold_decorating.scaffold_decoration import ScaffoldDecorator
 from running_modes.scoring.scoring import Scoring
 from running_modes.transfer_learning.transfer_learning import LargeScaleTransferLearning
-from running_modes.tuples_likelihood_computation.tuples_likelihood_computation import \
-    ComputeScaffoldDecorationLikelihoods
+from running_modes.tuples_likelihood_computation.tuples_likelihood_computation import (
+    ComputeScaffoldDecorationLikelihoods,
+)
 
 
 class Manager:
-
     def __init__(self, configuration):
         self._configuration = from_dict(data_class=ConfigurationEnvelope, data=configuration)
         self._model_regime = GenerativeModelRegimeEnum()
@@ -61,8 +67,9 @@ class Manager:
         model_creator.run()
 
     def _compute_tuples_likelihoods(self):
-        nlls_config = from_dict(data_class=TuplesLikelihoodComputationConfiguration,
-                                data=self._configuration.parameters)
+        nlls_config = from_dict(
+            data_class=TuplesLikelihoodComputationConfiguration, data=self._configuration.parameters
+        )
         nlls_calculator = ComputeScaffoldDecorationLikelihoods(nlls_config)
         nlls_calculator.run()
 
@@ -75,7 +82,7 @@ class Manager:
             running_mode.REINFORCEMENT_LEARNING: self._reinforcement_learning,
             running_mode.SCORING: self._scoring,
             running_mode.CREATE_MODEL: self._create_model,
-            running_mode.TUPLES_LIKELIHOOD_COMPUTATION: self._compute_tuples_likelihoods
+            running_mode.TUPLES_LIKELIHOOD_COMPUTATION: self._compute_tuples_likelihoods,
         }
         job = switcher.get(self._configuration.run_type, lambda: TypeError)
         job()
@@ -83,7 +90,7 @@ class Manager:
     def _load_environmental_variables(self):
         try:
             project_root = os.path.dirname(__file__)
-            with open(os.path.join(project_root, '../configurations/config.json'), 'r') as f:
+            with open(os.path.join(project_root, "../configurations/config.json")) as f:
                 config = json.load(f)
             environmental_variables = config["ENVIRONMENTAL_VARIABLES"]
             for key, value in environmental_variables.items():

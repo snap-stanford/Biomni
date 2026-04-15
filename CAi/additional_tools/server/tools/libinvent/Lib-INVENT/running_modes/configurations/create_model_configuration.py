@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class CreateModelConfiguration:
     input_smiles_path: str

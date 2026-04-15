@@ -1,5 +1,3 @@
-
-
 class DiversityFilterEnum:
     NO_FILTER = "NoFilter"
     NO_FILTER_WITH_PENALTY = "NoFilterWithPenalty"

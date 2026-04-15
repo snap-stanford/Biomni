@@ -7,7 +7,6 @@ Simplified version focusing on functionality over complex styling.
 
 import gradio as gr
 
-
 # ========== Theme Configuration ==========
 
 # ========== Theme Configuration ==========
@@ -160,6 +159,7 @@ CHAT_HEIGHT = 640
 
 # ========== Layout Builders ==========
 
+
 def _build_verification_page(ui_instance):
     """Build the access code verification page."""
     with gr.Column(elem_classes="verify-card fade-in"):
@@ -218,7 +218,7 @@ def _build_sidebar(ui_instance):
                 wrap=True,
                 row_count=4,  # 👇 进一步缩短显示行数，让界面更紧凑
             )
-            
+
             # 内部原有的预览折叠保持不变
             with gr.Accordion("👁️ 内容预览", open=False, elem_classes="accordion"):
                 preview_image = gr.Image(interactive=False, visible=False, show_label=False)
@@ -276,6 +276,7 @@ def _build_chat_area():
 
     return main_chatbot, innerloop_chatbot
 
+
 def _build_input_area(ui_instance):
     """Build the input area with file reference and text input."""
     with gr.Column(elem_classes="input-card fade-in"):
@@ -328,11 +329,7 @@ def _setup_event_handlers(
         inputs=[prompt_input, ref_dropdown, innerloop_chatbot, main_chatbot],
         outputs=[innerloop_chatbot, main_chatbot, file_viewer, ref_dropdown],
         show_progress="full",
-    ).then(
-        lambda: ({"text": "", "files": []}, []),
-        None,
-        [prompt_input, ref_dropdown]
-    )
+    ).then(lambda: ({"text": "", "files": []}, []), None, [prompt_input, ref_dropdown])
 
     # Helper function to hide all previews
     hide_previews = lambda: (
@@ -365,6 +362,7 @@ def _setup_event_handlers(
 
 # ========== Main Layout Builder ==========
 
+
 def build_layout(ui_instance):
     """
     Build the complete Gradio UI layout.
@@ -375,7 +373,7 @@ def build_layout(ui_instance):
     Returns:
         gr.Blocks: Configured Gradio interface
     """
-    with gr.Blocks(theme=THEME, title="CAi Agent", css=CSS,fill_width=True, fill_height=True) as demo:
+    with gr.Blocks(theme=THEME, title="CAi Agent", css=CSS, fill_width=True, fill_height=True) as demo:
         verification_container = gr.Group(visible=ui_instance.require_verification)
         main_interface_container = gr.Group(visible=not ui_instance.require_verification)
 
@@ -396,12 +394,10 @@ def build_layout(ui_instance):
 
             with gr.Row(equal_height=False):
                 # Sidebar
-                file_viewer, preview_image, preview_code, preview_pdf, preview_fallback = _build_sidebar(
-                    ui_instance
-                )
+                file_viewer, preview_image, preview_code, preview_pdf, preview_fallback = _build_sidebar(ui_instance)
 
                 # 2. 👇 把这里的主区域权重加大！从 3 改成 4 或 5
-                with gr.Column(scale=5): 
+                with gr.Column(scale=5):
                     main_chatbot, innerloop_chatbot = _build_chat_area()
                     ref_dropdown, prompt_input = _build_input_area(ui_instance)
 

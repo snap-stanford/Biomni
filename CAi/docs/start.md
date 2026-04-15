@@ -79,7 +79,7 @@ BASE_URL = f"http://{TOOL_SERVER_HOST}:{TOOL_SERVER_PORT}"
 
 ```python
 # run_agent.py（在 Biomni_molecule/ 目录下运行）
-import os 
+import os
 from CAi.CAi_agent.agent import A1pro
 from CAi.config import LLM_BASE_URL,LLM_API_KEY
 

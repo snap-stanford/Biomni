@@ -87,16 +87,16 @@ agent = A1pro(
 def my_awesome_tool(param1: str, param2: int) -> dict:
     """
     工具的简短描述（这会显示在工具列表中）
-    
+
     详细描述工具的功能和用途...
-    
+
     Parameters:
         param1: 参数1的描述
         param2: 参数2的描述
-    
+
     Returns:
         返回值的描述
-    
+
     Examples:
         >>> my_awesome_tool("test", 42)
         {'result': 'success'}
@@ -105,10 +105,10 @@ def my_awesome_tool(param1: str, param2: int) -> dict:
     import pandas as pd
     import requests
     from my_custom_module import helper_function
-    
+
     # 工具逻辑
     result = helper_function(param1, param2)
-    
+
     return {'result': result}
 ```
 
@@ -156,7 +156,7 @@ def simple_calculator(expression: str) -> float:
 def fetch_molecule_data(molecule_name: str) -> dict:
     """获取分子数据 - 从 PubChem 获取分子信息"""
     import requests
-    
+
     url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{molecule_name}/JSON"
     response = requests.get(url)
     return response.json()
@@ -169,9 +169,9 @@ def smiles_to_properties(smiles: str) -> dict:
     """SMILES 转化学性质 - 使用 RDKit 计算分子性质"""
     from rdkit import Chem
     from rdkit.Chem import Descriptors
-    
+
     mol = Chem.MolFromSmiles(smiles)
-    
+
     return {
         'molecular_weight': Descriptors.MolWt(mol),
         'logp': Descriptors.MolLogP(mol),
@@ -185,12 +185,12 @@ def smiles_to_properties(smiles: str) -> dict:
 def batch_analysis(smiles_list: list[str]) -> dict:
     """批量分析 - 分析多个分子"""
     results = []
-    
+
     for smiles in smiles_list:
         # 调用其他工具
         result = smiles_to_properties(smiles)
         results.append(result)
-    
+
     return {'results': results}
 ```
 
@@ -302,13 +302,13 @@ def create_database_tool(db_path: str):
     # 初始化连接（只执行一次）
     import sqlite3
     conn = sqlite3.connect(db_path)
-    
+
     def query_database(sql: str) -> dict:
         """查询数据库"""
         import pandas as pd
         result = pd.read_sql_query(sql, conn)
         return result.to_dict()
-    
+
     return query_database
 
 # 使用
@@ -375,11 +375,11 @@ return "Result: 42"
 def my_tool(param: str) -> dict:
     """
     工具描述
-    
+
     Examples:
         >>> my_tool("test")
         {'result': 'success'}
-        
+
         >>> my_tool("error")
         {'error': 'Invalid input'}
     """
@@ -412,7 +412,7 @@ def cached_tool(param):
     """带缓存的工具"""
     if param in _cache:
         return _cache[param]
-    
+
     result = expensive_computation(param)
     _cache[param] = result
     return result

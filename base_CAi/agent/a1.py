@@ -21,6 +21,8 @@ from base_CAi.model.retriever import ToolRetriever
 from base_CAi.tool.support_tools import run_python_repl
 from base_CAi.tool.tool_registry import ToolRegistry
 from base_CAi.utils import (
+    # function_to_api_schema,
+    auto_to_api_schema,
     check_and_download_s3_files,
     clean_message_content,
     convert_markdown_to_pdf,
@@ -29,8 +31,6 @@ from base_CAi.utils import (
     format_execute_tags_in_content,
     format_lists_in_text,
     format_observation_as_terminal,
-    #function_to_api_schema,
-    auto_to_api_schema,
     has_execution_results,
     inject_custom_functions_to_repl,
     parse_tool_calls_from_code,
@@ -215,7 +215,7 @@ class A1:
         """
         try:
             # Get function information
-            function_code = inspect.getsource(api)
+            inspect.getsource(api)
             module_name = api.__module__ if hasattr(api, "__module__") else "custom_tools"
             function_name = api.__name__ if hasattr(api, "__name__") else str(api)
 

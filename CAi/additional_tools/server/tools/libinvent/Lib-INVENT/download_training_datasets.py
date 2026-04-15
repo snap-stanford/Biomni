@@ -1,10 +1,10 @@
 """Download training datasets from Zenodo."""
-import requests
+
 from pathlib import Path
 
-from tqdm.auto import tqdm
-
+import requests
 from definitions import ROOT_DIR
+from tqdm.auto import tqdm
 
 
 def download_file(url: str, file_path: Path) -> None:
@@ -27,7 +27,7 @@ def download_file(url: str, file_path: Path) -> None:
                 fileobj.write(chunk)
                 pbar.update(len(chunk))
         pbar.close()
-    
+
     return
 
 

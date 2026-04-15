@@ -1,5 +1,5 @@
 {
-    "name": "vina",
-    "conda_env": "vina",
-    "gpu": false
-  }
+	"name": "vina",
+	"conda_env": "vina",
+	"gpu": false
+}

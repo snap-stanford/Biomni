@@ -11,4 +11,3 @@ class ScaffoldDecoratingConfiguration:
     sample_uniquely: bool = True
     number_of_decorations_per_scaffold: int = 32
     randomize: bool = False
-

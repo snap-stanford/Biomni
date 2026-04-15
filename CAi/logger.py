@@ -6,12 +6,10 @@ Provides structured logging with different levels, file rotation, and colored co
 """
 
 import logging
-import sys
-from pathlib import Path
-from logging.handlers import RotatingFileHandler
-from datetime import datetime
-from typing import Optional
 import os
+import sys
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 
 class ColoredFormatter(logging.Formatter):
@@ -19,22 +17,19 @@ class ColoredFormatter(logging.Formatter):
 
     # ANSI color codes
     COLORS = {
-        'DEBUG': '\033[36m',      # Cyan
-        'INFO': '\033[32m',       # Green
-        'WARNING': '\033[33m',    # Yellow
-        'ERROR': '\033[31m',      # Red
-        'CRITICAL': '\033[35m',   # Magenta
+        "DEBUG": "\033[36m",  # Cyan
+        "INFO": "\033[32m",  # Green
+        "WARNING": "\033[33m",  # Yellow
+        "ERROR": "\033[31m",  # Red
+        "CRITICAL": "\033[35m",  # Magenta
     }
-    RESET = '\033[0m'
-    BOLD = '\033[1m'
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
 
     def format(self, record):
         # Add color to level name
         if record.levelname in self.COLORS:
-            record.levelname = (
-                f"{self.COLORS[record.levelname]}{self.BOLD}"
-                f"{record.levelname:8s}{self.RESET}"
-            )
+            record.levelname = f"{self.COLORS[record.levelname]}{self.BOLD}{record.levelname:8s}{self.RESET}"
         return super().format(record)
 
 
@@ -56,7 +51,7 @@ class CAiLogger:
     def __init__(
         self,
         name: str = "base_CAi",
-        log_dir: Optional[str] = None,
+        log_dir: str | None = None,
         console_level: str = "INFO",
         file_level: str = "DEBUG",
         max_bytes: int = 10 * 1024 * 1024,  # 10MB
@@ -107,32 +102,18 @@ class CAiLogger:
         # File handler with rotation
         if enable_file:
             log_file = self.log_dir / f"{name}.log"
-            file_handler = RotatingFileHandler(
-                log_file,
-                maxBytes=max_bytes,
-                backupCount=backup_count,
-                encoding='utf-8'
-            )
+            file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8")
             file_handler.setLevel(getattr(logging, file_level.upper()))
 
             # Detailed format for file
-            file_format = (
-                "%(asctime)s | %(levelname)-8s | %(name)s | "
-                "%(funcName)s:%(lineno)d | %(message)s"
-            )
-            file_handler.setFormatter(
-                logging.Formatter(file_format, datefmt="%Y-%m-%d %H:%M:%S")
-            )
+            file_format = "%(asctime)s | %(levelname)-8s | %(name)s | %(funcName)s:%(lineno)d | %(message)s"
+            file_handler.setFormatter(logging.Formatter(file_format, datefmt="%Y-%m-%d %H:%M:%S"))
             self.logger.addHandler(file_handler)
 
         CAiLogger._instances[name] = self
 
     @classmethod
-    def get_logger(
-        cls,
-        name: str = "base_CAi",
-        **kwargs
-    ) -> logging.Logger:
+    def get_logger(cls, name: str = "base_CAi", **kwargs) -> logging.Logger:
         """
         Get or create a logger instance.
 
@@ -166,9 +147,7 @@ class CAiLogger:
         """Disable console output for all loggers."""
         for instance in cls._instances.values():
             for handler in instance.logger.handlers:
-                if isinstance(handler, logging.StreamHandler) and not isinstance(
-                    handler, RotatingFileHandler
-                ):
+                if isinstance(handler, logging.StreamHandler) and not isinstance(handler, RotatingFileHandler):
                     instance.logger.removeHandler(handler)
 
     @classmethod

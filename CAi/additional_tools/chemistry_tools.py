@@ -1,4 +1,4 @@
-﻿"""
+"""
 化学工具集 - SCScore 合成复杂度评分（跨环境调用）
 
 这些工具在独立的 scscore conda 环境中运行，使用 RDKit 和 SCScorer 模型

@@ -1,11 +1,10 @@
-import os 
 from CAi.CAi_agent.agent import A1pro
-from CAi.config import LLM_BASE_URL,LLM_API_KEY
+from CAi.config import LLM_API_KEY, LLM_BASE_URL
 
 agent = A1pro(
     # llm="claude-sonnet-4-5-20250929",
     # llm = "Qwen/Qwen3-8B",
-    llm = "Qwen/Qwen3-32B",
+    llm="Qwen/Qwen3-32B",
     # llm = "deepseek-ai/DeepSeek-R1",
     # llm = "x-ai/grok-4-fast",
     source="Custom",
@@ -17,4 +16,3 @@ agent = A1pro(
 )
 
 agent.launch_new_gradio_demo(share=True)
-

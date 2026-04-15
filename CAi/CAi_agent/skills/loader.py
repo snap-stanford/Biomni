@@ -39,7 +39,7 @@ class SkillLoader:
                 continue
 
             # Read the document
-            with open(filepath, encoding='utf-8') as f:
+            with open(filepath, encoding="utf-8") as f:
                 content = f.read()
 
             # Extract metadata from the document
@@ -62,16 +62,16 @@ class SkillLoader:
 
         Expected format:
         # Skill Name
-        
+
         ## Description
         Brief description of what this skill does
-        
+
         ## Metadata
         **Category**: category_name
         **Required Tools**: tool1, tool2, tool3
         **Difficulty**: Easy/Medium/Hard
         **Use Cases**: use case 1, use case 2
-        
+
         ## Workflow
         ...
 
@@ -116,7 +116,7 @@ class SkillLoader:
                     # Get the value after the colon
                     colon_idx = line.find("**:")
                     if colon_idx != -1:
-                        value_part = line[colon_idx + 3:].strip()
+                        value_part = line[colon_idx + 3 :].strip()
                         if value_part:
                             metadata[current_field] = value_part
                         else:
@@ -258,9 +258,7 @@ class SkillLoader:
             for skill in self.skills.values()
         ]
 
-    def add_custom_skill(
-        self, skill_id: str, name: str, description: str, content: str, metadata: dict | None = None
-    ):
+    def add_custom_skill(self, skill_id: str, name: str, description: str, content: str, metadata: dict | None = None):
         """Add a custom skill document programmatically.
 
         Args:

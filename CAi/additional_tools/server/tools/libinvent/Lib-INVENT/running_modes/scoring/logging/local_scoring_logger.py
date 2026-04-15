@@ -1,6 +1,6 @@
 from running_modes.configurations import ConfigurationEnvelope
-from running_modes.scoring.logging.base_scoring_logger import BaseScoringLogger
 from running_modes.enums.scoring_runner_enum import ScoringRunnerEnum
+from running_modes.scoring.logging.base_scoring_logger import BaseScoringLogger
 
 
 class LocalScoringLogger(BaseScoringLogger):

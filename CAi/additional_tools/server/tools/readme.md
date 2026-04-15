@@ -40,8 +40,8 @@ tools/
 
 ```json
 {
-  "conda_env": "my_env_name", 
-  "gpu": true                
+  "conda_env": "my_env_name",
+  "gpu": true
 }
 
 ```
@@ -72,7 +72,7 @@ tools/
 import json
 from pathlib import Path
 
-#todo 
+#todo
 def process_data(params):
     """
     你的核心业务逻辑写在这里,也就是对外暴露的工具
@@ -81,14 +81,14 @@ def process_data(params):
     input_data = params.get("input_data")
     if not input_data:
         raise ValueError("缺少必要参数: input_data")
-        
+
     # 执行计算...
     score = 99.9
-    
+
     # 也可以在当前沙盒目录下生成其他文件（互不干扰）
     with open("temp_output.csv", "w") as f:
         f.write("id,score\n1,99.9\n")
-        
+
     return {
         "score": score,
         "csv_file": "temp_output.csv"
@@ -97,36 +97,36 @@ def process_data(params):
 def main():
     # 最终要写入 result.json 的字典
     result_payload = {}
-    
+
     try:
         # 1. 强制从当前沙盒目录读取 params.json
         params_file = Path("params.json")
-        if not params_file.exists(): 
+        if not params_file.exists():
             raise FileNotFoundError("当前沙盒目录下未找到 params.json")
-            
+
         with open(params_file, "r", encoding="utf-8") as f:
             params = json.load(f)
-            
+
         # 2. 运行核心逻辑
         data = process_data(params)
-         
+
         # 3. 构造成功响应
         result_payload = {
             "success": True,
             "data": data
         }
-        
+
     except Exception as e:
         # 4. 捕获一切内部错误，构造失败响应
         result_payload = {
             "success": False,
             "error": str(e)
         }
-        
+
     # 5. 将结果写入当前沙盒目录的 result.json
     with open("result.json", "w", encoding="utf-8") as f:
         json.dump(result_payload, f, ensure_ascii=False, indent=2)
-        
+
     # 这些内容会进入 stdout.log
     if result_payload.get("success"):
         print("🎉 工具运行成功，结果已保存至 result.json")

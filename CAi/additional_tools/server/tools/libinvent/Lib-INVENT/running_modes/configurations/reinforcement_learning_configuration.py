@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 from running_modes.configurations import LearningStrategyConfiguration
 from running_modes.configurations.scoring_strategy_configuration import ScoringStrategyConfiguration
@@ -9,7 +8,7 @@ from running_modes.configurations.scoring_strategy_configuration import ScoringS
 class ReinforcementLearningConfiguration:
     actor: str
     critic: str
-    scaffolds: List[str]
+    scaffolds: list[str]
     learning_strategy: LearningStrategyConfiguration
     scoring_strategy: ScoringStrategyConfiguration
     n_steps: int = 1000

@@ -1,6 +1,7 @@
 import ast
 import enum
 import importlib
+import inspect
 import json
 import os
 import pickle
@@ -8,10 +9,9 @@ import subprocess
 import tempfile
 import traceback
 import zipfile
-from typing import Any, ClassVar
+from typing import Any, ClassVar, get_type_hints
 from urllib.parse import urljoin
-import inspect
-from typing import get_type_hints
+
 import pandas as pd
 import requests
 import tqdm  # Add tqdm for progress bar
@@ -242,11 +242,14 @@ def run_with_timeout(func, args=None, kwargs=None, timeout=600):
     except queue.Empty:
         return "Error: Execution completed but no result was returned"
 
-#todo 优化这部分代码
+
+# todo 优化这部分代码
 class api_schema(BaseModel):
     """api schema specification."""
 
     api_schema: str | None = Field(description="The api schema as a dictionary")
+
+
 def auto_to_api_schema(func):
     sig = inspect.signature(func)
     type_hints = get_type_hints(func)
@@ -255,16 +258,10 @@ def auto_to_api_schema(func):
     optional_params = []
 
     for name, param in sig.parameters.items():
-
         param_type = type_hints.get(name, str)
         type_name = getattr(param_type, "__name__", str(param_type))
 
-        param_info = {
-            "name": name,
-            "type": type_name,
-            "description": "",
-            "default": None
-        }
+        param_info = {"name": name, "type": type_name, "description": "", "default": None}
 
         if param.default is inspect._empty:
             required_params.append(param_info)
@@ -279,18 +276,19 @@ def auto_to_api_schema(func):
         "optional_parameters": optional_params,
     }
 
+
 def function_to_api_schema(function_string, llm):
     """Generate API schema from function code using LLM.
-    
+
     Args:
         function_string: Source code of the function
         llm: Language model to use for schema generation
-        
+
     Returns:
         dict: API schema dictionary or error string
     """
     import re
-    
+
     # Use a simpler approach without structured output to avoid Pydantic validation issues
     prompt = """Based on a code snippet, generate an API schema dictionary in the following format:
 
@@ -311,59 +309,59 @@ Rules:
 Code snippet:
 {code}
 """
-    
+
     def clean_llm_output(output_str):
         """Clean LLM output by removing markdown code blocks and extra formatting."""
         if not output_str:
             return output_str
-            
+
         # Remove markdown code blocks
-        output_str = re.sub(r'^```(?:python|json|dict)?\s*\n?', '', output_str.strip())
-        output_str = re.sub(r'\n?```\s*$', '', output_str.strip())
-        
+        output_str = re.sub(r"^```(?:python|json|dict)?\s*\n?", "", output_str.strip())
+        output_str = re.sub(r"\n?```\s*$", "", output_str.strip())
+
         # Remove leading/trailing whitespace and quotes
         output_str = output_str.strip()
         if output_str.startswith('"') and output_str.endswith('"'):
             output_str = output_str[1:-1]
         if output_str.startswith("'") and output_str.endswith("'"):
             output_str = output_str[1:-1]
-            
+
         # Fix missing braces
-        if not output_str.startswith('{') and ("'name':" in output_str or '"name":' in output_str):
-            output_str = '{' + output_str
-        if not output_str.endswith('}') and output_str.count('{') > output_str.count('}'):
-            output_str = output_str + '}'
-            
+        if not output_str.startswith("{") and ("'name':" in output_str or '"name":' in output_str):
+            output_str = "{" + output_str
+        if not output_str.endswith("}") and output_str.count("{") > output_str.count("}"):
+            output_str = output_str + "}"
+
         return output_str
-    
+
     # Try without structured output first (more compatible with different LLMs)
     for attempt in range(5):
         api_str = None
         try:
             # Direct LLM call without structured output
             response = llm.invoke(prompt.format(code=function_string))
-            
+
             # Extract content from response
-            if hasattr(response, 'content'):
+            if hasattr(response, "content"):
                 api_str = response.content
             elif isinstance(response, str):
                 api_str = response
             else:
                 api_str = str(response)
-            
+
             if not api_str or api_str.strip() == "":
                 raise ValueError("Empty response from LLM")
-            
+
             # Clean the output
             api_str = clean_llm_output(api_str)
-            
+
             # Try to parse as Python literal (handles single quotes)
             try:
                 result = ast.literal_eval(api_str)
-                if isinstance(result, dict) and 'name' in result:
+                if isinstance(result, dict) and "name" in result:
                     return result
                 else:
-                    raise ValueError(f"Invalid schema structure: missing 'name' field or not a dict")
+                    raise ValueError("Invalid schema structure: missing 'name' field or not a dict")
             except (ValueError, SyntaxError) as e:
                 # If that fails, try converting to JSON format and parsing
                 try:
@@ -375,9 +373,9 @@ Code snippet:
                     json_str = json_str.replace(": None", ": null")
                     json_str = json_str.replace(": True", ": true")
                     json_str = json_str.replace(": False", ": false")
-                    
+
                     result = json.loads(json_str)
-                    
+
                     # Convert JSON nulls back to Python None
                     def convert_nulls(obj):
                         if isinstance(obj, dict):
@@ -388,19 +386,19 @@ Code snippet:
                             return None
                         else:
                             return obj
-                    
+
                     result = convert_nulls(result)
-                    
-                    if isinstance(result, dict) and 'name' in result:
+
+                    if isinstance(result, dict) and "name" in result:
                         return result
                     else:
                         raise ValueError("Invalid schema structure after JSON parsing")
-                        
-                except (json.JSONDecodeError, ValueError) as json_error:
+
+                except (json.JSONDecodeError, ValueError):
                     if attempt < 4:  # Don't print on last attempt
                         print(f"Attempt {attempt + 1}/5: Parse error - {type(e).__name__}: {str(e)[:100]}")
                     raise e  # Re-raise original error
-                    
+
         except Exception as e:
             if attempt < 4:  # Don't print on last attempt
                 error_msg = f"Attempt {attempt + 1}/5 failed"
@@ -410,10 +408,11 @@ Code snippet:
                 else:
                     print(f"{error_msg}. No output received")
                 print(f"Error: {type(e).__name__}: {str(e)[:100]}")
-            
+
             # Add a small delay between retries
             if attempt < 4:
                 import time
+
                 time.sleep(0.5)
             continue
 
@@ -447,7 +446,7 @@ def get_all_functions_from_file(file_path):
     return functions
 
 
-#need Claude model
+# need Claude model
 def write_python_code(request: str):
     from langchain_anthropic import ChatAnthropic
     from langchain_core.output_parsers import StrOutputParser
@@ -976,14 +975,7 @@ def textify_api_dict(api_dict):
 
 
 def read_module2api():
-    fields = [
-        "literature",
-        'database',
-        "biochemistry",
-        'pharmacology',
-        "support_tools",
-        'synthetic_biology'
-    ]
+    fields = ["literature", "database", "biochemistry", "pharmacology", "support_tools", "synthetic_biology"]
 
     module2api = {}
     for field in fields:

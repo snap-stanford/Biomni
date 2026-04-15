@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-from running_modes.configurations.nested_dataclass import nested_dataclass
-
 
 @dataclass
 class LearningRate:

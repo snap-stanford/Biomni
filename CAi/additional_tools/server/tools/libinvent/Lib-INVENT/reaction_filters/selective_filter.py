@@ -1,10 +1,8 @@
-from typing import List, Dict
-
 import numpy as np
 from reinvent_chemistry.library_design import FragmentReactions
+from running_modes.configurations.reaction_filter_configuration import ReactionFilterConfiguration
 
 from reaction_filters.base_reaction_filter import BaseReactionFilter
-from running_modes.configurations.reaction_filter_configuration import ReactionFilterConfiguration
 
 
 class SelectiveFilter(BaseReactionFilter):
@@ -13,7 +11,7 @@ class SelectiveFilter(BaseReactionFilter):
         self._reactions = self._configure_reactions(configuration.reactions)
         self._score_cutoff = 0.5
 
-    def _configure_reactions(self, reaction_smarts: Dict[str, List[str]]):
+    def _configure_reactions(self, reaction_smarts: dict[str, list[str]]):
         reactions = {}
         for key, smarts_list in reaction_smarts.items():
             converted = self._chemistry.create_reactions_from_smarts(smarts_list)
@@ -28,7 +26,7 @@ class SelectiveFilter(BaseReactionFilter):
     def score_molecule(self, molecule):
         new_bonds = self._find_new_bonds(molecule)
         count = self._count_applicable_reactions_on_molecule(molecule, new_bonds)
-        score = self._score_cutoff + (1 - self._score_cutoff)*(count / len(new_bonds))
+        score = self._score_cutoff + (1 - self._score_cutoff) * (count / len(new_bonds))
         return score
 
     def _find_new_bonds(self, molecule) -> dict:
@@ -37,7 +35,7 @@ class SelectiveFilter(BaseReactionFilter):
         for atom in molecule.GetAtoms():
             if atom.HasProp("bondNum"):
                 bondNum = int(atom.GetProp("bondNum"))
-                if not bondNum in _bond_indices_dict:
+                if bondNum not in _bond_indices_dict:
                     _bond_indices_dict[bondNum] = []
                 _bond_indices_dict[bondNum].append(atom.GetIdx())
         return _bond_indices_dict
@@ -48,13 +46,11 @@ class SelectiveFilter(BaseReactionFilter):
         for reactant_pair in reactant_pairs:
             outcome_list = []
             for reactant in reactant_pair:
-                idxs = set(
-                    [
-                        int(atom.GetProp("react_atom_idx"))
-                        for atom in reactant.GetAtoms()
-                        if atom.HasProp("react_atom_idx")
-                    ]
-                )
+                idxs = {
+                    int(atom.GetProp("react_atom_idx"))
+                    for atom in reactant.GetAtoms()
+                    if atom.HasProp("react_atom_idx")
+                }
                 outcome_list.append(idxs)
             _reactant_idx_list.append(outcome_list)
         return _reactant_idx_list
@@ -71,23 +67,17 @@ class SelectiveFilter(BaseReactionFilter):
                 count += 1
         return count
 
-    def _apply_reactions_on_bond(self, molecule, reactions: List) -> List:
+    def _apply_reactions_on_bond(self, molecule, reactions: list) -> list:
         outcomes = []
         for reaction in reactions:
             outcome = reaction.RunReactant(molecule, 0)
             outcomes.extend(outcome)
-        reaction_pairs = [outcome for outcome in outcomes]
+        reaction_pairs = list(outcomes)
         return reaction_pairs
 
     def _detect_sliced_bond_by_reaction(self, bond, reactant_idxs):
         """Test a given bond if its targetable by any retrosynthethic disconnection"""
-        return np.any(
-            [
-                self._verify_atom_splits(bond, sets[0], sets[1])
-                for sets in reactant_idxs
-                if len(sets) == 2
-            ]
-        )
+        return np.any([self._verify_atom_splits(bond, sets[0], sets[1]) for sets in reactant_idxs if len(sets) == 2])
 
     def _verify_atom_splits(self, bond, set1, set2) -> bool:
         """Test if the bond is in split into the two different sets"""

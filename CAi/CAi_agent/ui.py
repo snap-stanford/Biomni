@@ -1,7 +1,8 @@
 import os
 import re
 import shutil
-from typing import List, Dict, Any, Tuple, Optional
+from typing import Any
+
 import gradio as gr
 from langchain_core.messages import AIMessage, HumanMessage
 
@@ -32,7 +33,7 @@ class AgentGradioUI:
 
     # ========== Access Control ==========
 
-    def _verify_access_code(self, code: str) -> Tuple[gr.update, gr.update, gr.update]:
+    def _verify_access_code(self, code: str) -> tuple[gr.update, gr.update, gr.update]:
         """Verify access code and toggle UI visibility."""
         if code in self.available_access_codes:
             return (
@@ -48,7 +49,7 @@ class AgentGradioUI:
 
     # ========== File Management ==========
 
-    def _get_current_files(self) -> List[List[str]]:
+    def _get_current_files(self) -> list[list[str]]:
         """Get files in workspace as 2D array for Dataframe display."""
         if not os.path.exists(self.workspace_dir):
             return [["(暂无文件)"]]
@@ -56,14 +57,14 @@ class AgentGradioUI:
         files = [f for f in os.listdir(self.workspace_dir) if os.path.isfile(os.path.join(self.workspace_dir, f))]
         return [[f] for f in files] if files else [["(暂无文件)"]]
 
-    def _get_dropdown_choices(self) -> List[str]:
+    def _get_dropdown_choices(self) -> list[str]:
         """Get files in workspace as 1D list for dropdown."""
         if not os.path.exists(self.workspace_dir):
             return []
 
         return [f for f in os.listdir(self.workspace_dir) if os.path.isfile(os.path.join(self.workspace_dir, f))]
 
-    def _clear_workspace(self) -> Tuple[List[List[str]], gr.update]:
+    def _clear_workspace(self) -> tuple[list[list[str]], gr.update]:
         """Clear workspace files only, preserve chat history."""
         try:
             if os.path.exists(self.workspace_dir):
@@ -74,7 +75,7 @@ class AgentGradioUI:
             logger.error(f"清空工作区失败: {e}")
             return self._get_current_files(), gr.update(choices=self._get_dropdown_choices())
 
-    def _clear_all(self) -> Tuple[List, List, List[List[str]], gr.update]:
+    def _clear_all(self) -> tuple[list, list, list[list[str]], gr.update]:
         """Clear workspace files and chat history."""
         files, dropdown = self._clear_workspace()
         self.agent.main_history_copy = []
@@ -82,7 +83,7 @@ class AgentGradioUI:
 
     # ========== File Preview ==========
 
-    def _preview_selected_file(self, evt: gr.SelectData) -> Tuple[gr.update, gr.update, gr.update, gr.update]:
+    def _preview_selected_file(self, evt: gr.SelectData) -> tuple[gr.update, gr.update, gr.update, gr.update]:
         """Handle file preview based on file type."""
         import base64
 
@@ -110,7 +111,7 @@ class AgentGradioUI:
         # Text/code preview
         if ext in self.SUPPORTED_TEXT_EXTENSIONS:
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = f.read(self.MAX_TEXT_PREVIEW_CHARS)
                     if len(content) == self.MAX_TEXT_PREVIEW_CHARS:
                         content += f"\n\n... (文件过长，仅展示前 {self.MAX_TEXT_PREVIEW_CHARS} 字符) ..."
@@ -151,7 +152,7 @@ class AgentGradioUI:
 
     # ========== History Management ==========
 
-    def _finalize_inner_history(self, history: List[Dict]) -> List[Dict]:
+    def _finalize_inner_history(self, history: list[dict]) -> list[dict]:
         """Mark all pending code blocks as done."""
         for item in history:
             if not isinstance(item, dict):
@@ -161,7 +162,7 @@ class AgentGradioUI:
                 metadata["status"] = "done"
         return history
 
-    def _build_agent_messages(self, history: List[Dict]) -> List:
+    def _build_agent_messages(self, history: list[dict]) -> list:
         """Convert main_history_copy to LangChain message list."""
         messages = []
         for msg in history:
@@ -179,7 +180,7 @@ class AgentGradioUI:
 
     # ========== File Processing ==========
 
-    def _process_observation_files(self, observation: str, temp_inner_history: List[Dict]) -> None:
+    def _process_observation_files(self, observation: str, temp_inner_history: list[dict]) -> None:
         """Extract and render files from observation text."""
         SUPPORTED_EXTENSIONS = self.SUPPORTED_IMAGE_EXTENSIONS + (".pdf", ".csv")
 
@@ -229,7 +230,7 @@ class AgentGradioUI:
 
     # ========== Response Generation ==========
 
-    def _build_prompt_with_files(self, text_input: str, files: List[str], ref_files: List[str]) -> Tuple[str, str]:
+    def _build_prompt_with_files(self, text_input: str, files: list[str], ref_files: list[str]) -> tuple[str, str]:
         """Build agent prompt and display text with file references."""
         agent_prompt = text_input
         display_text = text_input
@@ -259,7 +260,7 @@ class AgentGradioUI:
 
         return agent_prompt, display_text
 
-    def _stream_agent_execution(self, new_inner: List[Dict], new_main: List[Dict]):
+    def _stream_agent_execution(self, new_inner: list[dict], new_main: list[dict]):
         """Stream agent execution and process responses - yields updates."""
         agent_messages = self._build_agent_messages(self.agent.main_history_copy)
         inputs = {"messages": agent_messages, "next_step": None}
@@ -340,7 +341,7 @@ class AgentGradioUI:
         logger.debug(f"最终 yield: inner={len(final_inner)}, main={len(final_main)}")
         yield (final_inner, final_main)
 
-    def _process_message_content(self, content: str, current_round_inner: List[Dict]) -> None:
+    def _process_message_content(self, content: str, current_round_inner: list[dict]) -> None:
         """Process message content and extract thinking, code, and observations."""
         # Extract thinking
         tag_positions = [content.find(tag) for tag in ["<execute>", "<solution>", "<observation>"] if tag in content]
@@ -373,7 +374,9 @@ class AgentGradioUI:
 
             # Mark previous as done
             if current_round_inner:
-                last_metadata = current_round_inner[-1].get("metadata") if isinstance(current_round_inner[-1], dict) else None
+                last_metadata = (
+                    current_round_inner[-1].get("metadata") if isinstance(current_round_inner[-1], dict) else None
+                )
                 if isinstance(last_metadata, dict) and last_metadata.get("status") == "pending":
                     last_metadata["status"] = "done"
 
@@ -421,8 +424,8 @@ class AgentGradioUI:
         return cleaned or "任务执行完毕，请查看右侧执行日志。"
 
     def _handle_error(
-        self, error: Exception, inner_history: List[Dict], main_history: List[Dict]
-    ) -> Tuple[List[Dict], List[Dict], List[List[str]], gr.update]:
+        self, error: Exception, inner_history: list[dict], main_history: list[dict]
+    ) -> tuple[list[dict], list[dict], list[list[str]], gr.update]:
         """Handle execution errors and return error state."""
         error_msg = f"**系统执行错误**: `{str(error)}`\n请检查终端(Terminal)获取详细报错日志。"
 
@@ -442,10 +445,10 @@ class AgentGradioUI:
 
     def generate_response(
         self,
-        prompt_input: Optional[Dict[str, Any]],
-        ref_files: Optional[List[str]],
-        inner_history: Optional[List[Dict]] = None,
-        main_history: Optional[List[Dict]] = None,
+        prompt_input: dict[str, Any] | None,
+        ref_files: list[str] | None,
+        inner_history: list[dict] | None = None,
+        main_history: list[dict] | None = None,
     ):
         """Process user input and stream agent responses."""
         try:
@@ -489,7 +492,12 @@ class AgentGradioUI:
 
             # Stream agent execution with yields
             for final_inner, final_main in self._stream_agent_execution(new_inner, new_main):
-                yield (final_inner, final_main, self._get_current_files(), gr.update(choices=self._get_dropdown_choices()))
+                yield (
+                    final_inner,
+                    final_main,
+                    self._get_current_files(),
+                    gr.update(choices=self._get_dropdown_choices()),
+                )
 
         except Exception as e:
             logger.exception("Backend Execution Error")

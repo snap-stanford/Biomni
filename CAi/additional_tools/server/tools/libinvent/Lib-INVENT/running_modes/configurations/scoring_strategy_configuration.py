@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
+from diversity_filters.diversity_filter_parameters import DiversityFilterParameters
 from reinvent_scoring import ScoringFuncionParameters
 
-from diversity_filters.diversity_filter_parameters import DiversityFilterParameters
 from running_modes.configurations import ReactionFilterConfiguration
 
 

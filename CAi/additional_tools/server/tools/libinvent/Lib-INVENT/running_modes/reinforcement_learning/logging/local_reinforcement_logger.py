@@ -1,18 +1,21 @@
 import logging
-import torch
-from torch.utils.tensorboard import SummaryWriter
 
 import numpy as np
-
-from reinvent_chemistry.logging import fraction_valid_smiles, padding_with_invalid_smiles, \
-    check_for_invalid_mols_and_create_legend, find_matching_pattern_in_smiles, add_mols
-
+import torch
 from diversity_filters.base_diversity_filter import BaseDiversityFilter
+from reinvent_chemistry.logging import (
+    add_mols,
+    check_for_invalid_mols_and_create_legend,
+    find_matching_pattern_in_smiles,
+    fraction_valid_smiles,
+    padding_with_invalid_smiles,
+)
+from reinvent_scoring.scoring.enums.scoring_function_component_enum import ScoringFunctionComponentNameEnum
+from reinvent_scoring.scoring.score_summary import FinalSummary
 from running_modes.configurations.log_configuration import LogConfiguration
 from running_modes.reinforcement_learning.logging import BaseReinforcementLogger
 from running_modes.reinforcement_learning.logging.console_message import ConsoleMessage
-from reinvent_scoring.scoring.score_summary import FinalSummary
-from reinvent_scoring.scoring.enums.scoring_function_component_enum import ScoringFunctionComponentNameEnum
+from torch.utils.tensorboard import SummaryWriter
 
 
 class LocalReinforcementLogger(BaseReinforcementLogger):
@@ -31,32 +34,53 @@ class LocalReinforcementLogger(BaseReinforcementLogger):
     def log_message(self, message: str):
         self._logger.info(message)
 
-    def timestep_report(self, start_time, n_steps, step, score_summary: FinalSummary,
-                        agent_likelihood: torch.tensor, prior_likelihood: torch.tensor,
-                        augmented_likelihood: torch.tensor, diversity_filter):
-        message = self._console_message_formatter.create(start_time, n_steps, step, score_summary,
-                                                         agent_likelihood, prior_likelihood,
-                                                         augmented_likelihood)
+    def timestep_report(
+        self,
+        start_time,
+        n_steps,
+        step,
+        score_summary: FinalSummary,
+        agent_likelihood: torch.tensor,
+        prior_likelihood: torch.tensor,
+        augmented_likelihood: torch.tensor,
+        diversity_filter,
+    ):
+        message = self._console_message_formatter.create(
+            start_time, n_steps, step, score_summary, agent_likelihood, prior_likelihood, augmented_likelihood
+        )
         self._logger.info(message)
-        self._tensorboard_report(step, score_summary, agent_likelihood, prior_likelihood, augmented_likelihood,
-                                 diversity_filter)
+        self._tensorboard_report(
+            step, score_summary, agent_likelihood, prior_likelihood, augmented_likelihood, diversity_filter
+        )
 
-    def _tensorboard_report(self, step, score_summary: FinalSummary, agent_likelihood, prior_likelihood,
-                            augmented_likelihood, diversity_filter: BaseDiversityFilter):
-        self._summary_writer.add_scalars("nll/avg", {
-            "prior": prior_likelihood.mean(),
-            "augmented": augmented_likelihood.mean(),
-            "agent": agent_likelihood.mean()
-        }, step)
-        self._summary_writer.add_scalars("nll/variance", {
-            "prior": prior_likelihood.var(),
-            "augmented": augmented_likelihood.var(),
-            "agent": agent_likelihood.var()
-        }, step)
+    def _tensorboard_report(
+        self,
+        step,
+        score_summary: FinalSummary,
+        agent_likelihood,
+        prior_likelihood,
+        augmented_likelihood,
+        diversity_filter: BaseDiversityFilter,
+    ):
+        self._summary_writer.add_scalars(
+            "nll/avg",
+            {
+                "prior": prior_likelihood.mean(),
+                "augmented": augmented_likelihood.mean(),
+                "agent": agent_likelihood.mean(),
+            },
+            step,
+        )
+        self._summary_writer.add_scalars(
+            "nll/variance",
+            {"prior": prior_likelihood.var(), "augmented": augmented_likelihood.var(), "agent": agent_likelihood.var()},
+            step,
+        )
         mean_score = np.mean(score_summary.total_score)
-        for i, log in enumerate(score_summary.profile):
-            self._summary_writer.add_scalar(score_summary.profile[i].name, np.mean(score_summary.profile[i].score),
-                                            step)
+        for i, _log in enumerate(score_summary.profile):
+            self._summary_writer.add_scalar(
+                score_summary.profile[i].name, np.mean(score_summary.profile[i].score), step
+            )
         self._summary_writer.add_scalar("Valid SMILES", fraction_valid_smiles(score_summary.scored_smiles), step)
         self._summary_writer.add_scalar("Number of SMILES found", diversity_filter.number_of_smiles_in_memory(), step)
         self._summary_writer.add_scalar("Average score", mean_score, step)
@@ -67,11 +91,18 @@ class LocalReinforcementLogger(BaseReinforcementLogger):
         self._visualize_structures(smiles, score, step, score_summary)
 
     def _visualize_structures(self, smiles, score, step, score_summary: FinalSummary):
-
         list_of_mols, legends, pattern = self._check_for_invalid_mols_and_create_legends(smiles, score, score_summary)
         try:
-            add_mols(self._summary_writer, "Molecules from epoch", list_of_mols[:self._sample_size], self._rows,
-                     [x for x in legends], global_step=step, size_per_mol=(320, 320), pattern=pattern)
+            add_mols(
+                self._summary_writer,
+                "Molecules from epoch",
+                list_of_mols[: self._sample_size],
+                self._rows,
+                list(legends),
+                global_step=step,
+                size_per_mol=(320, 320),
+                pattern=pattern,
+            )
         except:
             raise Exception(f"Error in RDKit has occurred, skipping report for step {step}.")
 
@@ -95,8 +126,7 @@ class LocalReinforcementLogger(BaseReinforcementLogger):
     def _setup_logger(self):
         handler = logging.StreamHandler()
         formatter = logging.Formatter(
-            fmt="%(asctime)s: %(module)s.%(funcName)s +%(lineno)s: %(levelname)-8s %(message)s",
-            datefmt="%H:%M:%S"
+            fmt="%(asctime)s: %(module)s.%(funcName)s +%(lineno)s: %(levelname)-8s %(message)s", datefmt="%H:%M:%S"
         )
         handler.setFormatter(formatter)
         logger = logging.getLogger("reinforcement_logger")

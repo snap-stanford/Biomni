@@ -2,14 +2,14 @@ import gzip
 import logging
 import sys
 
-import tqdm
-from reinvent_chemistry.file_reader import FileReader
-
-from running_modes.configurations.tuples_likelihood_computation_configuration import \
-    TuplesLikelihoodComputationConfiguration
-from running_modes.enums.generative_model_regime import GenerativeModelRegimeEnum
 import models.actions as ma
 import models.model as mm
+import tqdm
+from reinvent_chemistry.file_reader import FileReader
+from running_modes.configurations.tuples_likelihood_computation_configuration import (
+    TuplesLikelihoodComputationConfiguration,
+)
+from running_modes.enums.generative_model_regime import GenerativeModelRegimeEnum
 
 
 class ComputeScaffoldDecorationLikelihoods:
@@ -20,11 +20,9 @@ class ComputeScaffoldDecorationLikelihoods:
         self._mode = GenerativeModelRegimeEnum()
 
     def _get_logger(self, name, level=logging.INFO):
-
         handler = logging.StreamHandler(stream=sys.stderr)
         formatter = logging.Formatter(
-            fmt="%(asctime)s: %(module)s.%(funcName)s +%(lineno)s: %(levelname)-8s %(message)s",
-            datefmt="%H:%M:%S"
+            fmt="%(asctime)s: %(module)s.%(funcName)s +%(lineno)s: %(levelname)-8s %(message)s", datefmt="%H:%M:%S"
         )
         handler.setFormatter(formatter)
 
@@ -42,11 +40,13 @@ class ComputeScaffoldDecorationLikelihoods:
         output_csv = self.open_file(self._configuration.output_csv_path, mode="wt+")
 
         calc_nlls_action = ma.CalculateNLLsFromModel(model, batch_size=self._configuration.batch_size, logger=self._log)
-        scaffold_decoration_list = [fields for fields in self._reader.read_library_design_data_file(self._configuration.input_csv_path, num_fields=2)]
+        scaffold_decoration_list = list(
+            self._reader.read_library_design_data_file(self._configuration.input_csv_path, num_fields=2)
+        )
 
         for nll in tqdm.tqdm(calc_nlls_action.run(scaffold_decoration_list), total=len(scaffold_decoration_list)):
             input_line = input_csv.readline().strip()
-            output_csv.write("{}\t{:.8f}\n".format(input_line, nll))
+            output_csv.write(f"{input_line}\t{nll:.8f}\n")
 
         input_csv.close()
         output_csv.close()

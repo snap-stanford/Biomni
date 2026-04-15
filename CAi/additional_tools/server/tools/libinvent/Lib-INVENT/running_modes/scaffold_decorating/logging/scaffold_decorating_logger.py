@@ -4,7 +4,6 @@ from running_modes.scaffold_decorating.logging.local_scaffold_decorating_logger 
 
 
 class ScaffoldDecoratingLogger:
-
     def __new__(cls, logging_path: str) -> BaseScaffoldDecoratingLogger:
-        logging_mode_enum = LoggingModeEnum()
+        LoggingModeEnum()
         return LocalScaffoldDecoratingLogger(logging_path)

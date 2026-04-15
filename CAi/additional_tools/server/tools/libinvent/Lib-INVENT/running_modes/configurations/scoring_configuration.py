@@ -7,7 +7,6 @@ from running_modes.configurations import ReactionFilterConfiguration
 
 @dataclass
 class ScoringConfiguration:
-
     input: str
     output_folder: str
     reaction_filter: ReactionFilterConfiguration

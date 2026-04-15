@@ -4,7 +4,7 @@ Implementation of the Lib-INVENT decorator model
 =======================================================================================================================================
 
 This repository holds the code used in the publication [Lib-INVENT: Reaction Based Generative Scaffold Decoration for in silico Library Design](https://chemrxiv.org/articles/preprint/Lib-INVENT_Reaction_Based_Generative_Scaffold_Decoration_for_in_silico_Library_Design/14473980). It holds the code needed to use the tool for chemical library generation as well as the initial training of the generative model.
-The code for preprocessing of the dataset is contained in a separate project called Library Design Datasets. 
+The code for preprocessing of the dataset is contained in a separate project called Library Design Datasets.
 
 The scripts are organised in the following folder structure:
 
@@ -55,7 +55,7 @@ From here the general usage applies.
 
 General Usage
 -------------
-The functionality of the model is separated into distinct mutually independent running modes. 
+The functionality of the model is separated into distinct mutually independent running modes.
 They are called through the `input.py` file and corresponding JSON configuration files specifying the parameters necessary to execute the given running mode. An example configuration is provided for each running mode in the `examples` folder.
 To run, type:
 
@@ -70,7 +70,7 @@ In this way, any Lib-INVENT functionality can be run from the command line with 
 
 #### Overview
 1) Create model: <br>
-The first running mode to run. It takes a training dataset and initiates an empty model with the appropriate vocabulary and architecture specified by the configuration file. This model is then typically passed to the transfer learning mode to be trained to produce valid smiles. 
+The first running mode to run. It takes a training dataset and initiates an empty model with the appropriate vocabulary and architecture specified by the configuration file. This model is then typically passed to the transfer learning mode to be trained to produce valid smiles.
 
 2) Transfer learning: <br>
 This mode corresponds to training a decorator model to maximise the likelihood of scaffold-decoration pairs produced by it. The decorator can be initiated as an empty model (in which case the training essentially amounts to teacher's forcing) or a pretrained decorator (the transfer learning case). In either case, the vocabulary has to correspond to the vocabulary present in the trained and validation datasets.
@@ -98,6 +98,3 @@ To run with a single line command from the command line (provided the paths in t
 
 Testing:
 `python main_test.py`
-
-
-

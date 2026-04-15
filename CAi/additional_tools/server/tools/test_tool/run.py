@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 工具后端脚本模板（单 action 版本）
 =====================================
@@ -36,16 +35,18 @@ def run_my_tool(params: dict) -> dict:
     # TODO: 替换为你的真实计算逻辑
     results = []
     for smi in smiles_list:
-        results.append({
-            "smiles": smi,
-            "score": 0.0,   # 替换为真实计算结果
-        })
+        results.append(
+            {
+                "smiles": smi,
+                "score": 0.0,  # 替换为真实计算结果
+            }
+        )
 
     # ---------- 构造返回值 ----------
     return {
         "success": True,
         "summary": {
-            "task": "MyTool Calculation",          # 任务描述
+            "task": "MyTool Calculation",  # 任务描述
             "input_molecules": len(smiles_list),
             "processed_molecules": len(results),
         },
@@ -63,7 +64,7 @@ def main():
         params_file = cwd / "params.json"
         if not params_file.exists():
             raise FileNotFoundError("当前沙盒目录下未找到 params.json")
-        with open(params_file, "r", encoding="utf-8") as f:
+        with open(params_file, encoding="utf-8") as f:
             params = json.load(f)
 
         print(f"[INFO] 收到参数: {list(params.keys())}", file=sys.stderr)

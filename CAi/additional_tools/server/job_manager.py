@@ -1,11 +1,12 @@
 """job_manager.py"""
-import uuid
+
+import asyncio
 import json
 import os
-import sys
 import shutil
+import sys
 import time
-import asyncio
+import uuid
 from pathlib import Path
 
 # 确保无论从哪个工作目录启动，都能找到同目录下的模块
@@ -13,15 +14,15 @@ _SERVER_DIR = Path(__file__).resolve().parent
 if str(_SERVER_DIR) not in sys.path:
     sys.path.insert(0, str(_SERVER_DIR))
 
-from tool_manager import tool_manager
 from gpu_manager import gpu_manager
+from tool_manager import tool_manager
 
 BASE_DIR = Path(__file__).resolve().parent
 WORKSPACE = BASE_DIR / "workspace" / "jobs"
 WORKSPACE.mkdir(parents=True, exist_ok=True)
 
-class JobManager:
 
+class JobManager:
     # ⭐ 修改 1：增加 action 参数
     def prepare_job(self, tool_name, action, params):
         """只负责创建文件夹和写入参数，不直接运行。这个由于是纯文件操作，保持同步即可"""
@@ -65,12 +66,16 @@ class JobManager:
             # ⭐ 修改 3：根据 action 动态获取要执行的脚本路径
             if action not in tool["scripts"]:
                 raise ValueError(f"Action '{action}' is not configured for tool '{tool_name}'")
-            
-            script_path = tool["scripts"][action] 
-            
+
+            script_path = tool["scripts"][action]
+
             cmd = [
-                "conda", "run", "-n", tool["env"], 
-                "python", script_path  # 使用动态获取的脚本路径
+                "conda",
+                "run",
+                "-n",
+                tool["env"],
+                "python",
+                script_path,  # 使用动态获取的脚本路径
             ]
 
             # 使用异步子进程
@@ -80,20 +85,19 @@ class JobManager:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 env=env,
-                cwd=job_dir
+                cwd=job_dir,
             )
 
             # 结合 asyncio.wait_for 实现强制超时控制
             try:
                 stdout_bytes, stderr_bytes = await asyncio.wait_for(
-                    process.communicate(input=json.dumps(params).encode('utf-8')),
-                    timeout=3600
+                    process.communicate(input=json.dumps(params).encode("utf-8")), timeout=3600
                 )
-                stdout = stdout_bytes.decode('utf-8')
-                stderr = stderr_bytes.decode('utf-8')
+                stdout = stdout_bytes.decode("utf-8")
+                stderr = stderr_bytes.decode("utf-8")
                 returncode = process.returncode
-                
-            except asyncio.TimeoutError:
+
+            except TimeoutError:
                 # 如果超时，强杀子进程
                 try:
                     process.kill()
@@ -108,15 +112,14 @@ class JobManager:
                 f.write(stdout)
             with open(job_dir / "stderr.log", "w", encoding="utf-8") as f:
                 f.write(stderr)
-                
+
             # 兜底机制：非正常退出且没有结果文件
             if returncode != 0 and not (job_dir / "result.json").exists():
-                 with open(job_dir / "error.json", "w", encoding="utf-8") as f:
-                     json.dump({
-                         "success": False, 
-                         "error": f"Process failed with return code {returncode}", 
-                         "stderr": stderr
-                     }, f)
+                with open(job_dir / "error.json", "w", encoding="utf-8") as f:
+                    json.dump(
+                        {"success": False, "error": f"Process failed with return code {returncode}", "stderr": stderr},
+                        f,
+                    )
 
         except Exception as e:
             # 捕获调度器自身的异常 (如找不到 conda 环境、字典报错等)
@@ -150,5 +153,6 @@ class JobManager:
                 except Exception as e:
                     print(f"Warning: failed to remove job dir {job_dir}: {e}")
         return cleaned
+
 
 job_manager = JobManager()

@@ -1,5 +1,3 @@
-
-
 class ReactionFiltersEnum:
     NON_SELECTIVE = "non_selective"
     SELECTIVE = "selective"

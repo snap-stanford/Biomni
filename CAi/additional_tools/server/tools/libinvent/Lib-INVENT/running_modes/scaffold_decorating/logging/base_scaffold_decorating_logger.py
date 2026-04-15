@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 import numpy
 
 
@@ -16,6 +17,3 @@ class BaseScaffoldDecoratingLogger(ABC):
 
     def _get_unique_entries_fraction(self, some_list):
         return 100 * len(set(some_list)) / len(some_list)
-
-
-

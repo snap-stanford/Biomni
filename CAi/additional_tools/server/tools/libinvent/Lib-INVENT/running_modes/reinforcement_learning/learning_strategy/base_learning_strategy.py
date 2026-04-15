@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import torch
-
 from running_modes.configurations import LearningStrategyConfiguration
 from running_modes.enums import GenerativeModelRegimeEnum
 
@@ -20,8 +19,9 @@ class BaseLearningStrategy(ABC):
         self._logger.log_message(message)
 
     def run(self, scaffold_batch, decorator_batch, score, actor_nlls):
-        loss, negative_actor_nlls, negative_critic_nlls, augmented_nlls = \
-            self._calculate_loss(scaffold_batch, decorator_batch, score, actor_nlls)
+        loss, negative_actor_nlls, negative_critic_nlls, augmented_nlls = self._calculate_loss(
+            scaffold_batch, decorator_batch, score, actor_nlls
+        )
 
         self.optimizer.zero_grad()
         loss.backward()

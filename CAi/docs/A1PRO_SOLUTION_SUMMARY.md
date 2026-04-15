@@ -109,16 +109,16 @@ agent = A1pro(
 ```python
 def complex_tool(param: str) -> dict:
     """有复杂依赖的工具"""
-    
+
     # ✅ 在函数内部导入所有依赖
     import pandas as pd
     import numpy as np
     from rdkit import Chem
     from my_custom_module import MyClass
-    
+
     # 工具逻辑
     result = process_with_dependencies(param)
-    
+
     return result
 ```
 
@@ -154,7 +154,7 @@ def simple_calculator(expression: str) -> float:
 def fetch_molecule_data(molecule_name: str) -> dict:
     """从 PubChem 获取分子信息"""
     import requests
-    
+
     url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{molecule_name}/JSON"
     response = requests.get(url)
     return response.json()
@@ -167,9 +167,9 @@ def smiles_to_properties(smiles: str) -> dict:
     """使用 RDKit 计算分子性质"""
     from rdkit import Chem
     from rdkit.Chem import Descriptors
-    
+
     mol = Chem.MolFromSmiles(smiles)
-    
+
     return {
         'molecular_weight': Descriptors.MolWt(mol),
         'logp': Descriptors.MolLogP(mol),
@@ -183,12 +183,12 @@ def smiles_to_properties(smiles: str) -> dict:
 def batch_analysis(smiles_list: list[str]) -> dict:
     """批量分析多个分子"""
     results = []
-    
+
     for smiles in smiles_list:
         # 调用其他工具
         result = smiles_to_properties(smiles)
         results.append(result)
-    
+
     return {'results': results}
 ```
 
@@ -295,7 +295,7 @@ def robust_tool(param):
             'error': 'some_library 未安装',
             'hint': '请运行: pip install some_library'
         }
-    
+
     try:
         result = process(param)
         return {'success': True, 'data': result}
@@ -309,16 +309,16 @@ def robust_tool(param):
 def my_tool(param1: str, param2: int) -> dict:
     """
     工具的简短描述（显示在工具列表）
-    
+
     详细描述工具的功能...
-    
+
     Parameters:
         param1: 参数1描述
         param2: 参数2描述
-    
+
     Returns:
         返回值描述
-    
+
     Examples:
         >>> my_tool("test", 42)
         {'result': 'success'}

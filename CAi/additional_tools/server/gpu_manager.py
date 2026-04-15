@@ -1,7 +1,8 @@
-import threading
 import os
 import subprocess
+import threading
 from contextlib import contextmanager
+
 
 class GPUManager:
     def __init__(self, gpus):
@@ -51,8 +52,7 @@ def _get_available_gpus():
 
     try:
         result = subprocess.run(
-            ["nvidia-smi", "--query-gpu=index", "--format=csv,noheader"],
-            capture_output=True, text=True, timeout=5
+            ["nvidia-smi", "--query-gpu=index", "--format=csv,noheader"], capture_output=True, text=True, timeout=5
         )
         if result.returncode == 0:
             return [int(line.strip()) for line in result.stdout.strip().split("\n") if line.strip().isdigit()]

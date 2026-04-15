@@ -1,12 +1,12 @@
 import pandas as pd
+from models.model import DecoratorModel
+from models.rl_actions import SampleModel
 from reinvent_chemistry import Conversions
 from reinvent_chemistry.enums import FilterTypesEnum
 from reinvent_chemistry.file_reader import FileReader
-from reinvent_chemistry.library_design import BondMaker, AttachmentPoints
+from reinvent_chemistry.library_design import AttachmentPoints, BondMaker
 from reinvent_chemistry.standardization.filter_configuration import FilterConfiguration
 
-from models.model import DecoratorModel
-from models.rl_actions import SampleModel
 from running_modes.configurations import ScaffoldDecoratingConfiguration
 from running_modes.enums import GenerativeModelRegimeEnum
 
@@ -30,13 +30,19 @@ class ScaffoldDecorator:
     def run(self):
         model = DecoratorModel.load_from_file(self._configuration.model_path, mode=self._model_regime.INFERENCE)
         input_scaffolds = list(
-            self._reader.read_delimited_file(self._configuration.input_scaffold_path, standardize=True))
+            self._reader.read_delimited_file(self._configuration.input_scaffold_path, standardize=True)
+        )
 
         input_scaffolds = [scaffold for scaffold in input_scaffolds if scaffold]
         input_scaffolds = input_scaffolds * self._configuration.number_of_decorations_per_scaffold
 
-        sampling_action = SampleModel(model, self._configuration.batch_size, self._logger,
-                                      self._configuration.randomize, sample_uniquely=self._configuration.sample_uniquely)
+        sampling_action = SampleModel(
+            model,
+            self._configuration.batch_size,
+            self._logger,
+            self._configuration.randomize,
+            sample_uniquely=self._configuration.sample_uniquely,
+        )
         sampled_sequences = sampling_action.run(input_scaffolds)
 
         for sample in sampled_sequences:
@@ -46,12 +52,13 @@ class ScaffoldDecorator:
             if molecule:
                 smile = self._conversion.mol_to_smiles(molecule, isomericSmiles=False, canonical=False)
 
-                series = pd.Series([smile, sample.scaffold, sample.decoration, sample.nll],
-                                   index=['SMILES', 'Scaffold', 'Decorations', 'Likelihoods'])
+                series = pd.Series(
+                    [smile, sample.scaffold, sample.decoration, sample.nll],
+                    index=["SMILES", "Scaffold", "Decorations", "Likelihoods"],
+                )
 
                 self._decorated_scaffolds = pd.concat(
-                    [self._decorated_scaffolds, series.to_frame().T],
-                    ignore_index=True
+                    [self._decorated_scaffolds, series.to_frame().T], ignore_index=True
                 )
             else:
                 self._logger.log_message(f"Invalid decorations: {sample.decoration} for scaffold {sample.scaffold}")

@@ -1,5 +1,3 @@
-
-
 class GenerativeModelParametersEnum:
     NUMBER_OF_LAYERS = "num_layers"
     NUMBER_OF_DIMENSIONS = "num_dimensions"

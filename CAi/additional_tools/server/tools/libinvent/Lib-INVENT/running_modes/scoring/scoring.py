@@ -1,10 +1,14 @@
-from reinvent_chemistry import Standardizer, Conversions
-from reinvent_scoring import ScoringFunctionFactory
-from reinvent_scoring.scoring.score_summary import FinalSummary
+from typing import TYPE_CHECKING
 
 from reaction_filters.reaction_filter import ReactionFilter
+from reinvent_chemistry import Conversions, Standardizer
+from reinvent_scoring import ScoringFunctionFactory
+
 from running_modes.configurations import ConfigurationEnvelope, ScoringConfiguration
 from running_modes.scoring.logging.scoring_logger import ScoringLogger
+
+if TYPE_CHECKING:
+    from reinvent_scoring.scoring.score_summary import FinalSummary
 
 
 class Scoring:
@@ -17,7 +21,9 @@ class Scoring:
         self._conversion = Conversions()
 
     def run(self):
-        input_smiles = list(self._standardization.read_smiles_file(file_path=self._config.input, randomize=False, standardize=False))
+        input_smiles = list(
+            self._standardization.read_smiles_file(file_path=self._config.input, randomize=False, standardize=False)
+        )
         final_score: FinalSummary = self._scoring_function.get_final_score(input_smiles)
 
         self._logger.log_results(score_summary=final_score)

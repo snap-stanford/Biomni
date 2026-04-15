@@ -2,11 +2,10 @@ import glob
 import itertools as it
 import os.path
 
-import torch
-from reinvent_chemistry.file_reader import FileReader
-
 import models.model as mm
+import torch
 from models.actions import TrainModel
+from reinvent_chemistry.file_reader import FileReader
 from running_modes.configurations.transfer_learning_configuration import TransferLearningConfiguration
 from running_modes.transfer_learning.logging.transfer_learning_logger import TransferLearningLogger
 
@@ -34,14 +33,20 @@ class LargeScaleTransferLearning:
     def run(self):
         # setup
         optimizer = torch.optim.Adam(self.model.network.parameters(), lr=self.config.learning_rate.start)
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
-                                                       step_size=self.config.learning_rate.step,
-                                                       gamma=self.config.learning_rate.gamma)
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(
+            optimizer, step_size=self.config.learning_rate.step, gamma=self.config.learning_rate.gamma
+        )
 
         # train
-        TrainModel(model=self.model, optimizer=optimizer, training_sets=self.training_sets,
-                   validation_sets=self.validation_sets, logger=self._logger, configuration=self.config,
-                   lr_scheduler=lr_scheduler).run()
+        TrainModel(
+            model=self.model,
+            optimizer=optimizer,
+            training_sets=self.training_sets,
+            validation_sets=self.validation_sets,
+            logger=self._logger,
+            configuration=self.config,
+            lr_scheduler=lr_scheduler,
+        ).run()
 
     def _set_up_output_folder(self):
         if not os.path.isdir(self.config.output_path):

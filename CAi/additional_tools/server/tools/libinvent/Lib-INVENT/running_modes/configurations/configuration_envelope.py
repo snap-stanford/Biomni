@@ -8,4 +8,3 @@ class ConfigurationEnvelope:
     run_type: str
     parameters: dict
     logging: LogConfiguration = None
-

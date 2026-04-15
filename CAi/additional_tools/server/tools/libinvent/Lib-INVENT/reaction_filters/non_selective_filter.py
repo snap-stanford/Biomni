@@ -1,10 +1,8 @@
-from typing import Dict, List
-
 import numpy as np
 from reinvent_chemistry.library_design import FragmentReactions
+from running_modes.configurations.reaction_filter_configuration import ReactionFilterConfiguration
 
 from reaction_filters.base_reaction_filter import BaseReactionFilter
-from running_modes.configurations.reaction_filter_configuration import ReactionFilterConfiguration
 
 
 class NonSelectiveFilter(BaseReactionFilter):
@@ -12,7 +10,7 @@ class NonSelectiveFilter(BaseReactionFilter):
         self._chemistry = FragmentReactions()
         self._reactions = self._configure_reactions(configuration.reactions)
 
-    def _configure_reactions(self, reaction_smarts: Dict[str, List[str]]):
+    def _configure_reactions(self, reaction_smarts: dict[str, list[str]]):
         all_reactions = []
         for smirks in reaction_smarts.values():
             reactions = self._chemistry.create_reactions_from_smarts(smirks)
@@ -37,13 +35,11 @@ class NonSelectiveFilter(BaseReactionFilter):
         for synthon in synthons:
             outcome_list = []
             for reactant in synthon:
-                idxs = set(
-                    [
-                        int(atom.GetProp("react_atom_idx"))
-                        for atom in reactant.GetAtoms()
-                        if atom.HasProp("react_atom_idx")
-                    ]
-                )
+                idxs = {
+                    int(atom.GetProp("react_atom_idx"))
+                    for atom in reactant.GetAtoms()
+                    if atom.HasProp("react_atom_idx")
+                }
                 outcome_list.append(idxs)
             _reactant_idx_list.append(outcome_list)
         return _reactant_idx_list
@@ -54,7 +50,7 @@ class NonSelectiveFilter(BaseReactionFilter):
         for atom in molecule.GetAtoms():
             if atom.HasProp("bondNum"):
                 bondNum = int(atom.GetProp("bondNum"))
-                if not bondNum in _bond_indices_dict:
+                if bondNum not in _bond_indices_dict:
                     _bond_indices_dict[bondNum] = []
                 _bond_indices_dict[bondNum].append(atom.GetIdx())
         return _bond_indices_dict
@@ -89,10 +85,4 @@ class NonSelectiveFilter(BaseReactionFilter):
 
     def _test_bond(self, bond, reactant_idxs):
         """Test a given bond if its targetable by any retrosynthethic disconnection"""
-        return np.any(
-            [
-                self._test_splitting(bond, sets[0], sets[1])
-                for sets in reactant_idxs
-                if len(sets) == 2
-            ]
-        )
+        return np.any([self._test_splitting(bond, sets[0], sets[1]) for sets in reactant_idxs if len(sets) == 2])

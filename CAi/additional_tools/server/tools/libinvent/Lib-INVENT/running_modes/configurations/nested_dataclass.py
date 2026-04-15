@@ -1,4 +1,5 @@
 from dataclasses import dataclass, is_dataclass
+
 # TODO: best use https://github.com/konradhalas/dacite !
 
 

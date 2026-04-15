@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 调试脚本：向 libinvent 工具后端发送测试请求并打印结果
 ==================================================
@@ -17,16 +16,17 @@
 
 import json
 import time
+
 import requests
 
 # ============================================================
 # 配置区（按需修改）
 # ============================================================
-WORKER_IP  = "127.0.0.1"   # 工具后端服务器 IP
-PORT       = 8001
+WORKER_IP = "127.0.0.1"  # 工具后端服务器 IP
+PORT = 8001
 
-TOOL_NAME  = "libinvent"        # 对应 tools/<TOOL_NAME>/ 目录名
-ACTION     = "default"          # config.json 中定义的 action 名；单脚本工具填 "default"
+TOOL_NAME = "libinvent"  # 对应 tools/<TOOL_NAME>/ 目录名
+ACTION = "default"  # config.json 中定义的 action 名；单脚本工具填 "default"
 
 # 发送给工具脚本的参数（会被写入 params.json）
 PAYLOAD = {
@@ -43,14 +43,14 @@ PAYLOAD = {
     "include_debug_paths": True,
 }
 
-TIMEOUT_SECS = 300   # 最长等待时间（秒）
-POLL_INTERVAL = 3    # 轮询间隔（秒）
+TIMEOUT_SECS = 300  # 最长等待时间（秒）
+POLL_INTERVAL = 3  # 轮询间隔（秒）
 # ============================================================
 
 
 BASE_URL = f"http://{WORKER_IP}:{PORT}"
-RUN_URL  = f"{BASE_URL}/run/{TOOL_NAME}/{ACTION}"
-JOB_URL  = f"{BASE_URL}/job"
+RUN_URL = f"{BASE_URL}/run/{TOOL_NAME}/{ACTION}"
+JOB_URL = f"{BASE_URL}/job"
 
 # 跳过系统代理，防止内网 IP 被发往外网代理导致 502
 NO_PROXY = {"http": None, "https": None}

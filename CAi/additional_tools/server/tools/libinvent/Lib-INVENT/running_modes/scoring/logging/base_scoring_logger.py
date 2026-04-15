@@ -4,11 +4,10 @@ import os
 from abc import ABC, abstractmethod
 
 import pandas as pd
-from typing import List
+from reinvent_scoring.scoring.score_summary import FinalSummary
 
 from running_modes.configurations import ConfigurationEnvelope, ScoringConfiguration
 from running_modes.enums.scoring_runner_enum import ScoringRunnerEnum
-from reinvent_scoring.scoring.score_summary import FinalSummary
 
 
 class BaseScoringLogger(ABC):
@@ -25,9 +24,10 @@ class BaseScoringLogger(ABC):
 
     def log_out_input_configuration(self):
         file = os.path.join(self._log_config.output_folder, "input.json")
-        jsonstr = json.dumps(self._configuration, default=lambda x: x.__dict__, sort_keys=True, indent=4,
-                             separators=(',', ': '))
-        with open(file, 'w') as f:
+        jsonstr = json.dumps(
+            self._configuration, default=lambda x: x.__dict__, sort_keys=True, indent=4, separators=(",", ": ")
+        )
+        with open(file, "w") as f:
             f.write(jsonstr)
 
     def log_results(self, score_summary: FinalSummary):
@@ -51,14 +51,14 @@ class BaseScoringLogger(ABC):
 
         return data
 
-    def _compose_row_entry(self, indx: int, valid: int, score: float, smile: str, component_scores: List) -> List:
+    def _compose_row_entry(self, indx: int, valid: int, score: float, smile: str, component_scores: list) -> list:
         row = [smile, score]
         components = [component[indx] for component in component_scores]
         row.extend(components)
         row.append(valid)
         return row
 
-    def _create_table_header(self, score_summary: FinalSummary) -> List:
+    def _create_table_header(self, score_summary: FinalSummary) -> list:
         column_names = [self._scoring_runner_enum.SMILES, self._scoring_runner_enum.TOTAL_SCORE]
         component_names = [c.name for c in score_summary.profile]
         column_names.extend(component_names)
@@ -69,8 +69,7 @@ class BaseScoringLogger(ABC):
     def _setup_logger(self):
         handler = logging.StreamHandler()
         formatter = logging.Formatter(
-            fmt="%(asctime)s: %(module)s.%(funcName)s +%(lineno)s: %(levelname)-8s %(message)s",
-            datefmt="%H:%M:%S"
+            fmt="%(asctime)s: %(module)s.%(funcName)s +%(lineno)s: %(levelname)-8s %(message)s", datefmt="%H:%M:%S"
         )
         handler.setFormatter(formatter)
         logger = logging.getLogger("scoring_logger")

@@ -3,7 +3,6 @@ import logging
 import numpy
 from reinvent_chemistry.logging import fraction_valid_smiles
 from torch.utils.tensorboard import SummaryWriter
-import pandas as pd
 
 from running_modes.scaffold_decorating.logging.base_scaffold_decorating_logger import BaseScaffoldDecoratingLogger
 
@@ -33,8 +32,7 @@ class LocalScaffoldDecoratingLogger(BaseScaffoldDecoratingLogger):
     def _setup_logger(self):
         handler = logging.StreamHandler()
         formatter = logging.Formatter(
-            fmt="%(asctime)s: %(module)s.%(funcName)s +%(lineno)s: %(levelname)-8s %(message)s",
-            datefmt="%H:%M:%S"
+            fmt="%(asctime)s: %(module)s.%(funcName)s +%(lineno)s: %(levelname)-8s %(message)s", datefmt="%H:%M:%S"
         )
         handler.setFormatter(formatter)
         logger = logging.getLogger("scaffold_decorating_logger")

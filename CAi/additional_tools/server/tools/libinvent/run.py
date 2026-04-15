@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
 CAi backend tool: libinvent / default
@@ -23,7 +22,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 # ============================================================
 # 1. 基础路径与依赖初始化
@@ -50,12 +49,13 @@ except Exception:
 # 2. 路径展示策略：默认少暴露绝对路径
 # ============================================================
 
+
 def compact_path(
-    path: Optional[Path],
+    path: Path | None,
     *,
     include_debug_paths: bool,
-    job_dir: Optional[Path] = None,
-) -> Optional[str]:
+    job_dir: Path | None = None,
+) -> str | None:
     """
     把路径压缩成更适合返回给 Agent / 上层系统的形式。
 
@@ -86,20 +86,21 @@ def compact_path(
 # 3. 极简错误构造
 # ============================================================
 
+
 def build_error_result(
     message: str,
     *,
     error_type: str,
     recoverable: bool,
-    validated_input: Optional[Dict[str, Any]] = None,
-    debug_context: Optional[Dict[str, Any]] = None,
-    repair_hints: Optional[List[str]] = None,
-    suggested_next_actions: Optional[List[str]] = None,
-    input_smiles: Optional[str] = None,
-    normalized_smiles: Optional[str] = None,
-    repair_hint: Optional[str] = None,
+    validated_input: dict[str, Any] | None = None,
+    debug_context: dict[str, Any] | None = None,
+    repair_hints: list[str] | None = None,
+    suggested_next_actions: list[str] | None = None,
+    input_smiles: str | None = None,
+    normalized_smiles: str | None = None,
+    repair_hint: str | None = None,
     include_debug_paths: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     兼容版失败结果构造函数。
 
@@ -127,7 +128,7 @@ def build_error_result(
 
     compat_error = f"{message} | " + " | ".join(compat_parts)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "success": False,
         "error": compat_error,
         "error_type": error_type,
@@ -148,11 +149,12 @@ def build_error_result(
         result["debug"] = debug_context
 
     return result
-    
+
 
 # ============================================================
 # 4. scaffold 规范化与语法校验
 # ============================================================
+
 
 def normalize_scaffold_smiles(smiles: str) -> str:
     """
@@ -176,7 +178,7 @@ def normalize_scaffold_smiles(smiles: str) -> str:
     return smiles
 
 
-def rdkit_validate_scaffold(smiles: str) -> Tuple[bool, Optional[str]]:
+def rdkit_validate_scaffold(smiles: str) -> tuple[bool, str | None]:
     """
     用 RDKit 对 scaffold 做语法级解析检查。
 
@@ -196,7 +198,7 @@ def rdkit_validate_scaffold(smiles: str) -> Tuple[bool, Optional[str]]:
         return False, f"RDKit failed to parse scaffold SMILES: {smiles}; error={e}"
 
 
-def validate_input(params: Dict[str, Any]) -> Dict[str, Any]:
+def validate_input(params: dict[str, Any]) -> dict[str, Any]:
     """
     校验并规范化输入参数。
     """
@@ -206,10 +208,7 @@ def validate_input(params: Dict[str, Any]) -> Dict[str, Any]:
     batch_size = params.get("batch_size", 1)
     randomize = params.get("randomize", True)
     run_type = params.get("run_type", "scaffold_decorating")
-    model_path = params.get(
-        "model_path",
-        str(LIBINVENT_ROOT / "trained_models" / "reaction_based.model")
-    )
+    model_path = params.get("model_path", str(LIBINVENT_ROOT / "trained_models" / "reaction_based.model"))
     max_rounds = params.get("max_rounds", 5)
     oversample_factor = params.get("oversample_factor", 3)
     max_candidates_per_round = params.get("max_candidates_per_round", 128)
@@ -223,8 +222,7 @@ def validate_input(params: Dict[str, Any]) -> Dict[str, Any]:
 
     if "*" not in normalized_smiles and "[*]" not in normalized_smiles and "[*:" not in normalized_smiles:
         raise ValueError(
-            "The input scaffold SMILES must contain at least one attachment point, "
-            "such as '[*]' or '[*:1]'."
+            "The input scaffold SMILES must contain at least one attachment point, such as '[*]' or '[*:1]'."
         )
 
     ok, rdkit_error = rdkit_validate_scaffold(normalized_smiles)
@@ -277,6 +275,7 @@ def validate_input(params: Dict[str, Any]) -> Dict[str, Any]:
 # 5. Lib-INVENT 配置与输入文件写入
 # ============================================================
 
+
 def write_scaffold_file(scaffold_smiles: str, path: Path) -> None:
     """
     把当前轮次的 scaffold 写入输入文件。
@@ -288,11 +287,11 @@ def write_scaffold_file(scaffold_smiles: str, path: Path) -> None:
 
 
 def build_libinvent_config(
-    validated: Dict[str, Any],
+    validated: dict[str, Any],
     *,
     round_index: int,
     request_count: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     构造单轮 Lib-INVENT config。
     """
@@ -318,7 +317,7 @@ def build_libinvent_config(
     }
 
 
-def validate_paths(config: Dict[str, Any]) -> None:
+def validate_paths(config: dict[str, Any]) -> None:
     """
     校验本轮运行所需路径。
     """
@@ -343,19 +342,20 @@ def validate_paths(config: Dict[str, Any]) -> None:
 # 6. CSV 读取、字段识别、结果标准化
 # ============================================================
 
-def read_csv_rows(output_path: Path) -> List[Dict[str, Any]]:
+
+def read_csv_rows(output_path: Path) -> list[dict[str, Any]]:
     """
     读取单轮输出 CSV。
     """
     if not output_path.exists():
         raise FileNotFoundError(f"Expected output file was not created: {output_path}")
 
-    with open(output_path, "r", encoding="utf-8") as f:
+    with open(output_path, encoding="utf-8") as f:
         reader = csv.DictReader(f)
         return list(reader)
 
 
-def infer_smiles_key(rows: List[Dict[str, Any]]) -> str:
+def infer_smiles_key(rows: list[dict[str, Any]]) -> str:
     """
     推断输出表里“生成分子 SMILES”所在列名。
     """
@@ -385,18 +385,18 @@ def infer_smiles_key(rows: List[Dict[str, Any]]) -> str:
 
 
 def normalize_records_from_rows(
-    rows: List[Dict[str, Any]],
+    rows: list[dict[str, Any]],
     *,
     input_scaffold: str,
     requested_num: int,
-    exclude_smiles: List[str],
-    seen_smiles: Set[str],
-) -> List[Dict[str, Any]]:
+    exclude_smiles: list[str],
+    seen_smiles: set[str],
+) -> list[dict[str, Any]]:
     """
     将单轮输出 CSV 规范化为统一 records。
     """
     exclude_set = set(exclude_smiles)
-    records: List[Dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
     smiles_key = infer_smiles_key(rows)
 
     for row in rows:
@@ -410,18 +410,20 @@ def normalize_records_from_rows(
 
         seen_smiles.add(raw_smiles)
 
-        records.append({
-            "input_scaffold": input_scaffold,
-            "SMILES": raw_smiles,
-            "generated_smiles": raw_smiles,
-            "status": "generated",
-            "source": "libinvent",
-            "requested_num_decorations": requested_num,
-            "excluded_count": len(exclude_smiles),
-            "is_duplicate_with_exclude": raw_smiles in exclude_set,
-            "raw_row": row,
-            "message": "Generated by Lib-INVENT."
-        })
+        records.append(
+            {
+                "input_scaffold": input_scaffold,
+                "SMILES": raw_smiles,
+                "generated_smiles": raw_smiles,
+                "status": "generated",
+                "source": "libinvent",
+                "requested_num_decorations": requested_num,
+                "excluded_count": len(exclude_smiles),
+                "is_duplicate_with_exclude": raw_smiles in exclude_set,
+                "raw_row": row,
+                "message": "Generated by Lib-INVENT.",
+            }
+        )
 
     return records
 
@@ -429,6 +431,7 @@ def normalize_records_from_rows(
 # ============================================================
 # 7. 多轮补采样
 # ============================================================
+
 
 def compute_request_count(
     remaining_needed: int,
@@ -445,11 +448,11 @@ def compute_request_count(
 
 
 def run_single_round(
-    validated: Dict[str, Any],
+    validated: dict[str, Any],
     *,
     round_index: int,
     request_count: int,
-) -> Tuple[Dict[str, Any], Path, Path]:
+) -> tuple[dict[str, Any], Path, Path]:
     """
     执行一轮真实 Lib-INVENT 生成。
     """
@@ -468,7 +471,7 @@ def run_single_round(
     return config, output_path, logging_path
 
 
-def collect_records_with_resampling(validated: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+def collect_records_with_resampling(validated: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """
     多轮补采样主逻辑。
 
@@ -479,13 +482,13 @@ def collect_records_with_resampling(validated: Dict[str, Any]) -> Tuple[List[Dic
     target_n = validated["number_of_decorations_per_scaffold"]
     exclude_smiles = validated["exclude_smiles"]
 
-    all_records: List[Dict[str, Any]] = []
-    seen_smiles: Set[str] = set()
+    all_records: list[dict[str, Any]] = []
+    seen_smiles: set[str] = set()
 
-    round_summaries: List[Dict[str, Any]] = []
-    latest_config: Optional[Dict[str, Any]] = None
-    latest_output_path: Optional[Path] = None
-    latest_logging_path: Optional[Path] = None
+    round_summaries: list[dict[str, Any]] = []
+    latest_config: dict[str, Any] | None = None
+    latest_output_path: Path | None = None
+    latest_logging_path: Path | None = None
 
     for round_index in range(1, validated["max_rounds"] + 1):
         remaining_needed = target_n - len(all_records)
@@ -520,25 +523,27 @@ def collect_records_with_resampling(validated: Dict[str, Any]) -> Tuple[List[Dic
 
         all_records.extend(new_records)
 
-        round_summaries.append({
-            "round_index": round_index,
-            "requested_candidates": request_count,
-            "raw_csv_rows": len(rows),
-            "new_unique_records_kept": len(new_records),
-            "total_collected_so_far": len(all_records),
-            "output_file": compact_path(
-                output_path,
-                include_debug_paths=validated["include_debug_paths"],
-                job_dir=Path.cwd(),
-            ),
-            "logging_dir": compact_path(
-                logging_path,
-                include_debug_paths=validated["include_debug_paths"],
-                job_dir=Path.cwd(),
-            ),
-        })
+        round_summaries.append(
+            {
+                "round_index": round_index,
+                "requested_candidates": request_count,
+                "raw_csv_rows": len(rows),
+                "new_unique_records_kept": len(new_records),
+                "total_collected_so_far": len(all_records),
+                "output_file": compact_path(
+                    output_path,
+                    include_debug_paths=validated["include_debug_paths"],
+                    job_dir=Path.cwd(),
+                ),
+                "logging_dir": compact_path(
+                    logging_path,
+                    include_debug_paths=validated["include_debug_paths"],
+                    job_dir=Path.cwd(),
+                ),
+            }
+        )
 
-    meta: Dict[str, Any] = {
+    meta: dict[str, Any] = {
         "target_n": target_n,
         "actual_n_before_truncation": len(all_records),
         "round_summaries": round_summaries,
@@ -561,12 +566,13 @@ def collect_records_with_resampling(validated: Dict[str, Any]) -> Tuple[List[Dic
 # 8. 成功结果构造（保持原逻辑）
 # ============================================================
 
+
 def build_success_result(
-    records: List[Dict[str, Any]],
+    records: list[dict[str, Any]],
     *,
-    validated: Dict[str, Any],
-    meta: Dict[str, Any],
-) -> Dict[str, Any]:
+    validated: dict[str, Any],
+    meta: dict[str, Any],
+) -> dict[str, Any]:
     """
     构造统一成功结果。
 
@@ -578,14 +584,7 @@ def build_success_result(
     preview_limit = validated["preview_limit"]
     preview_columns = ["SMILES", "status", "message"]
 
-    preview = [
-        {
-            "SMILES": r["SMILES"],
-            "status": r["status"],
-            "message": r["message"]
-        }
-        for r in records[:preview_limit]
-    ]
+    preview = [{"SMILES": r["SMILES"], "status": r["status"], "message": r["message"]} for r in records[:preview_limit]]
 
     actual_n = len(records)
     target_n = validated["number_of_decorations_per_scaffold"]
@@ -593,8 +592,7 @@ def build_success_result(
     partial_message = None
     if actual_n < target_n:
         partial_message = (
-            f"Requested {target_n} unique molecules, but only obtained {actual_n} "
-            f"after deduplication and filtering."
+            f"Requested {target_n} unique molecules, but only obtained {actual_n} after deduplication and filtering."
         )
 
     outputs = None
@@ -606,7 +604,7 @@ def build_success_result(
             "logging_dir": last_round.get("logging_dir"),
         }
 
-    parameters: Dict[str, Any] = {
+    parameters: dict[str, Any] = {
         "batch_size": validated["batch_size"],
         "number_of_decorations_per_scaffold": validated["number_of_decorations_per_scaffold"],
         "randomize": validated["randomize"],
@@ -643,6 +641,7 @@ def build_success_result(
 # 9. 主流程（仅简化失败返回）
 # ============================================================
 
+
 def main() -> None:
     """
     主入口流程：
@@ -653,11 +652,11 @@ def main() -> None:
     4. 若无结果，则返回极简失败协议
     5. 最终把 result.json 写到当前 job 目录
     """
-    validated: Optional[Dict[str, Any]] = None
-    raw_params: Optional[Dict[str, Any]] = None
+    validated: dict[str, Any] | None = None
+    raw_params: dict[str, Any] | None = None
 
     try:
-        with open("params.json", "r", encoding="utf-8") as f:
+        with open("params.json", encoding="utf-8") as f:
             raw_params = json.load(f)
 
         validated = validate_input(raw_params)
@@ -701,7 +700,10 @@ def main() -> None:
             error_type = "missing_attachment_point"
             repair_hint = "Add one attachment point such as '[*]' or '[*:1]' and retry."
 
-        elif "rdkit cannot parse scaffold smiles" in msg.lower() or "rdkit failed to parse scaffold smiles" in msg.lower():
+        elif (
+            "rdkit cannot parse scaffold smiles" in msg.lower()
+            or "rdkit failed to parse scaffold smiles" in msg.lower()
+        ):
             error_type = "invalid_scaffold_smiles"
             repair_hint = "Try a more RDKit-parseable scaffold while preserving one attachment point."
 
@@ -716,7 +718,9 @@ def main() -> None:
             input_smiles=input_smiles,
             normalized_smiles=normalized_smiles,
             repair_hint=repair_hint,
-            include_debug_paths=bool(raw_params.get("include_debug_paths", False)) if isinstance(raw_params, dict) else False,
+            include_debug_paths=bool(raw_params.get("include_debug_paths", False))
+            if isinstance(raw_params, dict)
+            else False,
             debug_context={
                 "job_dir": str(Path.cwd().resolve()),
             },
@@ -730,7 +734,9 @@ def main() -> None:
             input_smiles=raw_params.get("smiles") if isinstance(raw_params, dict) else None,
             normalized_smiles=validated.get("smiles") if isinstance(validated, dict) else None,
             repair_hint=None,
-            include_debug_paths=bool(raw_params.get("include_debug_paths", False)) if isinstance(raw_params, dict) else False,
+            include_debug_paths=bool(raw_params.get("include_debug_paths", False))
+            if isinstance(raw_params, dict)
+            else False,
             debug_context={
                 "job_dir": str(Path.cwd().resolve()),
                 "tool_root": str(TOOL_ROOT.resolve()),
@@ -746,7 +752,9 @@ def main() -> None:
             input_smiles=raw_params.get("smiles") if isinstance(raw_params, dict) else None,
             normalized_smiles=validated.get("smiles") if isinstance(validated, dict) else None,
             repair_hint=None,
-            include_debug_paths=bool(raw_params.get("include_debug_paths", False)) if isinstance(raw_params, dict) else False,
+            include_debug_paths=bool(raw_params.get("include_debug_paths", False))
+            if isinstance(raw_params, dict)
+            else False,
             debug_context={
                 "job_dir": str(Path.cwd().resolve()),
             },

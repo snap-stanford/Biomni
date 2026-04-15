@@ -5,7 +5,6 @@ from running_modes.reinforcement_learning.scoring_strategy.standard_strategy imp
 
 
 class ScoringStrategy:
-
     def __new__(cls, strategy_configuration: ScoringStrategyConfiguration, logger) -> BaseScoringStrategy:
         scoring_strategy_enum = ScoringStrategyEnum()
         if scoring_strategy_enum.STANDARD == strategy_configuration.name:
