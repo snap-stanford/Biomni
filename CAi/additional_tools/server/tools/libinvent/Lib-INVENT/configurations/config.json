@@ -1,0 +1,16 @@
+{
+  "USER_NAME": "lula",
+  "MAIN_TEST_PATH": "tests",
+  "DEVELOPMENT_ENVIRONMENT": true,
+  "COMPONENT_SPECIFIC": {
+    "AZDOCK": {
+      "AZDOCK_DOCKER_SCRIPT_PATH": "docker.py",
+      "AZDOCK_ENV_PATH": "envs/lib-invent/bin/python",
+      "AZDOCK_DEBUG": true
+    }
+  },
+  "ENVIRONMENTAL_VARIABLES": {
+    "PIP_URL": "",
+    "PIP_KEY": ""
+  }
+}

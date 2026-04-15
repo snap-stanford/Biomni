@@ -1,0 +1,17 @@
+{
+  "USER_NAME": "<your user name>",
+  "MAIN_TEST_PATH": "<your test path>/unit.test",
+  "DEVELOPMENT_ENVIRONMENT": true,
+  "COMPONENT_SPECIFIC":
+  {
+    "AZDOCK": {
+      "AZDOCK_DOCKER_SCRIPT_PATH": "/<your_path>/docker.py",
+      "AZDOCK_ENV_PATH": "/<your_path>/miniconda3/envs/AZdock/bin/python",
+      "AZDOCK_DEBUG": true
+    }
+  },
+  "ENVIRONMENTAL_VARIABLES": {
+    "PIP_URL": "<confidential info. Needed for internal use only>",
+    "PIP_KEY": "<confidential info. Needed for internal use only>"
+  }
+}

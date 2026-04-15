@@ -257,19 +257,42 @@ def calculate_scscore(smiles: Optional[str] = None, smiles_list: Optional[List[s
 # ==========================================
 # 🛠️ Agent 工具 4：Lib-INVENT 骨架修饰 (Scaffold Decoration)
 # ==========================================
-def generate_libinvent_decorations(smiles: str, num_decorations: int = 32) -> str:
+def generate_libinvent_decorations(smiles: str, num_decorations: int = 3) -> str:
     """
-    Use this tool to decorate a specific chemical scaffold using the Lib-INVENT reaction-based model.
-    It adds side-chains or functional groups to the specified attachment points.
-    
+    Use this tool to decorate a chemical scaffold using the Lib-INVENT reaction-based model.
+    It generates decorated molecules by attaching substituents or side chains to the scaffold's
+    attachment points.
+
     Args:
-        smiles (str): The SMILES string of the scaffold. MUST contain at least one attachment point (e.g., '[*]c1ccccc1').
-        num_decorations (int, optional): The number of decorated molecules to generate. Defaults to 32.
-        
+        smiles (str):
+            The scaffold SMILES string to decorate.
+            The scaffold MUST contain at least one valid attachment point, such as '[*]' or '[*:1]'.
+            Example: '[*]c1ccccc1' or 'CC(=O)N[*]'.
+        num_decorations (int, optional):
+            The requested number of decorated molecules to generate. Defaults to 3.
+            The actual number of successfully generated molecules may be smaller than this value,
+            depending on scaffold validity and Lib-INVENT generation outcomes.
+
     Returns:
-        str: A JSON-formatted string containing the successfully generated decorated molecules and their properties, or an error message.
+        str: A JSON-formatted string.
+
+        On SUCCESS, the JSON follows this schema:
+        {
+            "status": "success",
+            "input_scaffold": "O=C1N(C(=O)[*])CCSC(=O)C1(C)C",
+            "requested_num_decorations": 10,
+            "generated_count": 10,
+            "csv_columns": ["SMILES", "status", "message"],
+            "molecules_smiles": [...],
+            "decorated_molecules_preview": [...]
+        }
+
+        On ERROR, the JSON follows this schema:
+        {
+            "error": "Detailed error message"
+        }
     """
-    if "*" not in smiles and "[" not in smiles:
+    if "*" not in smiles:
         return json.dumps({"error": "The input scaffold SMILES must contain an attachment point (like '*' or '[*:1]')."})
 
     payload = {
@@ -283,20 +306,21 @@ def generate_libinvent_decorations(smiles: str, num_decorations: int = 32) -> st
         return json.dumps({"error": result["error"]})
 
     summary = result.get("summary", {})
+    results = result.get("results", [])
+
     columns = summary.get("columns", [])
     preview_rows = summary.get("preview", [])
 
-    # Extract complete molecule SMILES — Lib-INVENT CSV typically has a "SMILES" column
-    # with the fully decorated molecule. Fall back to returning the raw rows with column info
-    # so the agent knows exactly which key to read.
-    smiles_key = next((c for c in columns if c.upper() == "SMILES"), None)
-    if smiles_key:
-        molecules_smiles = [row[smiles_key] for row in preview_rows if row.get(smiles_key)]
-    else:
-        molecules_smiles = []
+    molecules_smiles = [row.get("SMILES") for row in results if row.get("SMILES")]
+
+    input_scaffold = None
+    if results:
+        input_scaffold = results[0].get("input_scaffold")
 
     agent_response = {
         "status": "success",
+        "input_scaffold": input_scaffold,
+        "requested_num_decorations": num_decorations,
         "generated_count": summary.get("row_count"),
         "csv_columns": columns,
         "molecules_smiles": molecules_smiles,
@@ -304,6 +328,7 @@ def generate_libinvent_decorations(smiles: str, num_decorations: int = 32) -> st
     }
 
     return json.dumps(agent_response, ensure_ascii=False)
+    
 
 # ==========================================
 # 🛠️ Agent 工具 5：抗菌活性 (pMIC) 预测
