@@ -1,12 +1,14 @@
 import os
 import re
-import traceback
 import shutil
 from typing import List, Dict, Any, Tuple, Optional
 import gradio as gr
 from langchain_core.messages import AIMessage, HumanMessage
 
 from CAi.config import WORKSPACE_DIR
+from CAi.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class AgentGradioUI:
@@ -69,7 +71,7 @@ class AgentGradioUI:
             os.makedirs(self.workspace_dir, exist_ok=True)
             return self._get_current_files(), gr.update(choices=[])
         except Exception as e:
-            print(f"清空工作区失败: {e}")
+            logger.error(f"清空工作区失败: {e}")
             return self._get_current_files(), gr.update(choices=self._get_dropdown_choices())
 
     def _clear_all(self) -> Tuple[List, List, List[List[str]], gr.update]:
@@ -304,8 +306,8 @@ class AgentGradioUI:
             # Yield when there's new content
             if len(current_round_inner) > last_yield_count:
                 last_yield_count = len(current_round_inner)
-                print(
-                    f"[DEBUG] 流式 yield: round={len(current_round_inner)}, "
+                logger.debug(
+                    f"流式 yield: round={len(current_round_inner)}, "
                     f"total={len(display_inner)}, solution={bool(solution_content)}"
                 )
                 yield (display_inner, updated_main)
@@ -335,7 +337,7 @@ class AgentGradioUI:
         self.agent.main_history_copy.append({"role": "assistant", "content": solution_content})
 
         # Final yield
-        print(f"[DEBUG] 最终 yield: inner={len(final_inner)}, main={len(final_main)}")
+        logger.debug(f"最终 yield: inner={len(final_inner)}, main={len(final_main)}")
         yield (final_inner, final_main)
 
     def _process_message_content(self, content: str, current_round_inner: List[Dict]) -> None:
@@ -482,7 +484,7 @@ class AgentGradioUI:
             self.agent.main_history_copy.append({"role": "user", "content": agent_prompt})
 
             # Initial yield
-            print(f"[DEBUG] 首次 yield: inner={len(new_inner)}, main={len(new_main)}")
+            logger.debug(f"首次 yield: inner={len(new_inner)}, main={len(new_main)}")
             yield (new_inner, new_main, self._get_current_files(), gr.update(choices=self._get_dropdown_choices()))
 
             # Stream agent execution with yields
@@ -490,8 +492,7 @@ class AgentGradioUI:
                 yield (final_inner, final_main, self._get_current_files(), gr.update(choices=self._get_dropdown_choices()))
 
         except Exception as e:
-            print("\n❌ Backend Execution Error:")
-            traceback.print_exc()
+            logger.exception("Backend Execution Error")
             yield self._handle_error(e, inner_history, main_history)
 
     # ========== UI Builder ==========

@@ -4,7 +4,7 @@ import json
 import requests
 from typing import Dict, Any, Optional, List
 
-TOOL_SERVER_HOST = os.environ.get("TOOL_SERVER_HOST", "100.103.118.47")
+TOOL_SERVER_HOST = os.environ.get("TOOL_SERVER_HOST", "100.103.118.72")
 TOOL_SERVER_PORT = os.environ.get("TOOL_SERVER_PORT", "8001")
 BASE_URL = f"http://{TOOL_SERVER_HOST}:{TOOL_SERVER_PORT}"
 

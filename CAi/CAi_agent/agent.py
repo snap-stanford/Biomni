@@ -1,10 +1,12 @@
-"""A1pro - 扩展的 CAi Agent，自动加载 additional_tools"""
+"""A1pro - 扩展的 CAi Agent，自动加载 additional_tools 和 skills"""
 
 import importlib
 import inspect
 from pathlib import Path
 
 from base_CAi.agent.a1 import A1
+from CAi.CAi_agent.skills import SkillLoader
+from CAi.logger import get_logger
 
 
 class A1pro(A1):
@@ -25,6 +27,9 @@ class A1pro(A1):
         tools_module: str = "CAi.additional_tools",
         exclude_tools: list[str] = None,
         lazy_load: bool = False,
+        auto_load_skills: bool = True,
+        skills_dir: str | None = None,
+        exclude_skills: list[str] = None,
         **kwargs
     ):
         """
@@ -36,11 +41,13 @@ class A1pro(A1):
             tools_module: 工具模块路径（默认 "CAi.additional_tools"）
             exclude_tools: 要排除的工具名称列表
             lazy_load: 是否延迟加载工具（首次使用时才加载）
+            auto_load_skills: 是否自动加载技能（默认 True）
+            skills_dir: 技能文件目录（默认使用 CAi/skills）
+            exclude_skills: 要排除的技能 ID 列表
             **kwargs: 传递给父类 A1 的关键字参数
         """
-        # 先初始化父类
-        super().__init__(*args, **kwargs)
-        
+        # ⚠️ 重要：在调用 super().__init__() 之前初始化这些属性
+        # 因为父类的 __init__ 会调用 configure()，而子类重写的 configure() 需要这些属性
         self._name = 'A1pro'
         self.tools_module = tools_module
         self.exclude_tools = exclude_tools or []
@@ -50,16 +57,34 @@ class A1pro(A1):
         self._loaded_tools = {}
         self._tools_metadata = {}
         
+        # 初始化 SkillLoader（必须在 super().__init__() 之前）
+        self.skill_loader = SkillLoader(skills_dir)
+        self.exclude_skills = exclude_skills or []
+        self._auto_load_skills = auto_load_skills  # 保存标志，稍后使用
+        
+        # Initialize logger
+        self.logger = get_logger("CAi.A1pro")
+
+        # 现在可以安全地调用父类初始化
+        super().__init__(*args, **kwargs)
+
         # 自动加载工具
         if auto_load_tools:
             if lazy_load:
-                print(f"📦 A1pro 初始化完成（延迟加载模式）")
+                self.logger.info("📦 A1pro 初始化完成（延迟加载模式）")
                 self._discover_tools()  # 只发现，不加载
             else:
-                print(f"📦 A1pro 正在加载 {tools_module} 中的工具...")
+                self.logger.info(f"📦 A1pro 正在加载 {tools_module} 中的工具...")
                 self._load_all_tools()
-                print("🔄 更新系统提示词...")
-                self.configure()
+
+        # 自动加载技能（只加载元数据）
+        if auto_load_skills:
+            self._load_skill_summaries()
+
+        # 统一更新系统提示词（如果加载了工具或技能）
+        if auto_load_tools or auto_load_skills:
+            self.logger.info("🔄 更新系统提示词...")
+            self.configure()
     
     def _discover_tools(self):
         """发现但不加载工具（用于延迟加载）"""
@@ -80,12 +105,11 @@ class A1pro(A1):
                     'loaded': False
                 }
 
-            print(f"🔍 发现 {len(self._tools_metadata)} 个工具（延迟加载）")
+            self.logger.info(f"🔍 发现 {len(self._tools_metadata)} 个工具（延迟加载）")
 
         except Exception as e:
-            print(f"⚠️  发现工具时出错: {e}")
-            import traceback
-            traceback.print_exc()
+            self.logger.error(f"⚠️  发现工具时出错: {e}")
+            self.logger.exception("Tool discovery failed")
     
     def _load_all_tools(self):
         """加载所有工具"""
@@ -109,85 +133,166 @@ class A1pro(A1):
                     self.add_tool(obj)
                     self._loaded_tools[name] = obj
                     tools_loaded += 1
-                    print(f"  ✓ 已加载: {name}")
+                    self.logger.debug(f"  ✓ 已加载: {name}")
 
                 except Exception as e:
-                    print(f"  ✗ 加载失败: {name} - {e}")
+                    self.logger.warning(f"  ✗ 加载失败: {name} - {e}")
 
-            print(f"\n✅ 成功加载 {tools_loaded}/{tools_found} 个工具")
+            self.logger.info(f"✅ 成功加载 {tools_loaded}/{tools_found} 个工具")
 
             if tools_loaded > 0:
-                print(f"\n可用工具列表:")
+                self.logger.info("可用工具列表:")
                 for tool_name in self._loaded_tools.keys():
-                    print(f"  - {tool_name}")
+                    self.logger.info(f"  - {tool_name}")
 
         except ModuleNotFoundError as e:
-            print(f"⚠️  未找到工具模块 '{self.tools_module}': {e}")
-            print(f"提示: 请确保 {self.tools_module.replace('.', '/')} 目录存在")
+            self.logger.error(f"⚠️  未找到工具模块 '{self.tools_module}': {e}")
+            self.logger.info(f"提示: 请确保 {self.tools_module.replace('.', '/')} 目录存在")
         except Exception as e:
-            print(f"⚠️  加载工具时出错: {e}")
-            import traceback
+            self.logger.error(f"⚠️  加载工具时出错: {e}")
+            self.logger.exception("Tool loading failed")
 
-            traceback.print_exc()
+    def _load_skill_summaries(self):
+        """加载技能摘要（只加载 name, description, metadata）"""
+        try:
+            self.logger.info("🎯 A1pro 正在加载技能摘要...")
 
+            # 获取所有技能的摘要
+            summaries = self.skill_loader.get_skill_summaries()
+
+            # 过滤排除的技能
+            filtered_summaries = [
+                s for s in summaries
+                if s['id'] not in self.exclude_skills
+            ]
+
+            skills_loaded = len(filtered_summaries)
+
+            if skills_loaded > 0:
+                self.logger.info(f"✅ 成功加载 {skills_loaded} 个技能摘要")
+                self.logger.info("可用技能列表:")
+                for summary in filtered_summaries:
+                    self.logger.info(f"  - {summary['name']}")
+
+                # 将 get_skill_content 作为工具添加到 agent
+                self._register_skill_tool()
+            else:
+                self.logger.warning("⚠️  未找到可用的技能文件")
+
+        except Exception as e:
+            self.logger.error(f"⚠️  加载技能时出错: {e}")
+            self.logger.exception("Skill loading failed")
+    
+    def _register_skill_tool(self):
+        """Register get_skill_content as a callable tool"""
+        def get_skill_content(skill_id: str) -> str:
+            """
+            Get the complete content and workflow of a skill.
+
+            Use this function to obtain detailed step-by-step guidance when you need to execute a complex task.
+
+            Args:
+                skill_id: The ID of the skill (e.g., 'molecule_analysis', 'virtual_screening')
+
+            Returns:
+                The complete content of the skill, including detailed workflow, examples, and best practices
+
+            Example:
+                # Get the detailed content of the molecule analysis skill
+                content = get_skill_content('molecule_analysis')
+                print(content)
+            """
+            skill = self.skill_loader.get_skill_by_id(skill_id)
+            if skill:
+                # Return content without metadata
+                return skill.get('content_without_metadata', skill.get('content', ''))
+            else:
+                return f"Error: Skill with ID '{skill_id}' not found. Use list_available_skills() to see available skills."
+
+        # Add function as a tool
+        try:
+            self.add_tool(get_skill_content)
+            self.logger.debug("  ✓ 已注册 get_skill_content 工具")
+        except Exception as e:
+            self.logger.warning(f"  ⚠️  注册 get_skill_content 工具失败: {e}")
+    
+    def get_skill_content(self, skill_id: str) -> dict | None:
+        """
+        获取技能的完整内容（延迟加载）- 供外部调用
+        
+        Args:
+            skill_id: 技能 ID
+            
+        Returns:
+            技能的完整信息，包括 content
+        """
+        return self.skill_loader.get_skill_by_id(skill_id)
+    
     def reload_tools(self):
         """重新加载所有工具（用于开发时热更新）"""
-        print(f"\n🔄 重新加载 {self.tools_module} 中的工具...")
-        
+        self.logger.info(f"🔄 重新加载 {self.tools_module} 中的工具...")
+
         # 清除已加载的工具
         for tool_name in list(self._loaded_tools.keys()):
             try:
                 self.remove_custom_tool(tool_name)
-            except:
+            except Exception:
                 pass
-        
+
         self._loaded_tools.clear()
-        
+
         # 重新加载
         self._load_all_tools()
         # ⭐ 重新配置以更新系统提示词
-        print("🔄 更新系统提示词...")
+        self.logger.info("🔄 更新系统提示词...")
+        self.configure()
+
+    def reload_skills(self):
+        """重新加载所有技能（用于开发时热更新）"""
+        self.logger.info("🔄 重新加载技能...")
+        self.skill_loader.reload()
+        self._load_skill_summaries()
+        self.logger.info("🔄 更新系统提示词...")
         self.configure()
     
     def add_tool_from_file(self, filepath: str, function_name: str = None):
         """
         从文件中加载特定工具
-        
+
         Args:
             filepath: Python 文件路径
             function_name: 要加载的函数名（如果为 None，加载所有函数）
         """
         try:
             # 读取文件
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, encoding='utf-8') as f:
                 code = f.read()
-            
+
             # 创建临时模块
             import types
             temp_module = types.ModuleType('temp_tools')
-            
+
             # 执行代码
             exec(code, temp_module.__dict__)
-            
+
             # 加载函数
             if function_name:
                 if hasattr(temp_module, function_name):
                     func = getattr(temp_module, function_name)
                     self.add_tool(func)
-                    print(f"✓ 从 {filepath} 加载工具: {function_name}")
+                    self.logger.info(f"✓ 从 {filepath} 加载工具: {function_name}")
                 else:
-                    print(f"✗ 在 {filepath} 中未找到函数: {function_name}")
+                    self.logger.warning(f"✗ 在 {filepath} 中未找到函数: {function_name}")
             else:
                 # 加载所有函数
                 for name, obj in inspect.getmembers(temp_module, inspect.isfunction):
                     if not name.startswith('_'):
                         self.add_tool(obj)
-                        print(f"✓ 从 {filepath} 加载工具: {name}")
-        
+                        self.logger.info(f"✓ 从 {filepath} 加载工具: {name}")
+
         except Exception as e:
-            print(f"✗ 从文件加载工具失败: {e}")
-            import traceback
-            traceback.print_exc()
+            self.logger.error(f"✗ 从文件加载工具失败: {e}")
+            self.logger.exception("Tool loading from file failed")
     
     def list_available_tools(self):
         """列出所有可用的工具"""
@@ -227,6 +332,126 @@ class A1pro(A1):
         
         print("\n" + "=" * 60)
     
+    def list_available_skills(self):
+        """列出所有可用的技能"""
+        summaries = self.skill_loader.get_skill_summaries()
+        
+        # 过滤排除的技能
+        summaries = [s for s in summaries if s['id'] not in self.exclude_skills]
+        
+        if not summaries:
+            print("📋 暂无可用技能")
+            return
+        
+        print("\n" + "=" * 60)
+        print(f"🎯 A1pro 可用技能列表 ({len(summaries)} 个)")
+        print("=" * 60)
+        
+        for summary in summaries:
+            print(f"\n  🔹 {summary['name']}")
+            print(f"     {summary['description']}")
+            
+            # 显示元数据
+            metadata = summary.get('metadata', {})
+            if 'required_tools' in metadata:
+                print(f"     需要工具: {metadata['required_tools']}")
+            if 'category' in metadata:
+                print(f"     分类: {metadata['category']}")
+        
+        print("\n" + "=" * 60)
+    
+    def get_skill_info(self, skill_id: str):
+        """获取技能的详细信息（会加载完整内容）"""
+        skill = self.skill_loader.get_skill_by_id(skill_id)
+
+        if not skill:
+            self.logger.warning(f"⚠️  未找到技能: {skill_id}")
+            self.logger.info("提示: 使用 list_available_skills() 查看所有可用技能")
+            return
+
+        # 使用 loader 的打印方法
+        self.skill_loader.print_skill_info(skill_id)
+    
+    def configure(self, self_critic=False, test_time_scale_round=0):
+        """
+        Override configure method to add skills support
+        
+        Args:
+            self_critic: Whether to enable self-critic mode
+            test_time_scale_round: Number of test time scaling rounds
+        """
+        # Call parent's configure method to get base configuration
+        super().configure(self_critic=self_critic, test_time_scale_round=test_time_scale_round)
+        
+        # Check if skill_loader is initialized (it might not be during parent's __init__)
+        if not hasattr(self, 'skill_loader') or self.skill_loader is None:
+            return
+        
+        # Get skill summaries (without full content)
+        summaries = self.skill_loader.get_skill_summaries()
+        
+        # Check if exclude_skills is initialized
+        if hasattr(self, 'exclude_skills'):
+            summaries = [s for s in summaries if s['id'] not in self.exclude_skills]
+        
+        if summaries:
+            # Prepare skill summary information (only name and description)
+            skills_formatted = []
+            for summary in summaries:
+                skill_text = f"🎯 {summary['name']} (ID: {summary['id']})"
+                skill_text += f"\n   Description: {summary['description']}"
+                
+                # Add metadata
+                metadata = summary.get('metadata', {})
+                if 'required_tools' in metadata:
+                    skill_text += f"\n   Required Tools: {metadata['required_tools']}"
+                if 'category' in metadata:
+                    skill_text += f"\n   Category: {metadata['category']}"
+                
+                skill_text += f"\n   💡 To get detailed workflow, use: get_skill_content('{summary['id']}')"
+                
+                skills_formatted.append(skill_text)
+            
+            # Add skills section to system prompt
+            skills_section = """
+
+🎯 ADVANCED SKILLS
+===============================
+Below are available skill summaries. These skills demonstrate how to combine tools to accomplish complex tasks.
+
+When you need to execute related tasks:
+1. First review the skill list to find relevant skills
+2. If you need detailed workflow, use get_skill_content(skill_id) to get complete content
+3. Follow the skill's workflow to plan your execution steps
+
+Available Skills:
+
+{skills_content}
+
+===============================
+"""
+            skills_content = "\n\n".join(skills_formatted)
+            skills_section = skills_section.format(skills_content=skills_content)
+            
+            # Insert skills section into system prompt (after PRIORITY CUSTOM RESOURCES)
+            if "PRIORITY CUSTOM RESOURCES" in self.system_prompt:
+                # Insert after custom resources section
+                parts = self.system_prompt.split("===============================\n", 2)
+                if len(parts) >= 2:
+                    self.system_prompt = parts[0] + "===============================\n" + skills_section + parts[1]
+            else:
+                # If no custom resources, insert before environment resources
+                if "Environment Resources:" in self.system_prompt:
+                    self.system_prompt = self.system_prompt.replace(
+                        "Environment Resources:",
+                        skills_section + "\nEnvironment Resources:"
+                    )
+                else:
+                    # As fallback, append to end of prompt
+                    self.system_prompt += skills_section
+            
+            self.logger.info(f"✅ 已将 {len(summaries)} 个技能摘要添加到系统提示词")
+    
     def get_tool_info(self, tool_name: str):
         """获取工具的详细信息"""
         # 检查是否在已加载的工具中
@@ -248,21 +473,21 @@ class A1pro(A1):
         """
         try:
             import gradio as gr
-        except ImportError:
-            raise ImportError("Gradio is not installed. Please install it with: pip install gradio")
+        except ImportError as e:
+            raise ImportError("Gradio is not installed. Please install it with: pip install gradio") from e
 
         from .ui import AgentGradioUI
         ui_controller = AgentGradioUI(
-            agent=self, 
-            thread_id=thread_id, 
+            agent=self,
+            thread_id=thread_id,
             require_verification=require_verification
         )
-        
+
         # 获取构建好的 gr.Blocks 对象
         demo = ui_controller.build_ui()
-        
+
         # 启动服务
-        print(f"🚀 Launching Gradio demo on {server_name}:7860")
+        self.logger.info(f"🚀 Launching Gradio demo on {server_name}:7860")
         demo.launch(share=share, server_name=server_name)
 
     def launch_web_ui(self, backend_port=7000):
