@@ -33,40 +33,27 @@ Additional Tools for A1pro Agent
 
 # 从子模块导入所有工具
 
-from .template_tools import (
-    calculate_scscore,
-    generate_libinvent_decorations,
-    generate_molecules_drugex,
-    generate_molecules_for_pocket,
-    generate_molecules_reinvent,
-    generate_scaffold_analogs,
-    perform_molecular_docking_vina,
-    predict_antibacterial_pmic,
-    predict_molecule_toxicity,
-    score_molecules_reinvent,
-)
+from .template_tools import *
 
-# 导入化学工具（包括 SCScore - 跨环境调用）
-# from .chemistry_tools import (
-#     calculate_scscore,
-#     batch_calculate_scscore,
-#     compare_synthesis_complexity,
-#     get_scscore_env_info,
-# )
+from .get_skills_content import get_skill_content, list_available_skills
 
 # 如果你有其他工具模块，也在这里导入
 # from .biology_tools import *
 # from .data_tools import *
 
 __all__ = [
-    "calculate_scscore",
-    "generate_scaffold_analogs",
-    "predict_molecule_toxicity",
-    "generate_molecules_for_pocket",
-    "generate_libinvent_decorations",
-    "predict_antibacterial_pmic",
-    "perform_molecular_docking_vina",
-    "score_molecules_reinvent",
-    "generate_molecules_reinvent",
-    "generate_molecules_drugex",
+    'get_skill_content',
+    'list_available_skills',
+    # 从 template_tools 导入的工具
+    'calculate_scscore',
+    'generate_scaffold_analogs',
+    'predict_molecule_toxicity',
+    'generate_molecules_for_pocket',
+    'generate_libinvent_decorations',
+    'predict_antibacterial_pmic',
+    'perform_molecular_docking_vina',
+    'generate_molecules_reinvent4_denovo',
+    'generate_molecules_reinvent4_libinvent',
+    'generate_molecules_reinvent4_mol2mol',
+    'generate_molecules_drugex'
 ]

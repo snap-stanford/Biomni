@@ -165,12 +165,6 @@ class A1:
 
             # Check and download missing data lake files
             print("Checking and downloading missing data lake files...")
-            check_and_download_s3_files(
-                s3_bucket_url="https://biomni-release.s3.amazonaws.com",
-                local_data_lake_path=data_lake_dir,
-                expected_files=expected_data_lake_files,
-                folder="data_lake",
-            )
         else:
             print("Skipping datalake download")
             print("Note: Some tools may require datalake files to function properly.")
@@ -1278,6 +1272,385 @@ Each library is listed with its description to help you understand its functiona
 
         return formatted_prompt
 
+    # ------------------------------------------------------------------ #
+    #  System-prompt context builder                                       #
+    # ------------------------------------------------------------------ #
+
+    def _build_system_prompt_context(self, selected_resources=None) -> dict:
+        """Collect resources and return kwargs for _generate_system_prompt().
+
+        Args:
+            selected_resources: If None, use all available resources (full mode).
+                If a dict (from _prepare_resources_for_retrieval), filter to the
+                selected subset only (retrieval mode).
+
+        Returns:
+            dict with keys: tool_desc, data_lake_content, library_content_list,
+                            self_critic, is_retrieval, custom_tools, custom_data,
+                            custom_software, know_how_docs
+        """
+        # --- tool_desc --------------------------------------------------
+        if selected_resources is None:
+            tool_desc = {
+                mod: [t for t in tools if t["name"] != "run_python_repl"]
+                for mod, tools in self.module2api.items()
+            }
+        else:
+            tool_desc = {}
+            for tool in selected_resources["tools"]:
+                if isinstance(tool, dict):
+                    module_name = tool.get("module")
+                    if not module_name and hasattr(self, "module2api"):
+                        for mod, apis in self.module2api.items():
+                            if any(api.get("name") == tool.get("name") for api in apis):
+                                module_name = mod
+                                tool["module"] = module_name
+                                break
+                    if not module_name:
+                        module_name = "base_CAi.tool.scRNA_tools"
+                        tool["module"] = module_name
+                    tool_desc.setdefault(module_name, [])
+                    if "module" not in tool:
+                        tool["module"] = module_name
+                    tool_desc[module_name].append(tool)
+                else:
+                    module_name = getattr(tool, "module_name", None)
+                    if not module_name and hasattr(self, "module2api"):
+                        tool_name = getattr(tool, "name", str(tool))
+                        for mod, apis in self.module2api.items():
+                            if any(api.get("name") == tool_name for api in apis):
+                                module_name = mod
+                                tool.module_name = module_name
+                                break
+                    if not module_name:
+                        module_name = "base_CAi.tool.scRNA_tools"
+                        tool.module_name = module_name
+                    tool_desc.setdefault(module_name, [])
+                    tool_desc[module_name].append({
+                        "name": getattr(tool, "name", str(tool)),
+                        "description": getattr(tool, "description", ""),
+                        "parameters": getattr(tool, "parameters", {}),
+                        "module": module_name,
+                    })
+
+        # --- data lake --------------------------------------------------
+        if selected_resources is None:
+            data_lake_items = [Path(p).name for p in glob.glob(self.path + "/data_lake/*")]
+            data_lake_with_desc = [
+                {"name": item, "description": self.data_lake_dict.get(item, f"Data lake item: {item}")}
+                for item in data_lake_items
+            ]
+            if hasattr(self, "_custom_data") and self._custom_data:
+                for name, info in self._custom_data.items():
+                    data_lake_with_desc.append({"name": name, "description": info["description"]})
+        else:
+            data_lake_with_desc = [
+                {"name": item, "description": self.data_lake_dict.get(item, f"Data lake item: {item}")}
+                for item in selected_resources["data_lake"]
+            ]
+
+        # --- libraries --------------------------------------------------
+        if selected_resources is None:
+            library_content_list = list(self.library_content_dict.keys())
+            if hasattr(self, "_custom_software") and self._custom_software:
+                for name in self._custom_software:
+                    if name not in library_content_list:
+                        library_content_list.append(name)
+        else:
+            library_content_list = selected_resources["libraries"]
+
+        # --- custom resources (same in both modes) ----------------------
+        custom_tools = [
+            {"name": name, "description": info["description"], "module": info["module"]}
+            for name, info in (self._custom_tools.items() if hasattr(self, "_custom_tools") and self._custom_tools else [])
+        ]
+        custom_data = [
+            {"name": name, "description": info["description"]}
+            for name, info in (self._custom_data.items() if hasattr(self, "_custom_data") and self._custom_data else [])
+        ]
+        custom_software = [
+            {"name": name, "description": info["description"]}
+            for name, info in (self._custom_software.items() if hasattr(self, "_custom_software") and self._custom_software else [])
+        ]
+
+        # --- know-how ---------------------------------------------------
+        if selected_resources is None:
+            know_how_docs = []
+            if hasattr(self, "know_how_loader") and self.know_how_loader.documents:
+                # Uncomment below to load all know-how docs into every system prompt:
+                # for _doc_id, doc in self.know_how_loader.documents.items():
+                #     know_how_docs.append({
+                #         "id": doc["id"], "name": doc["name"],
+                #         "description": doc["description"],
+                #         "content": doc["content_without_metadata"],
+                #         "metadata": doc["metadata"],
+                #     })
+                print(f"📚 Loading {len(know_how_docs)} know-how documents into system prompt")
+        else:
+            know_how_docs = selected_resources.get("know_how", [])
+
+        return {
+            "tool_desc": tool_desc,
+            "data_lake_content": data_lake_with_desc,
+            "library_content_list": library_content_list,
+            "self_critic": getattr(self, "self_critic", False),
+            "is_retrieval": selected_resources is not None,
+            "custom_tools": custom_tools or None,
+            "custom_data": custom_data or None,
+            "custom_software": custom_software or None,
+            "know_how_docs": know_how_docs or None,
+        }
+
+    # ------------------------------------------------------------------ #
+    #  LLM response parser                                                 #
+    # ------------------------------------------------------------------ #
+
+    def _parse_llm_response(self, response) -> tuple[str, str]:
+        """Normalize a raw LLM response and determine the next workflow step.
+
+        Args:
+            response: The raw LLM response object.
+
+        Returns:
+            (msg, next_step) where next_step is one of:
+              "execute", "end", "generate", "parse_error"
+        """
+        content = response.content
+        if isinstance(content, list):
+            text_parts: list[str] = []
+            for block in content:
+                try:
+                    if isinstance(block, dict):
+                        btype = block.get("type")
+                        if btype in ("text", "output_text", "redacted_text"):
+                            part = block.get("text") or block.get("content") or ""
+                            if isinstance(part, str):
+                                text_parts.append(part)
+                except Exception:
+                    continue
+            msg = "".join(text_parts)
+        else:
+            msg = str(content)
+
+        # Fix incomplete tags
+        if "<execute>" in msg and "</execute>" not in msg:
+            msg += "</execute>"
+        if "<solution>" in msg and "</solution>" not in msg:
+            msg += "</solution>"
+        if "<think>" in msg and "</think>" not in msg:
+            msg += "</think>"
+
+        think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL | re.IGNORECASE)
+        execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL | re.IGNORECASE)
+        answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL | re.IGNORECASE)
+
+        # Fallback: treat markdown code block as execute when no solution found
+        if not execute_match:
+            code_block_match = re.search(r"```(?:python|bash|r)?\s*(.*?)```", msg, re.DOTALL)
+            if code_block_match and not answer_match:
+                execute_match = code_block_match
+
+        if answer_match:
+            next_step = "end"
+        elif execute_match:
+            next_step = "execute"
+        elif think_match:
+            next_step = "generate"
+        else:
+            next_step = "parse_error"
+
+        return msg.strip(), next_step
+
+    # ------------------------------------------------------------------ #
+    #  LangGraph node methods                                              #
+    # ------------------------------------------------------------------ #
+
+    def _node_generate(self, state: AgentState) -> AgentState:
+        """LangGraph node: call the LLM and determine the next step."""
+        system_prompt = self.system_prompt
+        if hasattr(self.llm, "model_name") and (
+            "gpt" in str(self.llm.model_name).lower() or "openai" in str(type(self.llm)).lower()
+        ):
+            system_prompt += "\n\nIMPORTANT FOR GPT MODELS: You MUST use XML tags <execute> or <solution> in EVERY response. Do not use markdown code blocks (```) - use <execute> tags instead."
+
+        messages = [SystemMessage(content=system_prompt)] + state["messages"]
+        response = self.llm.invoke(messages)
+        msg, next_step = self._parse_llm_response(response)
+
+        state["messages"].append(AIMessage(content=msg))
+
+        if next_step != "parse_error":
+            state["next_step"] = next_step
+        else:
+            print("parsing error...")
+            error_count = sum(
+                1 for m in state["messages"] if isinstance(m, AIMessage) and "There are no tags" in m.content
+            )
+            if error_count >= 2:
+                print("Detected repeated parsing errors, ending conversation")
+                state["next_step"] = "end"
+                state["messages"].append(
+                    AIMessage(content="Execution terminated due to repeated parsing errors. Please check your input and try again.")
+                )
+            else:
+                state["messages"].append(
+                    HumanMessage(
+                        content="Each response must include thinking process followed by either <execute> or <solution> tag. But there are no tags in the current response. Please follow the instruction, fix and regenerate the response again."
+                    )
+                )
+                state["next_step"] = "generate"
+
+        return state
+
+    def _node_execute(self, state: AgentState) -> AgentState:
+        """LangGraph node: execute code extracted from the last AI message."""
+        last_message = state["messages"][-1].content
+        if "<execute>" in last_message and "</execute>" not in last_message:
+            last_message += "</execute>"
+
+        execute_match = re.search(r"<execute>(.*?)</execute>", last_message, re.DOTALL)
+        if execute_match:
+            code = execute_match.group(1)
+            timeout = self.timeout_seconds
+
+            if (
+                code.strip().startswith("#!R")
+                or code.strip().startswith("# R code")
+                or code.strip().startswith("# R script")
+            ):
+                r_code = re.sub(r"^#!R|^# R code|^# R script", "", code, count=1).strip()
+                result = run_with_timeout(run_r_code, [r_code], timeout=timeout)
+            elif (
+                code.strip().startswith("#!BASH")
+                or code.strip().startswith("# Bash script")
+                or code.strip().startswith("#!CLI")
+            ):
+                if code.strip().startswith("#!CLI"):
+                    cli_command = re.sub(r"^#!CLI", "", code, count=1).strip().replace("\n", " ")
+                    result = run_with_timeout(run_bash_script, [cli_command], timeout=timeout)
+                else:
+                    bash_script = re.sub(r"^#!BASH|^# Bash script", "", code, count=1).strip()
+                    result = run_with_timeout(run_bash_script, [bash_script], timeout=timeout)
+            else:
+                self._clear_execution_plots()
+                self._inject_custom_functions_to_repl()
+                result = run_with_timeout(run_python_repl, [code], timeout=timeout)
+
+            if len(result) > 10000:
+                result = (
+                    "The output is too long to be added to context. Here are the first 10K characters...\n"
+                    + result[:10000]
+                )
+
+            if not hasattr(self, "_execution_results"):
+                self._execution_results = []
+
+            execution_plots = []
+            try:
+                from base_CAi.tool.support_tools import get_captured_plots
+
+                execution_plots = get_captured_plots().copy()
+            except Exception as e:
+                print(f"Warning: Could not capture plots from execution: {e}")
+
+            self._execution_results.append({
+                "triggering_message": last_message,
+                "images": execution_plots,
+                "timestamp": datetime.now().isoformat(),
+            })
+
+            state["messages"].append(AIMessage(content=f"\n<observation>{result}</observation>".strip()))
+
+        return state
+
+    def _node_self_critic(self, state: AgentState) -> AgentState:
+        """LangGraph node: generate critic feedback and decide whether to continue."""
+        if self.critic_count < self._test_time_scale_round:
+            feedback_prompt = f"""
+                Here is a reminder of what is the user requested: {self.user_task}
+                Examine the previous executions, reaosning, and solutions.
+                Critic harshly on what could be improved?
+                Be specific and constructive.
+                Think hard what are missing to solve the task.
+                No question asked, just feedbacks.
+                """
+            feedback = self.llm.invoke(state["messages"] + [HumanMessage(content=feedback_prompt)])
+            state["messages"].append(
+                HumanMessage(
+                    content=f"Wait... this is not enough to solve the task. Here are some feedbacks for improvement:\n{feedback.content}"
+                )
+            )
+            self.critic_count += 1
+            state["next_step"] = "generate"
+        else:
+            state["next_step"] = "end"
+
+        return state
+
+    # ------------------------------------------------------------------ #
+    #  LangGraph routing methods                                           #
+    # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _route(state: AgentState) -> Literal["execute", "generate", "end"]:
+        """Route to the next node based on state["next_step"]."""
+        next_step = state.get("next_step")
+        if next_step in ("execute", "generate", "end"):
+            return next_step
+        raise ValueError(f"Unexpected next_step: {next_step}")
+
+    @staticmethod
+    def _route_self_critic(state: AgentState) -> Literal["generate", "end"]:
+        """Route after self-critic node."""
+        next_step = state.get("next_step")
+        if next_step in ("generate", "end"):
+            return next_step
+        raise ValueError(f"Unexpected next_step: {next_step}")
+
+    # ------------------------------------------------------------------ #
+    #  Workflow builder                                                    #
+    # ------------------------------------------------------------------ #
+
+    def _build_workflow(self, self_critic: bool):
+        """Build and compile the LangGraph StateGraph.
+
+        Args:
+            self_critic: Whether to include the self-critic node.
+
+        Returns:
+            The compiled LangGraph app.
+        """
+        workflow = StateGraph(AgentState)
+        workflow.add_node("generate", self._node_generate)
+        workflow.add_node("execute", self._node_execute)
+
+        if self_critic:
+            workflow.add_node("self_critic", self._node_self_critic)
+            workflow.add_conditional_edges(
+                "generate",
+                self._route,
+                path_map={"execute": "execute", "generate": "generate", "end": "self_critic"},
+            )
+            workflow.add_conditional_edges(
+                "self_critic",
+                self._route_self_critic,
+                path_map={"generate": "generate", "end": END},
+            )
+        else:
+            workflow.add_conditional_edges(
+                "generate",
+                self._route,
+                path_map={"execute": "execute", "generate": "generate", "end": END},
+            )
+
+        workflow.add_edge("execute", "generate")
+        workflow.add_edge(START, "generate")
+        return workflow.compile()
+
+    # ------------------------------------------------------------------ #
+    #  Main configure() orchestrator                                       #
+    # ------------------------------------------------------------------ #
+
     def configure(self, self_critic=False, test_time_scale_round=0):
         """Configure the agent with the initial system prompt and workflow.
 
@@ -1286,351 +1659,15 @@ Each library is listed with its description to help you understand its functiona
             test_time_scale_round: Number of rounds for test time scaling
 
         """
-        # Store self_critic for later use
         self.self_critic = self_critic
+        self._test_time_scale_round = test_time_scale_round
 
-        # Get data lake content
-        data_lake_path = self.path + "/data_lake"
-        data_lake_content = glob.glob(data_lake_path + "/*")
-        data_lake_items = [x.split("/")[-1] for x in data_lake_content]
+        # 1. Build system prompt
+        context = self._build_system_prompt_context()
+        self.system_prompt = self._generate_system_prompt(**context)
 
-        # data_lake_dict and library_content_dict are already set in __init__
-
-        # Prepare tool descriptions
-        tool_desc = {i: [x for x in j if x["name"] != "run_python_repl"] for i, j in self.module2api.items()}
-
-        # Prepare data lake items with descriptions
-        data_lake_with_desc = []
-        for item in data_lake_items:
-            description = self.data_lake_dict.get(item, f"Data lake item: {item}")
-            data_lake_with_desc.append({"name": item, "description": description})
-
-        # Add custom data items if they exist
-        if hasattr(self, "_custom_data") and self._custom_data:
-            for name, info in self._custom_data.items():
-                data_lake_with_desc.append({"name": name, "description": info["description"]})
-
-        # Prepare library content list including custom software
-        library_content_list = list(self.library_content_dict.keys())
-        if hasattr(self, "_custom_software") and self._custom_software:
-            for name in self._custom_software:
-                if name not in library_content_list:  # Avoid duplicates
-                    library_content_list.append(name)
-
-        # Generate the system prompt for initial configuration (is_retrieval=False)
-        # Prepare custom resources for highlighting
-        custom_tools = []
-        if hasattr(self, "_custom_tools") and self._custom_tools:
-            for name, info in self._custom_tools.items():
-                custom_tools.append(
-                    {
-                        "name": name,
-                        "description": info["description"],
-                        "module": info["module"],
-                    }
-                )
-
-        custom_data = []
-        if hasattr(self, "_custom_data") and self._custom_data:
-            for name, info in self._custom_data.items():
-                custom_data.append({"name": name, "description": info["description"]})
-
-        custom_software = []
-        if hasattr(self, "_custom_software") and self._custom_software:
-            for name, info in self._custom_software.items():
-                custom_software.append({"name": name, "description": info["description"]})
-
-        # Load ALL know-how documents into initial system prompt
-        # This makes best practices always available, not just when retrieved
-        know_how_docs = []
-        if hasattr(self, "know_how_loader") and self.know_how_loader.documents:
-            for _doc_id, doc in self.know_how_loader.documents.items():
-                # Use content without metadata for efficiency
-                know_how_docs.append(
-                    {
-                        "id": doc["id"],
-                        "name": doc["name"],
-                        "description": doc["description"],
-                        "content": doc["content_without_metadata"],
-                        "metadata": doc["metadata"],
-                    }
-                )
-            print(f"📚 Loading {len(know_how_docs)} know-how documents into system prompt")
-
-        self.system_prompt = self._generate_system_prompt(
-            tool_desc=tool_desc,
-            data_lake_content=data_lake_with_desc,
-            library_content_list=library_content_list,
-            self_critic=self_critic,
-            is_retrieval=False,
-            custom_tools=custom_tools if custom_tools else None,
-            custom_data=custom_data if custom_data else None,
-            custom_software=custom_software if custom_software else None,
-            know_how_docs=know_how_docs if know_how_docs else None,
-        )
-
-        # Define the nodes
-        def generate(state: AgentState) -> AgentState:
-            # Add OpenAI-specific formatting reminders if using OpenAI models
-            system_prompt = self.system_prompt
-            if hasattr(self.llm, "model_name") and (
-                "gpt" in str(self.llm.model_name).lower() or "openai" in str(type(self.llm)).lower()
-            ):
-                system_prompt += "\n\nIMPORTANT FOR GPT MODELS: You MUST use XML tags <execute> or <solution> in EVERY response. Do not use markdown code blocks (```) - use <execute> tags instead."
-
-            messages = [SystemMessage(content=system_prompt)] + state["messages"]
-            response = self.llm.invoke(messages)
-
-            # Normalize Responses API content blocks (list of dicts) into a plain string
-            content = response.content
-            if isinstance(content, list):
-                # Concatenate textual parts; ignore tool_use or other non-text blocks
-                text_parts: list[str] = []
-                for block in content:
-                    try:
-                        if isinstance(block, dict):
-                            btype = block.get("type")
-                            if btype in ("text", "output_text", "redacted_text"):
-                                part = block.get("text") or block.get("content") or ""
-                                if isinstance(part, str):
-                                    text_parts.append(part)
-                    except Exception:
-                        # Be conservative; skip malformed blocks
-                        continue
-                msg = "".join(text_parts)
-            else:
-                # Fallback to string conversion for legacy content
-                msg = str(content)
-
-            # Enhanced parsing for better OpenAI compatibility
-            # Check for incomplete tags and fix them
-            if "<execute>" in msg and "</execute>" not in msg:
-                msg += "</execute>"
-            if "<solution>" in msg and "</solution>" not in msg:
-                msg += "</solution>"
-            if "<think>" in msg and "</think>" not in msg:
-                msg += "</think>"
-
-            # More flexible pattern matching for different LLM styles
-            think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL | re.IGNORECASE)
-            execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL | re.IGNORECASE)
-            answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL | re.IGNORECASE)
-
-            # Alternative patterns for OpenAI models that might use different formatting
-            if not execute_match:
-                # Try to find code blocks that might be intended as execute blocks
-                code_block_match = re.search(r"```(?:python|bash|r)?\s*(.*?)```", msg, re.DOTALL)
-                if code_block_match and not answer_match:
-                    # If we found a code block and no solution, treat it as execute
-                    execute_match = code_block_match
-
-            # Add the message to the state before checking for errors
-            state["messages"].append(AIMessage(content=msg.strip()))
-
-            if answer_match:
-                state["next_step"] = "end"
-            elif execute_match:
-                state["next_step"] = "execute"
-            elif think_match:
-                state["next_step"] = "generate"
-            else:
-                print("parsing error...")
-
-                error_count = sum(
-                    1 for m in state["messages"] if isinstance(m, AIMessage) and "There are no tags" in m.content
-                )
-
-                if error_count >= 2:
-                    # If we've already tried to correct the model twice, just end the conversation
-                    print("Detected repeated parsing errors, ending conversation")
-                    state["next_step"] = "end"
-                    # Add a final message explaining the termination
-                    state["messages"].append(
-                        AIMessage(
-                            content="Execution terminated due to repeated parsing errors. Please check your input and try again."
-                        )
-                    )
-                else:
-                    # Try to correct it
-                    state["messages"].append(
-                        HumanMessage(
-                            content="Each response must include thinking process followed by either <execute> or <solution> tag. But there are no tags in the current response. Please follow the instruction, fix and regenerate the response again."
-                        )
-                    )
-                    state["next_step"] = "generate"
-            return state
-
-        def execute(state: AgentState) -> AgentState:
-            last_message = state["messages"][-1].content
-            # Only add the closing tag if it's not already there
-            if "<execute>" in last_message and "</execute>" not in last_message:
-                last_message += "</execute>"
-
-            execute_match = re.search(r"<execute>(.*?)</execute>", last_message, re.DOTALL)
-            if execute_match:
-                code = execute_match.group(1)
-
-                # Set timeout duration (10 minutes = 600 seconds)
-                timeout = self.timeout_seconds
-
-                # Check if the code is R code
-                if (
-                    code.strip().startswith("#!R")
-                    or code.strip().startswith("# R code")
-                    or code.strip().startswith("# R script")
-                ):
-                    # Remove the R marker and run as R code
-                    r_code = re.sub(r"^#!R|^# R code|^# R script", "", code, count=1).strip()
-                    result = run_with_timeout(run_r_code, [r_code], timeout=timeout)
-                # Check if the code is a Bash script or CLI command
-                elif (
-                    code.strip().startswith("#!BASH")
-                    or code.strip().startswith("# Bash script")
-                    or code.strip().startswith("#!CLI")
-                ):
-                    # Handle both Bash scripts and CLI commands with the same function
-                    if code.strip().startswith("#!CLI"):
-                        # For CLI commands, extract the command and run it as a simple bash script
-                        cli_command = re.sub(r"^#!CLI", "", code, count=1).strip()
-                        # Remove any newlines to ensure it's a single command
-                        cli_command = cli_command.replace("\n", " ")
-                        result = run_with_timeout(run_bash_script, [cli_command], timeout=timeout)
-                    else:
-                        # For Bash scripts, remove the marker and run as a bash script
-                        bash_script = re.sub(r"^#!BASH|^# Bash script", "", code, count=1).strip()
-                        result = run_with_timeout(run_bash_script, [bash_script], timeout=timeout)
-                # Otherwise, run as Python code
-                else:
-                    # Clear any previous plots before execution
-                    self._clear_execution_plots()
-
-                    # Inject custom functions into the Python execution environment
-                    self._inject_custom_functions_to_repl()
-                    result = run_with_timeout(run_python_repl, [code], timeout=timeout)
-
-                    # Plots are now captured directly in the execution entry above
-
-                if len(result) > 10000:
-                    result = (
-                        "The output is too long to be added to context. Here are the first 10K characters...\n"
-                        + result[:10000]
-                    )
-
-                # Store the execution result with the triggering message
-                if not hasattr(self, "_execution_results"):
-                    self._execution_results = []
-
-                # Get any plots that were generated during this execution
-                execution_plots = []
-                try:
-                    from base_CAi.tool.support_tools import get_captured_plots
-
-                    current_plots = get_captured_plots()
-                    execution_plots = current_plots.copy()
-                except Exception as e:
-                    print(f"Warning: Could not capture plots from execution: {e}")
-                    execution_plots = []
-
-                # Store the execution result with metadata
-                execution_entry = {
-                    "triggering_message": last_message,  # The AI message that contained <execute>
-                    "images": execution_plots,  # Base64 encoded images from this execution
-                    "timestamp": datetime.now().isoformat(),
-                }
-                self._execution_results.append(execution_entry)
-
-                observation = f"\n<observation>{result}</observation>"
-                state["messages"].append(AIMessage(content=observation.strip()))
-
-            return state
-
-        def routing_function(
-            state: AgentState,
-        ) -> Literal["execute", "generate", "end"]:
-            next_step = state.get("next_step")
-            if next_step == "execute":
-                return "execute"
-            elif next_step == "generate":
-                return "generate"
-            elif next_step == "end":
-                return "end"
-            else:
-                raise ValueError(f"Unexpected next_step: {next_step}")
-
-        def routing_function_self_critic(
-            state: AgentState,
-        ) -> Literal["generate", "end"]:
-            next_step = state.get("next_step")
-            if next_step == "generate":
-                return "generate"
-            elif next_step == "end":
-                return "end"
-            else:
-                raise ValueError(f"Unexpected next_step: {next_step}")
-
-        def execute_self_critic(state: AgentState) -> AgentState:
-            if self.critic_count < test_time_scale_round:
-                # Generate feedback based on message history
-                messages = state["messages"]
-                feedback_prompt = f"""
-                Here is a reminder of what is the user requested: {self.user_task}
-                Examine the previous executions, reaosning, and solutions.
-                Critic harshly on what could be improved?
-                Be specific and constructive.
-                Think hard what are missing to solve the task.
-                No question asked, just feedbacks.
-                """
-                feedback = self.llm.invoke(messages + [HumanMessage(content=feedback_prompt)])
-
-                # Add feedback as a new message
-                state["messages"].append(
-                    HumanMessage(
-                        content=f"Wait... this is not enough to solve the task. Here are some feedbacks for improvement:\n{feedback.content}"
-                    )
-                )
-                self.critic_count += 1
-                state["next_step"] = "generate"
-            else:
-                state["next_step"] = "end"
-
-            return state
-
-        # Create the workflow
-        workflow = StateGraph(AgentState)
-
-        # Add nodes
-        workflow.add_node("generate", generate)
-        workflow.add_node("execute", execute)
-
-        if self_critic:
-            workflow.add_node("self_critic", execute_self_critic)
-            # Add conditional edges
-            workflow.add_conditional_edges(
-                "generate",
-                routing_function,
-                path_map={
-                    "execute": "execute",
-                    "generate": "generate",
-                    "end": "self_critic",
-                },
-            )
-            workflow.add_conditional_edges(
-                "self_critic",
-                routing_function_self_critic,
-                path_map={"generate": "generate", "end": END},
-            )
-        else:
-            # Add conditional edges
-            workflow.add_conditional_edges(
-                "generate",
-                routing_function,
-                path_map={"execute": "execute", "generate": "generate", "end": END},
-            )
-        workflow.add_edge("execute", "generate")
-        workflow.add_edge(START, "generate")
-
-        # Compile the workflow
-        self.app = workflow.compile()
+        # 2. Build workflow
+        self.app = self._build_workflow(self_critic)
         self.checkpointer = MemorySaver()
         self.app.checkpointer = self.checkpointer
         # display(Image(self.app.get_graph().draw_mermaid_png()))
@@ -1820,116 +1857,8 @@ Each library is listed with its description to help you understand its functiona
 
     def update_system_prompt_with_selected_resources(self, selected_resources):
         """Update the system prompt with the selected resources."""
-        # Extract tool descriptions for the selected tools
-        tool_desc = {}
-        for tool in selected_resources["tools"]:
-            # Get the module name from the tool
-            if isinstance(tool, dict):
-                module_name = tool.get("module", None)
-
-                # If module is not specified, try to find it in the module2api
-                if not module_name and hasattr(self, "module2api"):
-                    for mod, apis in self.module2api.items():
-                        for api in apis:
-                            if api.get("name") == tool.get("name"):
-                                module_name = mod
-                                # Update the tool with the module information
-                                tool["module"] = module_name
-                                break
-                        if module_name:
-                            break
-
-                # If still not found, use a default
-                if not module_name:
-                    module_name = "base_CAi.tool.scRNA_tools"  # Default to scRNA_tools as a fallback
-                    tool["module"] = module_name
-            else:
-                module_name = getattr(tool, "module_name", None)
-
-                # If module is not specified, try to find it in the module2api
-                if not module_name and hasattr(self, "module2api"):
-                    tool_name = getattr(tool, "name", str(tool))
-                    for mod, apis in self.module2api.items():
-                        for api in apis:
-                            if api.get("name") == tool_name:
-                                module_name = mod
-                                # Set the module_name attribute
-                                tool.module_name = module_name
-                                break
-                        if module_name:
-                            break
-
-                # If still not found, use a default
-                if not module_name:
-                    module_name = "base_CAi.tool.scRNA_tools"  # Default to scRNA_tools as a fallback
-                    tool.module_name = module_name
-
-            if module_name not in tool_desc:
-                tool_desc[module_name] = []
-
-            # Add the tool to the appropriate module
-            if isinstance(tool, dict):
-                # Ensure the module is included in the tool description
-                if "module" not in tool:
-                    tool["module"] = module_name
-                tool_desc[module_name].append(tool)
-            else:
-                # Convert tool object to dictionary
-                tool_dict = {
-                    "name": getattr(tool, "name", str(tool)),
-                    "description": getattr(tool, "description", ""),
-                    "parameters": getattr(tool, "parameters", {}),
-                    "module": module_name,  # Explicitly include the module
-                }
-                tool_desc[module_name].append(tool_dict)
-
-        # Prepare data lake items with descriptions
-        data_lake_with_desc = []
-        for item in selected_resources["data_lake"]:
-            description = self.data_lake_dict.get(item, f"Data lake item: {item}")
-            data_lake_with_desc.append({"name": item, "description": description})
-
-        # Prepare custom resources for highlighting
-        custom_tools = []
-        if hasattr(self, "_custom_tools") and self._custom_tools:
-            for name, info in self._custom_tools.items():
-                custom_tools.append(
-                    {
-                        "name": name,
-                        "description": info["description"],
-                        "module": info["module"],
-                    }
-                )
-
-        custom_data = []
-        if hasattr(self, "_custom_data") and self._custom_data:
-            for name, info in self._custom_data.items():
-                custom_data.append({"name": name, "description": info["description"]})
-
-        custom_software = []
-        if hasattr(self, "_custom_software") and self._custom_software:
-            for name, info in self._custom_software.items():
-                custom_software.append({"name": name, "description": info["description"]})
-
-        # Extract know-how documents if present
-        know_how_docs = selected_resources.get("know_how", [])
-
-        self.system_prompt = self._generate_system_prompt(
-            tool_desc=tool_desc,
-            data_lake_content=data_lake_with_desc,
-            library_content_list=selected_resources["libraries"],
-            self_critic=getattr(self, "self_critic", False),
-            is_retrieval=True,
-            custom_tools=custom_tools if custom_tools else None,
-            custom_data=custom_data if custom_data else None,
-            custom_software=custom_software if custom_software else None,
-            know_how_docs=know_how_docs if know_how_docs else None,
-        )
-
-        # Print the raw system prompt for debugging
-        # print("\n" + "="*20 + " RAW SYSTEM PROMPT FROM AGENT " + "="*20)
-        # print(self.system_prompt)
-        # print("="*70 + "\n")
+        context = self._build_system_prompt_context(selected_resources)
+        self.system_prompt = self._generate_system_prompt(**context)
 
     def result_formatting(self, output_class, task_intention):
         self.format_check_prompt = ChatPromptTemplate.from_messages(
@@ -2615,379 +2544,3 @@ Each library is listed with its description to help you understand its functiona
             wrapper.__signature__ = inspect.Signature(new_params, return_annotation=dict)
 
             return wrapper
-
-    def launch_gradio_demo(self, thread_id=42, share=False, server_name="0.0.0.0", require_verification=False):
-        """Launch a full-featured Gradio UI for the A1 agent (adapted from codeact_copilot).
-
-        Args:
-            thread_id: Thread ID for the conversation
-            share: Whether to create a public shareable link
-            server_name: Server name/IP to bind to (default: "0.0.0.0")
-            require_verification: If True, requires access code verification
-
-        Example:
-            >>> agent = A1()
-            >>> agent.launch_gradio_demo()
-        """
-        try:
-            import gradio as gr
-            from gradio import ChatMessage
-        except ImportError:
-            raise ImportError("Gradio is not installed. Please install it with: pip install gradio") from None
-
-        import os
-        from time import time
-
-        # Define supported file extensions
-        SUPPORTED_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".pdf")
-
-        self.main_history_copy = []
-
-        # Available access codes (if verification is required)
-        available_access_codes = ["base_CAi2025"]
-
-        # Function for verification page
-        def verify_access_code(code):
-            if code in available_access_codes:
-                return gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)
-            else:
-                return (
-                    gr.update(visible=True),
-                    gr.update(visible=False),
-                    gr.update(value="Incorrect access code. Please check your access code.", visible=True),
-                )
-
-        def generate_response(prompt_input, inner_history=None, main_history=None):
-            if main_history is None:
-                main_history = []
-            if inner_history is None:
-                inner_history = []
-            text_input = prompt_input.get("text", "")
-            files = prompt_input.get("files", [])
-
-            self.main_history_copy += [{"role": "user", "content": text_input}]
-            main_history.append(ChatMessage(role="user", content=text_input if text_input else "[Uploaded file]"))
-
-            # Add "Executor is working on it" message
-            main_history.append(ChatMessage(role="assistant", content="Executor is working on it 👉"))
-            yield inner_history, main_history
-
-            # Process uploaded files if any
-            for file_info in files:
-                file_path = file_info
-                text_input += f"\n\n User uploaded this file: {file_path}\n Please use it if needed."
-
-            agent_messages = []
-            for msg in self.main_history_copy:
-                if msg["role"] == "user":
-                    agent_messages.append(HumanMessage(content=msg["content"]))
-                elif msg["role"] == "assistant":
-                    if msg["content"] not in ["Executor is working on it 👉"]:
-                        agent_messages.append(AIMessage(content=msg["content"]))
-
-            agent_messages.append(HumanMessage(content=text_input))
-
-            # Prepare inputs for the agent
-            inputs = {"messages": agent_messages, "next_step": None}
-            config = {"recursion_limit": 500, "configurable": {"thread_id": thread_id}}
-
-            # Stream the agent's responses
-            t = time()
-            solution_found = False
-
-            # Configure the agent with tool retrieval if needed
-            if self.use_tool_retriever:
-                print("Using tool retriever...")
-                inner_history.append(
-                    ChatMessage(
-                        role="assistant",
-                        content="Retrieving relevant tools, data lake items, and libraries...",
-                    )
-                )
-                yield inner_history, main_history
-
-                try:
-                    selected_resources_names = self._prepare_resources_for_retrieval(text_input)
-                    if selected_resources_names:
-                        self.update_system_prompt_with_selected_resources(selected_resources_names)
-                except Exception as e:
-                    print(f"Warning: Tool retrieval failed: {e}")
-                    print("Continuing without tool retrieval...")
-                    inner_history.append(
-                        ChatMessage(
-                            role="assistant",
-                            content="Tool retrieval unavailable, proceeding with all tools...",
-                        )
-                    )
-                    yield inner_history, main_history
-
-            # Keep track of code execution messages
-            code_execution_messages = []
-
-            # Stream the agent's responses
-            for s in self.app.stream(inputs, stream_mode="values", config=config):
-                t_step = time() - t
-                message = s["messages"][-1]
-
-                # Skip the first message which is the input task
-                if message.content == text_input:
-                    t = time()
-                    continue
-
-                # Process the message
-                if isinstance(message.content, str):
-                    # Extract thinking/reasoning part (text before any tags)
-                    tag_positions = []
-                    for tag in ["<execute>", "<solution>", "<observation>"]:
-                        pos = message.content.find(tag)
-                        if pos != -1:
-                            tag_positions.append(pos)
-
-                    # If there are tags, extract the text before the first tag
-                    if tag_positions:
-                        first_tag_pos = min(tag_positions)
-                        thinking = message.content[:first_tag_pos].strip()
-                        if thinking:
-                            inner_history.append(
-                                ChatMessage(
-                                    role="assistant",
-                                    content=f"{thinking}",
-                                    metadata={"title": "🤔 Reasoning", "log": "Agent's thinking process"},
-                                )
-                            )
-                            yield inner_history, main_history
-
-                    # Check for solution tag
-                    solution_match = re.search(r"<solution>(.*?)</solution>", message.content, re.DOTALL)
-                    if solution_match and not solution_found:
-                        solution = solution_match.group(1).strip()
-                        main_history.append(
-                            ChatMessage(
-                                role="assistant",
-                                content=solution,
-                                metadata={"title": "✅ Answer", "log": "Final answer provided by the agent"},
-                            )
-                        )
-                        self.main_history_copy += [{"role": "assistant", "content": solution}]
-                        solution_found = True
-                        yield inner_history, main_history
-
-                    # Check for execute tag
-                    execute_match = re.search(r"<execute>(.*?)</execute>", message.content, re.DOTALL)
-                    if execute_match:
-                        code = execute_match.group(1).strip()
-                        language = "python"
-                        if code.strip().startswith("#!R"):
-                            language = "r"
-                            code = re.sub(r"^#!R", "", code, count=1).strip()
-                        elif code.strip().startswith("#!BASH") or code.strip().startswith("#!CLI"):
-                            language = "bash"
-                            code = re.sub(r"^#!BASH|^#!CLI", "", code, count=1).strip()
-
-                        code_msg = ChatMessage(
-                            role="assistant",
-                            content=f"##### Code: \n```{language}\n{code}\n```",
-                            metadata={
-                                "title": "🛠️ Executing code...",
-                                "log": f"Executing {language.capitalize()} code block...",
-                                "status": "pending",
-                                "start_time": t,
-                            },
-                        )
-                        inner_history.append(code_msg)
-                        code_execution_messages.append(code_msg)
-                        yield inner_history, main_history
-
-                    # Check for observation
-                    observation_match = re.search(r"<observation>(.*?)</observation>", message.content, re.DOTALL)
-                    if observation_match:
-                        observation = observation_match.group(1).strip()
-
-                        # Update the status of the most recent code execution message
-                        if code_execution_messages:
-                            code_msg = code_execution_messages[-1]
-                            code_msg.metadata.update(
-                                {
-                                    "status": "done",
-                                    "duration": t_step,
-                                    "log": f"Code execution completed in {t_step:.2f}s",
-                                }
-                            )
-
-                        # Create a new message for the observation
-                        inner_history.append(
-                            ChatMessage(
-                                role="assistant",
-                                content=f"##### Observation: \n```\n{observation}\n```",
-                                metadata={
-                                    "status": "done",
-                                    "duration": t_step,
-                                    "log": "Observation from code execution",
-                                    "collapsed": True,
-                                    "collapsible": True,
-                                },
-                            )
-                        )
-                        yield inner_history, main_history
-
-                        # Check for file paths in the observation
-                        if isinstance(observation, str) and any(ext in observation for ext in SUPPORTED_EXTENSIONS):
-                            matches = re.findall(r"(\S+?(?:\.png|\.jpg|\.jpeg|\.gif|\.bmp|\.webp|\.pdf))", observation)
-
-                            valid_matches = []
-                            for match in matches:
-                                if not (
-                                    match.startswith("Warning:") or match.startswith("Error:") or match.startswith("'")
-                                ):
-                                    if not match.startswith("."):
-                                        valid_matches.append(match)
-
-                            if valid_matches:
-                                inner_history.append(
-                                    ChatMessage(
-                                        role="assistant",
-                                        content="",
-                                        metadata={"title": "📁 Files", "log": "Files generated by the agent"},
-                                    )
-                                )
-
-                                for file_path in valid_matches:
-                                    file_path = file_path.strip("\"'").strip()
-
-                                    abs_path = None
-                                    if os.path.isabs(file_path) and os.path.exists(file_path):
-                                        abs_path = file_path
-                                    elif os.path.exists(os.path.join(os.getcwd(), file_path)):
-                                        abs_path = os.path.join(os.getcwd(), file_path)
-                                    elif (
-                                        hasattr(self, "path")
-                                        and self.path
-                                        and os.path.exists(os.path.join(self.path, file_path))
-                                    ):
-                                        abs_path = os.path.join(self.path, file_path)
-
-                                    if abs_path:
-                                        if file_path.lower().endswith(".pdf"):
-                                            inner_history.append(
-                                                ChatMessage(
-                                                    role="assistant",
-                                                    content=f"Found PDF at: {abs_path}",
-                                                    metadata={"title": "📄 PDF File"},
-                                                )
-                                            )
-                                        else:
-                                            inner_history.append(
-                                                ChatMessage(
-                                                    role="assistant",
-                                                    content=gr.Image(abs_path),
-                                                    metadata={"title": "🖼️ Image Preview"},
-                                                )
-                                            )
-
-                                yield inner_history, main_history
-
-                t = time()
-
-            # If no solution was found, add the final message
-            if not solution_found:
-                final_message = s["messages"][-1].content if s["messages"] else ""
-                solution_match = re.search(r"<solution>(.*?)</solution>", final_message, re.DOTALL)
-                if solution_match:
-                    solution = solution_match.group(1).strip()
-                    main_history.append(
-                        ChatMessage(role="assistant", content=solution, metadata={"title": "✅ Solution"})
-                    )
-                    self.main_history_copy += [{"role": "assistant", "content": solution}]
-                else:
-                    cleaned_content = re.sub(r"<execute>.*?</execute>", "", final_message, flags=re.DOTALL)
-                    cleaned_content = re.sub(r"<observation>.*?</observation>", "", cleaned_content, flags=re.DOTALL)
-                    cleaned_content = re.sub(r"\n\s*\n", "\n\n", cleaned_content)
-
-                    if cleaned_content.strip():
-                        main_history.append(
-                            ChatMessage(
-                                role="assistant", content=cleaned_content.strip(), metadata={"title": "📝 Summary"}
-                            )
-                        )
-                        self.main_history_copy += [{"role": "assistant", "content": cleaned_content.strip()}]
-                    else:
-                        main_history.append(
-                            ChatMessage(
-                                role="assistant",
-                                content="Task completed. Please check the execution log for details.",
-                                metadata={"title": "📝 Summary"},
-                            )
-                        )
-                        self.main_history_copy += [{"role": "assistant", "content": "Task completed."}]
-
-            # Add completion message
-            inner_history.append(
-                ChatMessage(
-                    role="assistant",
-                    content="👈 Returning the result to the main interface...",
-                    metadata={"title": "🔄 Complete"},
-                )
-            )
-            yield inner_history, main_history
-
-        def like(data: gr.LikeData):
-            print("User liked the response")
-            print(f"Index: {data.index}, Liked: {data.liked}")
-
-        # Create the Gradio interface
-        with gr.Blocks() as demo:
-            # Verification page (if enabled)
-            verification_container = gr.Group(visible=require_verification)
-            main_interface_container = gr.Group(visible=not require_verification)
-
-            with verification_container:
-                gr.Markdown("# base_CAi A1 Agent - Access Verification")
-                gr.Markdown("Please enter your access code to continue.")
-                access_code_input = gr.Textbox(label="Access Code", type="password")
-                access_error_msg = gr.Markdown(visible=False)
-                verify_btn = gr.Button("Verify Access")
-                verify_btn.click(
-                    fn=verify_access_code,
-                    inputs=[access_code_input],
-                    outputs=[verification_container, main_interface_container, access_error_msg],
-                )
-
-            # Main interface
-            with main_interface_container:
-                with gr.Row():
-                    with gr.Column(scale=1):
-                        main_chatbot = gr.Chatbot(
-                            label="base_CAi A1 Agent",
-                            type="messages",
-                            height=800,
-                            show_copy_button=True,
-                            show_share_button=True,
-                        )
-                    with gr.Column(scale=1):
-                        innerloop_chatbot = gr.Chatbot(
-                            label="base_CAi Executor",
-                            type="messages",
-                            height=800,
-                            show_copy_button=True,
-                            show_share_button=True,
-                        )
-
-                with gr.Row():
-                    prompt_input = gr.MultimodalTextbox(
-                        interactive=True,
-                        file_count="multiple",
-                        placeholder="Ask something or upload a file...",
-                        show_label=False,
-                    )
-
-                # Bind submission
-                prompt_input.submit(
-                    generate_response,
-                    [prompt_input, innerloop_chatbot, main_chatbot],
-                    [innerloop_chatbot, main_chatbot],
-                ).then(lambda: gr.MultimodalTextbox(value=None), None, [prompt_input])
-                main_chatbot.like(like)
-
-        # Launch
-        print(f"Launching Gradio demo on {server_name}:7860")
-        demo.launch(share=share, server_name=server_name)

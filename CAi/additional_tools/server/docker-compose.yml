@@ -1,0 +1,49 @@
+# =============================================================================
+# docker-compose.yml — Tool Server (GPU 版)
+#
+# 用法：
+#   # 在 CAi/ 目录下构建并启动
+#   docker compose -f additional_tools/server/docker-compose.yml up --build
+#
+#   # 后台运行
+#   docker compose -f additional_tools/server/docker-compose.yml up -d --build
+# =============================================================================
+
+version: "3.9"
+
+services:
+  tool-server:
+    build:
+      context: ../..          # CAi/ 目录作为 build context
+      dockerfile: additional_tools/server/Dockerfile
+    image: tool-server:latest
+    container_name: tool-server
+
+    # ── GPU 支持（需要宿主机安装 nvidia-container-toolkit）──────────────────
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all        # 暴露全部 GPU；按需改为具体数量如 count: 1
+              capabilities: [gpu]
+
+    # ── 端口映射 ─────────────────────────────────────────────────────────────
+    ports:
+      - "8001:8001"
+
+    # ── 环境变量（可按需覆盖）────────────────────────────────────────────────
+    environment:
+      TOOL_SERVER_HOST: "0.0.0.0"
+      TOOL_SERVER_PORT: "8001"
+      # GPU_IDS: "0,1"          # 取消注释以手动指定可用显卡
+      # JOB_MAX_AGE_DAYS: "7"  # Job 目录保留天数
+
+    # ── 工作目录挂载（可选，挂载后无需重新构建即可更新代码）────────────────
+    # volumes:
+    #   - ../../config.py:/app/config.py:ro
+    #   - ./:/app/server:ro
+
+    restart: unless-stopped
+    stdin_open: false
+    tty: false

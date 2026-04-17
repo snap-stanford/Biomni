@@ -5,6 +5,7 @@ from typing import Any
 
 import requests
 
+
 TOOL_SERVER_HOST = os.environ.get("TOOL_SERVER_HOST", "100.103.118.72")
 TOOL_SERVER_PORT = os.environ.get("TOOL_SERVER_PORT", "8001")
 BASE_URL = f"http://{TOOL_SERVER_HOST}:{TOOL_SERVER_PORT}"
@@ -77,31 +78,64 @@ def _call_worker_api(
 
 
 # ==========================================
-# 🛠️ Agent 工具 1：骨架衍生生成
+# 🛠️ Agent 工具 1：骨架衍生生成 -- update_v1
 # ==========================================
 def generate_scaffold_analogs(smiles: str, num_analogs: int = 10) -> str:
     """
-    Use this tool to generate novel molecule analogs based on a specific chemical scaffold.
+    Tool Name:
+        scaffold_based_analog_generation
 
-    Args:
-        smiles (str): The SMILES string of the scaffold. MUST contain at least one '*' character to indicate the attachment/growth point (e.g., 'c1ccccc1*').
-        num_analogs (int, optional): The number of analogs to generate. Defaults to 10. Max recommended is 100.
+    Description:
+        Generate novel molecular analogs from a scaffold SMILES using a pre-trained RNN-based scaffold generation model.
 
-    Returns:
-        str: A JSON-formatted string.
-        On SUCCESS, the JSON will strictly follow this schema:
+    When to use:
+        Use this tool when scaffold-based analog generation is needed and the user provides a scaffold SMILES with an explicit growth point.
+
+    Do not use when:
+        - The input is not a scaffold SMILES.
+        - The SMILES does not contain '*'.
+        - The SMILES contains '@@' stereochemical annotations.
+
+    Inputs:
+        smiles (str):
+            Scaffold SMILES for analog generation.
+            Must contain at least one '*' character indicating the attachment/growth point.
+            Example: 'c1ccccc1*'
+            SMILES containing '@@' are not supported.
+
+        num_analogs (int, optional):
+            Number of analogs to generate.
+            Default: 10.
+            Must be a positive integer.
+
+    Output:
+        JSON-formatted string.
+
+        Success:
         {
-            "status": "success",
-            "generated_count": 12,  # integer: the actual number of valid, unique molecules generated
-            "molecules": [          # list of strings: the generated SMILES strings
-                "c1cc(N)ccc1OC1CCN(C(C)C(NO)=O)CC1",
-                "c1cc(N)ccc1S(=O)(=O)"
-            ]
+        "success": true,
+        "summary": {
+            "input_scaffold": "c1ccccc1*",
+            "requested_batch_size": 10,
+            "valid_unique_generated": 42
+        },
+        "results": [
+            {"smiles": "generated_smiles_1"},
+            {"smiles": "generated_smiles_2"}
+        ]
         }
-        On ERROR, the JSON will follow this schema:
+
+        Failure:
         {
-            "error": "The error message detailing what went wrong."
+        "success": false,
+        "summary": {},
+        "results": [],
+        "error": "Detailed error message"
         }
+
+    Notes:
+        - Returned molecules are valid and deduplicated analogs.
+        - The actual number of generated molecules may be smaller than the requested number.
     """
     if "*" not in smiles:
         return json.dumps(
@@ -127,35 +161,57 @@ def generate_scaffold_analogs(smiles: str, num_analogs: int = 10) -> str:
 
 
 # ==========================================
-# 🛠️ Agent 工具 2：毒性预测与 SHAP 解释
+# 🛠️ Agent 工具 2：毒性预测与 SHAP 解释 -- update_v1
 # ==========================================
 def predict_molecule_toxicity(smiles: str) -> str:
     """
-    Use this tool to predict whether a given molecule is toxic and get a SHAP-based structural explanation.
-    It returns the probability, the toxicity verdict, structural insights, and a file path to an interpretation image.
+    Use this tool to predict the toxicity based on the label of HepG2 from toxicast dataset of a complete molecule and provide a SHAP-style structural interpretation based on substructure-level contribution analysis.
+
+    This tool performs whole-molecule toxicity prediction and then explains the prediction by estimating the contribution of molecular substructures/fragments. If available, it also returns a visualization image encoded as Base64.
 
     Args:
         smiles (str): The valid SMILES string of the complete molecule to be evaluated.
 
     Returns:
-        str: A JSON string strictly following this schema:
+        str: A JSON-formatted string.
 
-        SUCCESS:
+        Success output:
         {
-            "verdict": "Toxic" | "Non-Toxic",
+        "success": true,
+        "summary": {
+            "task": "Toxicity Prediction with Marginal Contribution (SHAP-like)",
             "toxicity_probability": 0.1234,
-            "structural_explanation": [
-                {"fragment": "c1ccccc1", "contribution_score": 0.05, "effect": "Increases Toxicity" | "Decreases Toxicity"}
+            "is_toxic": true
+        },
+        "results": {
+            "smiles": "CCO",
+            "interpretation": [
+            {
+                "fragment": "c1ccccc1",
+                "contribution_score": 0.0521,
+                "effect": "Increases Toxicity"
+            }
             ],
-            "image_saved_at": "/path/to/image.png",
-            "vision_prompt": "..."
+            "image_base64": "base64-encoded-image-string-or-null"
+        },
+        "error": null
         }
-        *CRITICAL*: If 'image_saved_at' is returned, you MUST use your Vision capability to read this image and summarize it for the user!
 
-        ERROR:
+        Error output:
         {
-            "error": "Detailed error message"
+        "success": false,
+        "summary": {},
+        "results": {},
+        "error": "Detailed error message"
         }
+
+    Notes:
+        - Use this tool only for toxicity prediction of a complete molecule, not for scaffold-only input.
+        - The returned toxicity_probability is the predicted probability that the molecule is toxic.
+        - The field is_toxic is determined by whether toxicity_probability > 0.5.
+        - The interpretation field contains fragment/substructure-level contribution results derived from SHAP-style marginal contribution analysis.
+        - Positive contribution scores indicate fragments that increase predicted toxicity; negative contribution scores indicate fragments that decrease predicted toxicity.
+        - If image_base64 is not null, it contains a Base64-encoded structural interpretation image that can be rendered or summarized by a vision-capable system.
     """
     payload = {"smiles": smiles}
     result = _call_worker_api("toxicity", payload)
@@ -275,6 +331,7 @@ def generate_libinvent_decorations(smiles: str, num_decorations: int = 3) -> str
             The scaffold SMILES string to decorate.
             The scaffold MUST contain at least one valid attachment point, such as '[*]' or '[*:1]'.
             Example: '[*]c1ccccc1' or 'CC(=O)N[*]'.
+            The input scaffold SMILES could NOT contain '@@'. 
         num_decorations (int, optional):
             The requested number of decorated molecules to generate. Defaults to 3.
             The actual number of successfully generated molecules may be smaller than this value,
@@ -303,7 +360,10 @@ def generate_libinvent_decorations(smiles: str, num_decorations: int = 3) -> str
         return json.dumps(
             {"error": "The input scaffold SMILES must contain an attachment point (like '*' or '[*:1]')."}
         )
-
+    if "@@" in smiles:
+        return json.dumps(
+            {"error": "The input scaffold SMILES could not contain '@@'. (like '@@' or '@@H')."}
+        )
     payload = {"smiles": smiles, "number_of_decorations_per_scaffold": num_decorations}
 
     result = _call_worker_api("libinvent", payload)
@@ -337,24 +397,52 @@ def generate_libinvent_decorations(smiles: str, num_decorations: int = 3) -> str
 
 
 # ==========================================
-# 🛠️ Agent 工具 5：抗菌活性 (pMIC) 预测
+# 🛠️ Agent 工具 5：抗菌活性 (pMIC) 预测 -- update_v1
 # ==========================================
 def predict_antibacterial_pmic(smiles: str) -> str:
     """
-    Use this tool to predict the antibacterial activity of a molecule.
-    It returns the predicted pMIC value and the estimated Minimum Inhibitory Concentration (MIC) in µM.
-    Higher pMIC values (or lower MIC_uM values) indicate stronger antibacterial activity.
+    Use this tool to predict the antibacterial activity of a complete molecule using a Chemprop-based MPNN model trained for pMIC prediction.
+
+    This tool takes a valid molecular SMILES as input and predicts its antibacterial potency. It returns the predicted pMIC value and the corresponding estimated MIC value in µM. 
+    Higher pMIC values and lower MIC_uM values indicate stronger predicted antibacterial activity.
 
     Args:
         smiles (str): The valid SMILES string of the complete molecule to be evaluated.
 
     Returns:
-        str: A JSON string containing the prediction results.
-        The JSON structure is guaranteed to have the following keys:
-        - "status" (str): "success" or "error".
-        - "pMIC_value" (float): The predicted pMIC score.
-        - "estimated_MIC_uM" (float): The estimated MIC value in µM.
-        - "interpretation" (str): A brief explanation of the values.
+        str: A JSON-formatted string.
+
+        Success output:
+        {
+        "success": true,
+        "summary": {
+            "task": "Antibacterial pMIC Prediction (Chemprop)",
+            "pMIC_value": 6.42,
+            "estimated_MIC_uM": 0.38
+        },
+        "results": {
+            "smiles": "CCO",
+            "pmic": 6.42,
+            "mic_uM": 0.38
+        },
+        "error": null
+        }
+
+        Error output:
+        {
+        "success": false,
+        "summary": {},
+        "results": {},
+        "error": "Detailed error message"
+        }
+
+    Notes:
+        - Use this tool only for antibacterial activity prediction of a complete molecule.
+        - Input must be a valid SMILES string of the full molecule.
+        - The returned pMIC_value is the model-predicted antibacterial activity score.
+        - The returned estimated_MIC_uM is the estimated minimum inhibitory concentration in µM.
+        - Higher pMIC values generally indicate stronger predicted antibacterial activity.
+        - Lower estimated_MIC_uM values generally indicate stronger predicted antibacterial activity.
     """
     payload = {"smiles": smiles}
     result = _call_worker_api("pmic", payload)
@@ -375,32 +463,84 @@ def predict_antibacterial_pmic(smiles: str) -> str:
 
 
 # ==========================================
-# 🛠️ Agent 工具 6：RxnFlow 靶点口袋导向分子生成
+# 🛠️ Agent 工具 6：RxnFlow 靶点口袋导向分子生成 --update_v1
 # ==========================================
 def generate_molecules_for_pocket(
-    protein_pdb_path: str, center_xyz: list = None, ref_ligand_path: str = None, num_samples: int = 50
+    protein_pdb_path: str, center_xyz: list = None, ref_ligand_path: str = None, num_samples: int = 10
 ) -> str:
     """
-    Use this tool to perform structure-based zero-shot drug design (SBDD).
-    It generates novel molecules specifically tailored for a 3D protein pocket using RxnFlow.
+    Use this tool to perform target-aware zero-shot molecular generation with RxnFlow.
+
+    This tool generates candidate molecules for a protein target using either:
+    1. a protein structure file plus a binding pocket center, or
+    2. a protein structure file plus a reference ligand file.
+
+    Required inputs:
+        - protein_pdb_path
+        - one of: center or ref_ligand_path
 
     Args:
-        protein_pdb_path (str): The absolute path to the protein target PDB file on the server.
-        center_xyz (list of 3 floats, optional): The [x, y, z] coordinates of the binding pocket center. MUST provide either this or ref_ligand_path.
-        ref_ligand_path (str, optional): The absolute path to a reference ligand PDB/SDF file to define the pocket. MUST provide either this or center_xyz.
-        num_samples (int, optional): The number of molecules to generate. Defaults to 50.
+        protein_pdb_path (str): Path to the target protein structure file.
+            Supported formats: .sdf, .mol2, .pdb
+
+        center (list | tuple | str | dict, optional): Binding pocket center coordinates.
+            Accepted formats include:
+            - [x, y, z]
+            - (x, y, z)
+            - "x,y,z"
+            - {"x": x, "y": y, "z": z}
+            This field is optional only if ref_ligand_path is provided.
+
+        ref_ligand_path (str, optional): Path to the reference ligand structure file.
+            Supported formats: .sdf, .mol2, .pdb
+            This field is optional only if center is provided.
+
+        num_samples (int, optional): Number of molecules to generate. Default: 100.
+        env_dir (str, optional): Environment directory for RxnFlow. Uses the default internal setting if not provided.
+        model_path (str, optional): Model checkpoint path. Uses the default internal setting if not provided.
+        temperature (str, optional): Sampling temperature setting. Default: "uniform-16-64".
+        use_cuda (bool, optional): Whether to use CUDA if available. Default: True.
+        save_reward (bool, optional): Whether to calculate and save reward-related scores. Default: True.
 
     Returns:
-        str: A JSON-formatted string containing the following fields:
-            - "status" (str): "success" or "error".
-            - "generated_count" (int): The actual number of molecules successfully generated.
-            - "sampling_time_sec" (float): Total time taken for generation in seconds.
-            - "full_results_csv_path" (str): Absolute path to the CSV file containing all generated SMILES and scores.
-            - "top_molecules_preview" (list): A list of dictionaries for the top generated molecules.
-              Each dictionary contains:
-                - "smiles" (str): The SMILES string.
-                - "qed" (float): QED score.
-                - "proxy_score" (float): Vina proxy score (binding affinity estimation).
+        str: A JSON-formatted string.
+
+        Success output:
+        {
+        "success": true,
+        "summary": {
+            "task": "Target-aware Zero-shot Generation (RxnFlow)",
+            "generated_count": 100,
+            "sampling_time_sec": 12.345,
+            "output_file": "/sandbox/path/rxnflow_results.csv"
+        },
+        "results": {
+            "generated_preview": [
+            {
+                "smiles": "CCO...",
+                "qed": 0.812,
+                "proxy_score": -7.231
+            }
+            ]
+        },
+        "error": null
+        }
+
+        Error output:
+        {
+        "success": false,
+        "summary": {},
+        "results": {},
+        "error": "Detailed error message"
+        }
+
+    Notes:
+        - protein_pdb_path is always required.
+        - At least one of center or ref_ligand_path must be provided.
+        - If both center and ref_ligand_path are missing, the tool will return an error.
+        - protein_pdb_path and ref_ligand_path must be structure files in .sdf, .mol2, or .pdb format.
+        - The actual output file may be a CSV file (if save_reward=True) or an SMI file (if save_reward=False).
+        - generated_preview contains only a small preview of the generated molecules, not the full result set.
     """
     if not center_xyz and not ref_ligand_path:
         return json.dumps(
@@ -436,37 +576,80 @@ def generate_molecules_for_pocket(
 
 
 # ==========================================
-# 🛠️ Agent 工具 7：AutoDock Vina 分子对接
+# 🛠️ Agent 工具 7：AutoDock Vina 分子对接 --update_v1
 # ==========================================
 def perform_molecular_docking_vina(
     receptor_pdbqt_path: str, ligand_pdbqt_path: str, center_xyz: list, box_size_xyz: list, exhaustiveness: int = 32
 ) -> str:
     """
-    Use this tool to perform molecular docking of a small molecule ligand into a protein receptor using AutoDock Vina.
-    It calculates the binding affinity (docking score) and generates the 3D docked poses.
+    Use this tool to perform molecular docking of a small-molecule ligand into a protein receptor using AutoDock Vina.
+
+    This tool accepts receptor and ligand structure files, automatically converts supported input formats to PDBQT when needed, and then runs docking with AutoDock Vina. It returns docking scores and the generated docking result files.
+
+    Required inputs:
+        - receptor_file
+        - ligand_file
+        - center
+        - box_size
 
     Args:
-        receptor_pdbqt_path (str): The absolute path to the receptor PDBQT file on the server.
-        ligand_pdbqt_path (str): The absolute path to the ligand PDBQT file on the server.
-        center_xyz (list of 3 floats): The [x, y, z] coordinates of the binding box center.
-        box_size_xyz (list of 3 floats): The dimensions [x, y, z] of the search box (in Angstroms).
-        exhaustiveness (int, optional): The exhaustiveness of the global search. Default is 32. Higher values take longer but are more accurate.
+        receptor_file (str): Path to the receptor structure file.
+            Supported input formats: .pdbqt, .pdb, .sdf
+            If the input is .pdb or .sdf, it will be converted to .pdbqt before docking.
+
+        ligand_file (str): Path to the ligand structure file.
+            Supported input formats: .pdbqt, .pdb, .sdf
+            If the input is .pdb or .sdf, it will be converted to .pdbqt before docking.
+
+        center (list | tuple | str | dict): The docking box center coordinates.
+
+        box_size (list | tuple | str | dict): The docking box dimensions in Angstroms.
+
+        exhaustiveness (int, optional): Exhaustiveness of the global search. Default: 32.
+        n_poses (int, optional): Number of docking poses to generate. Default: 20.
+        sf_name (str, optional): Scoring function name. Default: "vina".
 
     Returns:
-        str: A JSON-formatted string containing the following fields:
-            - "status" (str): "success" or "error".
-            - "best_docking_score_kcal_mol" (float): The binding affinity of the best global docking pose (more negative is better).
-            - "minimized_score_kcal_mol" (float): The score after local minimization of the input pose.
-            - "docked_poses_file_path" (str): Absolute path to the generated PDBQT file containing the top docking poses.
-            - "interpretation" (str): A brief guide on how to read the scores.
+        str: A JSON-formatted string.
+
+        Success output:
+        {
+        "success": true,
+        "summary": {
+            "task": "Molecular Docking (AutoDock Vina)",
+            "best_docking_score": -8.4,
+            "score_after_minimization": -7.9
+        },
+        "results": {
+            "...": "tool-specific docking outputs such as pose files, score tables, or generated paths"
+        },
+        "error": null
+        }
+
+        Error output:
+        {
+        "success": false,
+        "summary": {},
+        "results": {},
+        "error": "Detailed error message"
+        }
+
+    Notes:
+        - receptor_file and ligand_file are both required.
+        - Input files must exist before docking starts.
+        - Supported input formats for both receptor_file and ligand_file are .pdbqt, .pdb, and .sdf.
+        - If the input file is not already in .pdbqt format, the tool will automatically convert it to .pdbqt before docking.
+        - More negative docking scores generally indicate stronger predicted binding affinity.
+        - best_docking_score is the best score among sampled docking poses.
+        - score_after_minimization is the score after local minimization.
     """
     payload = {
-        "receptor_pdbqt_file": receptor_pdbqt_path,
-        "ligand_pdbqt_file": ligand_pdbqt_path,
+        "receptor_file": receptor_pdbqt_path,
+        "ligand_file": ligand_pdbqt_path,
         "center": center_xyz,
         "box_size": box_size_xyz,
-        "exhaustiveness": exhaustiveness,
-        "n_poses": 10,
+        "exhaustiveness": 32,
+        "n_poses": 20,
     }
 
     # 分子对接可能非常耗时，特别是 exhaustiveness > 32 时，设置 20 分钟超时
@@ -490,87 +673,151 @@ def perform_molecular_docking_vina(
 
 
 # ==========================================
-# 🛠️ Agent 工具 8：REINVENT4 分子多维综合打分
+# 🛠️ Agent 工具: REINVENT4 De Novo 从头分子生成
 # ==========================================
-def score_molecules_reinvent(smiles_list: list) -> str:
+def generate_molecules_reinvent4_denovo(num_variants: int = 100) -> str:
     """
-    Use this tool to evaluate and score a list of molecules using REINVENT4.
-    It calculates multiple physicochemical properties including QED (drug-likeness), MW (Molecular Weight), Tanimoto similarity, and provides a comprehensive composite Score.
+    Use this tool to generate completely novel molecules from scratch using the REINVENT4 de novo prior model.
+    No input scaffold or reference molecule is needed. Suitable for exploring vast chemical space.
 
     Args:
-        smiles_list (list of str): A list of valid SMILES strings to be scored.
+        num_variants (int, optional): The number of novel molecules to generate. Defaults to 100.
 
     Returns:
-        str: A JSON-formatted string containing the following fields:
-            - "status" (str): "success" or "error".
-            - "scored_count" (int): The number of molecules successfully scored.
-            - "top_molecules_sorted_by_score" (list): Top 20 molecules sorted by composite score (descending).
-              Each dictionary contains:
-                - "smiles" (str): The SMILES string.
-                - "score" (float): The overall composite desirability score.
-                - "qed" (float): Quantitative Estimate of Drug-likeness.
-                - "mw" (float): Molecular Weight.
-                - "tanimoto" (float): Tanimoto similarity to reference (if applicable).
-                - "alerts" (str): Structural alerts or toxicity warnings (empty string if none).
+        str: A JSON string.
+        SUCCESS:
+        {
+            "status": "success",
+            "generated_count": 95,
+            "molecules_smiles": ["CCO", "c1ccccc1", ...]
+        }
+        ERROR:
+        {
+            "error": "Detailed error message"
+        }
     """
-    if not smiles_list or not isinstance(smiles_list, list):
-        return json.dumps({"error": "Please provide a valid list of SMILES strings."})
-
-    payload = {"smiles_list": smiles_list}
-
-    result = _call_worker_api("reinvent4", payload, action="score", timeout_mins=5)
-
-    if "error" in result:
-        return json.dumps({"error": result["error"]})
-
-    summary = result.get("summary", {})
-    scores_data = result.get("results", {}).get("scored_data", [])
-
-    # 按照综合得分从高到低排序，帮助大模型优先关注好分子
-    sorted_scores = sorted(scores_data, key=lambda x: x.get("score", 0), reverse=True)
-
-    agent_response = {
-        "status": "success",
-        "scored_count": summary.get("scored_molecules"),
-        "top_molecules_sorted_by_score": sorted_scores[:20],  # 如果分子太多，只返回前 20 个避免超出上下文
-    }
-
-    return json.dumps(agent_response, ensure_ascii=False)
-
-
-# ==========================================
-# 🛠️ Agent 工具 9：REINVENT4 从头分子生成 (De novo Design)
-# ==========================================
-def generate_molecules_reinvent(num_samples: int = 50) -> str:
-    """
-    Use this tool to perform de novo molecule generation using the REINVENT4 prior model.
-    It samples structurally novel and valid SMILES strings from scratch without requiring a protein pocket.
-
-    Args:
-        num_samples (int, optional): The number of novel molecules to generate. Defaults to 50.
-
-    Returns:
-        str: A JSON-formatted string containing the successfully generated SMILES strings and their Negative Log-Likelihood (NLL) scores.
-    """
-    payload = {"num_samples": num_samples}
-
-    result = _call_worker_api("reinvent4", payload, action="sample", timeout_mins=10)
+    payload = {"num_variants": num_variants}
+    result = _call_worker_api("reinvent4", payload, action="de_novo", timeout_mins=10)
 
     if "error" in result:
         return json.dumps({"error": result["error"]})
 
     summary = result.get("summary", {})
     molecules_data = result.get("results", {}).get("molecules", [])
-
-    # 提取纯 SMILES 列表方便大模型阅读
-    smiles_list = [mol["smiles"] for mol in molecules_data]
+    smiles_list = [mol["smiles"] for mol in molecules_data if mol.get("smiles")]
 
     agent_response = {
         "status": "success",
-        "generated_count": summary.get("generated_count"),
-        "molecules_smiles": smiles_list,
+        "generated_count": summary.get("generated_count", len(smiles_list)),
+        "molecules_smiles": smiles_list
     }
+    return json.dumps(agent_response, ensure_ascii=False)
 
+
+# ==========================================
+# 🛠️ Agent 工具: REINVENT4 LibInvent 骨架装饰
+# ==========================================
+def generate_molecules_reinvent4_libinvent(smiles: str, num_variants: int = 50) -> str:
+    """
+    Use this tool to decorate a chemical scaffold by generating R-group variants at [*] attachment points
+    using the REINVENT4 LibInvent model.
+    The input MUST be a scaffold SMILES containing at least one [*] wildcard (e.g., 'c1ccc([*])cc1').
+    This mode does NOT support chiral annotations (@@). Use mol2mol mode for chiral molecules instead.
+
+    Args:
+        smiles (str): A scaffold SMILES string containing [*] attachment points.
+        num_variants (int, optional): Number of decorated variants to generate. Defaults to 50.
+
+    Returns:
+        str: A JSON string.
+        SUCCESS:
+        {
+            "status": "success",
+            "input_scaffold": "c1ccc([*])cc1",
+            "generated_count": 48,
+            "molecules_smiles": ["c1ccc(N)cc1", "c1ccc(O)cc1", ...]
+        }
+        ERROR:
+        {
+            "error": "Detailed error message"
+        }
+    """
+    if "[*]" not in smiles and "*" not in smiles:
+        return json.dumps({"error": "The input scaffold SMILES must contain at least one [*] attachment point."})
+
+    payload = {"smiles_list": [smiles], "num_variants": num_variants}
+    result = _call_worker_api("reinvent4", payload, action="libinvent", timeout_mins=10)
+
+    if "error" in result:
+        return json.dumps({"error": result["error"]})
+
+    summary = result.get("summary", {})
+    molecules_data = result.get("results", {}).get("molecules", [])
+    smiles_list = [mol["smiles"] for mol in molecules_data if mol.get("smiles")]
+
+    agent_response = {
+        "status": "success",
+        "input_scaffold": smiles,
+        "generated_count": summary.get("generated_count", len(smiles_list)),
+        "molecules_smiles": smiles_list
+    }
+    return json.dumps(agent_response, ensure_ascii=False)
+
+
+# ==========================================
+# 🛠️ Agent 工具: REINVENT4 Mol2Mol 手性约束分子生成
+# ==========================================
+def generate_molecules_reinvent4_mol2mol(smiles: str, num_variants: int = 50, strategy: str = "beamsearch", temperature: float = 1.0) -> str:
+    """
+    Use this tool to generate structural analogs of a reference molecule while preserving its stereochemistry
+    using the REINVENT4 Mol2Mol model.
+    The input should be a complete SMILES string (supports @@ chiral annotations).
+    This mode does NOT support [*] wildcards. Use libinvent mode for scaffold decoration instead.
+
+    Args:
+        smiles (str): A complete reference molecule SMILES (e.g., 'CC1(C)S[C@@H]2NC(=O)C(=O)N2[C@H]1C(=O)O').
+        num_variants (int, optional): Number of analogs to generate. Defaults to 50.
+        strategy (str, optional): Sampling strategy, 'beamsearch' or 'multinomial'. Defaults to 'beamsearch'.
+        temperature (float, optional): Sampling temperature. Defaults to 1.0.
+
+    Returns:
+        str: A JSON string.
+        SUCCESS:
+        {
+            "status": "success",
+            "input_smiles": "CC1(C)S[C@@H]2NC(=O)C(=O)N2[C@H]1C(=O)O",
+            "generated_count": 45,
+            "molecules_smiles": ["CC1(C)SC2NC(=O)...", ...]
+        }
+        ERROR:
+        {
+            "error": "Detailed error message"
+        }
+    """
+    if not smiles:
+        return json.dumps({"error": "A reference molecule SMILES is required."})
+
+    payload = {
+        "smiles_list": [smiles],
+        "num_variants": num_variants,
+        "strategy": strategy,
+        "temperature": temperature
+    }
+    result = _call_worker_api("reinvent4", payload, action="mol2mol", timeout_mins=10)
+
+    if "error" in result:
+        return json.dumps({"error": result["error"]})
+
+    summary = result.get("summary", {})
+    molecules_data = result.get("results", {}).get("molecules", [])
+    smiles_list_out = [mol["smiles"] for mol in molecules_data if mol.get("smiles")]
+
+    agent_response = {
+        "status": "success",
+        "input_smiles": smiles,
+        "generated_count": summary.get("generated_count", len(smiles_list_out)),
+        "molecules_smiles": smiles_list_out
+    }
     return json.dumps(agent_response, ensure_ascii=False)
 
 

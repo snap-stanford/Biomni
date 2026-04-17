@@ -175,41 +175,40 @@ class A1pro(A1):
             self.logger.error(f"⚠️  加载技能时出错: {e}")
             self.logger.exception("Skill loading failed")
 
+    def _get_skill_docs_for_prompt(self) -> list[dict]:
+        """把 skill 摘要转换为 know_how_docs 格式，供 _generate_system_prompt 使用。"""
+        if not hasattr(self, "skill_loader") or not self.skill_loader:
+            return []
+        summaries = self.skill_loader.get_skill_summaries()
+        if hasattr(self, "exclude_skills"):
+            summaries = [s for s in summaries if s["id"] not in self.exclude_skills]
+
+        docs = []
+        for s in summaries:
+            lines = [f"**ID**: `{s['id']}`", f"**Description**: {s['description']}"]
+            meta = s.get("metadata", {})
+            if meta.get("required_tools"):
+                lines.append(f"**Required Tools**: {meta['required_tools']}")
+            if meta.get("category"):
+                lines.append(f"**Category**: {meta['category']}")
+            lines.append(f"**To get detailed workflow**: `get_skill_content('{s['id']}')`")
+            docs.append({"name": f"Skill: {s['name']}", "content": "\n".join(lines)})
+        return docs
+
+    def _build_system_prompt_context(self, selected_resources=None) -> dict:
+        """Override to inject skills via the standard know_how_docs pipeline."""
+        context = super()._build_system_prompt_context(selected_resources)
+        skill_docs = self._get_skill_docs_for_prompt()
+        if skill_docs:
+            existing = context.get("know_how_docs") or []
+            context["know_how_docs"] = existing + skill_docs
+            self.logger.info(f"✅ 已将 {len(skill_docs)} 个技能摘要注入系统提示词")
+        return context
+
     def _register_skill_tool(self):
-        """Register get_skill_content as a callable tool"""
-
-        def get_skill_content(skill_id: str) -> str:
-            """
-            Get the complete content and workflow of a skill.
-
-            Use this function to obtain detailed step-by-step guidance when you need to execute a complex task.
-
-            Args:
-                skill_id: The ID of the skill (e.g., 'molecule_analysis', 'virtual_screening')
-
-            Returns:
-                The complete content of the skill, including detailed workflow, examples, and best practices
-
-            Example:
-                # Get the detailed content of the molecule analysis skill
-                content = get_skill_content('molecule_analysis')
-                print(content)
-            """
-            skill = self.skill_loader.get_skill_by_id(skill_id)
-            if skill:
-                # Return content without metadata
-                return skill.get("content_without_metadata", skill.get("content", ""))
-            else:
-                return (
-                    f"Error: Skill with ID '{skill_id}' not found. Use list_available_skills() to see available skills."
-                )
-
-        # Add function as a tool
-        try:
-            self.add_tool(get_skill_content)
-            self.logger.debug("  ✓ 已注册 get_skill_content 工具")
-        except Exception as e:
-            self.logger.warning(f"  ⚠️  注册 get_skill_content 工具失败: {e}")
+        """Skills are loaded via template_tools.py (get_skill_content / list_available_skills).
+        Nothing extra to register here — kept as a hook for subclasses."""
+        pass
 
     def get_skill_content(self, skill_id: str) -> dict | None:
         """
@@ -368,83 +367,12 @@ class A1pro(A1):
         self.skill_loader.print_skill_info(skill_id)
 
     def configure(self, self_critic=False, test_time_scale_round=0):
-        """
-        Override configure method to add skills support
-
-        Args:
-            self_critic: Whether to enable self-critic mode
-            test_time_scale_round: Number of test time scaling rounds
-        """
-        # Call parent's configure method to get base configuration
-        super().configure(self_critic=self_critic, test_time_scale_round=test_time_scale_round)
-
-        # Check if skill_loader is initialized (it might not be during parent's __init__)
+        """Override configure to ensure skill_loader is ready before building the prompt."""
         if not hasattr(self, "skill_loader") or self.skill_loader is None:
+            super().configure(self_critic=self_critic, test_time_scale_round=test_time_scale_round)
             return
-
-        # Get skill summaries (without full content)
-        summaries = self.skill_loader.get_skill_summaries()
-
-        # Check if exclude_skills is initialized
-        if hasattr(self, "exclude_skills"):
-            summaries = [s for s in summaries if s["id"] not in self.exclude_skills]
-
-        if summaries:
-            # Prepare skill summary information (only name and description)
-            skills_formatted = []
-            for summary in summaries:
-                skill_text = f"🎯 {summary['name']} (ID: {summary['id']})"
-                skill_text += f"\n   Description: {summary['description']}"
-
-                # Add metadata
-                metadata = summary.get("metadata", {})
-                if "required_tools" in metadata:
-                    skill_text += f"\n   Required Tools: {metadata['required_tools']}"
-                if "category" in metadata:
-                    skill_text += f"\n   Category: {metadata['category']}"
-
-                skill_text += f"\n   💡 To get detailed workflow, use: get_skill_content('{summary['id']}')"
-
-                skills_formatted.append(skill_text)
-
-            # Add skills section to system prompt
-            skills_section = """
-
-🎯 ADVANCED SKILLS
-===============================
-Below are available skill summaries. These skills demonstrate how to combine tools to accomplish complex tasks.
-
-When you need to execute related tasks:
-1. First review the skill list to find relevant skills
-2. If you need detailed workflow, use get_skill_content(skill_id) to get complete content
-3. Follow the skill's workflow to plan your execution steps
-
-Available Skills:
-
-{skills_content}
-
-===============================
-"""
-            skills_content = "\n\n".join(skills_formatted)
-            skills_section = skills_section.format(skills_content=skills_content)
-
-            # Insert skills section into system prompt (after PRIORITY CUSTOM RESOURCES)
-            if "PRIORITY CUSTOM RESOURCES" in self.system_prompt:
-                # Insert after custom resources section
-                parts = self.system_prompt.split("===============================\n", 2)
-                if len(parts) >= 2:
-                    self.system_prompt = parts[0] + "===============================\n" + skills_section + parts[1]
-            else:
-                # If no custom resources, insert before environment resources
-                if "Environment Resources:" in self.system_prompt:
-                    self.system_prompt = self.system_prompt.replace(
-                        "Environment Resources:", skills_section + "\nEnvironment Resources:"
-                    )
-                else:
-                    # As fallback, append to end of prompt
-                    self.system_prompt += skills_section
-
-            self.logger.info(f"✅ 已将 {len(summaries)} 个技能摘要添加到系统提示词")
+        # _build_system_prompt_context is already overridden above to inject skills
+        super().configure(self_critic=self_critic, test_time_scale_round=test_time_scale_round)
 
     def get_tool_info(self, tool_name: str):
         """获取工具的详细信息"""
