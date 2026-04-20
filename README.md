@@ -1,420 +1,189 @@
-<p align="center">
-  <img src="./figs/biomni_logo.png" alt="Biomni Logo" width="600px" />
-</p>
+# Biomni Molecule - CAi
 
-<p align="center">
-<a href="https://join.slack.com/t/biomnigroup/shared_invite/zt-3avks4913-dotMBt8D_apQnJ3mG~ak6Q">
-<img src="https://img.shields.io/badge/Join-Slack-4A154B?style=for-the-badge&logo=slack" alt="Join Slack" />
-</a>
-<a href="https://biomni.stanford.edu">
-<img src="https://img.shields.io/badge/Try-Web%20UI-blue?style=for-the-badge" alt="Web UI" />
-</a>
-<a href="https://x.com/ProjectBiomni">
-<img src="https://img.shields.io/badge/Follow-on%20X-black?style=for-the-badge&logo=x" alt="Follow on X" />
-</a>
-<a href="https://www.linkedin.com/company/project-biomni">
-<img src="https://img.shields.io/badge/Follow-LinkedIn-0077B5?style=for-the-badge&logo=linkedin" alt="Follow on LinkedIn" />
-</a>
-<a href="https://www.biorxiv.org/content/10.1101/2025.05.30.656746v1">
-<img src="https://img.shields.io/badge/Read-Paper-green?style=for-the-badge" alt="Paper" />
-</a>
-</p>
+CAi 是基于 Biomni A1 框架的增强版药物分子 AI Agent，集成了分子生成、对接、毒性预测等多种计算化学工具，支持通过自然语言驱动复杂的药物发现工作流。
 
+---
 
+## 项目结构
 
-# Biomni: A General-Purpose Biomedical AI Agent
+```
+Biomni_molecule/
+├── CAi/
+│   ├── config.py                        # 全局配置（端口、LLM 参数）
+│   ├── .env                             # 本地环境变量（填写 API Key，不提交 git）
+│   ├── main.py                          # Agent 启动入口
+│   ├── additional_tools/
+│   │   ├── __init__.py
+│   │   ├── template_tools.py            # Agent 可调用的工具函数
+│   │   └── server/
+│   │       ├── app.py                   # 工具执行后端（FastAPI）
+│   │       ├── job_manager.py           # Job 沙盒管理
+│   │       ├── install_all.sh           # 一键安装所有工具 conda 环境
+│   │       └── tools/                  # 各工具目录（config.json + run.py）
+│   └── CAi_agent/
+│       ├── agent.py                     # A1pro Agent 类
+│       ├── ui.py                        # Gradio UI
+│       └── skills/                      # Agent 技能文件
+└── base_CAi/                            # 基础 Agent 框架
+```
 
-## Overview
+---
 
+## 快速开始
 
-Biomni is a general-purpose biomedical AI agent designed to autonomously execute a wide range of research tasks across diverse biomedical subfields. By integrating cutting-edge large language model (LLM) reasoning with retrieval-augmented planning and code-based execution, Biomni helps scientists dramatically enhance research productivity and generate testable hypotheses.
+### 第一步：配置环境变量
 
-
-## Quick Start
-
-### Installation
-
-Our software environment is massive and we provide a single setup.sh script to setup.
-Follow this [file](biomni_env/README.md) to setup the env first.
-
-Then activate the environment E1:
+在 `CAi/` 目录下创建 `.env` 文件：
 
 ```bash
-conda activate biomni_e1
+# CAi/.env
+LLM_API_KEY=your_api_key_here
+LLM_BASE_URL=http://35.220.164.252:3888/v1/
+LLM_MODEL=claude-sonnet-4-5-20250929
+
+TOOL_SERVER_HOST=0.0.0.0
+TOOL_SERVER_PORT=8001
 ```
 
-then install the biomni official pip package:
+### 第二步：安装基础依赖
 
 ```bash
-pip install biomni --upgrade
+pip install fastapi uvicorn python-dotenv
 ```
 
-For the latest update, install from the github source version, or do:
+### 第三步：安装工具 conda 环境
+
+每个计算工具运行在独立的 conda 环境中。可以按需安装：
 
 ```bash
-pip install git+https://github.com/snap-stanford/Biomni.git@main
+cd CAi/additional_tools/server
+
+# 安装全部工具环境（较慢）
+bash install_all.sh
+
+# 只安装部分工具
+bash install_all.sh vina scscore toxicity
 ```
 
-Lastly, configure your API keys using one of the following methods:
-
-<details>
-<summary>Click to expand</summary>
-
-#### Option 1: Using .env file (Recommended)
-
-Create a `.env` file in your project directory:
+### 第四步：启动工具后端服务
 
 ```bash
-# Copy the example file
-cp .env.example .env
-
-# Edit the .env file with your actual API keys
+# 在 CAi/ 目录下运行
+python additional_tools/server/app.py
 ```
 
-Your `.env` file should look like:
+服务启动后监听 `http://0.0.0.0:8001`，可用接口：
+- `GET  /tools`               — 列出所有已加载工具
+- `POST /run/{tool}/{action}` — 提交工具任务
+- `GET  /job/{job_id}`        — 查询任务状态
 
-```env
-# Required: Anthropic API Key for Claude models
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
-
-# Optional: OpenAI API Key (if using OpenAI models)
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Optional: Azure OpenAI API Key (if using Azure OpenAI models)
-OPENAI_API_KEY=your_azure_openai_api_key
-OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
-
-# Optional: AI Studio Gemini API Key (if using Gemini models)
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# Optional: groq API Key (if using groq as model provider)
-GROQ_API_KEY=your_groq_api_key_here
-
-# Optional: Set the source of your LLM for example:
-#"OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Groq", "Custom"
-LLM_SOURCE=your_LLM_source_here
-
-# Optional: AWS Bedrock Configuration (if using AWS Bedrock models)
-AWS_BEARER_TOKEN_BEDROCK=your_bedrock_api_key_here
-AWS_REGION=us-east-1
-
-# Optional: Custom model serving configuration
-# CUSTOM_MODEL_BASE_URL=http://localhost:8000/v1
-# CUSTOM_MODEL_API_KEY=your_custom_api_key_here
-
-# Optional: Biomni data path (defaults to ./data)
-# BIOMNI_DATA_PATH=/path/to/your/data
-
-# Optional: Timeout settings (defaults to 600 seconds)
-# BIOMNI_TIMEOUT_SECONDS=600
-```
-
-#### Option 2: Using shell environment variables
-
-Alternatively, configure your API keys in bash profile `~/.bashrc`:
+### 第五步：启动 Agent UI
 
 ```bash
-export ANTHROPIC_API_KEY="YOUR_API_KEY"
-export OPENAI_API_KEY="YOUR_API_KEY" # optional if you just use Claude
-export OPENAI_ENDPOINT="https://your-resource-name.openai.azure.com/" # optional unless you are using Azure
-export AWS_BEARER_TOKEN_BEDROCK="YOUR_BEDROCK_API_KEY" # optional for AWS Bedrock models
-export AWS_REGION="us-east-1" # optional, defaults to us-east-1 for Bedrock
-export GEMINI_API_KEY="YOUR_GEMINI_API_KEY" #optional if you want to use a gemini model
-export GROQ_API_KEY="YOUR_GROQ_API_KEY" # Optional: set this to use models served by Groq
-export LLM_SOURCE="Groq" # Optional: set this to use models served by Groq
-
-
+# 在 Biomni_molecule/ 目录下运行
+python CAi/main.py
 ```
-</details>
 
-
-#### ⚠️ Known Package Conflicts
-
-Some Python packages are not installed by default in the Biomni environment due to dependency conflicts. If you need these features, you must install the packages manually and may need to uncomment relevant code in the codebase. See the up-to-date list and details in [docs/known_conflicts.md](./docs/known_conflicts.md).
-
-### Basic Usage
-
-Once inside the environment, you can start using Biomni:
+或自定义模型：
 
 ```python
-from biomni.agent import A1
-
-# Initialize the agent with data path, Data lake will be automatically downloaded on first run (~11GB)
-agent = A1(path='./data', llm='claude-sonnet-4-20250514')
-
-# Execute biomedical tasks using natural language
-agent.go("Plan a CRISPR screen to identify genes that regulate T cell exhaustion, generate 32 genes that maximize the perturbation effect.")
-agent.go("Perform scRNA-seq annotation at [PATH] and generate meaningful hypothesis")
-agent.go("Predict ADMET properties for this compound: CC(C)CC1=CC=C(C=C1)C(C)C(=O)O")
-```
-
-#### Controlling Datalake Loading
-
-By default, Biomni automatically downloads the datalake files (~11GB) when you create an agent. You can control this behavior:
-
-```python
-# Skip automatic datalake download (faster initialization)
-agent = A1(path='./data', llm='claude-sonnet-4-20250514', expected_data_lake_files = [])
-```
-
-This is useful for:
-- Faster testing and development
-- Environments with limited storage or bandwidth
-- Cases where you only need specific tools that don't require datalake files
-If you plan on using Azure for your model, always prefix the model name with azure- (e.g. llm='azure-gpt-4o').
-
-### Gradio Interface
-
-Launch an interactive web UI for Biomni:
-
-```python
-from biomni.agent import A1
-
-agent = A1(path='./data', llm='claude-sonnet-4-20250514')
-agent.launch_gradio_demo()
-```
-
-**Installation:**
-```bash
-pip install "gradio>=5.0,<6.0"
-```
-
-**Note:** Biomni's Gradio interface currently requires Gradio 5.x due to API changes in Gradio 6.0. If you have Gradio 6.x installed, you may need to downgrade.
-
-**Options:**
-- `share=True` - Create a public shareable link
-- `server_name="127.0.0.1"` - Localhost only (default: "0.0.0.0")
-- `require_verification=True` - Require access code (default code: "Biomni2025")
-
-The interface will be available at `http://localhost:7860`
-
-### Configuration Management
-
-Biomni includes a centralized configuration system that provides flexible ways to manage settings. You can configure Biomni through environment variables, runtime modifications, or direct parameters.
-
-```python
-from biomni.config import default_config
-from biomni.agent import A1
-
-# RECOMMENDED: Modify global defaults for consistency
-default_config.llm = "gpt-4"
-default_config.timeout_seconds = 1200
-
-# All agents AND database queries use these defaults
-agent = A1()  # Everything uses gpt-4, 1200s timeout
-```
-
-**Note**: Direct parameters to `A1()` only affect that agent's reasoning, not database queries. For consistent configuration across all operations, use `default_config` or environment variables.
-
-For detailed configuration options, see the **[Configuration Guide](docs/configuration.md)**.
-
-### PDF Generation
-
-Generate PDF reports of execution traces:
-
-```python
-from biomni.agent import A1
-
-# Initialize agent
-agent = A1(path='./data', llm='claude-sonnet-4-20250514')
-
-# Run your task
-agent.go("Your biomedical task here")
-
-# Save conversation history as PDF
-agent.save_conversation_history("my_analysis_results.pdf")
-```
-
-**PDF Generation Dependencies:**
-<details>
-<summary>Click to expand</summary>
-For optimal PDF generation, install one of these packages:
-
-```bash
-# Option 1: WeasyPrint (recommended for best layout control)
-# Conda environment (recommended)
-conda install weasyprint
-
-# System installation
-brew install weasyprint  # macOS
-apt install weasyprint   # Linux
-
-# See [WeasyPrint Installation Guide](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html) for detailed instructions.
-
-# Option 2: markdown2pdf (Rust-based, fast and reliable)
-# macOS:
-brew install theiskaa/tap/markdown2pdf
-
-# Windows/Linux (using Cargo):
-cargo install markdown2pdf
-
-# Or download prebuilt binaries from:
-# https://github.com/theiskaa/markdown2pdf/releases/latest
-
-# Option 3: Pandoc (pip installation)
-pip install pandoc
-```
-</details>
-
-## MCP (Model Context Protocol) Support
-
-Biomni supports MCP servers for external tool integration:
-
-```python
-from biomni.agent import A1
-
-agent = A1()
-agent.add_mcp(config_path="./mcp_config.yaml")
-agent.go("Find FDA active ingredient information for ibuprofen")
-```
-
-**Built-in MCP Servers:**
-For usage and implementation details, see the [MCP Integration Documentation](docs/mcp_integration.md) and examples in [`tutorials/examples/add_mcp_server/`](tutorials/examples/add_mcp_server/) and [`tutorials/examples/expose_biomni_server/`](tutorials/examples/expose_biomni_server/).
-
-
-## Biomni-R0
-
-**Biomni-R0** is our first reasoning model for biology, built on Qwen-32B with reinforcement learning from agent interaction data. It's designed to excel at tool use, multi-step reasoning, and complex biological problem-solving through iterative self-correction.
-
-- 🤗 Model: [biomni/Biomni-R0-32B-Preview](https://huggingface.co/biomni/Biomni-R0-32B-Preview)
-- 📝 Technical Report: [biomni.stanford.edu/blog/biomni-r0-technical-report](https://biomni.stanford.edu/blog/biomni-r0-technical-report)
-
-To use Biomni-R0 for agent reasoning while keeping database queries on your usual provider (recommended), run a local SGLang server and pass the model to `A1()` directly.
-
-1) Launch SGLang with Biomni-R0:
-
-```bash
-python -m sglang.launch_server --model-path RyanLi0802/Biomni-R0-Preview --port 30000 --host 0.0.0.0 --mem-fraction-static 0.8 --tp 2 --trust-remote-code --json-model-override-args '{"rope_scaling":{"rope_type":"yarn","factor":1.0,"original_max_position_embeddings":32768}, "max_position_embeddings": 131072}'
-```
-
-2) Point the agent to your SGLang endpoint for reasoning:
-
-```python
-from biomni.config import default_config
-from biomni.agent import A1
-
-# Database queries (indexes, retrieval, etc.) use default_config
-default_config.llm = "claude-3-5-sonnet-20241022"
-default_config.source = "Anthropic"
-
-# Agent reasoning uses Biomni-R0 served via SGLang (OpenAI-compatible API)
-agent = A1(
-    llm="biomni/Biomni-R0-32B-Preview",
+# CAi/main.py 中修改 llm 参数
+agent = A1pro(
+    llm="Qwen/Qwen3-32B",       # 替换为你的模型
     source="Custom",
-    base_url="http://localhost:30000/v1",
-    api_key="EMPTY",
+    base_url=LLM_BASE_URL,
+    api_key=LLM_API_KEY,
+    auto_load_tools=True,
 )
-
-agent.go("Plan a CRISPR screen to identify genes regulating T cell exhaustion")
+agent.launch_new_gradio_demo(share=False)
 ```
 
-## Biomni-Eval1
+---
 
-**Biomni-Eval1** is a comprehensive evaluation benchmark for assessing biological reasoning capabilities across diverse tasks. It contains **433 instances** spanning **10 biological reasoning tasks**, from gene identification to disease diagnosis.
+## 可用工具
 
-**Tasks Included:**
-- GWAS causal gene identification (3 variants)
-- Lab bench Q&A (2 variants)
-- Patient gene detection
-- Screen gene retrieval
-- GWAS variant prioritization
-- Rare disease diagnosis
-- CRISPR delivery method selection
+| 工具函数 | 功能 |
+|---|---|
+| `generate_scaffold_analogs` | 骨架衍生生成 |
+| `predict_molecule_toxicity` | 毒性预测 + SHAP 解释 |
+| `calculate_scscore` | 合成可行性评分（SCScore） |
+| `generate_libinvent_decorations` | Lib-INVENT 骨架修饰 |
+| `predict_antibacterial_pmic` | 抗菌活性（pMIC）预测 |
+| `generate_molecules_for_pocket` | RxnFlow 靶点口袋导向生成 |
+| `perform_molecular_docking_vina` | AutoDock Vina 分子对接 |
+| `score_molecules_reinvent` | REINVENT4 多维综合打分 |
+| `generate_molecules_reinvent` | REINVENT4 从头分子生成 |
+| `generate_molecules_drugex` | DrugEx 图网络强化学习生成 |
 
-**Resources:**
-- 🤗 Dataset: [biomni/Eval1](https://huggingface.co/datasets/biomni/Eval1)
-- 💻 Quick Start:
-```python
-from biomni.eval import BiomniEval1
+---
 
-evaluator = BiomniEval1()
-score = evaluator.evaluate('gwas_causal_gene_opentargets', 0, 'BRCA1')
-```
+## 添加新工具
 
+每个工具需要三个步骤：
 
-## 📚 Know-How Library
-
-Biomni includes a **Know-How Library** — a curated collection of best practices, protocols, and troubleshooting guides for biomedical techniques. These documents are automatically retrieved by the A1 agent when relevant to provide domain expertise and practical knowledge.
-
-**Features:**
-- Automatic retrieval based on query relevance
-- Metadata tracking (authors, affiliations, licensing, commercial use)
-- Compatible with commercial mode (filters non-commercial content)
-
-### 📝 Contributing Know-How Documents
-
-We're actively seeking community contributions to expand our Know-How Library! Share your expertise by contributing:
-
-- **Lab protocols** (cell culture, flow cytometry, western blotting, etc.)
-- **Analysis best practices** (NGS workflows, microscopy techniques, etc.)
-- **Troubleshooting guides** (common issues and solutions)
-- **Experimental design guidelines** (sample size, controls, validation)
-- **Domain-specific knowledge** (drug formulation, animal models, clinical trials, etc.)
-
-Know-how documents should be practical, succinct, and include proper attribution. Use [this know-how](know_how/single_cell_annotation.md) as an example.
-
-**To contribute:** Create a markdown file following our template and submit a pull request.
-
-## 🤝 Contributing to Biomni
-
-Biomni is an open-science initiative that thrives on community contributions. We welcome:
-
-- **🔧 New Tools**: Specialized analysis functions and algorithms
-- **📊 Datasets**: Curated biomedical data and knowledge bases
-- **💻 Software**: Integration of existing biomedical software packages
-- **📋 Benchmarks**: Evaluation datasets and performance metrics
-- **📚 Know-How**: Best practices, protocols, and domain expertise
-- **📚 Misc**: Tutorials, examples, and use cases
-- **🔧 Update existing tools**: many current tools are not optimized - fix and replacements are welcome!
-
-Check out this **[Contributing Guide](CONTRIBUTION.md)** on how to contribute to the Biomni ecosystem.
-
-If you have particular tool/database/software in mind that you want to add, you can also submit to [this form](https://forms.gle/nu2n1unzAYodTLVj6) and the biomni team will implement them.
-
-## 🔬 Call for Contributors: Help Build Biomni-E2
-
-Biomni-E1 only scratches the surface of what’s possible in the biomedical action space.
-
-Now, we’re building **Biomni-E2** — a next-generation environment developed **with and for the community**.
-
-We believe that by collaboratively defining and curating a shared library of standard biomedical actions, we can accelerate science for everyone.
-
-**Join us in shaping the future of biomedical AI agent.**
-
-- **Contributors with significant impact** (e.g., 10+ significant & integrated tool contributions or equivalent) will be **invited as co-authors** on our upcoming paper in a top-tier journal or conference.
-- **All contributors** will be acknowledged in our publications.
-- More contributor perks...
-
-Let’s build it together.
-
-
-## Tutorials and Examples
-
-**[Biomni 101](./tutorials/biomni_101.ipynb)** - Basic concepts and first steps
-
-More to come!
-
-## 🌐 Web Interface
-
-Experience Biomni through our no-code web interface at **[biomni.stanford.edu](https://biomni.stanford.edu)**.
-
-[![Watch the video](https://img.youtube.com/vi/E0BRvl23hLs/maxresdefault.jpg)](https://youtu.be/E0BRvl23hLs)
-
-
-## Important Note
-- Security warning: Currently, Biomni executes LLM-generated code with full system privileges. If you want to use it in production, please use in isolated/sandboxed environments. The agent can access files, network, and system commands. Be careful with sensitive data or credentials.
-- This release was frozen as of April 15 2025, so it differs from the current web platform.
-- Biomni itself is Apache 2.0-licensed, but certain integrated tools, databases, or software may carry more restrictive commercial licenses. Review each component carefully before any commercial use.
-
-## Cite Us
+**1. 创建工具目录**
 
 ```
-@article{huang2025biomni,
-  title={Biomni: A General-Purpose Biomedical AI Agent},
-  author={Huang, Kexin and Zhang, Serena and Wang, Hanchen and Qu, Yuanhao and Lu, Yingzhou and Roohani, Yusuf and Li, Ryan and Qiu, Lin and Zhang, Junze and Di, Yin and others},
-  journal={bioRxiv},
-  pages={2025--05},
-  year={2025},
-  publisher={Cold Spring Harbor Laboratory}
+additional_tools/server/tools/<your_tool>/
+├── config.json    # 声明 conda 环境、GPU 需求
+└── run.py         # 读 params.json → 计算 → 写 result.json
+```
+
+`config.json` 示例：
+
+```json
+{
+  "name": "mytool",
+  "conda_env": "mytool_env",
+  "gpu": false
 }
 ```
+
+**2. 编写 `run.py`**
+
+```python
+import json
+
+def main():
+    params = json.load(open("params.json"))
+    # ... 计算逻辑 ...
+    result = {"success": True, "summary": {...}, "results": [...]}
+    with open("result.json", "w") as f:
+        json.dump(result, f)
+
+if __name__ == "__main__":
+    main()
+```
+
+**3. 在 `template_tools.py` 中注册 Agent 工具函数**
+
+```python
+def my_tool(smiles: str) -> str:
+    """工具描述（大模型根据此决定何时调用）"""
+    payload = {"smiles": smiles}
+    result = _call_worker_api("mytool", payload)
+    return json.dumps(result, ensure_ascii=False)
+```
+
+详细开发指南见 [CAi/start.md](CAi/start.md)。
+
+---
+
+## 架构说明
+
+工具调用链路：
+
+```
+Agent (template_tools.py)
+    │  POST /run/{tool}/{action}
+    ▼
+FastAPI (app.py)  →  JobManager
+    │  conda run -n <env> python run.py
+    │  cwd = workspace/jobs/<uuid>/
+    ▼
+run.py  →  result.json
+    ▼
+Agent 收到结果
+```
+
+每个 Job 运行在独立沙盒目录，互不干扰，支持 GPU 自动分配。

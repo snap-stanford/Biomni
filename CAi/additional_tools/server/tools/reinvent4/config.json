@@ -1,0 +1,10 @@
+{
+  "name": "reinvent4",
+  "conda_env": "reinvent4",
+  "gpu": true,
+  "actions": {
+    "de_novo":    "run_de_novo.py",
+    "libinvent":  "run_libinvent.py",
+    "mol2mol":    "run_mol2mol.py"
+  }
+}

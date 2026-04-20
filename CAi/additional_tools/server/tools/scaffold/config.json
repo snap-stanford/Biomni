@@ -1,0 +1,5 @@
+{
+    "name": "scaffold",
+    "conda_env": "chempro310",
+    "gpu": true
+  }

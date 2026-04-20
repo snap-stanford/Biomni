@@ -141,16 +141,16 @@ ipython_config.py
 CAi/CAi_agent/web_ui/*
 CAi/test/*
 CAi/additional_tools/server/workspace/*
-CAi/additional_tools/server/tools/pmic/*
-CAi/additional_tools/server/tools/libinvent/*
-CAi/additional_tools/server/tools/scaffold/*
-CAi/additional_tools/server/tools/rxnflow/*
+CAi/additional_tools/server/tools/pmic/chemprop_model/*
+CAi/additional_tools/server/tools/libinvent/Lib-INVENT/*
+CAi/additional_tools/server/tools/scaffold/scaffold_generate/*
+CAi/additional_tools/server/tools/rxnflow/RxnFlow/*
 CAi/additional_tools/server/tools/vina/autodock_vina/*
 CAi/.env
 agent_workspace/*
-CAi/additional_tools/server/tools/reinvent4/*
-CAi/additional_tools/server/tools/drugex/*
-CAi/additional_tools/server/tools/toxicity/*
+CAi/additional_tools/server/tools/reinvent4/REINVENT4/*
+CAi/additional_tools/server/tools/drugex/DrugEx/*
+CAi/additional_tools/server/tools/toxicity/toxicity_chemberta_tool/*
 
 .pdm.toml
 .pdm-python

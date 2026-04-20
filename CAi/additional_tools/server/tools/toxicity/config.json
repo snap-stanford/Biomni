@@ -1,0 +1,5 @@
+{
+    "name": "toxicity",
+    "conda_env": "toxicity",
+    "gpu": true
+  }
