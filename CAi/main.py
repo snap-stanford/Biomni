@@ -1,11 +1,7 @@
 import os 
 from CAi.CAi_agent.agent import A1pro
 from CAi.config import LLM_BASE_URL,LLM_API_KEY
-# 由于测试glm需要连接网络
-# os.environ["HTTP_PROXY"] = "http://httpproxy-headless.kubebrain.svc.pjlab.local:3128"
-# os.environ["HTTPS_PROXY"] = "http://httpproxy-headless.kubebrain.svc.pjlab.local:3128"
-# os.environ["http_proxy"] = os.environ["HTTP_PROXY"]
-# os.environ["https_proxy"] = os.environ["HTTPS_PROXY"]
+
 agent = A1pro(
     # llm="claude-sonnet-4-5-20250929",
     # llm = "Qwen/Qwen3-8B", # free

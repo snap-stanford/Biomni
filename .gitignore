@@ -136,12 +136,12 @@ target/
 profile_default/
 ipython_config.py
 
-
+.tar.gz
 # CAi
 CAi/CAi_agent/web_ui/*
 CAi/test/*
+CAi/additional_tools/server/tools/pmic/*
 CAi/additional_tools/server/workspace/*
-CAi/additional_tools/server/tools/pmic/chemprop_model/*
 CAi/additional_tools/server/tools/libinvent/Lib-INVENT/*
 CAi/additional_tools/server/tools/scaffold/scaffold_generate/*
 CAi/additional_tools/server/tools/rxnflow/RxnFlow/*

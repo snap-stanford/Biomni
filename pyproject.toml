@@ -15,7 +15,8 @@ requires-python = ">=3.11"
 dependencies = [
     "pydantic",
     "langchain",
-    "python-dotenv"
+    "python-dotenv",
+    "fastapi"
 ]
 
 [project.urls]

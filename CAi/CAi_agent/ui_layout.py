@@ -198,10 +198,11 @@ def _build_topbar():
             """
         )
         with gr.Row(scale=0):
+            export_history_btn = gr.Button("💾 导出会话", variant="primary", size="sm")
             clear_files_btn = gr.Button("🗑️ 清空文件", variant="secondary", size="sm")
             clear_all_btn = gr.Button("🔄 重置全部", variant="stop", size="sm")
 
-    return clear_files_btn, clear_all_btn
+    return export_history_btn, clear_files_btn, clear_all_btn
 
 
 def _build_sidebar(ui_instance):
@@ -312,6 +313,7 @@ def _setup_event_handlers(
     ref_dropdown,
     innerloop_chatbot,
     main_chatbot,
+    export_history_btn,
     clear_files_btn,
     clear_all_btn,
 ):
@@ -337,6 +339,12 @@ def _setup_event_handlers(
         gr.update(visible=False),
         gr.update(visible=False),
         gr.update(visible=False),
+    )
+
+    # Export conversation history to PDF
+    export_history_btn.click(
+        fn=ui_instance._save_conversation_history,
+        outputs=[file_viewer, ref_dropdown],
     )
 
     # Clear files only
@@ -390,7 +398,7 @@ def build_layout(ui_instance):
         # Main Interface
         with main_interface_container:
             # Top bar
-            clear_files_btn, clear_all_btn = _build_topbar()
+            export_history_btn, clear_files_btn, clear_all_btn = _build_topbar()
 
             with gr.Row(equal_height=False):
                 # Sidebar
@@ -413,6 +421,7 @@ def build_layout(ui_instance):
             ref_dropdown,
             innerloop_chatbot,
             main_chatbot,
+            export_history_btn,
             clear_files_btn,
             clear_all_btn,
         )

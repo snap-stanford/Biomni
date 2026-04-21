@@ -1999,11 +1999,18 @@ Each library is listed with its description to help you understand its functiona
             hanging. A temporary markdown file is created and automatically deleted.
         """
         import os
+        import threading
         import tempfile
 
         if not save_pdf:
             print("PDF saving is disabled. No file will be saved.")
             return
+
+        # If filepath has no directory component, prefer agent workspace when available
+        if not os.path.dirname(filepath):
+            workspace_dir = getattr(self, "workspace_dir", None)
+            if workspace_dir:
+                filepath = os.path.join(workspace_dir, filepath)
 
         # Ensure directory exists
         directory = os.path.dirname(filepath)
@@ -2029,22 +2036,29 @@ Each library is listed with its description to help you understand its functiona
             temp_markdown_path = temp_file.name
 
         try:
-            # Add timeout for PDF generation to prevent hanging
+            # Add timeout for PDF generation only in main thread
             import signal
 
-            def timeout_handler(signum, frame):
-                raise TimeoutError("PDF generation timed out")
+            can_use_alarm = threading.current_thread() is threading.main_thread() and hasattr(signal, "SIGALRM")
 
-            # Set timeout to 60 seconds
-            signal.signal(signal.SIGALRM, timeout_handler)
-            signal.alarm(60)
+            if can_use_alarm:
+                def timeout_handler(signum, frame):
+                    raise TimeoutError("PDF generation timed out")
 
-            try:
+                # Set timeout to 60 seconds
+                signal.signal(signal.SIGALRM, timeout_handler)
+                signal.alarm(60)
+
+                try:
+                    self._convert_markdown_to_pdf(temp_markdown_path, pdf_path)
+                finally:
+                    signal.alarm(0)  # Cancel the alarm
+            else:
+                print("Info: PDF export running without SIGALRM timeout (non-main thread).")
                 self._convert_markdown_to_pdf(temp_markdown_path, pdf_path)
-                print(f"Conversation history saved as PDF: {pdf_path}")
-                print(f"Total steps recorded: {len(self.log)}")
-            finally:
-                signal.alarm(0)  # Cancel the alarm
+
+            print(f"Conversation history saved as PDF: {pdf_path}")
+            print(f"Total steps recorded: {len(self.log)}")
 
         except TimeoutError:
             print("Warning: PDF generation timed out after 60 seconds")

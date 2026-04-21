@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+from datetime import datetime
 from typing import Any
 
 import gradio as gr
@@ -30,6 +31,7 @@ class AgentGradioUI:
         self.available_access_codes = ["CAi"]
         self.workspace_dir = str((WORKSPACE_DIR / "agent_workspace").resolve())
         os.makedirs(self.workspace_dir, exist_ok=True)
+        self.agent.workspace_dir = self.workspace_dir
 
     # ========== Access Control ==========
 
@@ -79,7 +81,39 @@ class AgentGradioUI:
         """Clear workspace files and chat history."""
         files, dropdown = self._clear_workspace()
         self.agent.main_history_copy = []
+        if hasattr(self.agent, "_conversation_state"):
+            self.agent._conversation_state = None
+        if hasattr(self.agent, "log"):
+            self.agent.log = []
         return [], [], files, dropdown
+
+    def _save_conversation_history(self) -> tuple[list[list[str]], gr.update]:
+        """Export conversation history to PDF via parent agent API."""
+        try:
+            if not hasattr(self.agent, "save_conversation_history"):
+                gr.Warning("当前 Agent 不支持会话导出。")
+                return self._get_current_files(), gr.update(choices=self._get_dropdown_choices())
+
+            has_state = bool(getattr(self.agent, "_conversation_state", None))
+            has_history = bool(getattr(self.agent, "main_history_copy", []))
+            if not has_state and not has_history:
+                gr.Warning("暂无可导出的会话，请先进行一次对话。")
+                return self._get_current_files(), gr.update(choices=self._get_dropdown_choices())
+
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_path = os.path.join(self.workspace_dir, f"conversation_history_{timestamp}.pdf")
+            self.agent.save_conversation_history(output_path, include_images=True, save_pdf=True)
+
+            if os.path.exists(output_path):
+                gr.Info(f"会话已导出: {os.path.basename(output_path)}")
+            else:
+                gr.Warning("导出执行完成，但未检测到 PDF 文件，请检查日志。")
+
+            return self._get_current_files(), gr.update(choices=self._get_dropdown_choices())
+        except Exception as e:
+            logger.exception("导出会话失败")
+            gr.Warning(f"导出失败: {e}")
+            return self._get_current_files(), gr.update(choices=self._get_dropdown_choices())
 
     # ========== File Preview ==========
 
@@ -316,6 +350,9 @@ class AgentGradioUI:
         # Finalize
         final_inner = new_inner + current_round_inner
         self._finalize_inner_history(final_inner)
+
+        if last_stream_state is not None:
+            self.agent._conversation_state = last_stream_state
 
         # Extract final solution if not found
         if not solution_content and last_stream_state and last_stream_state.get("messages"):
