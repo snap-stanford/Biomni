@@ -53,92 +53,28 @@ RUN if [ -n "$HTTP_PROXY" ]; then \
     conda clean -afy
 
 # =============================================================================
-# ─── 4. 分阶段 COPY：先只拷贝环境文件，充分利用 Docker 层缓存 ────────────────
-#    只要 environment.yml 不变，下面所有 conda 安装层均命中缓存。
-#    代码文件（run.py 等）在最后单独 COPY，改代码不会触发重新构建环境。
+# ─── 4. 拷贝服务源码与工具目录（install_all.sh 依赖相对路径 server/tools）──────
 # =============================================================================
 WORKDIR /app
 
-# scscore（同时作为 FastAPI 主进程的运行环境）
-COPY additional_tools/server/tools/scscore/environment.yml /tmp/envs/scscore.yml
-# vina
-COPY additional_tools/server/tools/vina/environment.yml /tmp/envs/vina.yml
-# libinvent
-COPY additional_tools/server/tools/libinvent/environment.yml /tmp/envs/libinvent.yml
-# pmic（注意：yml 内部 name 为 chemprop，用 -n 覆盖为 config.json 中声明的 gflow312）
-COPY additional_tools/server/tools/pmic/environment.yml /tmp/envs/pmic.yml
-# scaffold
-COPY additional_tools/server/tools/scaffold/environment.yml /tmp/envs/scaffold.yml
-# toxicity
-COPY additional_tools/server/tools/toxicity/environment.yml /tmp/envs/toxicity.yml
-# rxnflow（yml 只含基础包，RxnFlow 源码需后续 pip install -e）
-COPY additional_tools/server/tools/rxnflow/environment.yml /tmp/envs/rxnflow.yml
-
-# =============================================================================
-# ─── 5. 创建所有 conda 环境 ───────────────────────────────────────────────────
-#    每个工具一个独立 RUN 块 = 独立缓存层，修改某工具不影响其他工具。
-# =============================================================================
-
-# ─── 环境 1: scscore（CPU，同时承载 FastAPI 主进程）─────────────────────────
-RUN conda env create -n scscore -f /tmp/envs/scscore.yml \
-    && conda clean -afy
-
-# ─── 环境 2: vina（CPU，AutoDock Vina）─────────────────────────────────────
-RUN conda env create -n vina -f /tmp/envs/vina.yml \
-    && conda clean -afy
-
-# ─── 环境 3: lib-invent（CPU，Lib-INVENT）───────────────────────────────────
-RUN conda env create -n lib-invent -f /tmp/envs/libinvent.yml \
-    && conda clean -afy
-
-# ─── 环境 4: gflow312（GPU，PMIC/ChemProp；yml 内部 name=chemprop，此处覆盖）
-RUN conda env create -n gflow312 -f /tmp/envs/pmic.yml \
-    && conda clean -afy
-
-# ─── 环境 5: chempro310（GPU，Scaffold 生成）────────────────────────────────
-RUN conda env create -n chempro310 -f /tmp/envs/scaffold.yml \
-    && conda clean -afy
-
-# ─── 环境 6: toxicity（GPU，毒性预测）───────────────────────────────────────
-RUN conda env create -n toxicity -f /tmp/envs/toxicity.yml \
-    && conda clean -afy
-
-# ─── 环境 7: rxnflow（GPU，RxnFlow；基础包，源码在下一步安装）──────────────
-RUN conda env create -n rxnflow -f /tmp/envs/rxnflow.yml \
-    && conda clean -afy
-
-# ─── 环境 8: reinvent4（GPU，REINVENT4；无 environment.yml，PyPI 安装）──────
-RUN conda create -n reinvent4 python=3.10 -y \
-    && conda run -n reinvent4 pip install --no-cache-dir reinvent4 \
-    && conda clean -afy
-
-# ─── 环境 9: drugex（GPU，DrugEx；无 environment.yml，GitHub 安装）──────────
-RUN conda create -n drugex python=3.10 -y \
-    && conda run -n drugex pip install --no-cache-dir \
-        "git+https://github.com/CDDLeiden/DrugEx.git@master" \
-        "drugex[qsprpred] @ git+https://github.com/CDDLeiden/DrugEx.git@master" \
-    && conda clean -afy
-
-# =============================================================================
-# ─── 6. 拷贝工具源码（频繁变更部分，放在环境安装之后避免缓存失效）────────────
-# =============================================================================
-
-# RxnFlow 源码需要 pip install -e（须在 COPY 源码后安装）
-COPY additional_tools/server/tools/rxnflow/RxnFlow /app/server/tools/rxnflow/RxnFlow
-RUN conda run -n rxnflow pip install --no-cache-dir \
-        -e /app/server/tools/rxnflow/RxnFlow \
-    && conda clean -afy
-
-# 拷贝所有工具目录（包含 run.py、config.json、模型文件等）
 COPY config.py                               /app/config.py
 COPY additional_tools/server/app.py          /app/server/app.py
 COPY additional_tools/server/job_manager.py  /app/server/job_manager.py
 COPY additional_tools/server/tool_manager.py /app/server/tool_manager.py
 COPY additional_tools/server/gpu_manager.py  /app/server/gpu_manager.py
+COPY additional_tools/server/install_all.sh  /app/server/install_all.sh
 COPY additional_tools/server/tools           /app/server/tools
 
 # =============================================================================
-# ─── 7. 运行时配置 ────────────────────────────────────────────────────────────
+# ─── 5. 使用 install_all.sh 一键安装工具 conda 环境 ───────────────────────────
+# =============================================================================
+RUN chmod +x /app/server/install_all.sh \
+    && find /app/server/tools -name install.sh -type f -exec chmod +x {} \; \
+    && bash /app/server/install_all.sh -y \
+    && conda clean -afy
+
+# =============================================================================
+# ─── 6. 运行时配置 ────────────────────────────────────────────────────────────
 # =============================================================================
 ENV TOOL_SERVER_HOST=0.0.0.0 \
     TOOL_SERVER_PORT=8001 \
