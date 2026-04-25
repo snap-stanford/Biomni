@@ -17,6 +17,7 @@ dependencies = [
     "langchain",
     "python-dotenv",
     "fastapi"
+    'uvicorn'
 ]
 
 [project.urls]
