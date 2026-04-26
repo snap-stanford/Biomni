@@ -113,26 +113,18 @@ def generate_scaffold_analogs(smiles: str, num_analogs: int = 10) -> str:
 
         Success:
         {
-        "success": true,
-        "summary": {
-            "input_scaffold": "c1ccccc1*",
-            "requested_batch_size": 10,
-            "valid_unique_generated": 42
-        },
-        "results": [
-            {"smiles": "generated_smiles_1"},
-            {"smiles": "generated_smiles_2"}
-        ]
+            "status": "success",
+            "generated_count": 42,
+            "molecules": [
+                "generated_smiles_1",
+                "generated_smiles_2"
+            ]
         }
 
         Failure:
         {
-        "success": false,
-        "summary": {},
-        "results": [],
-        "error": "Detailed error message"
+            "error": "Detailed error message"
         }
-
     Notes:
         - Returned molecules are valid and deduplicated analogs.
         - The actual number of generated molecules may be smaller than the requested number.
@@ -557,9 +549,6 @@ def generate_molecules_for_pocket(
 
     # 这个工具跑得比较慢，允许 15 分钟超时
     result = _call_worker_api("rxnflow", payload, timeout_mins=15)
-
-    if "error" in result:
-        return json.dumps({"error": result["error"]})
 
     summary = result.get("summary", {})
     results_data = result.get("results", {})
