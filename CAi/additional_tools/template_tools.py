@@ -165,38 +165,28 @@ def predict_molecule_toxicity(smiles: str) -> str:
         smiles (str): The valid SMILES string of the complete molecule to be evaluated.
 
     Returns:
+        Returns:
         str: A JSON-formatted string.
 
         Success output:
         {
-        "success": true,
-        "summary": {
-            "task": "Toxicity Prediction with Marginal Contribution (SHAP-like)",
-            "toxicity_probability": 0.1234,
-            "is_toxic": true
-        },
-        "results": {
-            "smiles": "CCO",
-            "interpretation": [
-            {
-                "fragment": "c1ccccc1",
-                "contribution_score": 0.0521,
-                "effect": "Increases Toxicity"
-            }
+            "verdict": "Toxic",  # or "Non-Toxic"
+            "toxicity_probability": 0.8521,
+            "structural_explanation": [
+                {
+                    "fragment": "c1ccccc1",
+                    "contribution_score": 0.0521,
+                    "effect": "Increases Toxicity"
+                }
             ],
-            "image_base64": "base64-encoded-image-string-or-null"
-        },
-        "error": null
+            "image_saved_at": "/absolute/path/to/latest_toxicity_explanation.png",
+            "vision_prompt": "The structure interpretation image has been saved..."
         }
 
         Error output:
         {
-        "success": false,
-        "summary": {},
-        "results": {},
-        "error": "Detailed error message"
+            "error": "Detailed error message"
         }
-
     Notes:
         - Use this tool only for toxicity prediction of a complete molecule, not for scaffold-only input.
         - The returned toxicity_probability is the predicted probability that the molecule is toxic.
@@ -406,28 +396,16 @@ def predict_antibacterial_pmic(smiles: str) -> str:
 
         Success output:
         {
-        "success": true,
-        "summary": {
-            "task": "Antibacterial pMIC Prediction (Chemprop)",
+            "status": "success",
             "pMIC_value": 6.42,
-            "estimated_MIC_uM": 0.38
-        },
-        "results": {
-            "smiles": "CCO",
-            "pmic": 6.42,
-            "mic_uM": 0.38
-        },
-        "error": null
+            "estimated_MIC_uM": 0.38,
+            "interpretation": "Higher pMIC means stronger activity..."
         }
 
         Error output:
         {
-        "success": false,
-        "summary": {},
-        "results": {},
-        "error": "Detailed error message"
+            "error": "Detailed error message"
         }
-
     Notes:
         - Use this tool only for antibacterial activity prediction of a complete molecule.
         - Input must be a valid SMILES string of the full molecule.
@@ -499,31 +477,22 @@ def generate_molecules_for_pocket(
 
         Success output:
         {
-        "success": true,
-        "summary": {
-            "task": "Target-aware Zero-shot Generation (RxnFlow)",
+            "status": "success",
             "generated_count": 100,
             "sampling_time_sec": 12.345,
-            "output_file": "/sandbox/path/rxnflow_results.csv"
-        },
-        "results": {
-            "generated_preview": [
-            {
-                "smiles": "CCO...",
-                "qed": 0.812,
-                "proxy_score": -7.231
-            }
+            "full_results_csv_path": "/sandbox/path/rxnflow_results.csv",
+            "top_molecules_preview": [
+                {
+                    "smiles": "CCO...",
+                    "qed": 0.812,
+                    "proxy_score": -7.231
+                }
             ]
-        },
-        "error": null
         }
 
         Error output:
         {
-        "success": false,
-        "summary": {},
-        "results": {},
-        "error": "Detailed error message"
+            "error": "Detailed error message"
         }
 
     Notes:
@@ -603,24 +572,17 @@ def perform_molecular_docking_vina(
 
         Success output:
         {
-        "success": true,
-        "summary": {
-            "task": "Molecular Docking (AutoDock Vina)",
-            "best_docking_score": -8.4,
-            "score_after_minimization": -7.9
-        },
-        "results": {
-            "...": "tool-specific docking outputs such as pose files, score tables, or generated paths"
-        },
-        "error": null
+            "status": "success",
+            "best_docking_score_kcal_mol": -8.4,
+            "minimized_score_kcal_mol": -7.9,
+            "docked_poses_file_path": "/path/to/docked_poses.pdbqt",
+            "minimized_pose_file_path": "/path/to/minimized_pose.pdbqt",
+            "interpretation": "More negative scores indicate stronger binding affinity."
         }
 
         Error output:
         {
-        "success": false,
-        "summary": {},
-        "results": {},
-        "error": "Detailed error message"
+            "error": "Detailed error message"
         }
 
     Notes:
@@ -655,6 +617,7 @@ def perform_molecular_docking_vina(
         "best_docking_score_kcal_mol": summary.get("best_docking_score"),
         "minimized_score_kcal_mol": summary.get("score_after_minimization"),
         "docked_poses_file_path": results_data.get("docked_poses_file"),
+        "minimized_pose_file_path": results_data.get("minimized_pose_file"), 
         "interpretation": "More negative scores indicate stronger binding affinity.",
     }
 
