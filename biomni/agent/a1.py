@@ -192,6 +192,13 @@ class A1:
             print("Note: Some tools may require datalake files to function properly.")
 
         self.path = os.path.join(path, "biomni_data")
+
+        # Create a timestamped working directory for this analysis session under tmp/
+        _timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.work_dir = os.path.abspath(os.path.join(path, f"{_timestamp}_analysis"))
+        os.makedirs(self.work_dir, exist_ok=True)
+        print(f"📁 Analysis output directory: {self.work_dir}")
+
         module2api = read_module2api()
 
         self.llm = get_llm(
@@ -1251,6 +1258,11 @@ Each item is listed with its description to help you understand its contents.
 {data_lake_content}
 ----
 
+- Output directory
+Save ALL output files, plots, and results to: {work_dir}
+Create subdirectories within this path as needed (e.g., {work_dir}/plots/, {work_dir}/results/).
+Use absolute paths when writing files.
+
 - Software Library:
 {library_intro}
 Each library is listed with its description to help you understand its functionality.
@@ -1291,6 +1303,7 @@ Each library is listed with its description to help you understand its functiona
             "data_lake_content": data_lake_content_formatted,
             "library_intro": library_intro,
             "library_content_formatted": library_content_formatted,
+            "work_dir": self.work_dir,
         }
 
         # Add custom resources to format dict if they exist

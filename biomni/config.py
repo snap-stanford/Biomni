@@ -29,7 +29,7 @@ class BiomniConfig:
     """
 
     # Data and execution settings
-    path: str = "./data"
+    path: str = "./tmp"
     timeout_seconds: int = 600
 
     # LLM settings (API keys still from environment)
