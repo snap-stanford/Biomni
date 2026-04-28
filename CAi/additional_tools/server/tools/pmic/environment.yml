@@ -1,0 +1,22 @@
+name: mic
+channels:
+  - defaults
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.12
+  - pandas
+  - rdkit
+  - scikit-learn
+  - multiprocess
+  - psutil
+  - descriptastorus
+  - astartes
+  - pip:
+    - torch==2.6.0
+    - torchvision==0.21.0
+    - torchaudio==2.6.0
+    - lightning==2.6.1
+    - pytorch-lightning==2.6.1
+    - lightning-utilities==0.15.3
+    - torchmetrics==1.9.0

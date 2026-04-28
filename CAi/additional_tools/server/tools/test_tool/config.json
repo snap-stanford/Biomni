@@ -1,0 +1,5 @@
+{
+	"name": "test_tool",
+	"conda_env": "填写你的conda环境名",
+	"gpu": false
+}

@@ -1,0 +1,7 @@
+name: rxnflow
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - unidock=1.1.2
+

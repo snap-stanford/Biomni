@@ -1,0 +1,8 @@
+{
+	"name": "libinvent",
+	"conda_env": "lib-invent",
+	"gpu": false,
+	"actions": {
+		"default": "run.py"
+	}
+}

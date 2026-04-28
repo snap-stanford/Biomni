@@ -1,0 +1,131 @@
+name: chempro310
+channels:
+  - defaults
+  - conda-forge
+  - nodefaults
+dependencies:
+  - types-pyyaml
+  - gitpython
+  - pyyaml
+  - scikit-learn
+  - omegaconf
+  - pandas
+  - openbabel
+  - matplotlib
+  - einops
+  - click
+  - pytorch-lightning
+  - tqdm
+  - cryptography
+  - joblib
+  - python=3.10
+  - seaborn
+  - flake8
+  - rich
+  - pytorch-cuda=11.8
+  - isort
+  - tensorboard
+  - numpy
+  - mypy
+  - black
+  - pre-commit
+  - pytorch=2.5.1
+  - torchaudio=2.5.1
+  - cudatoolkit=11.8
+  - torchvision=0.20.1
+  - docker-compose=1.29.2
+  - botocore=1.42.10
+  - lifelines=0.29.0
+  - textgrad
+  - vina
+  - ipykernel
+  - autogrid
+  - meeko=0.5.1
+  - gemmi
+  - scipy
+  - rdkit=2025.03.3
+  - peft=0.13.0
+  - trl=0.12.2
+  - tokenizers=0.13.3
+  - lightning
+  - pip
+    accelerate
+    anthropic
+    altair
+    anndata
+    beautifulsoup4
+    boto3
+    cellxgene-census
+    ChatterBot
+    chemcrow
+    datasets
+    duckduckgo_search
+    evaluate
+    faiss-cpu
+    gget
+    google_search_results
+    google_speech
+    h5py
+    html2text
+    ImageIO
+    ipywidgets
+    langchain
+    langchain-core
+    langsmith
+    lightning
+    llvmlite
+    lxml
+    matplotlib
+    modelscope
+    molbloom
+    molscrub
+    multiprocess
+    mysql-connector-python
+    natsort
+    numba
+    numexpr
+    numpy
+    openai
+    openpyxl
+    paper-qa
+    peft
+    py3Dmol
+    pyarrow
+    pycairo
+    pycryptodome
+    pypdf
+    pyserial
+    PySide6
+    python-vlc
+    pytorch-lightning
+    rdkit
+    regex
+    requests
+    rmrkl
+    RXN4Chemistry
+    s3fs
+    scanpy
+    scikit-learn
+    shap
+    spacy
+    SpeechRecognition
+    statsmodels
+    streamlit
+    sympy
+    synspace
+    tiktoken
+    torch
+    torchaudio
+    torchvision
+    transformers
+    trl
+    typer-slim
+    umap-learn
+    urllib3
+    vina
+    wandb
+    watchdog
+    web_cache
+    wikipedia
+    wrapt
+    zstandard

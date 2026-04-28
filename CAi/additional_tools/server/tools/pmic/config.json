@@ -1,0 +1,5 @@
+{
+  "name": "pmic",
+  "conda_env": "mic",
+  "gpu": true
+}

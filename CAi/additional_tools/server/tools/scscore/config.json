@@ -1,0 +1,5 @@
+{
+  "name": "scscore",
+  "conda_env": "scscore",
+  "gpu": false
+}
