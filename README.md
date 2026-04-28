@@ -45,7 +45,7 @@ CC1(C)S[C@@H]2(NC(=O)*)C(=O)N2[C@H]1C(=O)O，
 ## 项目结构
 
 ```
-Biomni_molecule/
+Drug_CAi/
 ├── CAi/
 │   ├── config.py                        # 全局配置（端口、LLM 参数）
 │   ├── .env                             # 本地环境变量（填写 API Key，不提交 git）
@@ -111,6 +111,9 @@ bash install_all.sh vina scscore toxicity
 
 ### 第四步：启动工具后端服务
 
+## 在启动服务前，需要把工具的源码从我们的Google drive上下载下来，放在CAi/additional_tools/server/tools/目录下，对应的目录下解压。
+网盘地址：https://drive.google.com/drive/folders/1tjYJrMcVJnMopzbTyrf9KskvAxg2Xfin?usp=sharing
+
 ```bash
 # 在 CAi/ 目录下运行
 python additional_tools/server/app.py
@@ -121,10 +124,11 @@ python additional_tools/server/app.py
 - `POST /run/{tool}/{action}` — 提交工具任务
 - `GET  /job/{job_id}`        — 查询任务状态
 
+
 ### 第五步：启动 Agent UI
 
 ```bash
-# 在 Biomni_molecule/ 目录下运行
+# 在Drug_CAi目录下运行
 python CAi/main.py
 ```
 
