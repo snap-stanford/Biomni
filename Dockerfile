@@ -48,6 +48,10 @@ COPY pyproject.toml README.md MANIFEST.in /app/
 COPY biomni/ /app/biomni/
 RUN pip install --no-cache-dir --no-deps ".[gradio,bedrock]"
 
+# Install langchain-aws separately with --no-deps to avoid numpy<2 conflict
+# (boto3 and langchain-core are already installed from the conda env)
+RUN pip install --no-cache-dir --no-deps "langchain-aws>=0.2,<0.3"
+
 # Copy entrypoint
 COPY docker/entrypoint.py /app/entrypoint.py
 
