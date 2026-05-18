@@ -34,7 +34,10 @@ def run_mcp(agent):
     tool_modules_str = os.environ.get("BIOMNI_MCP_TOOL_MODULES", "")
     tool_modules = [m.strip() for m in tool_modules_str.split(",") if m.strip()] or None
     mcp = agent.create_mcp_server(tool_modules=tool_modules)
-    mcp.run(transport="sse", host="0.0.0.0", port=8000)
+    mcp.settings.host = os.environ.get("BIOMNI_MCP_HOST", "0.0.0.0")
+    mcp.settings.port = int(os.environ.get("BIOMNI_MCP_PORT", "8000"))
+    transport = os.environ.get("BIOMNI_MCP_TRANSPORT", "sse")
+    mcp.run(transport=transport)
 
 
 if __name__ == "__main__":
