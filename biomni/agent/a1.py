@@ -2034,13 +2034,16 @@ Each library is listed with its description to help you understand its functiona
                             print(f"Warning: Could not find function '{tool_name}' in module '{module_name}'")
                             continue
 
+                        # Truncate tool name to 64 chars (provider limit, e.g. AWS Bedrock)
+                        mcp_tool_name = tool_name[:64] if len(tool_name) > 64 else tool_name
+
                         # Extract parameters from your specific schema format
                         required_params = tool_schema.get("required_parameters", [])
                         optional_params = tool_schema.get("optional_parameters", [])
 
                         # Generate the wrapper function
                         wrapper_func = self._generate_mcp_wrapper_from_biomni_schema(
-                            fn, tool_name, required_params, optional_params
+                            fn, mcp_tool_name, required_params, optional_params
                         )
 
                         # Register with MCP
@@ -2557,7 +2560,7 @@ Each library is listed with its description to help you understand its functiona
                     return {"error": str(e)}
 
             wrapper.__name__ = func_name
-            wrapper.__doc__ = original_func.__doc__
+            wrapper.__doc__ = original_func.__doc__ or f"Tool: {func_name}"
             return wrapper
 
         else:
@@ -2588,7 +2591,7 @@ Each library is listed with its description to help you understand its functiona
 
             # Set function metadata
             wrapper.__name__ = func_name
-            wrapper.__doc__ = original_func.__doc__
+            wrapper.__doc__ = original_func.__doc__ or f"Tool: {func_name}"
 
             # Create proper signature
             new_params = []

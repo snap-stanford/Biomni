@@ -10,8 +10,12 @@ This file lists Python packages that are known to have dependency conflicts with
 
 ### 2. langchain_aws
 - Needed for Amazon Bedrock support.
-- Amazon Bedrock support is present in the codebase, but due to package dependency conflicts, you should install `langchain_aws` only when you need Bedrock support.
-- You must also uncomment the relevant Bedrock support code sections in the codebase to enable this feature.
+- Amazon Bedrock support is fully implemented in the codebase. Install the package to enable it:
+  ```bash
+  pip install biomni[bedrock]
+  # or: pip install langchain-aws
+  ```
+- No code changes are needed — the package is imported at runtime when a Bedrock model is selected.
 
 ### 3. cnvkit
 - **Environment Requirement**: Requires Python 3.10 environment (`bio_env_py310.yml`)
