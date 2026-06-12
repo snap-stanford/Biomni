@@ -5,7 +5,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-
 from biomni.knowledge_graph import (
     Entity,
     KnowledgeGraph,
