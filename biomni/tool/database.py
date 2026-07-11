@@ -1,3 +1,4 @@
+import gzip
 import json
 import os
 import pickle
@@ -4972,3 +4973,968 @@ def query_encode(
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
+
+
+# ---------------------------------------------------------------------------
+# 1000 Genomes Project (OneKGPd) tools
+#
+# Individual-level queries over the 1000 Genomes Project cohort (3,202 WGS
+# individuals, GRCh38). The live tools wrap the optional ``dnaerys`` client; the
+# offline tools read the bundled pedigree file (1000G_data/kgpe.json.gz). Ported
+# from the OneKGPd reference (onekgpd_api.py / onekgpd_meta.py); see
+# docs/ONEKGPD_INTEGRATION_PLAN.md for the full spec and source line refs.
+# ---------------------------------------------------------------------------
+
+DEFAULT_ENDPOINT = "db.dnaerys.org:443"  # public 1000 Genomes instance (fixed)
+
+
+def _import_dnaerys():
+    """Lazily import the dnaerys client surface used by the 1000 Genomes tools.
+
+    Raises ImportError with an actionable install hint if dnaerys is missing, so a
+    base Biomni install is never broken for users who do not call these tools.
+    Returns a dict of the symbols the tools need.
+    """
+    try:
+        import warnings
+
+        from dnaerys import (
+            AnnotationFilter,
+            DnaerysClient,
+            DnaerysError,
+            DnaerysIncompleteResultWarning,
+            Region,
+        )
+    except ImportError as e:
+        raise ImportError(
+            "The 'dnaerys' package is required for the 1000 Genomes Project "
+            "(OneKGPd) tools but is not installed. Install it with: "
+            "pip install 'dnaerys>=0.2.1,<0.3.0'."
+        ) from e
+    # Incompleteness is surfaced via result metadata (result_incomplete), not warnings.
+    warnings.simplefilter("ignore", DnaerysIncompleteResultWarning)
+    return {
+        "AnnotationFilter": AnnotationFilter,
+        "DnaerysClient": DnaerysClient,
+        "DnaerysError": DnaerysError,
+        "Region": Region,
+    }
+
+
+def _onekgpd_call_with_retry(fn, dnaerys_error_cls, max_retries=3, base_delay=1.0):
+    """Run fn(); on a retryable DnaerysError, retry with bounded exponential backoff.
+
+    A fresh DnaerysClient is created inside fn per attempt (see the fetch closures),
+    so streaming errors that surface during iteration are covered.
+    """
+    for attempt in range(1, max_retries + 1):
+        try:
+            return fn()
+        except dnaerys_error_cls as e:
+            if getattr(e, "is_retryable", False) and attempt < max_retries:
+                time.sleep(base_delay * (2 ** (attempt - 1)))
+                continue
+            raise
+
+
+# --- region building (onekgpd_api.py:118-151) ---
+def _parse_1kg_region_str(s, Region):
+    try:
+        chrom, span = s.split(":", 1)
+        start_s, end_s = span.split("-", 1)
+        start, end = int(start_s), int(end_s)
+    except ValueError:
+        raise ValueError(f"invalid region {s!r}; expected CHR:START-END, e.g. chr17:43044292-43170245") from None
+    return Region(chrom, start, end)
+
+
+def _build_1kg_regions(chrom, start, end, ref, alt, regions, Region):
+    """Return exactly one of (single Region, None) or (None, list[Region])."""
+    has_single = chrom is not None
+    has_multi = bool(regions)
+    if has_single and has_multi:
+        raise ValueError("use either chrom/start/end or regions, not both")
+    if not has_single and not has_multi:
+        raise ValueError("a region is required: pass chrom/start/end or one or more 'CHR:START-END' in regions")
+    if has_multi:
+        if ref or alt:
+            raise ValueError("ref/alt apply only to a single chrom/start/end region")
+        return None, [_parse_1kg_region_str(r, Region) for r in regions]
+    if start is None or end is None:
+        raise ValueError("chrom requires start and end")
+    return Region(chrom, start, end, ref=ref, alt=alt), None
+
+
+# --- zygosity (onekgpd_api.py:154-160) ---
+def _zygosity_1kg(het_only, hom_only):
+    if het_only:
+        return (False, True)
+    if hom_only:
+        return (True, False)
+    return (True, True)
+
+
+# --- chromosome enum -> "chr17"/"chrX"/"chrMT" (onekgpd_api.py:226-228) ---
+def _chr_to_str_1kg(chrom):
+    # dnaerys Chromosome enum names have no underscore: CHR17, CHRX, CHRMT
+    return "chr" + chrom.name[len("CHR") :]
+
+
+def _region_one_label_1kg(region):
+    return f"{_chr_to_str_1kg(region.chr)}:{region.start}-{region.end}"
+
+
+# --- annotation filter (onekgpd_api.py:163-218) ---
+_ONEKG_CSV_FIELDS = [
+    ("clin_significance", "clin_significance"),
+    ("consequence", "consequence"),
+    ("impact", "impact"),
+    ("variant_type", "variant_type"),
+    ("feature_type", "feature_type"),
+    ("bio_type", "bio_type"),
+    ("alpha_missense_class", "am_class"),  # NOTE the field rename
+]
+_ONEKG_FLOAT_FIELDS = [
+    ("af_lt", "af_lt"),
+    ("af_gt", "af_gt"),
+    ("gnomad_exomes_af_lt", "gnomad_exomes_af_lt"),
+    ("gnomad_exomes_af_gt", "gnomad_exomes_af_gt"),
+    ("gnomad_genomes_af_lt", "gnomad_genomes_af_lt"),
+    ("gnomad_genomes_af_gt", "gnomad_genomes_af_gt"),
+    ("alpha_missense_score_lt", "am_score_lt"),
+    ("alpha_missense_score_gt", "am_score_gt"),
+]
+_ONEKG_BOOL_FIELDS = [
+    ("biallelic_only", "biallelic_only"),
+    ("multiallelic_only", "multiallelic_only"),
+    ("exclude_males", "exclude_males"),
+    ("exclude_females", "exclude_females"),
+]
+
+
+def _build_1kg_annotation_filter(params, AnnotationFilter):
+    """params: a dict of the annotation kwargs passed to the tool. Returns AnnotationFilter or None."""
+    kwargs = {}
+    for arg_name, field in _ONEKG_CSV_FIELDS:
+        val = params.get(arg_name)
+        if val:
+            kwargs[field] = list(val)  # already list[str]; no CSV split needed
+    for arg_name, field in _ONEKG_FLOAT_FIELDS:
+        val = params.get(arg_name)
+        if val is not None:
+            kwargs[field] = val
+    for arg_name, field in _ONEKG_BOOL_FIELDS:
+        if params.get(arg_name):
+            kwargs[field] = True
+    if kwargs.get("am_class") and ("am_score_lt" in kwargs or "am_score_gt" in kwargs):
+        raise ValueError("alpha_missense_class cannot be combined with alpha_missense_score_lt/alpha_missense_score_gt")
+    if not kwargs:
+        return None
+    return AnnotationFilter(**kwargs)
+
+
+def _filters_echo_1kg(params):
+    """Echo the annotation/length args actually set (port of _filters_echo, onekgpd_api.py:277-295)."""
+    out = {}
+    for arg_name, _ in _ONEKG_FLOAT_FIELDS:
+        val = params.get(arg_name)
+        if val is not None:
+            out[arg_name] = val
+    for arg_name, _ in _ONEKG_CSV_FIELDS:
+        val = params.get(arg_name)
+        if val:
+            out[arg_name] = list(val)
+    for arg_name, _ in _ONEKG_BOOL_FIELDS:
+        if params.get(arg_name):
+            out[arg_name] = True
+    if params.get("min_len_bp") is not None:
+        out["variant_min_length"] = params["min_len_bp"]
+    if params.get("max_len_bp") is not None:
+        out["variant_max_length"] = params["max_len_bp"]
+    return out
+
+
+# --- variant serializer (onekgpd_api.py:249-274) ---
+def _variant_to_dict_1kg(v):
+    """Serialize a dnaerys Variant to its 22 in-scope output keys (enum rendered as text)."""
+    return {
+        "chr": _chr_to_str_1kg(v.chr),
+        "start": v.start,
+        "end": v.end,
+        "ref": v.ref,
+        "alt": v.alt,
+        "af": v.af,
+        "ac": v.ac,
+        "an": v.an,
+        "hom_samples": v.hom_samples,
+        "het_samples": v.het_samples,
+        "mis_samples": v.mis_samples,
+        "hom_samples_fx": v.hom_samples_fx,
+        "het_samples_fx": v.het_samples_fx,
+        "mis_samples_fx": v.mis_samples_fx,
+        "hom_samples_mxy": v.hom_samples_mxy,
+        "het_samples_mxy": v.het_samples_mxy,
+        "mis_samples_mxy": v.mis_samples_mxy,
+        "gnomad_exomes_af": v.gnomad_exomes_af,
+        "gnomad_genomes_af": v.gnomad_genomes_af,
+        "am_score": v.am_score,
+        "amino_acids": v.amino_acids,
+        "biallelic": v.biallelic,
+    }
+
+
+# --- request-provenance echo (onekgpd_api.py:277-315) ---
+def _request_echo_1kg(*, region, regions, samples, hom, het, filters, extra=None):
+    req = {}
+    if region is not None:
+        req["region"] = _region_one_label_1kg(region)
+        if region.ref:
+            req["ref"] = region.ref
+        if region.alt:
+            req["alt"] = region.alt
+    if regions is not None:
+        req["regions"] = [_region_one_label_1kg(r) for r in regions]
+    if samples is not None:
+        req["samples"] = samples
+    req["zygosity"] = "hom+het" if (hom and het) else ("het only" if het else "hom only")
+    if filters:
+        req["filters"] = filters
+    if extra:
+        req.update(extra)
+    return req
+
+
+def query_1000_genomes_variants(
+    chrom=None,
+    start=None,
+    end=None,
+    ref=None,
+    alt=None,
+    regions=None,
+    samples=None,
+    het_only=False,
+    hom_only=False,
+    count_only=False,
+    limit=200,
+    page_size=None,
+    af_lt=None,
+    af_gt=None,
+    gnomad_exomes_af_lt=None,
+    gnomad_exomes_af_gt=None,
+    gnomad_genomes_af_lt=None,
+    gnomad_genomes_af_gt=None,
+    clin_significance=None,
+    consequence=None,
+    impact=None,
+    variant_type=None,
+    feature_type=None,
+    bio_type=None,
+    alpha_missense_class=None,
+    alpha_missense_score_lt=None,
+    alpha_missense_score_gt=None,
+    biallelic_only=False,
+    multiallelic_only=False,
+    exclude_males=False,
+    exclude_females=False,
+    min_len_bp=None,
+    max_len_bp=None,
+):
+    """Select or count variants in one or more GRCh38 regions of the 1000 Genomes cohort.
+
+    Cohort-wide when ``samples`` is None, or restricted to the named individuals otherwise.
+    Returns a dict; never raises. See docs/ONEKGPD_INTEGRATION_PLAN.md §7.1.
+    """
+    try:
+        _dn = _import_dnaerys()
+    except ImportError as e:
+        return {"success": False, "error": str(e)}
+    try:
+        AnnotationFilter = _dn["AnnotationFilter"]
+        DnaerysClient = _dn["DnaerysClient"]
+        DnaerysError = _dn["DnaerysError"]
+        Region = _dn["Region"]
+
+        if het_only and hom_only:
+            raise ValueError("het_only and hom_only are mutually exclusive")
+        if biallelic_only and multiallelic_only:
+            raise ValueError("biallelic_only and multiallelic_only are mutually exclusive")
+        if exclude_males and exclude_females:
+            raise ValueError("exclude_males and exclude_females are mutually exclusive")
+        if page_size is not None and limit not in (None, 200):
+            raise ValueError("limit and page_size are mutually exclusive; set one or the other")
+
+        region, regions_list = _build_1kg_regions(chrom, start, end, ref, alt, regions, Region)
+        hom, het = _zygosity_1kg(het_only, hom_only)
+        params = {
+            "af_lt": af_lt,
+            "af_gt": af_gt,
+            "gnomad_exomes_af_lt": gnomad_exomes_af_lt,
+            "gnomad_exomes_af_gt": gnomad_exomes_af_gt,
+            "gnomad_genomes_af_lt": gnomad_genomes_af_lt,
+            "gnomad_genomes_af_gt": gnomad_genomes_af_gt,
+            "clin_significance": clin_significance,
+            "consequence": consequence,
+            "impact": impact,
+            "variant_type": variant_type,
+            "feature_type": feature_type,
+            "bio_type": bio_type,
+            "alpha_missense_class": alpha_missense_class,
+            "alpha_missense_score_lt": alpha_missense_score_lt,
+            "alpha_missense_score_gt": alpha_missense_score_gt,
+            "biallelic_only": biallelic_only,
+            "multiallelic_only": multiallelic_only,
+            "exclude_males": exclude_males,
+            "exclude_females": exclude_females,
+            "min_len_bp": min_len_bp,
+            "max_len_bp": max_len_bp,
+        }
+        ann = _build_1kg_annotation_filter(params, AnnotationFilter)
+        filters = _filters_echo_1kg(params)
+
+        if count_only:
+
+            def fetch_count():
+                with DnaerysClient(DEFAULT_ENDPOINT) as client:
+                    return client.count_variants(
+                        region=region,
+                        regions=regions_list,
+                        samples=samples,
+                        hom=hom,
+                        het=het,
+                        annotations=ann,
+                        variant_min_length=min_len_bp,
+                        variant_max_length=max_len_bp,
+                    )
+
+            result = _onekgpd_call_with_retry(fetch_count, DnaerysError)
+            return {
+                "success": True,
+                "command": "count-variants" if samples is None else "count-variants-in-samples",
+                "count": result.count,
+                "request": _request_echo_1kg(
+                    region=region, regions=regions_list, samples=samples, hom=hom, het=het, filters=filters
+                ),
+                "result_incomplete": result.metadata.affected,
+            }
+
+        def fetch_select():
+            with DnaerysClient(DEFAULT_ENDPOINT) as client:
+                if page_size is not None:
+                    pq = client.paginate_variants(
+                        page_size=page_size,
+                        region=region,
+                        regions=regions_list,
+                        samples=samples,
+                        hom=hom,
+                        het=het,
+                        annotations=ann,
+                        variant_min_length=min_len_bp,
+                        variant_max_length=max_len_bp,
+                    )
+                    collected = []
+                    for page in pq:
+                        collected.extend(page.variants)
+                    return collected, pq.metadata, False
+                stream = client.select_variants(
+                    region=region,
+                    regions=regions_list,
+                    samples=samples,
+                    hom=hom,
+                    het=het,
+                    annotations=ann,
+                    variant_min_length=min_len_bp,
+                    variant_max_length=max_len_bp,
+                    limit=limit,
+                )
+                collected = stream.to_list()
+                truncated = limit is not None and len(collected) >= limit
+                return collected, stream.metadata, truncated
+
+        variants, meta, truncated = _onekgpd_call_with_retry(fetch_select, DnaerysError)
+        extra = {"page_size": page_size} if page_size is not None else {"limit": limit}
+        return {
+            "success": True,
+            "command": "select-variants" if samples is None else "select-variants-in-samples",
+            "count_returned": len(variants),
+            "truncated": truncated,
+            "request": _request_echo_1kg(
+                region=region,
+                regions=regions_list,
+                samples=samples,
+                hom=hom,
+                het=het,
+                filters=filters,
+                extra=extra,
+            ),
+            "result_incomplete": meta.affected,
+            "variants": [_variant_to_dict_1kg(v) for v in variants],
+        }
+    except Exception as e:
+        return {"success": False, "error": f"1000 Genomes query failed: {e}"}
+
+
+def query_1000_genomes_carriers(
+    chrom=None,
+    start=None,
+    end=None,
+    ref=None,
+    alt=None,
+    regions=None,
+    het_only=False,
+    hom_only=False,
+    count_only=False,
+    skip=None,
+    limit=None,
+    af_lt=None,
+    af_gt=None,
+    gnomad_exomes_af_lt=None,
+    gnomad_exomes_af_gt=None,
+    gnomad_genomes_af_lt=None,
+    gnomad_genomes_af_gt=None,
+    clin_significance=None,
+    consequence=None,
+    impact=None,
+    variant_type=None,
+    feature_type=None,
+    bio_type=None,
+    alpha_missense_class=None,
+    alpha_missense_score_lt=None,
+    alpha_missense_score_gt=None,
+    biallelic_only=False,
+    multiallelic_only=False,
+    exclude_males=False,
+    exclude_females=False,
+    min_len_bp=None,
+    max_len_bp=None,
+):
+    """Count or list the 1000 Genomes individuals carrying a matching variant in a region.
+
+    Returns a dict; never raises. See docs/ONEKGPD_INTEGRATION_PLAN.md §7.2.
+    """
+    try:
+        _dn = _import_dnaerys()
+    except ImportError as e:
+        return {"success": False, "error": str(e)}
+    try:
+        AnnotationFilter = _dn["AnnotationFilter"]
+        DnaerysClient = _dn["DnaerysClient"]
+        DnaerysError = _dn["DnaerysError"]
+        Region = _dn["Region"]
+
+        if het_only and hom_only:
+            raise ValueError("het_only and hom_only are mutually exclusive")
+        if biallelic_only and multiallelic_only:
+            raise ValueError("biallelic_only and multiallelic_only are mutually exclusive")
+        if exclude_males and exclude_females:
+            raise ValueError("exclude_males and exclude_females are mutually exclusive")
+
+        region, regions_list = _build_1kg_regions(chrom, start, end, ref, alt, regions, Region)
+        hom, het = _zygosity_1kg(het_only, hom_only)
+        params = {
+            "af_lt": af_lt,
+            "af_gt": af_gt,
+            "gnomad_exomes_af_lt": gnomad_exomes_af_lt,
+            "gnomad_exomes_af_gt": gnomad_exomes_af_gt,
+            "gnomad_genomes_af_lt": gnomad_genomes_af_lt,
+            "gnomad_genomes_af_gt": gnomad_genomes_af_gt,
+            "clin_significance": clin_significance,
+            "consequence": consequence,
+            "impact": impact,
+            "variant_type": variant_type,
+            "feature_type": feature_type,
+            "bio_type": bio_type,
+            "alpha_missense_class": alpha_missense_class,
+            "alpha_missense_score_lt": alpha_missense_score_lt,
+            "alpha_missense_score_gt": alpha_missense_score_gt,
+            "biallelic_only": biallelic_only,
+            "multiallelic_only": multiallelic_only,
+            "exclude_males": exclude_males,
+            "exclude_females": exclude_females,
+            "min_len_bp": min_len_bp,
+            "max_len_bp": max_len_bp,
+        }
+        ann = _build_1kg_annotation_filter(params, AnnotationFilter)
+        filters = _filters_echo_1kg(params)
+
+        if count_only:
+
+            def fetch_count():
+                with DnaerysClient(DEFAULT_ENDPOINT) as client:
+                    return client.count_samples(
+                        region=region,
+                        regions=regions_list,
+                        hom=hom,
+                        het=het,
+                        annotations=ann,
+                        variant_min_length=min_len_bp,
+                        variant_max_length=max_len_bp,
+                    )
+
+            result = _onekgpd_call_with_retry(fetch_count, DnaerysError)
+            return {
+                "success": True,
+                "command": "count-samples",
+                "count": result.count,
+                "request": _request_echo_1kg(
+                    region=region, regions=regions_list, samples=None, hom=hom, het=het, filters=filters
+                ),
+                "result_incomplete": result.metadata.affected,
+            }
+
+        def fetch_select():
+            with DnaerysClient(DEFAULT_ENDPOINT) as client:
+                return client.select_samples(
+                    region=region,
+                    regions=regions_list,
+                    hom=hom,
+                    het=het,
+                    annotations=ann,
+                    variant_min_length=min_len_bp,
+                    variant_max_length=max_len_bp,
+                    skip=skip,
+                    limit=limit,
+                )
+
+        result = _onekgpd_call_with_retry(fetch_select, DnaerysError)
+        names = list(result.samples)
+        extra = {}
+        if skip is not None:
+            extra["skip"] = skip
+        if limit is not None:
+            extra["limit"] = limit
+        return {
+            "success": True,
+            "command": "select-samples",
+            "count": len(names),
+            "samples": names,
+            "request": _request_echo_1kg(
+                region=region,
+                regions=regions_list,
+                samples=None,
+                hom=hom,
+                het=het,
+                filters=filters,
+                extra=extra or None,
+            ),
+            "result_incomplete": result.metadata.affected,
+        }
+    except Exception as e:
+        return {"success": False, "error": f"1000 Genomes query failed: {e}"}
+
+
+def query_1000_genomes_homozygous_reference(chrom, position, count_only=False):
+    """Count or list 1000 Genomes individuals homozygous-reference (0/0) at a single GRCh38 position.
+
+    The ``count`` is a sentinel: -1 = no variant at the position (variant_present=False);
+    0 = a variant exists but nobody is hom-ref; >0 = the hom-ref count. Returns a dict; never
+    raises. See docs/ONEKGPD_INTEGRATION_PLAN.md §7.3.
+    """
+    try:
+        _dn = _import_dnaerys()
+    except ImportError as e:
+        return {"success": False, "error": str(e)}
+    try:
+        DnaerysClient = _dn["DnaerysClient"]
+        DnaerysError = _dn["DnaerysError"]
+
+        def fetch_count():
+            with DnaerysClient(DEFAULT_ENDPOINT) as client:
+                return client.count_samples_hom_ref(chr=chrom, position=position)
+
+        count_result = _onekgpd_call_with_retry(fetch_count, DnaerysError)
+        count = count_result.count
+        variant_present = count != -1
+
+        if count_only:
+            return {
+                "success": True,
+                "command": "count-samples-hom-ref",
+                "count": count,
+                "variant_present": variant_present,
+                "request": {"chrom": chrom, "position": position},
+            }
+
+        if variant_present:
+
+            def fetch_select():
+                with DnaerysClient(DEFAULT_ENDPOINT) as client:
+                    return client.select_samples_hom_ref(chr=chrom, position=position)
+
+            select_result = _onekgpd_call_with_retry(fetch_select, DnaerysError)
+            names = list(select_result.samples)
+        else:
+            names = []
+        return {
+            "success": True,
+            "command": "select-samples-hom-ref",
+            "count": count,
+            "variant_present": variant_present,
+            "samples": names,
+            "request": {"chrom": chrom, "position": position},
+        }
+    except Exception as e:
+        return {"success": False, "error": f"1000 Genomes query failed: {e}"}
+
+
+def query_1000_genomes_kinship(sample1, sample2):
+    """Pairwise relatedness (degree + KING phi_bwf) between two named 1000 Genomes individuals.
+
+    Returns a dict; never raises. See docs/ONEKGPD_INTEGRATION_PLAN.md §7.4.
+    """
+    try:
+        _dn = _import_dnaerys()
+    except ImportError as e:
+        return {"success": False, "error": str(e)}
+    try:
+        DnaerysClient = _dn["DnaerysClient"]
+        DnaerysError = _dn["DnaerysError"]
+
+        def fetch():
+            with DnaerysClient(DEFAULT_ENDPOINT) as client:
+                return client.kinship_duo(sample1=sample1, sample2=sample2)
+
+        result = _onekgpd_call_with_retry(fetch, DnaerysError)
+        if not result.pairs:
+            return {"success": False, "error": f"no relatedness result returned for {sample1}, {sample2}"}
+        pair = result.pairs[0]
+        return {
+            "success": True,
+            "command": "kinship",
+            "sample1": pair.sample1,
+            "sample2": pair.sample2,
+            "degree": pair.degree.name,
+            "phi_bwf": pair.phi_bwf,
+            "result_incomplete": result.metadata.affected,
+        }
+    except Exception as e:
+        return {"success": False, "error": f"1000 Genomes query failed: {e}"}
+
+
+def get_1000_genomes_dataset_info():
+    """Dataset totals for the 1000 Genomes cohort served by OneKGPd (also a connectivity check).
+
+    Returns a dict; never raises. See docs/ONEKGPD_INTEGRATION_PLAN.md §7.5.
+    """
+    try:
+        _dn = _import_dnaerys()
+    except ImportError as e:
+        return {"success": False, "error": str(e)}
+    try:
+        DnaerysClient = _dn["DnaerysClient"]
+        DnaerysError = _dn["DnaerysError"]
+
+        def fetch():
+            with DnaerysClient(DEFAULT_ENDPOINT) as client:
+                return client.dataset_info()
+
+        info = _onekgpd_call_with_retry(fetch, DnaerysError)
+        return {
+            "success": True,
+            "command": "dataset-info",
+            "samples_total": info.samples_total,
+            "females_total": info.females_total,
+            "males_total": info.males_total,
+            "variants_total": info.variants_total,
+            "assembly": info.assembly.name,
+            "cohorts": [
+                {
+                    "cohort_name": c.cohort_name,
+                    "samples_count": c.samples_count,
+                    "female_count": c.female_count,
+                    "male_count": c.male_count,
+                    "synthetic": c.synthetic,
+                }
+                for c in info.cohorts
+            ],
+        }
+    except Exception as e:
+        return {"success": False, "error": f"1000 Genomes query failed: {e}"}
+
+
+# ---------------------------------------------------------------------------
+# Offline metadata (onekgpd_meta.py) — reads bundled 1000G_data/kgpe.json.gz
+# ---------------------------------------------------------------------------
+
+_KGP_PEDIGREE_RECORDS = None
+_KGP_ABSENT = (None, "", "0")  # pid/mid "absent" sentinel values
+
+
+def _load_1kg_pedigree():
+    global _KGP_PEDIGREE_RECORDS
+    if _KGP_PEDIGREE_RECORDS is None:
+        path = os.path.join(os.path.dirname(__file__), "1000G_data", "kgpe.json.gz")
+        with gzip.open(path, "rt", encoding="utf-8") as fh:
+            _KGP_PEDIGREE_RECORDS = json.load(fh)
+    return _KGP_PEDIGREE_RECORDS
+
+
+def _present_1kg(x):
+    """True if a pid/mid value names a real parent (not absent/'0'/empty)."""
+    return x not in _KGP_ABSENT
+
+
+def _none_if_empty_1kg(x):
+    """None for empty/None; else the value (onekgpd_meta.py:112-114)."""
+    return None if x in (None, "") else x
+
+
+def _none_if_absent_1kg(x):
+    """None for None/empty/'0'; else the value (onekgpd_meta.py:117-119)."""
+    return None if x in _KGP_ABSENT else x
+
+
+def _children_index_1kg(records):
+    """Map parent externalID -> child externalIDs; child counts only when BOTH parents recorded."""
+    idx = {}
+    for c in records:
+        if _present_1kg(c["pid"]) and _present_1kg(c["mid"]):
+            cid = c["externalIDs"]
+            idx.setdefault(c["pid"], []).append(cid)
+            idx.setdefault(c["mid"], []).append(cid)
+    return idx
+
+
+def _valid_pop_lower_1kg(records):
+    """Lowercased set of all valid population codes and full names."""
+    s = set()
+    for r in records:
+        s.add(r["pop"].lower())
+        s.add(r["Population"].lower())
+    return s
+
+
+def _valid_reg_lower_1kg(records):
+    """Lowercased set of all valid superpopulation codes and full names."""
+    s = set()
+    for r in records:
+        s.add(r["reg"].lower())
+        s.add(r["region"].lower())
+    return s
+
+
+def _population_stats_1kg(records_subset):
+    """Group a subset by (pop, Population, reg, region) -> count aggregates (onekgpd_meta.py:161-179)."""
+    groups = {}
+    for r in records_subset:
+        key = (r["pop"], r["Population"], r["reg"], r["region"])
+        g = groups.setdefault(key, {"n": 0, "m": 0, "f": 0, "p3": 0, "trio": 0})
+        g["n"] += 1
+        if r["gender"] == "male":
+            g["m"] += 1
+        elif r["gender"] == "female":
+            g["f"] += 1
+        if r["phase3"] == "TRUE":
+            g["p3"] += 1
+        if _present_1kg(r["pid"]) and _present_1kg(r["mid"]):
+            g["trio"] += 1
+    return groups
+
+
+def _stats_obj_1kg(key, g):
+    return {
+        "population_code": key[0],
+        "population": key[1],
+        "superpopulation_code": key[2],
+        "superpopulation": key[3],
+        "sample_count": g["n"],
+        "male_count": g["m"],
+        "female_count": g["f"],
+        "phase3_count": g["p3"],
+        "trio_count": g["trio"],
+    }
+
+
+def get_1000_genomes_sample_metadata(samples):
+    """Pedigree/population metadata for specific 1000 Genomes individuals (offline).
+
+    Returns a dict; never raises. See docs/ONEKGPD_INTEGRATION_PLAN.md §8.1.
+    """
+    try:
+        if not samples:
+            return {"success": False, "error": "Parameter 'samples' must not be null or empty"}
+        records = _load_1kg_pedigree()
+        by_id = {r["externalIDs"]: r for r in records}
+        unknown = [i for i in samples if i not in by_id]  # case-sensitive sample IDs
+        if unknown:
+            return {"success": False, "error": f"Unknown sample IDs: [{', '.join(unknown)}]"}
+        children = _children_index_1kg(records)
+        out = []
+        for sid in sorted(set(samples)):  # ORDER BY externalIDs, distinct
+            r = by_id[sid]
+            kids = sorted(set(children.get(sid, [])))
+            out.append(
+                {
+                    "sample_id": r["externalIDs"],
+                    "family_id": _none_if_empty_1kg(r["familyId"]),
+                    "gender": r["gender"],
+                    "paternal_id": _none_if_absent_1kg(r["pid"]),
+                    "maternal_id": _none_if_absent_1kg(r["mid"]),
+                    "relationship": _none_if_empty_1kg(r["Relationship"]),
+                    "children": kids,
+                    "population_code": r["pop"],
+                    "population": r["Population"],
+                    "superpopulation_code": r["reg"],
+                    "superpopulation": r["region"],
+                    "phase3": r["phase3"],
+                }
+            )
+        return {"success": True, "command": "sample-metadata", "samples": out}
+    except Exception as e:
+        return {"success": False, "error": f"1000 Genomes metadata lookup failed: {e}"}
+
+
+def list_1000_genomes_populations(level="population"):
+    """List the 1000 Genomes populations (26) or superpopulations (5) with sample counts (offline).
+
+    Returns a dict; never raises. See docs/ONEKGPD_INTEGRATION_PLAN.md §8.2.
+    """
+    try:
+        if level not in ("population", "superpopulation"):
+            return {"success": False, "error": "level must be 'population' or 'superpopulation'"}
+        records = _load_1kg_pedigree()
+        if level == "population":
+            counts = {}
+            for r in records:
+                key = (r["pop"], r["Population"], r["reg"], r["region"])
+                counts[key] = counts.get(key, 0) + 1
+            rows = sorted(counts.items(), key=lambda kv: (kv[0][2], kv[0][0]))  # ORDER BY reg, pop
+            populations = [
+                {
+                    "population_code": k[0],
+                    "population": k[1],
+                    "superpopulation_code": k[2],
+                    "superpopulation": k[3],
+                    "sample_count": cnt,
+                }
+                for k, cnt in rows
+            ]
+            return {"success": True, "command": "list-populations", "populations": populations}
+        groups = {}
+        for r in records:
+            reg = r["reg"]
+            g = groups.setdefault(reg, {"region": r["region"], "count": 0, "pops": set()})
+            g["count"] += 1
+            g["pops"].add(r["pop"])
+        rows = sorted(groups.items(), key=lambda kv: kv[0])  # ORDER BY reg
+        superpopulations = [
+            {
+                "superpopulation_code": reg,
+                "superpopulation": g["region"],
+                "sample_count": g["count"],
+                "populations": sorted(g["pops"]),
+            }
+            for reg, g in rows
+        ]
+        return {"success": True, "command": "list-superpopulations", "superpopulations": superpopulations}
+    except Exception as e:
+        return {"success": False, "error": f"1000 Genomes metadata lookup failed: {e}"}
+
+
+def get_1000_genomes_population_stats(populations=None, superpopulations=None):
+    """Demographic stats for named 1000 Genomes populations and/or superpopulations (offline).
+
+    Returns a dict; never raises. See docs/ONEKGPD_INTEGRATION_PLAN.md §8.3.
+    """
+    try:
+        if not populations and not superpopulations:
+            return {"success": False, "error": "provide at least one of populations or superpopulations"}
+        records = _load_1kg_pedigree()
+        out = {"success": True, "command": "population-stats"}
+
+        if populations:
+            vals = [v.strip() for v in populations if v.strip()]
+            valid = _valid_pop_lower_1kg(records)
+            unknown = [v for v in vals if v.lower() not in valid]
+            if unknown:
+                return {"success": False, "error": f"Unrecognised population values: [{', '.join(unknown)}]"}
+            wanted = {v.lower() for v in vals}
+            subset = [r for r in records if r["pop"].lower() in wanted or r["Population"].lower() in wanted]
+            groups = _population_stats_1kg(subset)
+            rows = sorted(groups.items(), key=lambda kv: kv[0][0])  # ORDER BY pop
+            out["populations"] = [_stats_obj_1kg(k, g) for k, g in rows]
+
+        if superpopulations:
+            vals = [v.strip() for v in superpopulations if v.strip()]
+            valid = _valid_reg_lower_1kg(records)
+            unknown = [v for v in vals if v.lower() not in valid]
+            if unknown:
+                return {"success": False, "error": f"Unrecognised superpopulation values: [{', '.join(unknown)}]"}
+            wanted = {v.lower() for v in vals}
+            subset = [r for r in records if r["reg"].lower() in wanted or r["region"].lower() in wanted]
+            groups = _population_stats_1kg(subset)
+            pop_rows = sorted(groups.items(), key=lambda kv: (kv[0][2], kv[0][0]))  # (reg, pop)
+            by_super = {}
+            for key, g in pop_rows:
+                reg, region = key[2], key[3]
+                sg = by_super.setdefault(reg, {"region": region, "pops": []})
+                sg["pops"].append(_stats_obj_1kg(key, g))
+            superpops = []
+            for reg, sg in by_super.items():
+                pops = sg["pops"]
+                superpops.append(
+                    {
+                        "superpopulation_code": reg,
+                        "superpopulation": sg["region"],
+                        "sample_count": sum(p["sample_count"] for p in pops),
+                        "male_count": sum(p["male_count"] for p in pops),
+                        "female_count": sum(p["female_count"] for p in pops),
+                        "phase3_count": sum(p["phase3_count"] for p in pops),
+                        "trio_count": sum(p["trio_count"] for p in pops),
+                        "populations": pops,
+                    }
+                )
+            out["superpopulations"] = superpops
+        return out
+    except Exception as e:
+        return {"success": False, "error": f"1000 Genomes metadata lookup failed: {e}"}
+
+
+def select_1000_genomes_samples_by_population(population=None, superpopulation=None, skip=0, limit=50):
+    """List 1000 Genomes individual IDs in a population and/or superpopulation (offline).
+
+    Returns a dict; never raises. See docs/ONEKGPD_INTEGRATION_PLAN.md §8.4.
+    """
+    try:
+        pop = population.strip() if population and population.strip() else None
+        sup = superpopulation.strip() if superpopulation and superpopulation.strip() else None
+        if pop is None and sup is None:
+            return {
+                "success": False,
+                "error": "At least one parameter ('population' or 'superpopulation') must be provided",
+            }
+        skip = skip if skip is not None else 0
+        limit = limit if limit is not None else 50
+        if skip < 0:
+            return {"success": False, "error": f"Invalid parameter: 'skip' must be >= 0, actual: {skip}"}
+        if limit < 1 or limit > 3202:
+            return {
+                "success": False,
+                "error": f"Invalid parameter: 'limit' must be between 1 and 3202, actual: {limit}",
+            }
+        records = _load_1kg_pedigree()
+        if pop is not None and pop.lower() not in _valid_pop_lower_1kg(records):
+            return {"success": False, "error": f"Unrecognised population: '{pop}'"}
+        if sup is not None and sup.lower() not in _valid_reg_lower_1kg(records):
+            return {"success": False, "error": f"Unrecognised superpopulation: '{sup}'"}
+
+        pop_l = pop.lower() if pop is not None else None
+        sup_l = sup.lower() if sup is not None else None
+
+        def match(r):
+            if pop_l is not None and pop_l not in (r["pop"].lower(), r["Population"].lower()):
+                return False
+            if sup_l is not None and sup_l not in (r["reg"].lower(), r["region"].lower()):
+                return False
+            return True
+
+        matched = sorted(r["externalIDs"] for r in records if match(r))  # ORDER BY externalIDs
+        page = matched[skip : skip + limit]
+        return {
+            "success": True,
+            "command": "select-samples-by-population",
+            "count": len(page),
+            "samples": page,
+            "request": {"population": pop, "superpopulation": sup, "skip": skip, "limit": limit},
+        }
+    except Exception as e:
+        return {"success": False, "error": f"1000 Genomes metadata lookup failed: {e}"}
