@@ -728,4 +728,581 @@ description = [
             },
         ],
     },
+    {
+        "description": (
+            "Select or count variants carried in one or more GRCh38 regions of the 1000 Genomes "
+            "Project cohort (3,202 whole-genome-sequenced individuals), at the level of individual "
+            "genotypes. Cohort-wide when 'samples' is None, or restricted to variants carried by the "
+            "named individuals when 'samples' is given. Set count_only=True first to size the result "
+            "set cheaply, then call again with count_only=False to retrieve records. Coordinates are "
+            "1-based inclusive GRCh38 - resolve a gene/feature to coordinates with an authoritative "
+            "source (e.g. Ensembl) BEFORE calling; a misplaced region returns results for the wrong "
+            "locus without error. Returned variants carry 22 fields including 1000 Genomes AF/AC/AN, "
+            "sample counts with hom/het/missing genotypes (separate female-on-X and male-on-XY breakdowns), "
+            "gnomAD v4.1 exomes and genomes AF, AlphaMissense score, and HGVSp amino-acid change. "
+            "AF/am_score of 0.0 means absent/unannotated in that source. Annotation-filter vocabularies: "
+            "see references/annotation_vocabularies.md. Requires the optional 'dnaerys' package."
+        ),
+        "name": "query_1000_genomes_variants",
+        "optional_parameters": [
+            {
+                "name": "chrom",
+                "type": "str",
+                "description": "Chromosome for single-region mode, e.g. 'chr17','17','X','MT'. Requires start and end.",
+                "default": None,
+            },
+            {
+                "name": "start",
+                "type": "int",
+                "description": "1-based inclusive start (single-region mode, with chrom).",
+                "default": None,
+            },
+            {
+                "name": "end",
+                "type": "int",
+                "description": "1-based inclusive end, >= start (single-region mode, with chrom).",
+                "default": None,
+            },
+            {
+                "name": "ref",
+                "type": "str",
+                "description": "Narrow to one reference allele (single-region mode only).",
+                "default": None,
+            },
+            {
+                "name": "alt",
+                "type": "str",
+                "description": "Narrow to one alternate allele (single-region mode only).",
+                "default": None,
+            },
+            {
+                "name": "regions",
+                "type": "List[str]",
+                "description": "Multi-region mode: list of 'CHR:START-END' strings; mutually exclusive with chrom/start/end and with ref/alt.",
+                "default": None,
+            },
+            {
+                "name": "samples",
+                "type": "List[str]",
+                "description": "Restrict to variants carried by these case-sensitive individual IDs (e.g. ['NA19240']). None = whole cohort.",
+                "default": None,
+            },
+            {
+                "name": "het_only",
+                "type": "bool",
+                "description": "Heterozygous (0/1) carriage only. Mutually exclusive with hom_only; default includes both.",
+                "default": False,
+            },
+            {
+                "name": "hom_only",
+                "type": "bool",
+                "description": "Homozygous (1/1) carriage only. Mutually exclusive with het_only; default includes both.",
+                "default": False,
+            },
+            {
+                "name": "count_only",
+                "type": "bool",
+                "description": "If True return only the integer count (cheap sizing); if False return the matching variant records.",
+                "default": False,
+            },
+            {
+                "name": "limit",
+                "type": "int",
+                "description": "Hard cap on returned variants when selecting (ignored if count_only, or if page_size is set). Default 200.",
+                "default": 200,
+            },
+            {
+                "name": "page_size",
+                "type": "int",
+                "description": "If set, retrieve ALL matching variants in pages of this size (full walk); overrides limit.",
+                "default": None,
+            },
+            {
+                "name": "af_lt",
+                "type": "float",
+                "description": "Keep variants with 1000 Genomes dataset AF < this value.",
+                "default": None,
+            },
+            {
+                "name": "af_gt",
+                "type": "float",
+                "description": "Keep variants with 1000 Genomes dataset AF > this value.",
+                "default": None,
+            },
+            {
+                "name": "gnomad_exomes_af_lt",
+                "type": "float",
+                "description": "Keep variants with gnomAD v4.1 exomes AF < this value (includes AF=0/unannotated).",
+                "default": None,
+            },
+            {
+                "name": "gnomad_exomes_af_gt",
+                "type": "float",
+                "description": "Keep variants with gnomAD v4.1 exomes AF > this value (use >0 to require presence in gnomAD exomes).",
+                "default": None,
+            },
+            {
+                "name": "gnomad_genomes_af_lt",
+                "type": "float",
+                "description": "Keep variants with gnomAD v4.1 genomes AF < this value (includes AF=0/unannotated).",
+                "default": None,
+            },
+            {
+                "name": "gnomad_genomes_af_gt",
+                "type": "float",
+                "description": "Keep variants with gnomAD v4.1 genomes AF > this value (use >0 to require presence in gnomAD genomes).",
+                "default": None,
+            },
+            {
+                "name": "clin_significance",
+                "type": "List[str]",
+                "description": "ClinVar significance terms (OR within field); benign token is CLNSIG_BENIGN. See annotation_vocabularies.md.",
+                "default": None,
+            },
+            {
+                "name": "consequence",
+                "type": "List[str]",
+                "description": "Sequence Ontology consequence terms, e.g. ['MISSENSE_VARIANT','STOP_GAINED'] (OR within field).",
+                "default": None,
+            },
+            {
+                "name": "impact",
+                "type": "List[str]",
+                "description": "VEP impact terms from HIGH,MODERATE,LOW,MODIFIER (OR within field).",
+                "default": None,
+            },
+            {
+                "name": "variant_type",
+                "type": "List[str]",
+                "description": "SO variant-class terms, e.g. ['SNV','INSERTION'] (OR within field).",
+                "default": None,
+            },
+            {
+                "name": "feature_type",
+                "type": "List[str]",
+                "description": "VEP feature types from TRANSCRIPT,REGULATORYFEATURE,MOTIFFEATURE (OR within field).",
+                "default": None,
+            },
+            {
+                "name": "bio_type",
+                "type": "List[str]",
+                "description": "VEP biotype terms, e.g. ['PROTEIN_CODING'] (OR within field).",
+                "default": None,
+            },
+            {
+                "name": "alpha_missense_class",
+                "type": "List[str]",
+                "description": "AlphaMissense classes from AM_LIKELY_BENIGN,AM_LIKELY_PATHOGENIC,AM_AMBIGUOUS. Mutually exclusive with alpha_missense_score_lt/gt.",
+                "default": None,
+            },
+            {
+                "name": "alpha_missense_score_lt",
+                "type": "float",
+                "description": "Keep variants with AlphaMissense score < this value. Mutually exclusive with alpha_missense_class.",
+                "default": None,
+            },
+            {
+                "name": "alpha_missense_score_gt",
+                "type": "float",
+                "description": "Keep variants with AlphaMissense score > this value. Mutually exclusive with alpha_missense_class.",
+                "default": None,
+            },
+            {
+                "name": "biallelic_only",
+                "type": "bool",
+                "description": "Keep only biallelic sites. Mutually exclusive with multiallelic_only.",
+                "default": False,
+            },
+            {
+                "name": "multiallelic_only",
+                "type": "bool",
+                "description": "Keep only multiallelic sites. Mutually exclusive with biallelic_only.",
+                "default": False,
+            },
+            {
+                "name": "exclude_males",
+                "type": "bool",
+                "description": "Exclude male samples. Mutually exclusive with exclude_females.",
+                "default": False,
+            },
+            {
+                "name": "exclude_females",
+                "type": "bool",
+                "description": "Exclude female samples. Mutually exclusive with exclude_males.",
+                "default": False,
+            },
+            {
+                "name": "min_len_bp",
+                "type": "int",
+                "description": "Minimum alternate-allele length in bp.",
+                "default": None,
+            },
+            {
+                "name": "max_len_bp",
+                "type": "int",
+                "description": "Maximum alternate-allele length in bp.",
+                "default": None,
+            },
+        ],
+        "required_parameters": [],
+    },
+    {
+        "description": (
+            "Count or list the 1000 Genomes Project individuals (3,202-person cohort, GRCh38) who carry "
+            "at least one variant matching the given region and annotation criteria. Set count_only=True "
+            "first to size the set, then count_only=False to get the individual IDs (names only). To see "
+            "which variants qualified a given set of individuals, feed the returned IDs into "
+            "query_1000_genomes_variants(samples=...). Coordinates are 1-based inclusive GRCh38 - resolve "
+            "gene/feature to coordinates with an authoritative source BEFORE calling. Annotation-filter "
+            "vocabularies: references/annotation_vocabularies.md. Requires the optional 'dnaerys' package."
+        ),
+        "name": "query_1000_genomes_carriers",
+        "optional_parameters": [
+            {
+                "name": "chrom",
+                "type": "str",
+                "description": "Chromosome for single-region mode, e.g. 'chr17','17','X','MT'. Requires start and end.",
+                "default": None,
+            },
+            {
+                "name": "start",
+                "type": "int",
+                "description": "1-based inclusive start (single-region mode, with chrom).",
+                "default": None,
+            },
+            {
+                "name": "end",
+                "type": "int",
+                "description": "1-based inclusive end, >= start (single-region mode, with chrom).",
+                "default": None,
+            },
+            {
+                "name": "ref",
+                "type": "str",
+                "description": "Narrow to one reference allele (single-region mode only).",
+                "default": None,
+            },
+            {
+                "name": "alt",
+                "type": "str",
+                "description": "Narrow to one alternate allele (single-region mode only).",
+                "default": None,
+            },
+            {
+                "name": "regions",
+                "type": "List[str]",
+                "description": "Multi-region mode: list of 'CHR:START-END' strings; mutually exclusive with chrom/start/end and with ref/alt.",
+                "default": None,
+            },
+            {
+                "name": "het_only",
+                "type": "bool",
+                "description": "Heterozygous (0/1) carriage only. Mutually exclusive with hom_only; default includes both.",
+                "default": False,
+            },
+            {
+                "name": "hom_only",
+                "type": "bool",
+                "description": "Homozygous (1/1) carriage only. Mutually exclusive with het_only; default includes both.",
+                "default": False,
+            },
+            {
+                "name": "count_only",
+                "type": "bool",
+                "description": "If True return only the count of carrying individuals; if False return their IDs.",
+                "default": False,
+            },
+            {
+                "name": "skip",
+                "type": "int",
+                "description": "Skip the first N individuals (select mode).",
+                "default": None,
+            },
+            {
+                "name": "limit",
+                "type": "int",
+                "description": "Return at most N individuals (select mode).",
+                "default": None,
+            },
+            {
+                "name": "af_lt",
+                "type": "float",
+                "description": "Keep variants with 1000 Genomes dataset AF < this value.",
+                "default": None,
+            },
+            {
+                "name": "af_gt",
+                "type": "float",
+                "description": "Keep variants with 1000 Genomes dataset AF > this value.",
+                "default": None,
+            },
+            {
+                "name": "gnomad_exomes_af_lt",
+                "type": "float",
+                "description": "gnomAD v4.1 exomes AF < this value (includes AF=0/unannotated).",
+                "default": None,
+            },
+            {
+                "name": "gnomad_exomes_af_gt",
+                "type": "float",
+                "description": "gnomAD v4.1 exomes AF > this value (use >0 to require presence).",
+                "default": None,
+            },
+            {
+                "name": "gnomad_genomes_af_lt",
+                "type": "float",
+                "description": "gnomAD v4.1 genomes AF < this value (includes AF=0/unannotated).",
+                "default": None,
+            },
+            {
+                "name": "gnomad_genomes_af_gt",
+                "type": "float",
+                "description": "gnomAD v4.1 genomes AF > this value (use >0 to require presence).",
+                "default": None,
+            },
+            {
+                "name": "clin_significance",
+                "type": "List[str]",
+                "description": "ClinVar significance terms (OR within field); benign token is CLNSIG_BENIGN.",
+                "default": None,
+            },
+            {
+                "name": "consequence",
+                "type": "List[str]",
+                "description": "SO consequence terms, e.g. ['MISSENSE_VARIANT','STOP_GAINED'] (OR within field).",
+                "default": None,
+            },
+            {
+                "name": "impact",
+                "type": "List[str]",
+                "description": "VEP impact terms from HIGH,MODERATE,LOW,MODIFIER (OR within field).",
+                "default": None,
+            },
+            {
+                "name": "variant_type",
+                "type": "List[str]",
+                "description": "SO variant-class terms (OR within field).",
+                "default": None,
+            },
+            {
+                "name": "feature_type",
+                "type": "List[str]",
+                "description": "VEP feature types (OR within field).",
+                "default": None,
+            },
+            {
+                "name": "bio_type",
+                "type": "List[str]",
+                "description": "VEP biotype terms (OR within field).",
+                "default": None,
+            },
+            {
+                "name": "alpha_missense_class",
+                "type": "List[str]",
+                "description": "AlphaMissense classes; mutually exclusive with alpha_missense_score_lt/gt.",
+                "default": None,
+            },
+            {
+                "name": "alpha_missense_score_lt",
+                "type": "float",
+                "description": "AlphaMissense score < this value. Mutually exclusive with alpha_missense_class.",
+                "default": None,
+            },
+            {
+                "name": "alpha_missense_score_gt",
+                "type": "float",
+                "description": "AlphaMissense score > this value. Mutually exclusive with alpha_missense_class.",
+                "default": None,
+            },
+            {
+                "name": "biallelic_only",
+                "type": "bool",
+                "description": "Keep only biallelic sites. Mutually exclusive with multiallelic_only.",
+                "default": False,
+            },
+            {
+                "name": "multiallelic_only",
+                "type": "bool",
+                "description": "Keep only multiallelic sites. Mutually exclusive with biallelic_only.",
+                "default": False,
+            },
+            {
+                "name": "exclude_males",
+                "type": "bool",
+                "description": "Exclude male samples. Mutually exclusive with exclude_females.",
+                "default": False,
+            },
+            {
+                "name": "exclude_females",
+                "type": "bool",
+                "description": "Exclude female samples. Mutually exclusive with exclude_males.",
+                "default": False,
+            },
+            {
+                "name": "min_len_bp",
+                "type": "int",
+                "description": "Minimum alternate-allele length in bp.",
+                "default": None,
+            },
+            {
+                "name": "max_len_bp",
+                "type": "int",
+                "description": "Maximum alternate-allele length in bp.",
+                "default": None,
+            },
+        ],
+        "required_parameters": [],
+    },
+    {
+        "description": (
+            "At a single GRCh38 position in the 1000 Genomes Project cohort (3,202 individuals), count or "
+            "list the individuals with a homozygous-reference (0/0) genotype. Position is 1-based; resolve "
+            "coordinates with an authoritative source BEFORE calling. The 'count' is a sentinel: -1 = no "
+            "variant exists at this position at all (variant_present=False); 0 = a variant exists but no "
+            "individual is homozygous reference; >0 = the number of homozygous-reference individuals. "
+            "count_only=True returns just the sentinel; count_only=False also returns the individual IDs. "
+            "Requires the optional 'dnaerys' package."
+        ),
+        "name": "query_1000_genomes_homozygous_reference",
+        "optional_parameters": [
+            {
+                "name": "count_only",
+                "type": "bool",
+                "description": "If True return only the sentinel count; if False also return the homozygous-reference individual IDs.",
+                "default": False,
+            },
+        ],
+        "required_parameters": [
+            {"name": "chrom", "type": "str", "description": "Chromosome, e.g. 'chr17','17','X','MT'.", "default": None},
+            {"name": "position", "type": "int", "description": "1-based position.", "default": None},
+        ],
+    },
+    {
+        "description": (
+            "Pairwise relatedness between two named 1000 Genomes Project individuals: the relatedness "
+            "degree (TWINS_MONOZYGOTIC / FIRST_DEGREE / SECOND_DEGREE / THIRD_DEGREE / UNRELATED) and the "
+            "KING between-family robust kinship coefficient (phi_bwf; ~0.5 monozygotic, 0.25 first-degree, "
+            "0.125 second-degree, 0.0625 third-degree). Sample IDs are case-sensitive (e.g. 'NA19238'). "
+            "Requires the optional 'dnaerys' package."
+        ),
+        "name": "query_1000_genomes_kinship",
+        "optional_parameters": [],
+        "required_parameters": [
+            {
+                "name": "sample1",
+                "type": "str",
+                "description": "First individual ID (case-sensitive), e.g. 'NA19238'.",
+                "default": None,
+            },
+            {
+                "name": "sample2",
+                "type": "str",
+                "description": "Second individual ID (case-sensitive), e.g. 'NA19240'.",
+                "default": None,
+            },
+        ],
+    },
+    {
+        "description": (
+            "Dataset totals for the 1000 Genomes Project cohort served by OneKGPd: total individuals "
+            "(3,202), female/male split, total variant count, genome assembly (GRCh38), and the per-cohort "
+            "breakdown. Takes no parameters and doubles as a connectivity check for the live 1000 Genomes "
+            "query endpoint. Requires the optional 'dnaerys' package."
+        ),
+        "name": "get_1000_genomes_dataset_info",
+        "optional_parameters": [],
+        "required_parameters": [],
+    },
+    {
+        "description": (
+            "Pedigree and population metadata for specific 1000 Genomes Project individuals, from bundled "
+            "cohort data (offline, no network). For each given sample ID returns family ID, gender, "
+            "paternal/maternal IDs, relationship (mother/father/child), children recorded in the cohort, "
+            "population and superpopulation (code and full name), and phase-3 inclusion. Sample IDs are "
+            "case-sensitive (e.g. 'NA19240'). These are the same IDs used by the live variant/kinship "
+            "tools, so the two layers compose."
+        ),
+        "name": "get_1000_genomes_sample_metadata",
+        "optional_parameters": [],
+        "required_parameters": [
+            {
+                "name": "samples",
+                "type": "List[str]",
+                "description": "Case-sensitive individual IDs, e.g. ['NA19240','HG00096'].",
+                "default": None,
+            },
+        ],
+    },
+    {
+        "description": (
+            "Enumerate the population structure of the 1000 Genomes Project cohort (offline). With "
+            "level='population' lists all 26 populations, each with its superpopulation and sample count; "
+            "with level='superpopulation' lists the 5 superpopulations (AFR, AMR, EAS, EUR, SAS), each with "
+            "sample count and constituent populations. Use this to discover the valid population/"
+            "superpopulation codes and full names accepted by the other metadata tools."
+        ),
+        "name": "list_1000_genomes_populations",
+        "optional_parameters": [
+            {
+                "name": "level",
+                "type": "str",
+                "description": "'population' (26 populations) or 'superpopulation' (5 superpopulations).",
+                "default": "population",
+            },
+        ],
+        "required_parameters": [],
+    },
+    {
+        "description": (
+            "Demographic statistics for named 1000 Genomes populations and/or superpopulations (offline): "
+            "sample count, male/female split, phase-3 count, and trio count (offspring with both parents in "
+            "the dataset). Pass 'populations' (codes or full names) for a per-population breakdown, and/or "
+            "'superpopulations' for per-superpopulation totals with a nested per-population breakdown. "
+            "Values match case-insensitively by short code or full name; at least one of the two arguments "
+            "is required. Use list_1000_genomes_populations to discover valid values."
+        ),
+        "name": "get_1000_genomes_population_stats",
+        "optional_parameters": [
+            {
+                "name": "populations",
+                "type": "List[str]",
+                "description": "Population codes or full names for a per-population breakdown, e.g. ['YRI','CHS'].",
+                "default": None,
+            },
+            {
+                "name": "superpopulations",
+                "type": "List[str]",
+                "description": "Superpopulation codes or full names for per-superpopulation summaries with nested per-population breakdown, e.g. ['EAS','EUR'].",
+                "default": None,
+            },
+        ],
+        "required_parameters": [],
+    },
+    {
+        "description": (
+            "List the 1000 Genomes Project individual IDs in a given population and/or superpopulation "
+            "(offline). Provide 'population' and/or 'superpopulation' as a code or full name "
+            "(case-insensitive); when both are given the results are intersected. Supports skip/limit "
+            "pagination (default skip 0, limit 50, max 3202). Returns sorted, paginated sample IDs suitable "
+            "for feeding into query_1000_genomes_variants(samples=...) or get_1000_genomes_sample_metadata."
+        ),
+        "name": "select_1000_genomes_samples_by_population",
+        "optional_parameters": [
+            {
+                "name": "population",
+                "type": "str",
+                "description": "Population code or full name (case-insensitive), e.g. 'YRI'.",
+                "default": None,
+            },
+            {
+                "name": "superpopulation",
+                "type": "str",
+                "description": "Superpopulation code or full name (case-insensitive), e.g. 'AFR'.",
+                "default": None,
+            },
+            {"name": "skip", "type": "int", "description": "Number of results to skip (>= 0).", "default": 0},
+            {"name": "limit", "type": "int", "description": "Max results to return (1..3202).", "default": 50},
+        ],
+        "required_parameters": [],
+    },
 ]
