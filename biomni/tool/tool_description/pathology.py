@@ -210,4 +210,66 @@ description = [
             }
         ],
     },
+    {
+        "description": "Predict spatial gene expression for a single H&E histology tile "
+        "with the DeepSpot-M foundation model, giving a virtual spatial "
+        "transcriptomics readout of the tissue without running a spatial "
+        "assay. The tile must be exactly 224x224 pixels, cut at roughly "
+        "20x magnification (~0.5 microns per pixel), and an explicit list "
+        "of HGNC gene symbols must be supplied. Returned values are "
+        "PREDICTED from tissue morphology and are never measured, so they "
+        "must not be reported as experimental measurements. Research use "
+        "only, not for clinical or diagnostic use. Requires the optional "
+        "`deepspotm` package and gated weights from "
+        "https://huggingface.co/ratschlab/DeepSpotM, both licensed for "
+        "non-commercial research only; the tool returns setup instructions "
+        "if they are unavailable.",
+        "name": "predict_spatial_gene_expression_from_histology",
+        "optional_parameters": [
+            {
+                "default": "scgpt",
+                "description": "Frozen biological gene embedding used to "
+                "build the gene queries: 'evo2', 'orthrus', "
+                "'prott5', 'scgpt' or 'apertus'",
+                "name": "gene_embedding_source",
+                "type": "str",
+            },
+            {
+                "default": "ratschlab/DeepSpotM",
+                "description": "Hugging Face repository holding the DeepSpot-M weights",
+                "name": "model_id",
+                "type": "str",
+            },
+            {
+                "default": "auto",
+                "description": "Torch device for inference. 'auto' uses CUDA when available",
+                "name": "device",
+                "type": "str",
+            },
+            {
+                "default": "./output",
+                "description": "Directory to save output files",
+                "name": "output_dir",
+                "type": "str",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Path to an H&E histology tile of exactly "
+                "224x224 pixels, cut at roughly 20x "
+                "magnification (~0.5 microns per pixel)",
+                "name": "image_path",
+                "type": "str",
+            },
+            {
+                "default": None,
+                "description": "Explicit list of HGNC gene symbols to "
+                "predict, e.g. ['EPCAM', 'CD3D', 'PTPRC']. "
+                "There is no default gene panel",
+                "name": "gene_symbols",
+                "type": "List[str]",
+            },
+        ],
+    },
 ]

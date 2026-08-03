@@ -1032,3 +1032,215 @@ def analyze_bone_microct_morphometry(input_file_path, output_dir="./results", th
     log.append(f"- Trabecular Number (Tb.N): {tb_n:.4f} 1/voxel")
 
     return "\n".join(log)
+
+
+def predict_spatial_gene_expression_from_histology(
+    image_path,
+    gene_symbols,
+    gene_embedding_source="scgpt",
+    model_id="ratschlab/DeepSpotM",
+    device="auto",
+    output_dir="./output",
+):
+    """Predict spatial gene expression for a single H&E histology tile with DeepSpot-M.
+
+    DeepSpot-M is a multimodal foundation model for transcriptome-wide virtual spatial
+    transcriptomics from histology (https://doi.org/10.64898/2026.06.19.26356060, posted
+    22 June 2026). It tokenises a 224x224 H&E tile with a LoRA-adapted pathology
+    foundation backbone (Midnight); a cross-attention gene decoder lets each gene query
+    attend to the patch tokens, and a gene router hypernetwork generates gene-specific
+    output projections from frozen biological embeddings (Evo 2, Orthrus, ProtT5, scGPT,
+    Apertus). Because genes are queryable embeddings rather than fixed output units, the
+    model spans the protein-coding transcriptome, including genes that were not seen
+    during training. Applied to TCGA it produced a virtual spatial transcriptomics atlas
+    of 28,664 slides across 32 cancer types.
+
+    IMPORTANT: the returned values are PREDICTED from tissue morphology, never measured.
+    They are not a substitute for a spatial transcriptomics assay and must not be
+    reported as experimental measurements. Research use only, not for clinical or
+    diagnostic use. DeepSpot-M code is licensed PolyForm Noncommercial 1.0.0 and its
+    weights CC-BY-NC-SA-4.0, i.e. non-commercial research use only.
+
+    This tool depends on the optional `deepspotm` package and on gated model weights.
+    Biomni installs and runs without them; if either is missing the tool returns a
+    message explaining how to enable it rather than raising.
+
+    Parameters
+    ----------
+    image_path : str
+        Path to a single H&E histology tile that is exactly 224x224 pixels, cut from the
+        slide at roughly 20x magnification (~0.5 microns per pixel). The physical scale
+        cannot be recovered from the image file, so a tile extracted at a different
+        magnification is silently out of distribution and degrades the predictions:
+        re-extract the tile at ~0.5 microns per pixel rather than resizing it.
+    gene_symbols : list[str]
+        Explicit list of HGNC gene symbols to predict, e.g. ["EPCAM", "CD3D", "PTPRC"].
+        Required: there is no default panel, so request only the genes relevant to the
+        question instead of the full protein-coding transcriptome.
+    gene_embedding_source : str, optional
+        Frozen biological embedding used by the gene router to build the gene queries.
+        One of "evo2", "orthrus", "prott5", "scgpt", "apertus" (default: "scgpt")
+    model_id : str, optional
+        Hugging Face repository holding the weights (default: "ratschlab/DeepSpotM")
+    device : str, optional
+        Torch device for inference: "auto" uses CUDA when available, otherwise pass an
+        explicit device such as "cpu" or "cuda" (default: "auto")
+    output_dir : str, optional
+        Directory to save output files (default: "./output")
+
+    Returns
+    -------
+    str
+        Research log summarizing the prediction steps, the predicted log1p-CPM value for
+        each requested gene, and the path of the saved CSV file
+
+    """
+    import csv
+    import os
+    from datetime import datetime
+
+    valid_sources = ("evo2", "orthrus", "prott5", "scgpt", "apertus")
+
+    # Step 0: validate the inputs before touching the model or the filesystem
+    if isinstance(gene_symbols, str):
+        gene_symbols = [gene_symbols]
+    if not isinstance(gene_symbols, (list, tuple)) or len(gene_symbols) == 0:
+        return (
+            "Error: `gene_symbols` must be a non-empty list of HGNC gene symbols, for example "
+            '["EPCAM", "CD3D", "PTPRC"]. There is no default gene panel: request only the genes '
+            "that are relevant to the question."
+        )
+    gene_symbols = [str(gene).strip() for gene in gene_symbols]
+    if any(not gene for gene in gene_symbols):
+        return "Error: `gene_symbols` contains an empty gene symbol."
+
+    if gene_embedding_source not in valid_sources:
+        return (
+            f"Error: `gene_embedding_source` must be one of {', '.join(valid_sources)}, got '{gene_embedding_source}'."
+        )
+
+    if not os.path.exists(image_path):
+        return f"Error: File {image_path} not found"
+
+    # Step 0b: optional dependencies are imported lazily so that Biomni stays installable
+    # and testable without DeepSpot-M and without network access.
+    try:
+        from deepspotm import DeepSpotM
+    except ImportError:
+        return (
+            "Error: the optional `deepspotm` package is not installed, so spatial gene expression "
+            "cannot be predicted from histology. To enable this tool:\n"
+            "  1. Install the package: pip install deepspotm\n"
+            "  2. Request access to the gated weights at https://huggingface.co/ratschlab/DeepSpotM\n"
+            "  3. Authenticate: huggingface-cli login\n"
+            "The code (PolyForm Noncommercial 1.0.0) and the weights (CC-BY-NC-SA-4.0) are licensed "
+            "for non-commercial research use only."
+        )
+
+    try:
+        import torch
+        from PIL import Image
+    except ImportError as import_error:
+        return f"Error: DeepSpot-M needs torch and pillow, but they could not be imported: {import_error}"
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    log = f"# Virtual Spatial Transcriptomics with DeepSpot-M - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+    log += f"Input tile: {image_path}\n"
+    log += f"Requested genes ({len(gene_symbols)}): {', '.join(gene_symbols)}\n\n"
+
+    # Step 1: load the tile and enforce the expected input geometry
+    log += "## Step 1: Tile Loading and Validation\n"
+    try:
+        tile_image = Image.open(image_path).convert("RGB")
+    except Exception as e:
+        return f"Error: Could not read image {image_path}: {e}"
+
+    width, height = tile_image.size
+    if (width, height) != (224, 224):
+        return (
+            f"Error: DeepSpot-M expects a tile of exactly 224x224 pixels, but {image_path} is "
+            f"{width}x{height} pixels. Tiles must be cut from the slide at roughly 20x magnification "
+            "(~0.5 microns per pixel). Do not resize a tile that was taken at another magnification: "
+            "the physical scale cannot be recovered from the image file and a mismatched scale "
+            "silently degrades the predictions. Re-extract the tile at ~0.5 microns per pixel instead."
+        )
+    log += "- Loaded H&E tile of 224x224 pixels (expected magnification ~20x, ~0.5 microns per pixel)\n\n"
+
+    # Step 2: load the gated weights
+    log += "## Step 2: Model Loading\n"
+    if device == "auto":
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    log += f"- Inference device: {device}\n"
+
+    try:
+        model, image_processor = DeepSpotM.from_pretrained(model_id, source=gene_embedding_source)
+    except Exception as e:
+        return (
+            f"Error: could not load the DeepSpot-M weights from '{model_id}' with gene embedding "
+            f"source '{gene_embedding_source}': {e}\n"
+            "These weights are gated: request access at https://huggingface.co/ratschlab/DeepSpotM "
+            "and then authenticate with `huggingface-cli login`."
+        )
+
+    if hasattr(model, "to"):
+        model = model.to(device)
+    if hasattr(model, "eval"):
+        model.eval()
+    log += f"- Loaded DeepSpot-M from '{model_id}' using the '{gene_embedding_source}' gene embeddings\n\n"
+
+    # Step 3: predict the requested genes
+    log += "## Step 3: Gene Expression Prediction\n"
+    try:
+        tile_tensor = image_processor(tile_image).unsqueeze(0).to(device)
+        with torch.no_grad():
+            predictions = model.predict_genes(tile_tensor, gene_symbols)
+    except Exception as e:
+        return f"Error during DeepSpot-M inference: {e}"
+
+    if hasattr(predictions, "detach"):
+        predictions = predictions.detach().cpu()
+    if hasattr(predictions, "tolist"):
+        predictions = predictions.tolist()
+    values = list(predictions)
+    # predict_genes returns one row per tile and this tool scores a single tile
+    if len(values) == 1 and isinstance(values[0], list):
+        values = values[0]
+
+    if len(values) != len(gene_symbols):
+        return (
+            f"Error: DeepSpot-M returned {len(values)} values for {len(gene_symbols)} requested gene "
+            "symbols. Check that every entry of `gene_symbols` is a valid HGNC gene symbol."
+        )
+    log += f"- Predicted log1p-CPM expression for {len(gene_symbols)} gene(s)\n\n"
+
+    # Step 4: report and persist the predictions
+    log += "## Step 4: Predicted Expression\n"
+    log += "| Gene | Predicted log1p-CPM |\n"
+    log += "| --- | --- |\n"
+    for gene, value in zip(gene_symbols, values, strict=True):
+        log += f"| {gene} | {float(value):.4f} |\n"
+
+    csv_filename = os.path.join(
+        output_dir,
+        f"deepspotm_predicted_expression_{os.path.splitext(os.path.basename(image_path))[0]}.csv",
+    )
+    with open(csv_filename, "w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["gene_symbol", "predicted_log1p_cpm"])
+        for gene, value in zip(gene_symbols, values, strict=True):
+            writer.writerow([gene, f"{float(value):.6f}"])
+    log += f"\nPredictions saved to: {csv_filename}\n\n"
+
+    log += "## Notes\n"
+    log += "- These values are PREDICTED from H&E morphology by DeepSpot-M, not measured by a spatial "
+    log += "transcriptomics assay, and must not be reported as experimental measurements.\n"
+    log += "- Units are log1p-CPM.\n"
+    log += "- Research use only, not for clinical or diagnostic use.\n"
+    log += "- DeepSpot-M code is licensed PolyForm Noncommercial 1.0.0 and its weights CC-BY-NC-SA-4.0, "
+    log += "i.e. non-commercial research use only.\n"
+    log += "- Reference: Nonchev K, Dawo S, Silina K, Koelzer VH, Raetsch G. DeepSpot-M: a multimodal "
+    log += "foundation model for transcriptome-wide virtual spatial transcriptomics from histology. "
+    log += "https://doi.org/10.64898/2026.06.19.26356060\n"
+
+    return log
