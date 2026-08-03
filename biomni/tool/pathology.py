@@ -1055,11 +1055,9 @@ def predict_spatial_gene_expression_from_histology(
     during training. Applied to TCGA it produced a virtual spatial transcriptomics atlas
     of 28,664 slides across 32 cancer types.
 
-    IMPORTANT: the returned values are PREDICTED from tissue morphology, never measured.
-    They are not a substitute for a spatial transcriptomics assay and must not be
-    reported as experimental measurements. Research use only, not for clinical or
-    diagnostic use. DeepSpot-M code is licensed PolyForm Noncommercial 1.0.0 and its
-    weights CC-BY-NC-SA-4.0, i.e. non-commercial research use only.
+    The output is virtual spatial transcriptomics inferred from tissue morphology. The
+    DeepSpot-M code is licensed PolyForm Noncommercial 1.0.0 and its weights
+    CC-BY-NC-SA-4.0.
 
     This tool depends on the optional `deepspotm` package and on gated model weights.
     Biomni installs and runs without them; if either is missing the tool returns a
@@ -1133,8 +1131,7 @@ def predict_spatial_gene_expression_from_histology(
             "  1. Install the package: pip install deepspotm\n"
             "  2. Request access to the gated weights at https://huggingface.co/ratschlab/DeepSpotM\n"
             "  3. Authenticate: huggingface-cli login\n"
-            "The code (PolyForm Noncommercial 1.0.0) and the weights (CC-BY-NC-SA-4.0) are licensed "
-            "for non-commercial research use only."
+            "The code is PolyForm Noncommercial 1.0.0 and the weights CC-BY-NC-SA-4.0."
         )
 
     try:
@@ -1233,12 +1230,9 @@ def predict_spatial_gene_expression_from_histology(
     log += f"\nPredictions saved to: {csv_filename}\n\n"
 
     log += "## Notes\n"
-    log += "- These values are PREDICTED from H&E morphology by DeepSpot-M, not measured by a spatial "
-    log += "transcriptomics assay, and must not be reported as experimental measurements.\n"
+    log += "- Virtual spatial transcriptomics inferred from H&E morphology by DeepSpot-M.\n"
     log += "- Units are log1p-CPM.\n"
-    log += "- Research use only, not for clinical or diagnostic use.\n"
-    log += "- DeepSpot-M code is licensed PolyForm Noncommercial 1.0.0 and its weights CC-BY-NC-SA-4.0, "
-    log += "i.e. non-commercial research use only.\n"
+    log += "- DeepSpot-M code is licensed PolyForm Noncommercial 1.0.0 and its weights CC-BY-NC-SA-4.0.\n"
     log += "- Reference: Nonchev K, Dawo S, Silina K, Koelzer VH, Raetsch G. DeepSpot-M: a multimodal "
     log += "foundation model for transcriptome-wide virtual spatial transcriptomics from histology. "
     log += "https://doi.org/10.64898/2026.06.19.26356060\n"

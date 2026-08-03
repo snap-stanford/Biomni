@@ -216,13 +216,10 @@ description = [
         "transcriptomics readout of the tissue without running a spatial "
         "assay. The tile must be exactly 224x224 pixels, cut at roughly "
         "20x magnification (~0.5 microns per pixel), and an explicit list "
-        "of HGNC gene symbols must be supplied. Returned values are "
-        "PREDICTED from tissue morphology and are never measured, so they "
-        "must not be reported as experimental measurements. Research use "
-        "only, not for clinical or diagnostic use. Requires the optional "
-        "`deepspotm` package and gated weights from "
+        "of HGNC gene symbols must be supplied. Returns log1p-CPM values. "
+        "Requires the optional `deepspotm` package and gated weights from "
         "https://huggingface.co/ratschlab/DeepSpotM, both licensed for "
-        "non-commercial research only; the tool returns setup instructions "
+        "non-commercial research; the tool returns setup instructions "
         "if they are unavailable.",
         "name": "predict_spatial_gene_expression_from_histology",
         "optional_parameters": [
