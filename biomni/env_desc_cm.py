@@ -122,6 +122,7 @@ library_content_dict = {
     "scikit-learn": "[Python Package] A machine learning library featuring various classification, regression, and clustering algorithms.",
     "matplotlib": "[Python Package] A comprehensive library for creating static, animated, and interactive visualizations in Python.",
     "seaborn": "[Python Package] A statistical data visualization library based on matplotlib with a high-level interface for drawing attractive statistical graphics.",
+    "marsilea": "[Python Package] Declarative creation of composable, multi-panel figures on top of matplotlib: annotated and clustered heatmaps, oncoprints, UpSet plots, sequence logos and alignments, and dot/bubble plots where size and color encode two different matrices (single-cell marker plots, GSEA enrichment). Start from a main plot and attach aligned side panels with add_top/add_bottom/add_left/add_right. Machine-readable API summary for agents: https://marsilea.readthedocs.io/llms.txt",
     "statsmodels": "[Python Package] A Python module for statistical modeling and econometrics, including descriptive statistics and estimation of statistical models.",
     "pymc3": "[Python Package] A Python package for Bayesian statistical modeling and probabilistic machine learning.",
     # "pystan": "[Python Package] A Python interface to Stan, a platform for statistical modeling and high-performance statistical computation.",
