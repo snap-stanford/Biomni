@@ -636,6 +636,27 @@ description = [
         ],
     },
     {
+        "description": "Convert gene symbols or short names to Ensembl gene IDs using the MyGene.info batch "
+        "query service. The tool preserves input order and duplicate symbols, returns every Ensembl ID for "
+        "multi-locus matches, and explicitly marks unresolved symbols.",
+        "name": "convert_gene_symbols_to_ensembl_ids",
+        "optional_parameters": [],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Gene symbols or short names to convert, for example ['BRCA1', 'TP53']",
+                "name": "gene_symbols",
+                "type": "list[str]",
+            },
+            {
+                "default": None,
+                "description": "Species name or NCBI taxonomy ID accepted by MyGene.info, such as human, mouse, 9606, or 10090",
+                "name": "species",
+                "type": "str",
+            },
+        ],
+    },
+    {
         "description": "Convert ENSEMBL gene IDs between different species using BioMart homology mapping. "
         "This function converts a list of ENSEMBL gene IDs from one species to their "
         "homologous counterparts in another species using the Ensembl BioMart database. "

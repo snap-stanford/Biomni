@@ -105,6 +105,123 @@ def unsupervised_celltype_transfer_between_scRNA_datasets(
     return "\n".join(steps)
 
 
+def convert_gene_symbols_to_ensembl_ids(gene_symbols: list[str], species: str) -> dict[str, object]:
+    """Convert gene symbols to Ensembl gene identifiers with MyGene.info.
+
+    The input order and duplicate symbols are preserved. A symbol may map to more
+    than one Ensembl identifier (for example, a primary locus and an alternate
+    scaffold), so every identifier returned by MyGene.info is included.
+
+    Parameters
+    ----------
+    gene_symbols : list[str]
+        Gene symbols or short names to convert, such as ``["BRCA1", "TP53"]``.
+    species : str
+        A species name or NCBI taxonomy identifier accepted by MyGene.info, such
+        as ``"human"``, ``"mouse"``, ``"9606"``, or ``"10090"``.
+
+    Returns
+    -------
+    dict[str, object]
+        A summary and one result per input symbol. Each result contains the
+        original query, matched symbols, all Ensembl gene IDs, taxonomy IDs, and
+        a ``resolved`` flag.
+
+    Raises
+    ------
+    ValueError
+        If the input list or species is invalid.
+    RuntimeError
+        If MyGene.info returns an unexpected response shape.
+
+    """
+    if not isinstance(gene_symbols, list) or not gene_symbols:
+        raise ValueError("gene_symbols must be a non-empty list of strings")
+    if not isinstance(species, str) or not species.strip():
+        raise ValueError("species must be a non-empty string")
+
+    cleaned_symbols = []
+    for index, symbol in enumerate(gene_symbols):
+        if not isinstance(symbol, str) or not symbol.strip():
+            raise ValueError(f"gene_symbols[{index}] must be a non-empty string")
+        cleaned_symbol = symbol.strip()
+        if "," in cleaned_symbol:
+            raise ValueError(f"gene_symbols[{index}] must not contain a comma")
+        cleaned_symbols.append(cleaned_symbol)
+
+    species = species.strip()
+    unique_symbols = list(dict.fromkeys(cleaned_symbols))
+    matches_by_query: dict[str, dict[str, list[object]]] = {}
+
+    for start in range(0, len(unique_symbols), 1000):
+        batch = unique_symbols[start : start + 1000]
+        response = requests.post(
+            "https://mygene.info/v3/query",
+            data={
+                "q": ",".join(batch),
+                "scopes": "symbol",
+                "fields": "ensembl.gene,symbol,taxid",
+                "species": species,
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, list):
+            raise RuntimeError("MyGene.info returned an unexpected response; expected a list")
+
+        for hit in payload:
+            if not isinstance(hit, dict) or not isinstance(hit.get("query"), str):
+                continue
+
+            query_matches = matches_by_query.setdefault(
+                hit["query"],
+                {"matched_symbols": [], "ensembl_ids": [], "taxids": []},
+            )
+
+            matched_symbol = hit.get("symbol")
+            if isinstance(matched_symbol, str) and matched_symbol not in query_matches["matched_symbols"]:
+                query_matches["matched_symbols"].append(matched_symbol)
+
+            taxid = hit.get("taxid")
+            if taxid is not None and taxid not in query_matches["taxids"]:
+                query_matches["taxids"].append(taxid)
+
+            ensembl = hit.get("ensembl")
+            ensembl_records = ensembl if isinstance(ensembl, list) else [ensembl]
+            for record in ensembl_records:
+                if isinstance(record, dict):
+                    identifiers = record.get("gene")
+                else:
+                    identifiers = record
+                identifiers = identifiers if isinstance(identifiers, list) else [identifiers]
+                for identifier in identifiers:
+                    if isinstance(identifier, str) and identifier not in query_matches["ensembl_ids"]:
+                        query_matches["ensembl_ids"].append(identifier)
+
+    results = []
+    for query in cleaned_symbols:
+        matches = matches_by_query.get(query, {"matched_symbols": [], "ensembl_ids": [], "taxids": []})
+        ensembl_ids = list(matches["ensembl_ids"])
+        results.append(
+            {
+                "query": query,
+                "matched_symbols": list(matches["matched_symbols"]),
+                "ensembl_ids": ensembl_ids,
+                "taxids": list(matches["taxids"]),
+                "resolved": bool(ensembl_ids),
+            }
+        )
+
+    resolved_count = sum(result["resolved"] for result in results)
+    return {
+        "species": species,
+        "resolved_count": resolved_count,
+        "unresolved_count": len(results) - resolved_count,
+        "results": results,
+    }
+
+
 def interspecies_gene_conversion(
     gene_list: list[str],
     source_species: str,
