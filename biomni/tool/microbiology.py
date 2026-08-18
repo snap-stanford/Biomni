@@ -1112,152 +1112,188 @@ Output files:
 
 def segment_cells_with_deep_learning(
     image_path,
-    model_type="bact_fluor_omni",
+    model_type="cpsam",
     diameter=None,
     save_dir="segmentation_results",
+    use_gpu=False,
+    channel_axis=None,
+    flow_threshold=0.4,
+    cellprob_threshold=0.0,
+    min_size=15,
 ):
-    """Perform cell segmentation on fluorescence microscopy images using deep learning.
-
-    Uses pre-trained models from the Cellpose/Omnipose library to identify and segment
-    individual cells in fluorescence microscopy images.
+    """Segment cells in a 2D microscopy image with Cellpose 4.
 
     Parameters
     ----------
     image_path : str
-        Path to the fluorescence microscopy image file
+        Path to a 2D grayscale or multichannel microscopy image.
     model_type : str, optional
-        Name of the pre-trained model to use (default: 'bact_fluor_omni')
-        Options include: 'bact_fluor_omni', 'cyto', 'nuclei', etc.
+        Cellpose 4 pretrained model name or model-file path. The built-in model
+        is cpsam.
     diameter : float, optional
-        Expected diameter of cells in pixels. If None, diameter is automatically estimated.
+        Cell diameter in pixels used to rescale the image. None keeps the
+        image at its native scale.
     save_dir : str, optional
-        Directory to save segmentation results (default: 'segmentation_results')
+        Directory for the label mask and boundary-overlay image.
+    use_gpu : bool, optional
+        Request a CUDA or MPS device through Cellpose.
+    channel_axis : int, optional
+        Channel axis for a multichannel image. It is inferred for common HWC
+        and CHW inputs when omitted.
+    flow_threshold : float, optional
+        Maximum flow error for retaining masks.
+    cellprob_threshold : float, optional
+        Cell-probability threshold used to create masks.
+    min_size : int, optional
+        Minimum mask size in pixels.
 
     Returns
     -------
     str
-        Research log detailing the segmentation process and results
+        Research log with segmentation settings, counts, statistics, and paths.
 
     """
     import os
     from datetime import datetime
+    from pathlib import Path
 
     import matplotlib.pyplot as plt
     import numpy as np
     from cellpose import models
     from skimage import io
+    from skimage.segmentation import find_boundaries
 
-    # Create output directory if it doesn't exist
     os.makedirs(save_dir, exist_ok=True)
 
-    # Start research log
     log = "# Cell Segmentation Research Log\n"
     log += f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-
-    # Load the image
     log += "## Loading Image\n"
     log += f"Image path: {image_path}\n"
 
     try:
-        img = io.imread(image_path)
-        log += f"Image loaded successfully. Shape: {img.shape}\n\n"
-    except Exception as e:
-        log += f"Error loading image: {str(e)}\n"
-        return log
+        image = io.imread(image_path)
+    except Exception as error:
+        return log + f"Error loading image: {error}\n"
 
-    # Prepare image for model
-    if len(img.shape) > 2 and img.shape[2] > 1:
-        # If RGB, convert to grayscale for single channel
-        img_model = img[:, :, 0] if img.shape[2] >= 3 else img
-        log += "Using first channel of multi-channel image for segmentation.\n\n"
-    else:
-        img_model = img
+    if image.ndim not in (2, 3):
+        return log + f"Error loading image: expected a 2D image with optional channels, got shape {image.shape}.\n"
 
-    # Initialize model
-    log += "## Initializing Model\n"
-    log += f"Model type: {model_type}\n"
-
-    try:
-        model = models.CellposeModel(model_type=model_type, gpu=False)
-        log += "Model initialized successfully.\n\n"
-    except Exception as e:
-        log += f"Error initializing model: {str(e)}\n"
-        return log
-
-    # Run segmentation
-    log += "## Performing Segmentation\n"
-
-    try:
-        channels = [0, 0]  # First channel for cell detection, no second channel
-
-        log += "Estimated cell diameter: "
-        if diameter is None:
-            log += "Auto-estimating\n"
+    resolved_channel_axis = channel_axis
+    if image.ndim == 2 and resolved_channel_axis is not None:
+        return log + "Error loading image: channel_axis must be None for a 2D grayscale image.\n"
+    if image.ndim == 3 and resolved_channel_axis is None:
+        if image.shape[-1] <= 4:
+            resolved_channel_axis = -1
+        elif image.shape[0] <= 4:
+            resolved_channel_axis = 0
         else:
-            log += f"{diameter} pixels\n"
+            return (
+                log + "Error loading image: cannot infer a channel axis. "
+                "Pass channel_axis for multichannel input; 3D volume segmentation is not supported.\n"
+            )
+    if resolved_channel_axis is not None and not -image.ndim <= resolved_channel_axis < image.ndim:
+        return log + f"Error loading image: channel_axis {resolved_channel_axis} is invalid for shape {image.shape}.\n"
 
-        # Adjust the unpacking based on the expected return values
-        results = model.eval(
-            img_model,
-            diameter=diameter,
-            channels=channels,
-            flow_threshold=0.4,
-            do_3D=False,
+    log += f"Image loaded successfully. Shape: {image.shape}\n"
+    log += f"Channel axis: {resolved_channel_axis}\n\n"
+
+    pretrained_model = os.fspath(model_type)
+    available_models = set(getattr(models, "MODEL_NAMES", []))
+    get_user_models = getattr(models, "get_user_models", None)
+    if callable(get_user_models):
+        available_models.update(get_user_models())
+    if not os.path.isfile(pretrained_model) and pretrained_model not in available_models:
+        available = ", ".join(sorted(available_models)) or "none"
+        return log + (
+            f"Error initializing model: unknown model {pretrained_model!r}. "
+            f"Available Cellpose models: {available}; a model-file path is also accepted.\n"
         )
 
-        # Check the number of returned values
-        if len(results) == 3:
-            masks, flows, diams = results  # Adjusted for 3 return values
-            styles = None  # If styles are not returned, set to None
-        elif len(results) == 4:
-            masks, flows, styles, diams = results  # Original unpacking
+    log += "## Initializing Model\n"
+    log += f"Pretrained model: {pretrained_model}\n"
+    log += f"GPU requested: {use_gpu}\n"
+    try:
+        model = models.CellposeModel(pretrained_model=pretrained_model, gpu=use_gpu)
+    except Exception as error:
+        return log + f"Error initializing model: {error}\n"
+    log += "Model initialized successfully.\n\n"
+
+    log += "## Performing Segmentation\n"
+    if diameter is None:
+        log += "Diameter: native image scale (no rescaling)\n"
+    else:
+        log += f"Diameter: {diameter} pixels\n"
+    log += f"Flow threshold: {flow_threshold}\n"
+    log += f"Cell-probability threshold: {cellprob_threshold}\n"
+    log += f"Minimum mask size: {min_size} pixels\n"
+
+    try:
+        results = model.eval(
+            image,
+            diameter=diameter,
+            channel_axis=resolved_channel_axis,
+            flow_threshold=flow_threshold,
+            cellprob_threshold=cellprob_threshold,
+            min_size=min_size,
+            do_3D=False,
+        )
+        if not isinstance(results, tuple) or len(results) != 3:
+            length = len(results) if hasattr(results, "__len__") else "unknown"
+            raise ValueError(f"Cellpose 4 model.eval() must return 3 values, got {length}")
+        masks, _flows, _styles = results
+        masks = np.asarray(masks)
+        if resolved_channel_axis is None:
+            expected_shape = image.shape
         else:
-            raise ValueError(f"Unexpected number of return values from model.eval(): {len(results)}")
+            normalized_axis = resolved_channel_axis % image.ndim
+            expected_shape = tuple(size for axis, size in enumerate(image.shape) if axis != normalized_axis)
+        if masks.ndim != 2 or tuple(masks.shape) != tuple(expected_shape):
+            raise ValueError(f"mask shape {masks.shape} does not match image plane {tuple(expected_shape)}")
+    except Exception as error:
+        return log + f"Error during segmentation: {error}\n"
 
-        if diameter is None:
-            log += f"Auto-estimated cell diameter: {diams[0]:.2f} pixels\n"
+    labels = np.unique(masks)
+    labels = labels[labels != 0]
+    cell_count = len(labels)
+    log += f"Segmentation complete. Detected {cell_count} cells.\n\n"
 
-        cell_count = len(np.unique(masks)) - 1  # Subtract 1 for background
-        log += f"Segmentation complete. Detected {cell_count} cells.\n\n"
-    except Exception as e:
-        log += f"Error during segmentation: {str(e)}\n"
-        return log
+    stem = Path(image_path).stem
+    mask_file = os.path.join(save_dir, f"{stem}_masks.tif")
+    outline_file = os.path.join(save_dir, f"{stem}_outlines.png")
 
-    # Save results
     log += "## Saving Results\n"
+    try:
+        io.imsave(mask_file, masks.astype(np.uint32), check_contrast=False)
 
-    # Save mask image
-    mask_file = os.path.join(save_dir, f"masks_{os.path.basename(image_path)}")
-    io.imsave(mask_file, masks.astype(np.uint16))
+        display_image = image
+        if resolved_channel_axis is not None:
+            display_image = np.moveaxis(image, resolved_channel_axis, -1)
+            if display_image.shape[-1] == 1:
+                display_image = display_image[..., 0]
+            elif display_image.shape[-1] > 3:
+                display_image = display_image[..., :3]
+
+        boundaries = find_boundaries(masks, mode="outer")
+        overlay = np.zeros((*masks.shape, 4), dtype=float)
+        overlay[boundaries] = (1.0, 0.0, 0.0, 1.0)
+
+        figure, axis = plt.subplots(figsize=(10, 8))
+        axis.imshow(display_image, cmap="gray" if display_image.ndim == 2 else None)
+        axis.imshow(overlay, interpolation="none")
+        axis.axis("off")
+        figure.savefig(outline_file, bbox_inches="tight", pad_inches=0)
+        plt.close(figure)
+    except Exception as error:
+        return log + f"Error saving segmentation results: {error}\n"
+
     log += f"Cell masks saved to: {mask_file}\n"
-
-    # Create and save outlines image
-    plt.figure(figsize=(10, 8))
-    plt.imshow(img_model, cmap="gray")
-
-    # Generate outlines from masks
-    from skimage.segmentation import find_boundaries
-
-    find_boundaries(masks, mode="outer")
-    plt.contour(masks, levels=np.unique(masks), colors="r", linewidths=0.5)
-
-    outline_file = os.path.join(save_dir, f"outlines_{os.path.basename(image_path)}")
-    plt.axis("off")
-    plt.savefig(outline_file, bbox_inches="tight", pad_inches=0)
-    plt.close()
-    log += f"Cell outlines overlaid on original image saved to: {outline_file}\n\n"
-
-    # Final statistics
+    log += f"Cell outlines saved to: {outline_file}\n\n"
     log += "## Segmentation Statistics\n"
     log += f"Total cells detected: {cell_count}\n"
-
-    # Calculate additional metrics
-    if cell_count > 0:
-        cell_areas = [np.sum(masks == i) for i in range(1, cell_count + 1)]
-        avg_cell_area = np.mean(cell_areas)
-        std_cell_area = np.std(cell_areas)
-        log += f"Average cell area: {avg_cell_area:.2f} pixels\n"
-        log += f"Standard deviation of cell area: {std_cell_area:.2f} pixels\n"
+    if cell_count:
+        cell_areas = [np.count_nonzero(masks == label) for label in labels]
+        log += f"Average cell area: {np.mean(cell_areas):.2f} pixels\n"
+        log += f"Standard deviation of cell area: {np.std(cell_areas):.2f} pixels\n"
 
     return log
 
