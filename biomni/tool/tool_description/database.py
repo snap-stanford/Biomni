@@ -21,6 +21,56 @@ description = [
         ],
     },
     {
+        "description": "Retrieve source-linked protein glycosylation sites or glycan structures and associations from the public GlyGen API.",
+        "name": "query_glygen",
+        "optional_parameters": [
+            {
+                "name": "record_type",
+                "type": "str",
+                "description": "Record type: 'auto', 'protein'/'uniprot', or 'glycan'/'glytoucan'",
+                "default": "auto",
+            },
+            {
+                "name": "glycosylation_type",
+                "type": "str",
+                "description": "Optional protein-site type filter, such as 'N-linked' or 'O-linked'",
+                "default": None,
+            },
+            {
+                "name": "max_results",
+                "type": "int",
+                "description": "Maximum site associations or related records per section (1-50)",
+                "default": 10,
+            },
+            {
+                "name": "max_evidence",
+                "type": "int",
+                "description": "Maximum source links per association (0-10)",
+                "default": 3,
+            },
+            {
+                "name": "include_sequence",
+                "type": "bool",
+                "description": "Include the full protein sequence",
+                "default": False,
+            },
+            {
+                "name": "timeout",
+                "type": "int|float",
+                "description": "GlyGen API timeout in seconds (1-120)",
+                "default": 30,
+            },
+        ],
+        "required_parameters": [
+            {
+                "name": "identifier",
+                "type": "str",
+                "description": "UniProt accession (protein) or GlyTouCan accession (glycan)",
+                "default": None,
+            }
+        ],
+    },
+    {
         "description": "Query the AlphaFold Database API for protein structure predictions or metadata; optionally download structures.",
         "name": "query_alphafold",
         "optional_parameters": [
