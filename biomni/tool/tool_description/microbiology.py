@@ -302,23 +302,19 @@ description = [
         ],
     },
     {
-        "description": "Perform cell segmentation on fluorescence microscopy images "
-        "using deep learning with pre-trained models from the "
-        "Cellpose/Omnipose library.",
+        "description": "Segment 2D grayscale or multichannel microscopy images "
+        "with Cellpose 4 and report cell morphology statistics.",
         "name": "segment_cells_with_deep_learning",
         "optional_parameters": [
             {
-                "default": "bact_fluor_omni",
-                "description": "Name of the pre-trained model to "
-                "use (Options include: "
-                "'bact_fluor_omni', 'cyto', "
-                "'nuclei', etc.)",
+                "default": "cpsam",
+                "description": "Cellpose 4 pre-trained model name or path to a model file",
                 "name": "model_type",
                 "type": "str",
             },
             {
                 "default": None,
-                "description": "Expected diameter of cells in pixels. If None, diameter is automatically estimated",
+                "description": "Cell diameter in pixels for image rescaling. None keeps the native image scale",
                 "name": "diameter",
                 "type": "float",
             },
@@ -327,6 +323,36 @@ description = [
                 "description": "Directory to save segmentation results",
                 "name": "save_dir",
                 "type": "str",
+            },
+            {
+                "default": False,
+                "description": "Request a CUDA or MPS device through Cellpose",
+                "name": "use_gpu",
+                "type": "bool",
+            },
+            {
+                "default": None,
+                "description": "Channel axis for multichannel input; inferred for common HWC and CHW images",
+                "name": "channel_axis",
+                "type": "int",
+            },
+            {
+                "default": 0.4,
+                "description": "Maximum flow error for retaining masks",
+                "name": "flow_threshold",
+                "type": "float",
+            },
+            {
+                "default": 0.0,
+                "description": "Cell-probability threshold used to create masks",
+                "name": "cellprob_threshold",
+                "type": "float",
+            },
+            {
+                "default": 15,
+                "description": "Minimum mask size in pixels",
+                "name": "min_size",
+                "type": "int",
             },
         ],
         "required_parameters": [
