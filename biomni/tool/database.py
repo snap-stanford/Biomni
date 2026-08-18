@@ -1,6 +1,7 @@
 import json
 import os
 import pickle
+import re
 import time
 from typing import Any
 
@@ -539,6 +540,336 @@ def query_uniprot(
     api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
 
     return api_result
+
+
+def _format_glygen_evidence(evidence, limit):
+    if limit == 0:
+        return []
+    formatted = []
+    seen = set()
+    for item in evidence if isinstance(evidence, list) else []:
+        if not isinstance(item, dict):
+            continue
+        record = {
+            "database": item.get("database") or item.get("type"),
+            "id": item.get("id"),
+            "url": item.get("url"),
+        }
+        if not any(record.values()):
+            continue
+        key = tuple(record.values())
+        if key in seen:
+            continue
+        seen.add(key)
+        formatted.append(record)
+        if len(formatted) == limit:
+            break
+    return formatted
+
+
+def _query_glygen_api(record_type, identifier, timeout):
+    endpoint = f"https://api.glygen.org/{record_type}/detail/{identifier}/"
+    try:
+        response = requests.post(
+            endpoint,
+            json={},
+            headers={"Accept": "application/json", "Content-Type": "application/json"},
+            timeout=timeout,
+        )
+        response.raise_for_status()
+        result = response.json()
+    except requests.RequestException as error:
+        return None, {"error": f"GlyGen API request failed: {error}", "endpoint": endpoint}
+    except ValueError as error:
+        return None, {"error": f"GlyGen returned invalid JSON: {error}", "endpoint": endpoint}
+
+    if not isinstance(result, dict):
+        return None, {"error": "GlyGen returned an unexpected response", "endpoint": endpoint}
+    if result.get("error"):
+        return None, {"error": f"GlyGen API error: {result['error']}", "endpoint": endpoint}
+    return result, None
+
+
+def query_glygen(
+    identifier,
+    record_type="auto",
+    glycosylation_type=None,
+    max_results=10,
+    max_evidence=3,
+    include_sequence=False,
+    timeout=30,
+):
+    """Retrieve source-linked glycoprotein or glycan records from GlyGen.
+
+    Parameters
+    ----------
+    identifier (str): UniProt accession for a protein record or GlyTouCan accession for a glycan record.
+    record_type (str): ``auto``, ``protein``/``uniprot``, or ``glycan``/``glytoucan``.
+    glycosylation_type (str, optional): Protein-site filter such as ``N-linked`` or ``O-linked``.
+    max_results (int): Maximum site associations or related records returned per section (1-50).
+    max_evidence (int): Maximum source links retained for each association (0-10).
+    include_sequence (bool): Include the full protein sequence instead of only its length.
+    timeout (int or float): HTTP timeout in seconds (1-120).
+
+    Returns
+    -------
+    dict: A normalized GlyGen record with evidence links and truncation metadata.
+
+    """
+    if not isinstance(identifier, str) or not identifier.strip():
+        return {"error": "identifier must be a non-empty string"}
+    if not isinstance(record_type, str):
+        return {"error": "record_type must be 'auto', 'protein', or 'glycan'"}
+
+    type_aliases = {
+        "protein": "protein",
+        "uniprot": "protein",
+        "glycan": "glycan",
+        "glytoucan": "glycan",
+    }
+    normalized_id = identifier.strip().upper()
+    requested_type = record_type.strip().lower()
+    if requested_type == "auto":
+        normalized_type = "glycan" if re.fullmatch(r"G[A-Z0-9]{7}", normalized_id) else "protein"
+    else:
+        normalized_type = type_aliases.get(requested_type)
+    if normalized_type is None:
+        return {"error": "record_type must be 'auto', 'protein'/'uniprot', or 'glycan'/'glytoucan'"}
+
+    if normalized_type == "protein" and not re.fullmatch(r"[A-Z0-9]{6,10}(?:-[0-9]+)?", normalized_id):
+        return {"error": "identifier must be a valid-looking UniProt accession"}
+    if normalized_type == "glycan" and not re.fullmatch(r"G[A-Z0-9]{7}", normalized_id):
+        return {"error": "identifier must be an 8-character GlyTouCan accession beginning with G"}
+    if isinstance(max_results, bool) or not isinstance(max_results, int) or not 1 <= max_results <= 50:
+        return {"error": "max_results must be an integer from 1 to 50"}
+    if isinstance(max_evidence, bool) or not isinstance(max_evidence, int) or not 0 <= max_evidence <= 10:
+        return {"error": "max_evidence must be an integer from 0 to 10"}
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not 1 <= timeout <= 120:
+        return {"error": "timeout must be a number from 1 to 120 seconds"}
+    if not isinstance(include_sequence, bool):
+        return {"error": "include_sequence must be a boolean"}
+
+    normalized_glycosylation_type = None
+    if glycosylation_type is not None:
+        if normalized_type != "protein":
+            return {"error": "glycosylation_type can only be used with protein records"}
+        if not isinstance(glycosylation_type, str) or not glycosylation_type.strip():
+            return {"error": "glycosylation_type must be a non-empty string when provided"}
+        normalized_glycosylation_type = glycosylation_type.strip()
+
+    raw, error = _query_glygen_api(normalized_type, normalized_id, timeout)
+    if error:
+        return error
+
+    source = {
+        "name": "GlyGen",
+        "api_url": f"https://api.glygen.org/{normalized_type}/detail/{normalized_id}/",
+        "record_url": f"https://glygen.org/{normalized_type}/{normalized_id}",
+    }
+    query = {
+        "identifier": normalized_id,
+        "record_type": normalized_type,
+        "glycosylation_type": normalized_glycosylation_type,
+    }
+
+    if normalized_type == "protein":
+        protein_names = raw.get("protein_names", [])
+        recommended_name = next(
+            (
+                item.get("name")
+                for item in protein_names
+                if isinstance(item, dict) and item.get("type") == "recommended"
+            ),
+            None,
+        )
+        if recommended_name is None:
+            recommended_name = next(
+                (item.get("name") for item in protein_names if isinstance(item, dict) and item.get("name")),
+                None,
+            )
+
+        gene_names = []
+        for item in raw.get("gene_names", []):
+            name = item.get("name") if isinstance(item, dict) else None
+            if name and name not in gene_names:
+                gene_names.append(name)
+
+        species = raw.get("species", [])
+        species_record = species[0] if species and isinstance(species[0], dict) else {}
+        sequence_record = raw.get("sequence", {})
+        if not isinstance(sequence_record, dict):
+            sequence_record = {}
+        sequence = sequence_record.get("sequence", "")
+
+        associations = [item for item in raw.get("glycosylation", []) if isinstance(item, dict)]
+        if normalized_glycosylation_type:
+            requested_glycosylation_type = normalized_glycosylation_type.casefold()
+            associations = [
+                item for item in associations if str(item.get("type", "")).casefold() == requested_glycosylation_type
+            ]
+
+        returned_sites = []
+        for item in associations[:max_results]:
+            evidence = item.get("evidence", [])
+            glytoucan_ac = item.get("glytoucan_ac")
+            returned_sites.append(
+                {
+                    "position": item.get("start_pos"),
+                    "end_position": item.get("end_pos"),
+                    "residue": item.get("residue") or item.get("start_aa"),
+                    "site_label": item.get("site_lbl"),
+                    "site_sequence": item.get("site_seq"),
+                    "type": item.get("type"),
+                    "subtype": item.get("subtype"),
+                    "site_category": item.get("site_category"),
+                    "glytoucan_ac": glytoucan_ac,
+                    "glycan_url": f"https://glygen.org/glycan/{glytoucan_ac}" if glytoucan_ac else None,
+                    "comment": item.get("comment"),
+                    "evidence_count": len(evidence) if isinstance(evidence, list) else 0,
+                    "evidence": _format_glygen_evidence(evidence, max_evidence),
+                }
+            )
+
+        result = {
+            "success": True,
+            "source": source,
+            "query": query,
+            "protein": {
+                "requested_uniprot_accession": normalized_id,
+                "canonical_uniprot_accession": raw.get("uniprot", {}).get("uniprot_canonical_ac")
+                if isinstance(raw.get("uniprot"), dict)
+                else None,
+                "recommended_name": recommended_name,
+                "gene_names": gene_names[:10],
+                "species": {"name": species_record.get("name"), "taxid": species_record.get("taxid")},
+                "mass": raw.get("mass"),
+                "sequence_length": sequence_record.get("length") or len(sequence),
+            },
+            "matching_glycosylation_associations": len(associations),
+            "unique_matching_sites": len(
+                {(item.get("type"), item.get("start_pos"), item.get("end_pos")) for item in associations}
+            ),
+            "returned_associations": len(returned_sites),
+            "glycosylation_sites": returned_sites,
+            "notes": [
+                "GlyGen integrates records from multiple databases; follow each evidence link for provenance.",
+                "Reported site associations are evidence records, not predictions or treatment recommendations.",
+            ],
+        }
+        if include_sequence:
+            result["protein"]["sequence"] = sequence
+        if len(associations) > max_results:
+            result["notes"].append(
+                f"Returned the first {max_results} of {len(associations)} matching glycosylation associations."
+            )
+        return result
+
+    def related_records(items, fields):
+        records = []
+        for item in items[:max_results] if isinstance(items, list) else []:
+            if not isinstance(item, dict):
+                continue
+            record = {output_name: item.get(source_name) for output_name, source_name in fields.items()}
+            evidence = item.get("evidence", [])
+            record["evidence_count"] = len(evidence) if isinstance(evidence, list) else 0
+            record["evidence"] = _format_glygen_evidence(evidence, max_evidence)
+            records.append(record)
+        return records
+
+    species = raw.get("species", [])
+    glycoproteins = raw.get("glycoprotein", [])
+    enzymes = raw.get("enzyme", [])
+    publications = raw.get("publication", [])
+    result = {
+        "success": True,
+        "source": source,
+        "query": query,
+        "glycan": {
+            "glytoucan_ac": raw.get("glytoucan", {}).get("glytoucan_ac")
+            if isinstance(raw.get("glytoucan"), dict)
+            else normalized_id,
+            "glytoucan_url": raw.get("glytoucan", {}).get("glytoucan_url")
+            if isinstance(raw.get("glytoucan"), dict)
+            else None,
+            "mass": raw.get("mass"),
+            "number_monosaccharides": raw.get("number_monosaccharides"),
+            "glycan_type": raw.get("glycan_type"),
+            "iupac": raw.get("iupac"),
+            "iupac_condensed": raw.get("iupac_condensed"),
+            "wurcs": raw.get("wurcs"),
+            "composition": raw.get("composition", []),
+            "classification": [
+                {
+                    "type": item.get("type", {}).get("name") if isinstance(item.get("type"), dict) else None,
+                    "subtype": item.get("subtype", {}).get("name") if isinstance(item.get("subtype"), dict) else None,
+                }
+                for item in raw.get("classification", [])
+                if isinstance(item, dict)
+            ],
+        },
+        "counts": {
+            "species": len(species) if isinstance(species, list) else 0,
+            "glycoproteins": len(glycoproteins) if isinstance(glycoproteins, list) else 0,
+            "enzymes": len(enzymes) if isinstance(enzymes, list) else 0,
+            "publications": len(publications) if isinstance(publications, list) else 0,
+        },
+        "species": related_records(
+            species,
+            {"name": "name", "common_name": "common_name", "taxid": "taxid"},
+        ),
+        "glycoproteins": related_records(
+            glycoproteins,
+            {
+                "uniprot_accession": "uniprot_canonical_ac",
+                "protein_name": "protein_name",
+                "gene_name": "gene_name",
+                "position": "start_pos",
+                "residue": "residue",
+                "taxid": "tax_id",
+                "species": "tax_name",
+            },
+        ),
+        "enzymes": related_records(
+            enzymes,
+            {
+                "uniprot_accession": "uniprot_canonical_ac",
+                "protein_name": "protein_name",
+                "gene_name": "gene",
+                "taxid": "tax_id",
+                "species": "tax_name",
+            },
+        ),
+        "publications": [
+            {
+                "title": item.get("title"),
+                "journal": item.get("journal"),
+                "date": item.get("date"),
+                "authors": item.get("authors"),
+                "references": _format_glygen_evidence(item.get("reference", []), max_evidence),
+            }
+            for item in publications[:max_results]
+            if isinstance(item, dict)
+        ],
+        "notes": [
+            "GlyGen integrates records from multiple databases; follow each evidence link for provenance.",
+            "Associations are source records, not predictions or treatment recommendations.",
+        ],
+    }
+    truncated_sections = [
+        name
+        for name, items in (
+            ("species", species),
+            ("glycoproteins", glycoproteins),
+            ("enzymes", enzymes),
+            ("publications", publications),
+        )
+        if isinstance(items, list) and len(items) > max_results
+    ]
+    if truncated_sections:
+        result["notes"].append(
+            f"Returned at most {max_results} records in truncated sections: {', '.join(truncated_sections)}."
+        )
+    return result
 
 
 def query_alphafold(
