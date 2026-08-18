@@ -109,6 +109,10 @@ BIOMNI_CUSTOM_BASE_URL=http://localhost:8000/v1
 BIOMNI_CUSTOM_API_KEY=custom_key
 ```
 
+For backward compatibility, `LLM_SOURCE`, `CUSTOM_MODEL_BASE_URL`, and
+`CUSTOM_MODEL_API_KEY` are accepted as aliases. The canonical `BIOMNI_*`
+spelling takes precedence when both forms are present.
+
 ### Python Configuration
 
 ```python
