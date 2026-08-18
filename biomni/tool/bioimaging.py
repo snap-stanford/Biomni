@@ -955,6 +955,166 @@ class ImageRegistrationTool:
         logger.info("Similarity metrics calculated")
         return metrics
 
+    def create_registration_visualization(
+        self,
+        fixed_image: sitk.Image,
+        moving_image: sitk.Image,
+        registered_image: sitk.Image,
+        output_dir: str,
+        prefix: str = "registration",
+    ) -> dict[str, object]:
+        """Create comparison, difference, overlay, and metric plots for a registration.
+
+        Moving and registered images are resampled onto the fixed image's physical
+        grid with an identity transform before comparison. This makes the plots and
+        metrics well-defined even when the input images have different sizes,
+        origins, spacings, or directions.
+
+        Args:
+            fixed_image: Reference image defining the comparison grid.
+            moving_image: Original image before registration.
+            registered_image: Registered image in the fixed image's physical space.
+            output_dir: Directory in which to save PNG files.
+            prefix: Filename prefix for the generated plots.
+
+        Returns:
+            Dictionary containing four output paths and before/after metrics.
+
+        """
+        import matplotlib.pyplot as plt
+
+        images = {
+            "fixed_image": fixed_image,
+            "moving_image": moving_image,
+            "registered_image": registered_image,
+        }
+        dimensions = {name: image.GetDimension() for name, image in images.items()}
+        if dimensions["fixed_image"] not in (2, 3):
+            raise ValueError("Registration visualization supports only 2D or 3D images")
+        if len(set(dimensions.values())) != 1:
+            raise ValueError(f"All registration images must have the same dimension; got {dimensions}")
+        for name, image in images.items():
+            if image.GetNumberOfComponentsPerPixel() != 1:
+                raise ValueError(f"{name} must be a scalar image")
+
+        if not isinstance(prefix, str) or not prefix.strip():
+            raise ValueError("prefix must be a non-empty string")
+        if prefix in {".", ".."} or "/" in prefix or "\\" in prefix:
+            raise ValueError("prefix must be a filename prefix without path separators")
+
+        os.makedirs(output_dir, exist_ok=True)
+        fixed_on_reference = sitk.Cast(fixed_image, sitk.sitkFloat32)
+
+        def resample_to_fixed_grid(image: sitk.Image) -> sitk.Image:
+            resampler = sitk.ResampleImageFilter()
+            resampler.SetReferenceImage(fixed_on_reference)
+            resampler.SetTransform(sitk.Transform(fixed_on_reference.GetDimension(), sitk.sitkIdentity))
+            resampler.SetInterpolator(sitk.sitkLinear)
+            resampler.SetDefaultPixelValue(0.0)
+            resampler.SetOutputPixelType(sitk.sitkFloat32)
+            return resampler.Execute(image)
+
+        moving_on_reference = resample_to_fixed_grid(moving_image)
+        registered_on_reference = resample_to_fixed_grid(registered_image)
+
+        def central_slice(image: sitk.Image) -> np.ndarray:
+            image_array = sitk.GetArrayFromImage(image)
+            if image_array.ndim == 3:
+                return image_array[image_array.shape[0] // 2]
+            return image_array
+
+        def normalize_for_display(image_slice: np.ndarray) -> np.ndarray:
+            normalized = np.zeros(image_slice.shape, dtype=np.float32)
+            finite_mask = np.isfinite(image_slice)
+            if not finite_mask.any():
+                return normalized
+
+            finite_values = image_slice[finite_mask]
+            lower, upper = np.percentile(finite_values, [1.0, 99.0])
+            if upper <= lower:
+                lower, upper = finite_values.min(), finite_values.max()
+            if upper > lower:
+                normalized[finite_mask] = np.clip((finite_values - lower) / (upper - lower), 0.0, 1.0)
+            return normalized
+
+        fixed_slice = normalize_for_display(central_slice(fixed_on_reference))
+        moving_slice = normalize_for_display(central_slice(moving_on_reference))
+        registered_slice = normalize_for_display(central_slice(registered_on_reference))
+
+        comparison_path = os.path.join(output_dir, f"{prefix}_comparison.png")
+        figure, axes = plt.subplots(1, 3, figsize=(12, 4), constrained_layout=True)
+        for axis, image_slice, title in zip(
+            axes,
+            (fixed_slice, moving_slice, registered_slice),
+            ("Fixed", "Moving (fixed grid)", "Registered"),
+            strict=True,
+        ):
+            axis.imshow(image_slice, cmap="gray", vmin=0.0, vmax=1.0)
+            axis.set_title(title)
+            axis.axis("off")
+        figure.savefig(comparison_path, dpi=150, bbox_inches="tight")
+        plt.close(figure)
+
+        difference_path = os.path.join(output_dir, f"{prefix}_difference.png")
+        figure, axis = plt.subplots(figsize=(5, 4), constrained_layout=True)
+        difference_plot = axis.imshow(np.abs(fixed_slice - registered_slice), cmap="inferno", vmin=0.0, vmax=1.0)
+        axis.set_title("Absolute difference: fixed vs. registered")
+        axis.axis("off")
+        figure.colorbar(difference_plot, ax=axis, fraction=0.046, pad=0.04)
+        figure.savefig(difference_path, dpi=150, bbox_inches="tight")
+        plt.close(figure)
+
+        overlay_path = os.path.join(output_dir, f"{prefix}_overlay.png")
+        overlay = np.zeros((*fixed_slice.shape, 3), dtype=np.float32)
+        overlay[..., 0] = registered_slice
+        overlay[..., 1] = fixed_slice
+        overlay[..., 2] = fixed_slice
+        figure, axis = plt.subplots(figsize=(5, 4), constrained_layout=True)
+        axis.imshow(overlay)
+        axis.set_title("Fixed (cyan) / registered (red)")
+        axis.axis("off")
+        figure.savefig(overlay_path, dpi=150, bbox_inches="tight")
+        plt.close(figure)
+
+        metrics_before = {
+            name: float(value)
+            for name, value in self.calculate_similarity_metrics(fixed_on_reference, moving_on_reference).items()
+        }
+        metrics_after = {
+            name: float(value)
+            for name, value in self.calculate_similarity_metrics(fixed_on_reference, registered_on_reference).items()
+        }
+        metrics_path = os.path.join(output_dir, f"{prefix}_metrics.png")
+        metric_labels = {
+            "mutual_information": "Mutual information",
+            "mean_squares": "Negative mean squared error",
+            "correlation": "Correlation",
+            "normalized_correlation": "Normalized correlation",
+        }
+        figure, axes = plt.subplots(2, 2, figsize=(10, 8))
+        figure.subplots_adjust(hspace=0.42, wspace=0.32, top=0.88, bottom=0.09)
+        for axis, (metric_name, label) in zip(axes.flat, metric_labels.items(), strict=True):
+            values = [metrics_before[metric_name], metrics_after[metric_name]]
+            bars = axis.bar(("Before", "After"), values, color=("#6c8ebf", "#82b366"))
+            axis.set_title(label)
+            axis.axhline(0.0, color="black", linewidth=0.8)
+            lower, upper = min(0.0, *values), max(0.0, *values)
+            span = max(upper - lower, max(abs(value) for value in values) * 0.1, 1e-9)
+            axis.set_ylim(lower - (0.15 * span if lower < 0 else 0.0), upper + 0.18 * span)
+            axis.bar_label(bars, fmt="%.4g", padding=3)
+        figure.suptitle("Registration similarity metrics", fontsize=15, y=0.97)
+        figure.savefig(metrics_path, dpi=150, bbox_inches="tight")
+        plt.close(figure)
+
+        return {
+            "comparison_path": comparison_path,
+            "difference_path": difference_path,
+            "overlay_path": overlay_path,
+            "metrics_path": metrics_path,
+            "metrics_before": metrics_before,
+            "metrics_after": metrics_after,
+        }
+
 
 # ============================================================================
 # CONVENIENCE FUNCTIONS FOR BIOMNI INTEGRATION
@@ -1104,6 +1264,15 @@ def quick_rigid_registration(
         "registration_type": "rigid",
     }
 
+    if create_visualizations:
+        results["visualizations"] = tool.create_registration_visualization(
+            fixed_image,
+            moving_image,
+            registered_image,
+            output_dir,
+            prefix="rigid",
+        )
+
     return results
 
 
@@ -1179,6 +1348,15 @@ def quick_affine_registration(
         "metrics_after": metrics_after,
         "registration_type": "affine",
     }
+
+    if create_visualizations:
+        results["visualizations"] = tool.create_registration_visualization(
+            fixed_image,
+            moving_image,
+            registered_image,
+            output_dir,
+            prefix="affine",
+        )
 
     return results
 
@@ -1257,6 +1435,15 @@ def quick_deformable_registration(
         "metrics_after": metrics_after,
         "registration_type": "deformable",
     }
+
+    if create_visualizations:
+        results["visualizations"] = tool.create_registration_visualization(
+            fixed_image,
+            moving_image,
+            registered_image,
+            output_dir,
+            prefix="deformable",
+        )
 
     return results
 
@@ -1392,3 +1579,36 @@ def calculate_similarity_metrics(image1_path: str, image2_path: str) -> dict[str
     image1 = tool.load_image(image1_path)
     image2 = tool.load_image(image2_path)
     return tool.calculate_similarity_metrics(image1, image2)
+
+
+def create_registration_visualization(
+    fixed_image_path: str,
+    moving_image_path: str,
+    registered_image_path: str,
+    output_dir: str,
+    prefix: str = "registration",
+) -> dict[str, object]:
+    """Create visualization plots for a completed medical image registration.
+
+    Args:
+        fixed_image_path: Path to the reference image.
+        moving_image_path: Path to the original moving image.
+        registered_image_path: Path to the registered image.
+        output_dir: Directory in which to save visualization files.
+        prefix: Prefix for generated PNG filenames.
+
+    Returns:
+        Dictionary containing visualization paths and before/after metrics.
+
+    """
+    tool = ImageRegistrationTool()
+    fixed_image = tool.load_image(fixed_image_path)
+    moving_image = tool.load_image(moving_image_path)
+    registered_image = tool.load_image(registered_image_path)
+    return tool.create_registration_visualization(
+        fixed_image,
+        moving_image,
+        registered_image,
+        output_dir,
+        prefix,
+    )
