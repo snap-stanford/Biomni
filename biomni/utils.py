@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 import traceback
 import zipfile
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Optional
 from urllib.parse import urljoin
 
 import pandas as pd
@@ -568,6 +568,24 @@ def api_schema_to_langchain_tool(api_schema, mode="generated_tool", module_name=
                 annotations[param["name"]] = Any
 
     fields = {param["name"]: Field(description=param["description"]) for param in api_schema["required_parameters"]}
+
+    # Optional parameters: include them in the schema so agents can supply
+    # them, using Optional[...] annotations and Field(default=...) so Pydantic
+    # forwards explicit values and falls back to declared defaults otherwise.
+    for param in api_schema.get("optional_parameters", []):
+        param_type = param["type"]
+        base_type = type_mapping.get(param_type)
+        if base_type is None:
+            try:
+                base_type = eval(param_type)
+            except (NameError, SyntaxError):
+                base_type = Any
+        annotations[param["name"]] = Optional[base_type]
+        default = param.get("default")
+        if default is not None:
+            fields[param["name"]] = Field(default=default, description=param["description"])
+        else:
+            fields[param["name"]] = Field(default=None, description=param["description"])
 
     # Create the ApiInput class dynamically
     ApiInput = type("Input", (CustomBaseModel,), {"__annotations__": annotations, **fields})
