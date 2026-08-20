@@ -2,6 +2,7 @@ import glob
 import inspect
 import os
 import re
+import uuid
 from collections.abc import Generator
 from datetime import datetime
 from pathlib import Path
@@ -12,6 +13,7 @@ from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.errors import GraphRecursionError
 from langgraph.graph import END, START, StateGraph
 
 from biomni.config import default_config
@@ -65,6 +67,7 @@ class A1:
         api_key: str | None = None,
         commercial_mode: bool | None = None,
         expected_data_lake_files: list | None = None,
+        recursion_limit: int | None = None,
     ):
         """Initialize the biomni agent.
 
@@ -77,6 +80,7 @@ class A1:
             base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
             api_key: API key for the custom LLM
             commercial_mode: If True, excludes datasets that require commercial licenses or are non-commercial only
+            recursion_limit: Maximum number of graph steps per execution (default: 500)
 
         """
         # Use default_config values for unspecified parameters
@@ -96,6 +100,8 @@ class A1:
             api_key = default_config.api_key if default_config.api_key else "EMPTY"
         if commercial_mode is None:
             commercial_mode = default_config.commercial_mode
+        if recursion_limit is None:
+            recursion_limit = 500
 
         # Import appropriate env_desc based on commercial_mode
         if commercial_mode:
@@ -111,6 +117,7 @@ class A1:
         self.data_lake_dict = data_lake_dict
         self.library_content_dict = library_content_dict
         self.commercial_mode = commercial_mode
+        self.recursion_limit = recursion_limit
 
         # Display configuration in a nice, readable format
         print("\n" + "=" * 50)
@@ -1637,10 +1644,16 @@ Each library is listed with its description to help you understand its functiona
         workflow.add_edge("execute", "generate")
         workflow.add_edge(START, "generate")
 
-        # Compile the workflow
+        # Compile the workflow without a checkpointer by default.
+        # A checkpointer enables cross-call state persistence keyed by
+        # thread_id. The common path (go()/go_stream() with no thread_id)
+        # uses a fresh random thread per call, so attaching a checkpointer
+        # here would accumulate an in-memory checkpoint per thread forever
+        # (memory leak -- the "state buildup" reported in issue #237).
+        # When a caller explicitly passes a thread_id, go()/go_stream()
+        # attach the checkpointer on demand to enable multi-turn memory.
         self.app = workflow.compile()
         self.checkpointer = MemorySaver()
-        self.app.checkpointer = self.checkpointer
         # display(Image(self.app.get_graph().draw_mermaid_png()))
 
     def _prepare_resources_for_retrieval(self, prompt):
@@ -1756,11 +1769,14 @@ Each library is listed with its description to help you understand its functiona
 
         return selected_resources_names
 
-    def go(self, prompt):
+    def go(self, prompt, thread_id=None):
         """Execute the agent with the given prompt.
 
         Args:
             prompt: The user's query
+            thread_id: Optional conversation thread ID. If None, a fresh
+                thread is created for each call so state does not accumulate
+                across independent executions.
 
         """
         self.critic_count = 0
@@ -1771,24 +1787,51 @@ Each library is listed with its description to help you understand its functiona
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
-        config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
+        # Default: fresh thread per call, no checkpointer attached (no state
+        # accumulation across independent executions). When a caller passes an
+        # explicit thread_id, attach the checkpointer to enable multi-turn
+        # memory for that conversation.
+        if thread_id is None:
+            config = {
+                "recursion_limit": self.recursion_limit,
+                "configurable": {"thread_id": uuid.uuid4().hex},
+            }
+            self.app.checkpointer = None
+        else:
+            config = {
+                "recursion_limit": self.recursion_limit,
+                "configurable": {"thread_id": thread_id},
+            }
+            self.app.checkpointer = self.checkpointer
         self.log = []
 
         # Store the final conversation state for markdown generation
         final_state = None
 
-        for s in self.app.stream(inputs, stream_mode="values", config=config):
-            message = s["messages"][-1]
-            out = pretty_print(message)
-            self.log.append(out)
-            final_state = s  # Store the latest state
+        try:
+            for s in self.app.stream(inputs, stream_mode="values", config=config):
+                message = s["messages"][-1]
+                out = pretty_print(message)
+                self.log.append(out)
+                final_state = s  # Store the latest state
+        except GraphRecursionError:
+            # The execution hit the recursion limit before finishing.
+            # Summarize what was accomplished instead of surfacing a raw error.
+            summary = self._summarize_interrupted_execution()
+            self.log.append(summary)
+            final_state = None
 
         # Store the conversation state for markdown generation
         self._conversation_state = final_state
 
+        # If the graph raised before producing any message (e.g. recursion
+        # limit hit on the very first step), fall back to the summary.
+        if final_state is None:
+            return self.log, self.log[-1]
+
         return self.log, message.content
 
-    def go_stream(self, prompt) -> Generator[dict, None, None]:
+    def go_stream(self, prompt, thread_id=None) -> Generator[dict, None, None]:
         """Execute the agent with the given prompt and return a generator that yields each step.
 
         This function returns a generator that yields each step of the agent's execution,
@@ -1796,6 +1839,9 @@ Each library is listed with its description to help you understand its functiona
 
         Args:
             prompt: The user's query
+            thread_id: Optional conversation thread ID. If None, a fresh
+                thread is created for each call so state does not accumulate
+                across independent executions.
 
         Yields:
             dict: Each step of the agent's execution containing the current message and state
@@ -1808,23 +1854,69 @@ Each library is listed with its description to help you understand its functiona
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
         inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
-        config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
+        # Default: fresh thread per call, no checkpointer attached (no state
+        # accumulation across independent executions). When a caller passes an
+        # explicit thread_id, attach the checkpointer to enable multi-turn
+        # memory for that conversation.
+        if thread_id is None:
+            config = {
+                "recursion_limit": self.recursion_limit,
+                "configurable": {"thread_id": uuid.uuid4().hex},
+            }
+            self.app.checkpointer = None
+        else:
+            config = {
+                "recursion_limit": self.recursion_limit,
+                "configurable": {"thread_id": thread_id},
+            }
+            self.app.checkpointer = self.checkpointer
         self.log = []
 
         # Store the final conversation state for markdown generation
         final_state = None
 
-        for s in self.app.stream(inputs, stream_mode="values", config=config):
-            message = s["messages"][-1]
-            out = pretty_print(message)
-            self.log.append(out)
-            final_state = s  # Store the latest state
+        try:
+            for s in self.app.stream(inputs, stream_mode="values", config=config):
+                message = s["messages"][-1]
+                out = pretty_print(message)
+                self.log.append(out)
+                final_state = s  # Store the latest state
 
-            # Yield the current step
-            yield {"output": out}
+                # Yield the current step
+                yield {"output": out}
+        except GraphRecursionError:
+            # Summarize what was accomplished instead of surfacing a raw error.
+            summary = self._summarize_interrupted_execution()
+            self.log.append(summary)
+            final_state = None
+            yield {"output": summary}
 
         # Store the conversation state for markdown generation
         self._conversation_state = final_state
+
+    def _summarize_interrupted_execution(self) -> str:
+        """Build a user-facing summary when the graph hits the recursion limit.
+
+        The raw LangGraph exception is a technical English message that does not
+        tell the user what the agent managed to do. This method produces a
+        concise summary from the execution log so the user sees progress and a
+        clear reason for stopping, instead of a bare error.
+        """
+        steps = len(self.log)
+        last_step = self.log[-1] if self.log else "(no steps completed)"
+        # Trim very long log lines to keep the summary readable.
+        if len(last_step) > 500:
+            last_step = last_step[:500] + "..."
+
+        return (
+            "⚠️ The task was not completed because the execution reached the "
+            "maximum number of steps.\n\n"
+            f"Task: {self.user_task}\n"
+            f"Steps executed: {steps}\n"
+            f"Last step: {last_step}\n\n"
+            "You can try simplifying the request, or provide a more specific "
+            "instruction so the agent can finish within the step budget."
+        )
 
     def update_system_prompt_with_selected_resources(self, selected_resources):
         """Update the system prompt with the selected resources."""
@@ -2628,7 +2720,8 @@ Each library is listed with its description to help you understand its functiona
         """Launch a full-featured Gradio UI for the A1 agent (adapted from codeact_copilot).
 
         Args:
-            thread_id: Thread ID for the conversation
+            thread_id: Deprecated. Each conversation window now uses an
+                automatically generated thread ID to avoid state accumulation.
             share: Whether to create a public shareable link
             server_name: Server name/IP to bind to (default: "0.0.0.0")
             require_verification: If True, requires access code verification
@@ -2672,6 +2765,7 @@ Each library is listed with its description to help you understand its functiona
                 inner_history = []
             text_input = prompt_input.get("text", "")
             files = prompt_input.get("files", [])
+            self.user_task = text_input
 
             self.main_history_copy += [{"role": "user", "content": text_input}]
             main_history.append(ChatMessage(role="user", content=text_input if text_input else "[Uploaded file]"))
@@ -2696,8 +2790,15 @@ Each library is listed with its description to help you understand its functiona
             agent_messages.append(HumanMessage(content=text_input))
 
             # Prepare inputs for the agent
+            # Gradio maintains conversation history itself (main_history_copy),
+            # so each request runs as a fresh thread without a checkpointer
+            # (no cross-request state accumulation).
             inputs = {"messages": agent_messages, "next_step": None}
-            config = {"recursion_limit": 500, "configurable": {"thread_id": thread_id}}
+            self.app.checkpointer = None
+            config = {
+                "recursion_limit": self.recursion_limit,
+                "configurable": {"thread_id": uuid.uuid4().hex},
+            }
 
             # Stream the agent's responses
             t = time()
@@ -2733,7 +2834,21 @@ Each library is listed with its description to help you understand its functiona
             code_execution_messages = []
 
             # Stream the agent's responses
-            for s in self.app.stream(inputs, stream_mode="values", config=config):
+            # Wrap the graph stream so a recursion-limit hit is turned into a
+            # user-facing summary instead of crashing the UI with a raw error.
+            self.log = []
+            def _stream_with_summary():
+                try:
+                    for s in self.app.stream(inputs, stream_mode="values", config=config):
+                        self.log.append(pretty_print(s["messages"][-1], printout=False))
+                        yield s
+                except GraphRecursionError:
+                    summary = self._summarize_interrupted_execution()
+                    # Yield a fake state whose last message is the summary, so
+                    # the existing rendering loop shows it like a normal answer.
+                    yield {"messages": [AIMessage(content=summary)]}
+
+            for s in _stream_with_summary():
                 t_step = time() - t
                 message = s["messages"][-1]
 
