@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for A1 agent recursion-limit handling (issue #237).
 
 When the LangGraph execution hits the recursion limit, ``A1.go()`` /
@@ -7,7 +6,7 @@ instead of surfacing a raw ``GraphRecursionError``. Also verifies that
 ``thread_id`` is isolated per call by default (no state accumulation) and
 that ``recursion_limit`` is configurable.
 """
-import io
+
 import sys
 import types
 import unittest
@@ -21,7 +20,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # pandas, biopython, ...). We stub the missing/broken ones so the module can
 # be imported and the agent logic exercised in isolation.
 try:
-    import numpy  # noqa: F401
+    import numpy
+
     has_ndarray = hasattr(numpy, "ndarray")
 except Exception:
     has_ndarray = False
@@ -54,10 +54,9 @@ except ImportError:
 
 sys.path.insert(0, str(REPO_ROOT))
 
-from langgraph.errors import GraphRecursionError  # noqa: E402
-from langchain_core.messages import AIMessage, HumanMessage  # noqa: E402
-
-from biomni.agent.a1 import A1  # noqa: E402
+from biomni.agent.a1 import A1
+from langchain_core.messages import AIMessage, HumanMessage
+from langgraph.errors import GraphRecursionError
 
 
 class _NormalStream:
@@ -87,9 +86,7 @@ class _RecursiveStream:
     def __call__(self, inputs, stream_mode="values", config=None):
         self.call_count += 1
         self.last_config = config
-        raise GraphRecursionError(
-            "Recursion limit of 500 reached without hitting a stop condition."
-        )
+        raise GraphRecursionError("Recursion limit of 500 reached without hitting a stop condition.")
 
 
 class TestRecursionLimitHandling(unittest.TestCase):
@@ -272,16 +269,14 @@ class TestRecursionLimitHandling(unittest.TestCase):
         """
         import tempfile
 
-        from biomni.utils import read_module2api
         from biomni.env_desc import data_lake_dict, library_content_dict
+        from biomni.utils import read_module2api
 
         class FakeLLM:
             model_name = "fake-llm"
 
             def invoke(self, messages):
-                return AIMessage(
-                    content="<think>I am thinking about the problem but never acting...</think>"
-                )
+                return AIMessage(content="<think>I am thinking about the problem but never acting...</think>")
 
         agent = A1.__new__(A1)
         agent.path = tempfile.mkdtemp(prefix="biomni_test_")

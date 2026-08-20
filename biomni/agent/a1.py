@@ -2837,6 +2837,7 @@ Each library is listed with its description to help you understand its functiona
             # Wrap the graph stream so a recursion-limit hit is turned into a
             # user-facing summary instead of crashing the UI with a raw error.
             self.log = []
+
             def _stream_with_summary():
                 try:
                     for s in self.app.stream(inputs, stream_mode="values", config=config):
