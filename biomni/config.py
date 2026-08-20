@@ -68,12 +68,12 @@ class BiomniConfig:
             self.commercial_mode = os.getenv("BIOMNI_COMMERCIAL_MODE").lower() == "true"
         if os.getenv("BIOMNI_TEMPERATURE"):
             self.temperature = float(os.getenv("BIOMNI_TEMPERATURE"))
-        if os.getenv("BIOMNI_CUSTOM_BASE_URL"):
-            self.base_url = os.getenv("BIOMNI_CUSTOM_BASE_URL")
-        if os.getenv("BIOMNI_CUSTOM_API_KEY"):
-            self.api_key = os.getenv("BIOMNI_CUSTOM_API_KEY")
-        if os.getenv("BIOMNI_SOURCE"):
-            self.source = os.getenv("BIOMNI_SOURCE")
+        if os.getenv("BIOMNI_CUSTOM_BASE_URL") or os.getenv("CUSTOM_MODEL_BASE_URL"):
+            self.base_url = os.getenv("BIOMNI_CUSTOM_BASE_URL") or os.getenv("CUSTOM_MODEL_BASE_URL")
+        if os.getenv("BIOMNI_CUSTOM_API_KEY") or os.getenv("CUSTOM_MODEL_API_KEY"):
+            self.api_key = os.getenv("BIOMNI_CUSTOM_API_KEY") or os.getenv("CUSTOM_MODEL_API_KEY")
+        if os.getenv("BIOMNI_SOURCE") or os.getenv("LLM_SOURCE"):
+            self.source = os.getenv("BIOMNI_SOURCE") or os.getenv("LLM_SOURCE")
 
         # Protocols.io access token (prefer specific env vars)
         env_token = os.getenv("PROTOCOLS_IO_ACCESS_TOKEN") or os.getenv("BIOMNI_PROTOCOLS_IO_ACCESS_TOKEN")
