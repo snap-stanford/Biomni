@@ -55,6 +55,7 @@ except ImportError:
 sys.path.insert(0, str(REPO_ROOT))
 
 from biomni.agent.a1 import A1
+from biomni.utils import pretty_print
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.errors import GraphRecursionError
 
