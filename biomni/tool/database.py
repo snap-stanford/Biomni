@@ -4503,6 +4503,8 @@ def query_clinicaltrials(
     --------
     - Natural language: query_clinicaltrials("Find recruiting cancer trials")
     - Direct endpoint: query_clinicaltrials(endpoint="/studies?query.cond=cancer&filter.overallStatus=RECRUITING")
+    - By intervention: query_clinicaltrials(endpoint="/studies?query.intr=aspirin")
+    - By phase: query_clinicaltrials(endpoint="/studies?query.cond=cancer&filter.advanced=AREA[Phase]PHASE3")
     """
     # Base URL for ClinicalTrials.gov API
     base_url = "https://clinicaltrials.gov/api/v2"
@@ -4530,17 +4532,20 @@ def query_clinicaltrials(
         SPECIAL NOTES:
         - Base URL is "https://clinicaltrials.gov/api/v2"
         - Main endpoint is /studies for searching clinical trials
-        - Use query.cond for conditions/diseases, query.intr for interventions
+        - Use query.cond for conditions/diseases, query.intr for interventions (NOT filter.intervention, which does not exist in API v2)
         - Use filter.overallStatus for study status (RECRUITING, COMPLETED, etc.)
-        - Use filter.phase for study phases (PHASE1, PHASE2, PHASE3, PHASE4)
+        - Use filter.advanced for phase filtering with the syntax: filter.advanced=AREA[Phase]PHASE3
+        - Valid phase values: NA, EARLY_PHASE1, PHASE1, PHASE2, PHASE3, PHASE4
+        - Combine multiple advanced filters with AND: filter.advanced=AREA[Phase]PHASE3 AND AREA[OverallStatus]RECRUITING
         - Use filter.studyType for study types (INTERVENTIONAL, OBSERVATIONAL)
         - Use pageSize parameter to limit results (max 1000)
         - For specific studies, use /studies/{{nctId}}
 
         CORRECT PHASE FILTERING:
-        - Use filter.phase=PHASE1, PHASE2, PHASE3, PHASE4 (comma-separated for multiple phases)
-        - Do NOT use filter.phase=PHASE3 (single value with equals)
-        - Example: filter.phase=PHASE1,PHASE2 for early phase trials
+        - Use filter.advanced=AREA[Phase]PHASE3 (single phase)
+        - For multiple phases, combine with OR inside the expression: filter.advanced=AREA[Phase]PHASE1 OR AREA[Phase]PHASE2
+        - Do NOT use filter.phase=PHASE3 (filter.phase does not exist in API v2)
+        - Example: filter.advanced=AREA[Phase]PHASE3 AND AREA[OverallStatus]RECRUITING for recruiting Phase 3 trials
         Return ONLY the JSON object with no additional text.
         """
 
@@ -4583,15 +4588,36 @@ def query_clinicaltrials(
 
     # Handle API parameter errors with fallback for ClinicalTrials.gov
     if not api_result.get("success", False) and "400" in str(api_result.get("error", "")):
-        # Try simplified query without problematic filters
+        # Try simplified query without problematic filters.
+        # API v2 does not support filter.phase; convert it to the correct
+        # filter.advanced=AREA[Phase]... expression and retry.
         if "filter.phase" in endpoint:
-            simplified_endpoint = endpoint.replace("&filter.phase=PHASE3", "").replace("filter.phase=PHASE3&", "")
-            if simplified_endpoint != endpoint:
-                api_result = _query_rest_api(
-                    endpoint=simplified_endpoint, method="GET", description=f"{description} (simplified)"
-                )
-                if api_result.get("success", False):
-                    api_result["note"] = "Query simplified due to API parameter restrictions"
+            # Extract phase value(s) from the old-style parameter, e.g.
+            # filter.phase=PHASE3 or filter.phase=PHASE1,PHASE2
+            import re as _re
+            from urllib.parse import quote
+
+            phase_match = _re.search(r"filter\.phase=([^&]+)", endpoint)
+            if phase_match:
+                phases = [p.strip() for p in phase_match.group(1).split(",") if p.strip()]
+                phase_expr = " OR ".join(f"AREA[Phase]{p}" for p in phases)
+                # URL-encode the advanced expression (spaces, brackets, etc.)
+                # while keeping existing query parameters intact.
+                encoded_expr = quote(phase_expr, safe="")
+                simplified_endpoint = _re.sub(r"&?filter\.phase=[^&]+", "", endpoint)
+                if "?" in simplified_endpoint:
+                    separator = "&" if simplified_endpoint.endswith(("?", "&")) else "&"
+                    simplified_endpoint = f"{simplified_endpoint}{separator}filter.advanced={encoded_expr}"
+                else:
+                    simplified_endpoint = f"{simplified_endpoint}?filter.advanced={encoded_expr}"
+                if simplified_endpoint != endpoint:
+                    api_result = _query_rest_api(
+                        endpoint=simplified_endpoint,
+                        method="GET",
+                        description=f"{description} (converted filter.phase to filter.advanced)",
+                    )
+                    if api_result.get("success", False):
+                        api_result["note"] = "Converted unsupported filter.phase to filter.advanced"
 
     if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         api_result["result"] = _format_query_results(api_result["result"])
