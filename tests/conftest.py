@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """conftest: 本地开发环境兼容层。
 
 上游 CI 环境依赖完整，本文件在正常环境不产生任何影响。
@@ -7,12 +6,13 @@
 
 判断逻辑：只有 import 真的失败/损坏时才 stub。
 """
+
 import sys
 import types
 
 # --- numpy/pandas stub（仅当损坏/缺失时） ---
 try:
-    import numpy  # noqa: F401
+    import numpy
 
     has_ndarray = hasattr(numpy, "ndarray")
 except Exception:

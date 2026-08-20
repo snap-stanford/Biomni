@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for query_clinicaltrials parameter handling (issue #215).
 
 ClinicalTrials.gov API v2 does not support ``filter.phase`` or
@@ -12,6 +11,7 @@ Unit tests mock the network layer (``_query_rest_api``) so they are
 deterministic. Integration tests hit the real API and are marked with
 ``@pytest.mark.integration``.
 """
+
 import pickle
 import sys
 from pathlib import Path
@@ -23,7 +23,7 @@ SCHEMA_PATH = REPO_ROOT / "biomni" / "tool" / "schema_db" / "clinicaltrials.pkl"
 
 sys.path.insert(0, str(REPO_ROOT))
 
-from biomni.tool.database import query_clinicaltrials  # noqa: E402
+from biomni.tool.database import query_clinicaltrials
 
 OFFICIAL_PHASES = {"NA", "EARLY_PHASE1", "PHASE1", "PHASE2", "PHASE3", "PHASE4"}
 
@@ -31,6 +31,7 @@ OFFICIAL_PHASES = {"NA", "EARLY_PHASE1", "PHASE1", "PHASE2", "PHASE3", "PHASE4"}
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 class FakeRestAPI:
     """Records calls and returns preset responses in order."""
@@ -58,6 +59,7 @@ def fake_rest_api(monkeypatch):
 # Unit tests: endpoint construction
 # ---------------------------------------------------------------------------
 
+
 def test_query_intr_endpoint_constructed(fake_rest_api):
     """A direct endpoint using query.intr is passed through with pageSize added."""
     fake_rest_api.responses = [{"success": True, "result": {"studies": []}}]
@@ -76,9 +78,7 @@ def test_phase_advanced_endpoint_passed_through(fake_rest_api):
     """A direct endpoint using filter.advanced is passed through untouched."""
     fake_rest_api.responses = [{"success": True, "result": {"studies": []}}]
 
-    result = query_clinicaltrials(
-        endpoint="/studies?query.cond=cancer&filter.advanced=AREA[Phase]PHASE3"
-    )
+    result = query_clinicaltrials(endpoint="/studies?query.cond=cancer&filter.advanced=AREA[Phase]PHASE3")
 
     assert result["success"] is True
     url = fake_rest_api.calls[0]["endpoint"]
@@ -94,6 +94,7 @@ def test_no_prompt_no_endpoint_returns_error():
 # ---------------------------------------------------------------------------
 # Unit tests: system prompt content
 # ---------------------------------------------------------------------------
+
 
 def test_system_prompt_has_no_filter_phase():
     """The generated prompt must not teach the unsupported filter.phase param.
@@ -128,6 +129,7 @@ def test_system_prompt_has_no_filter_phase():
 # Unit tests: schema (clinicaltrials.pkl)
 # ---------------------------------------------------------------------------
 
+
 def test_schema_examples_use_valid_params():
     """Schema examples must not contain filter.phase or filter.intervention."""
     with open(SCHEMA_PATH, "rb") as f:
@@ -155,6 +157,7 @@ def test_schema_study_phases_match_official():
 # ---------------------------------------------------------------------------
 # Unit tests: 400 fallback
 # ---------------------------------------------------------------------------
+
 
 def test_400_fallback_converts_filter_phase(fake_rest_api):
     """A 400 with old-style filter.phase retries as filter.advanced."""
@@ -204,6 +207,7 @@ def test_400_without_filter_phase_no_retry(fake_rest_api):
 # Integration tests (real API, marked)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_real_query_intr_returns_studies():
     """Real API: query.intr is a valid parameter and returns studies."""
@@ -216,19 +220,13 @@ def test_real_query_intr_returns_studies():
 @pytest.mark.integration
 def test_real_phase_advanced_returns_phase3():
     """Real API: filter.advanced=AREA[Phase]PHASE3 returns Phase 3 studies."""
-    result = query_clinicaltrials(
-        endpoint="/studies?query.cond=cancer&filter.advanced=AREA[Phase]PHASE3&pageSize=2"
-    )
+    result = query_clinicaltrials(endpoint="/studies?query.cond=cancer&filter.advanced=AREA[Phase]PHASE3&pageSize=2")
 
     assert result["success"] is True
     studies = result.get("result", {}).get("studies", [])
     assert len(studies) > 0
     for study in studies:
-        phases = (
-            study.get("protocolSection", {})
-            .get("designModule", {})
-            .get("phases", [])
-        )
+        phases = study.get("protocolSection", {}).get("designModule", {}).get("phases", [])
         assert "PHASE3" in phases
 
 
@@ -248,29 +246,19 @@ def test_real_bad_param_auto_converts():
     studies = result.get("result", {}).get("studies", [])
     assert len(studies) > 0
     for study in studies:
-        phases = (
-            study.get("protocolSection", {})
-            .get("designModule", {})
-            .get("phases", [])
-        )
+        phases = study.get("protocolSection", {}).get("designModule", {}).get("phases", [])
         assert "PHASE3" in phases
 
 
 @pytest.mark.integration
 def test_real_multi_phase_auto_converts():
     """Real API: comma-separated filter.phase converts to URL-encoded OR expression."""
-    result = query_clinicaltrials(
-        endpoint="/studies?query.cond=cancer&filter.phase=PHASE1,PHASE2&pageSize=3"
-    )
+    result = query_clinicaltrials(endpoint="/studies?query.cond=cancer&filter.phase=PHASE1,PHASE2&pageSize=3")
 
     assert result["success"] is True
     assert result.get("note") == "Converted unsupported filter.phase to filter.advanced"
     studies = result.get("result", {}).get("studies", [])
     assert len(studies) > 0
     for study in studies:
-        phases = (
-            study.get("protocolSection", {})
-            .get("designModule", {})
-            .get("phases", [])
-        )
+        phases = study.get("protocolSection", {}).get("designModule", {}).get("phases", [])
         assert any(p in phases for p in ("PHASE1", "PHASE2"))

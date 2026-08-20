@@ -4612,7 +4612,9 @@ def query_clinicaltrials(
                     simplified_endpoint = f"{simplified_endpoint}?filter.advanced={encoded_expr}"
                 if simplified_endpoint != endpoint:
                     api_result = _query_rest_api(
-                        endpoint=simplified_endpoint, method="GET", description=f"{description} (converted filter.phase to filter.advanced)"
+                        endpoint=simplified_endpoint,
+                        method="GET",
+                        description=f"{description} (converted filter.phase to filter.advanced)",
                     )
                     if api_result.get("success", False):
                         api_result["note"] = "Converted unsupported filter.phase to filter.advanced"
