@@ -16,3 +16,12 @@ pip install nnunet nibabel nilearn
 pip install mi-googlesearch-python
 pip install git+https://github.com/pylabrobot/pylabrobot.git
 conda install weasyprint
+
+# --- Spatial transcriptomics tools (Visium) ---
+pip install scanpy squidpy scvi-tools leidenalg scrublet
+# NOTE: anndata >=0.13 has a bug writing vlen-string columns with gzip compression
+# (file corrupts on read). The spatial tools write h5ad with compression='lzf'
+# to avoid this. Do NOT switch those writes back to gzip without testing on
+# large (2000+ row) datasets first.
+pip install "anndata>=0.10" "scipy>=1.10" "pandas>=2.0" "matplotlib>=3.7"
+Rscript biomni_env/install_r_packages_spatial.R
