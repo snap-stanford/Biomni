@@ -26,48 +26,29 @@ the plot paths in the step log, following Biomni tool conventions.
 
 """
 
-
-
 import os
 
-
-
 import numpy as np
-
 import pandas as pd
-
 import scanpy as sc
 
 
-
-
-
 def _plot_setup(output_dir: str) -> None:
-
     """Ensure matplotlib uses the Agg backend and the output dir exists."""
 
     import matplotlib
-
-
 
     matplotlib.use("Agg")
 
     os.makedirs(output_dir, exist_ok=True)
 
 
-
-
-
 def _spatial_scatter(adata, color, ax, title, cmap="viridis"):
-
     """Plot spots colored by a value/annotation on the spatial coordinates."""
 
     import matplotlib.pyplot as plt
 
-
-
     if "spatial" not in adata.obsm:
-
         return
 
     coords = adata.obsm["spatial"]
@@ -75,11 +56,9 @@ def _spatial_scatter(adata, color, ax, title, cmap="viridis"):
     x, y = coords[:, 0], coords[:, 1]
 
     if color in adata.obs:
-
         vals = adata.obs[color]
 
         if pd.api.types.is_categorical_dtype(vals) or vals.dtype == object:
-
             cats = vals.cat.categories if pd.api.types.is_categorical_dtype(vals) else pd.unique(vals)
 
             cmap_obj = plt.get_cmap("tab20", len(cats))
@@ -91,19 +70,16 @@ def _spatial_scatter(adata, color, ax, title, cmap="viridis"):
             scatter = ax.scatter(x, y, c=colors, s=8, alpha=0.8)
 
         else:
-
             scatter = ax.scatter(x, y, c=vals, s=8, alpha=0.8, cmap=cmap)
 
             plt.colorbar(scatter, ax=ax, fraction=0.046)
 
     elif color in adata.var_names:
-
         scatter = ax.scatter(x, y, c=adata[:, color].X.toarray().flatten(), s=8, alpha=0.8, cmap=cmap)
 
         plt.colorbar(scatter, ax=ax, fraction=0.046)
 
     else:
-
         ax.scatter(x, y, s=8, alpha=0.8)
 
     ax.set_title(title)
@@ -115,9 +91,6 @@ def _spatial_scatter(adata, color, ax, title, cmap="viridis"):
     ax.set_aspect("equal")
 
 
-
-
-
 # ============================================================================
 
 # Stage 1: Data loading, QC and normalization
@@ -125,23 +98,13 @@ def _spatial_scatter(adata, color, ax, title, cmap="viridis"):
 # ============================================================================
 
 
-
-
-
 def load_visium_data(
-
     counts_file: str,
-
     coordinates_file: str = None,
-
     sample_id: str = None,
-
     output_path: str = "./visium_loaded.h5ad",
-
     plot_path: str = None,
-
 ) -> str:
-
     """Load Visium data into a standardized AnnData object.
 
 
@@ -202,20 +165,14 @@ def load_visium_data(
 
     import scanpy as sc
 
-
-
     steps = []
 
     if not os.path.exists(counts_file):
-
         return f"Error: counts_file not found: {counts_file}"
-
-
 
     # ---- Load counts ----
 
     if counts_file.endswith(".h5ad"):
-
         adata = sc.read_h5ad(counts_file)
 
         steps.append(f"Loaded h5ad: {adata.shape[0]} spots x {adata.shape[1]} genes")
@@ -223,13 +180,13 @@ def load_visium_data(
         # Try to recover coordinates from obs if not in obsm
 
         if "spatial" not in adata.obsm:
-
-            for xk, yk in (("pixel_x", "pixel_y"), ("pxl_row_in_fullres", "pxl_col_in_fullres"),
-
-                           ("x", "y"), ("array_x", "array_y")):
-
+            for xk, yk in (
+                ("pixel_x", "pixel_y"),
+                ("pxl_row_in_fullres", "pxl_col_in_fullres"),
+                ("x", "y"),
+                ("array_x", "array_y"),
+            ):
                 if xk in adata.obs and yk in adata.obs:
-
                     adata.obsm["spatial"] = adata.obs[[xk, yk]].values.astype(float)
 
                     steps.append(f"Recovered coordinates from obs columns {xk}/{yk}")
@@ -237,12 +194,9 @@ def load_visium_data(
                     break
 
     elif os.path.isdir(counts_file):
-
         # 10x matrix directory
 
         import scipy.io as sio
-
-
 
         mtx = os.path.join(counts_file, "matrix.mtx")
 
@@ -251,25 +205,19 @@ def load_visium_data(
         bar = os.path.join(counts_file, "barcodes.tsv")
 
         for f in (mtx, feat, bar):
-
             if not os.path.exists(f):
-
                 f_gz = f + ".gz"
 
                 if os.path.exists(f_gz):
-
                     f = f_gz
 
                 else:
-
                     return f"Error: expected 10x file not found: {f}"
 
         if mtx.endswith(".gz"):
-
             adata = sc.read_10x_mtx(counts_file, var_names="gene_symbols", make_unique=True)
 
         else:
-
             counts = sio.mmread(mtx).T.tocsr()
 
             ft = pd.read_csv(feat, sep="\t", header=None)
@@ -289,17 +237,13 @@ def load_visium_data(
         steps.append(f"Loaded 10x matrix: {adata.shape[0]} spots x {adata.shape[1]} genes")
 
     else:
-
         # Wide counts CSV (rows=barcodes, cols=genes)
 
         import gzip
 
-
-
         opener = gzip.open if counts_file.endswith(".gz") else open
 
         with opener(counts_file, "rt", errors="replace") as f:
-
             df = pd.read_csv(f, index_col=0)
 
         df.index = df.index.astype(str)
@@ -314,22 +258,16 @@ def load_visium_data(
 
         steps.append(f"Loaded wide counts CSV: {adata.shape[0]} spots x {adata.shape[1]} genes")
 
-
-
     # ---- Standardize ----
 
     if "gene_symbols" not in adata.var:
-
         adata.var["gene_symbols"] = adata.var_names.astype(str).values
 
     adata.obs["barcode"] = adata.obs_names.astype(str).values
 
-
-
     # ---- Attach coordinates if provided ----
 
     if coordinates_file and os.path.exists(coordinates_file):
-
         raw = pd.read_csv(coordinates_file, header=None)
 
         # Strip header if present
@@ -337,13 +275,11 @@ def load_visium_data(
         first_row = [str(v).strip().lower() for v in raw.iloc[0].tolist()]
 
         if any(k in first_row for k in ("barcode", "in_tissue", "x", "y")):
-
             raw = raw.iloc[1:].reset_index(drop=True)
 
         n_cols = raw.shape[1]
 
         if n_cols >= 6:
-
             # Space Ranger tissue_positions: barcode,in_tissue,row,col,pxl_row,pxl_col
 
             pos = raw.iloc[:, :6].copy()
@@ -363,7 +299,6 @@ def load_visium_data(
             steps.append(f"Attached coordinates from tissue_positions ({len(coords)} spots)")
 
         elif n_cols == 3:
-
             pos = raw.iloc[:, :3].copy()
 
             pos.columns = ["barcode", "x", "y"]
@@ -375,7 +310,6 @@ def load_visium_data(
             steps.append(f"Attached coordinates from barcode,x,y CSV ({adata.n_obs} spots)")
 
         elif n_cols == 2:
-
             pos = raw.iloc[:, :2].copy()
 
             pos.columns = ["x", "y"]
@@ -387,55 +321,35 @@ def load_visium_data(
             steps.append(f"Attached coordinates from x,y CSV ({adata.n_obs} spots)")
 
         else:
-
             steps.append(f"Warning: unrecognized coordinate file format ({n_cols} cols)")
 
     elif "spatial" not in adata.obsm:
-
         steps.append("Warning: no coordinates attached (no coordinates_file given and h5ad lacks obsm['spatial'])")
 
-
-
     if sample_id:
-
         adata.obs["sample_id"] = sample_id
 
         steps.append(f"Set sample_id = {sample_id}")
 
-
-
     adata.uns["spatial_meta"] = {
-
         "source": counts_file,
-
         "n_spots": adata.n_obs,
-
         "n_genes": adata.n_vars,
-
         "has_coords": "spatial" in adata.obsm,
-
     }
-
-
 
     adata.write(output_path, compression="lzf")
 
     steps.append(f"Saved loaded AnnData to {output_path}")
 
-
-
     # Plot spot layout
 
     if "spatial" in adata.obsm:
-
         _plot_setup(os.path.dirname(output_path) or ".")
 
         import matplotlib.pyplot as plt
 
-
-
         if plot_path is None:
-
             plot_path = os.path.splitext(output_path)[0] + "_layout.png"
 
         fig, ax = plt.subplots(1, 1, figsize=(6, 6))
@@ -449,33 +363,19 @@ def load_visium_data(
         steps.append(f"Spot layout plot saved to {plot_path}")
 
     else:
-
         steps.append("Warning: no coordinates to plot; spot layout plot skipped")
-
-
 
     return "\n".join(steps)
 
 
-
-
-
 def filter_visium_spots(
-
     adata_path: str,
-
     output_path: str = "./visium_filtered.h5ad",
-
     plot_path: str = None,
-
     min_counts: int = 200,
-
     min_genes: int = 20,
-
     pct_mt: float = 20.0,
-
 ) -> str:
-
     """Filter low-quality spots in 10x Visium data.
 
 
@@ -514,15 +414,11 @@ def filter_visium_spots(
 
     import scanpy as sc
 
-
-
     steps = []
 
     adata = sc.read_h5ad(adata_path)
 
     steps.append(f"Loaded AnnData: {adata.shape[0]} spots x {adata.shape[1]} genes")
-
-
 
     adata.var["mt"] = adata.var_names.str.startswith("MT-")
 
@@ -530,24 +426,18 @@ def filter_visium_spots(
 
     n_before = adata.n_obs
 
-
-
     # Plot QC metrics before filtering
 
     _plot_setup(os.path.dirname(output_path) or ".")
 
     import matplotlib.pyplot as plt
 
-
-
     if plot_path is None:
-
         plot_path = os.path.splitext(output_path)[0] + "_qc.png"
 
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
 
     for ax_i, key in enumerate(["n_genes_by_counts", "total_counts", "pct_counts_mt"]):
-
         sc.pl.violin(adata, key, jitter=0.4, ax=axes[ax_i], show=False)
 
     fig.suptitle("QC metrics (before filtering)")
@@ -558,54 +448,33 @@ def filter_visium_spots(
 
     steps.append(f"QC metrics plot saved to {plot_path}")
 
-
-
     adata = adata[adata.obs["total_counts"] >= min_counts, :].copy()
 
     adata = adata[adata.obs["n_genes_by_counts"] >= min_genes, :].copy()
 
     adata = adata[adata.obs["pct_counts_mt"] <= pct_mt, :].copy()
 
-
-
     n_after = adata.n_obs
 
     steps.append(
-
         f"QC filtering: kept {n_after}/{n_before} spots "
-
         f"(min_counts={min_counts}, min_genes={min_genes}, pct_mt<={pct_mt})"
-
     )
-
-
 
     adata.write(output_path, compression="lzf")
 
     steps.append(f"Saved filtered AnnData to {output_path}")
 
-
-
     return "\n".join(steps)
 
 
-
-
-
 def normalize_visium(
-
     adata_path: str,
-
     output_path: str = "./visium_normalized.h5ad",
-
     plot_path: str = None,
-
     target_sum: float = 1e4,
-
     n_top_genes: int = 2000,
-
 ) -> str:
-
     """Normalize and log-transform 10x Visium data.
 
 
@@ -642,15 +511,11 @@ def normalize_visium(
 
     import scanpy as sc
 
-
-
     steps = []
 
     adata = sc.read_h5ad(adata_path)
 
     steps.append(f"Loaded AnnData: {adata.shape[0]} spots x {adata.shape[1]} genes")
-
-
 
     # Keep raw counts in .raw for downstream deconvolution tools
 
@@ -658,24 +523,18 @@ def normalize_visium(
 
     steps.append("Stored raw counts in adata.raw")
 
-
-
     sc.pp.normalize_total(adata, target_sum=target_sum)
 
     sc.pp.log1p(adata)
 
     steps.append(f"Normalized to target_sum={target_sum} and log1p-transformed")
 
-
-
     if n_top_genes and n_top_genes > 0:
-
         # HVG on raw counts (seurat_v3 flavor requires raw count data)
 
         raw_adata = adata.raw.to_adata()
 
         try:
-
             sc.pp.highly_variable_genes(raw_adata, n_top_genes=n_top_genes, flavor="seurat_v3")
 
             adata.var["highly_variable"] = raw_adata.var["highly_variable"]
@@ -685,20 +544,15 @@ def normalize_visium(
             adata.var["dispersions_norm"] = raw_adata.var["dispersions_norm"]
 
         except Exception:
-
             sc.pp.highly_variable_genes(adata, n_top_genes=n_top_genes, flavor="seurat")
 
         n_hvg = int(adata.var["highly_variable"].sum())
 
         steps.append(f"Selected {n_hvg} highly variable genes (seurat_v3, top {n_top_genes})")
 
-
-
     adata.write(output_path, compression="lzf")
 
     steps.append(f"Saved normalized AnnData to {output_path}")
-
-
 
     # Plot: HVG dispersion if HVG was computed, else total-counts histogram
 
@@ -706,29 +560,29 @@ def normalize_visium(
 
     import matplotlib.pyplot as plt
 
-
-
     if plot_path is None:
-
         plot_path = os.path.splitext(output_path)[0] + "_norm.png"
 
     if n_top_genes and n_top_genes > 0 and "highly_variable" in adata.var:
-
         fig, ax = plt.subplots(1, 1, figsize=(6, 5))
 
         hvg_df = adata.var[["means", "dispersions_norm", "highly_variable"]].copy()
 
-        ax.scatter(hvg_df.loc[~hvg_df["highly_variable"], "means"],
+        ax.scatter(
+            hvg_df.loc[~hvg_df["highly_variable"], "means"],
+            hvg_df.loc[~hvg_df["highly_variable"], "dispersions_norm"],
+            s=5,
+            c="lightgrey",
+            label="not HVG",
+        )
 
-                   hvg_df.loc[~hvg_df["highly_variable"], "dispersions_norm"],
-
-                   s=5, c="lightgrey", label="not HVG")
-
-        ax.scatter(hvg_df.loc[hvg_df["highly_variable"], "means"],
-
-                   hvg_df.loc[hvg_df["highly_variable"], "dispersions_norm"],
-
-                   s=5, c="red", label="HVG")
+        ax.scatter(
+            hvg_df.loc[hvg_df["highly_variable"], "means"],
+            hvg_df.loc[hvg_df["highly_variable"], "dispersions_norm"],
+            s=5,
+            c="red",
+            label="HVG",
+        )
 
         ax.set_xlabel("mean expression")
 
@@ -745,7 +599,6 @@ def normalize_visium(
         steps.append(f"HVG plot saved to {plot_path}")
 
     else:
-
         fig, ax = plt.subplots(1, 1, figsize=(6, 5))
 
         ax.hist(adata.obs["total_counts"], bins=50, color="steelblue")
@@ -762,12 +615,7 @@ def normalize_visium(
 
         steps.append(f"Normalization plot saved to {plot_path}")
 
-
-
     return "\n".join(steps)
-
-
-
 
 
 # ============================================================================
@@ -777,23 +625,13 @@ def normalize_visium(
 # ============================================================================
 
 
-
-
-
 def cluster_spatial_data(
-
     adata_path: str,
-
     output_path: str = "./visium_clustered.h5ad",
-
     plot_path: str = None,
-
     n_pcs: int = 30,
-
     resolution: float = 1.0,
-
 ) -> str:
-
     """Cluster 10x Visium spots using the standard PCA + UMAP + Leiden pipeline.
 
 
@@ -826,21 +664,15 @@ def cluster_spatial_data(
 
     import scanpy as sc
 
-
-
     steps = []
 
     adata = sc.read_h5ad(adata_path)
 
     steps.append(f"Loaded AnnData: {adata.shape[0]} spots x {adata.shape[1]} genes")
 
-
-
     sc.pp.pca(adata, n_comps=n_pcs)
 
     steps.append(f"Computed PCA with {n_pcs} components")
-
-
 
     sc.pp.neighbors(adata, n_pcs=n_pcs)
 
@@ -852,13 +684,9 @@ def cluster_spatial_data(
 
     steps.append(f"Leiden clustering (res={resolution}) found {n_clusters} clusters")
 
-
-
     adata.write(output_path, compression="lzf")
 
     steps.append(f"Saved clustered AnnData to {output_path}")
-
-
 
     # Plot UMAP + spatial
 
@@ -866,10 +694,7 @@ def cluster_spatial_data(
 
     import matplotlib.pyplot as plt
 
-
-
     if plot_path is None:
-
         plot_path = os.path.splitext(output_path)[0] + "_clusters.png"
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
@@ -886,26 +711,16 @@ def cluster_spatial_data(
 
     steps.append(f"Cluster plots saved to {plot_path}")
 
-
-
     return "\n".join(steps)
 
 
-
 def identify_spatial_domains(
-
     adata_path: str,
-
     output_path: str = "./visium_domains.h5ad",
-
     plot_path: str = None,
-
     resolution: float = 1.0,
-
     n_neighs: int = 6,
-
 ) -> str:
-
     """Identify spatial domains in 10x Visium data using spatial neighborhood graph.
 
 
@@ -939,14 +754,10 @@ def identify_spatial_domains(
     """
 
     try:
-
         import squidpy as sq
 
     except ImportError:
-
         return "Error: squidpy is required for spatial domain detection. Install with: pip install squidpy"
-
-
 
     steps = []
 
@@ -954,47 +765,30 @@ def identify_spatial_domains(
 
     steps.append(f"Loaded AnnData: {adata.shape[0]} spots x {adata.shape[1]} genes")
 
-
-
     if "spatial" not in adata.obsm:
-
         return "Error: no spatial coordinates found in adata.obsm['spatial']; run load_visium_data first"
-
-
 
     sq.gr.spatial_neighbors(adata, n_neighs=n_neighs, coord_type="generic")
 
     steps.append(f"Built spatial neighborhood graph with {n_neighs} neighbors per spot")
 
-
-
     # Leiden on the spatial graph (squidpy stores it in obsp["spatial_connectivities"])
 
     try:
-
-        sc.tl.leiden(adata, resolution=resolution, key_added="spatial_domain",
-
-                     neighbors_key="spatial_neighbors")
+        sc.tl.leiden(adata, resolution=resolution, key_added="spatial_domain", neighbors_key="spatial_neighbors")
 
     except KeyError:
-
         # Fallback: pass the spatial connectivity matrix directly
 
-        sc.tl.leiden(adata, resolution=resolution, key_added="spatial_domain",
-
-                     obsp="spatial_connectivities")
+        sc.tl.leiden(adata, resolution=resolution, key_added="spatial_domain", obsp="spatial_connectivities")
 
     n_domains = adata.obs["spatial_domain"].nunique()
 
     steps.append(f"Spatial domain clustering found {n_domains} domains")
 
-
-
     adata.write(output_path, compression="lzf")
 
     steps.append(f"Saved domain-annotated AnnData to {output_path}")
-
-
 
     # Plot domains on spatial coordinates
 
@@ -1002,10 +796,7 @@ def identify_spatial_domains(
 
     import matplotlib.pyplot as plt
 
-
-
     if plot_path is None:
-
         plot_path = os.path.splitext(output_path)[0] + "_domains.png"
 
     fig, ax = plt.subplots(1, 1, figsize=(7, 6))
@@ -1018,12 +809,7 @@ def identify_spatial_domains(
 
     steps.append(f"Spatial domain plot saved to {plot_path}")
 
-
-
     return "\n".join(steps)
-
-
-
 
 
 # ============================================================================
@@ -1033,25 +819,14 @@ def identify_spatial_domains(
 # ============================================================================
 
 
-
-
-
 def find_spatially_variable_genes(
-
     adata_path: str,
-
     output_path: str = "./svg_results.csv",
-
     plot_path: str = None,
-
     n_top_genes: int = 100,
-
     genes_to_plot: list = None,
-
     n_jobs: int = 1,
-
 ) -> str:
-
     """Detect spatially variable genes (SVGs) in 10x Visium data using Moran's I.
 
 
@@ -1091,14 +866,10 @@ def find_spatially_variable_genes(
     """
 
     try:
-
         import squidpy as sq
 
     except ImportError:
-
         return "Error: squidpy is required for SVG detection. Install with: pip install squidpy"
-
-
 
     steps = []
 
@@ -1106,35 +877,22 @@ def find_spatially_variable_genes(
 
     steps.append(f"Loaded AnnData: {adata.shape[0]} spots x {adata.shape[1]} genes")
 
-
-
     if "spatial" not in adata.obsm:
-
         return "Error: no spatial coordinates found in adata.obsm['spatial']; run load_visium_data first"
 
     if "spatial_neighbors" not in adata.uns and "spatial_domain" not in adata.obs:
-
         sq.gr.spatial_neighbors(adata, n_neighs=6, coord_type="generic")
 
         steps.append("Built spatial neighborhood graph")
 
-
-
     sq.gr.spatial_autocorr(
-
         adata,
-
         mode="moran",
-
         n_jobs=n_jobs,
-
         genes=adata.var_names[:2000],
-
     )
 
     steps.append("Computed Moran's I for all genes")
-
-
 
     moran = adata.uns["moranI"]
 
@@ -1146,26 +904,19 @@ def find_spatially_variable_genes(
 
     steps.append(f"Top {len(top)} spatially variable genes saved to {output_path}")
 
-
-
     # Plot top 4 SVGs on spatial coordinates
 
     _plot_setup(os.path.dirname(output_path) or ".")
 
     import matplotlib.pyplot as plt
 
-
-
     if plot_path is None:
-
         plot_path = os.path.splitext(output_path)[0] + "_top_svgs.png"
 
     if genes_to_plot:
-
         missing = [g for g in genes_to_plot if g not in adata.var_names]
 
         if missing:
-
             return "\\n".join(steps) + f"\\nError: genes not found in var_names: {missing}"
 
         plot_genes = genes_to_plot
@@ -1173,7 +924,6 @@ def find_spatially_variable_genes(
         title = "Spatially variable genes (user selected)"
 
     else:
-
         plot_genes = top.index[:4].tolist()
 
         title = "Top spatially variable genes"
@@ -1186,14 +936,12 @@ def find_spatially_variable_genes(
 
     fig, axes = plt.subplots(nrows, ncols, figsize=(4 * ncols, 4 * nrows), squeeze=False)
 
-    for ax, gene in zip(axes.ravel(), plot_genes):
-
+    for ax, gene in zip(axes.ravel(), plot_genes, strict=False):
         moran_i = top.loc[gene, "I"] if gene in top.index else float("nan")
 
         _spatial_scatter(adata, gene, ax, f"{gene} (Moran's I={moran_i:.3f})" if gene in top.index else gene)
 
-    for ax in axes.ravel()[len(plot_genes):]:
-
+    for ax in axes.ravel()[len(plot_genes) :]:
         ax.axis("off")
 
     fig.suptitle(title)
@@ -1206,12 +954,7 @@ def find_spatially_variable_genes(
 
     steps.append(f"SVG spatial plots ({len(plot_genes)} genes) saved to {plot_path}")
 
-
-
     return "\n".join(steps)
-
-
-
 
 
 # ============================================================================
@@ -1221,18 +964,12 @@ def find_spatially_variable_genes(
 # ============================================================================
 
 
-
-
-
 def _plot_proportions(prop_df, plot_path: str, title: str) -> None:
-
     """Plot per-spot cell-type proportions as a stacked bar/area summary."""
 
     _plot_setup(os.path.dirname(plot_path) or ".")
 
     import matplotlib.pyplot as plt
-
-
 
     # Bar chart of mean proportions per cell type (numeric columns only)
 
@@ -1251,8 +988,6 @@ def _plot_proportions(prop_df, plot_path: str, title: str) -> None:
     axes[0].set_ylabel("mean proportion")
 
     axes[0].set_title("Mean cell-type proportions")
-
-
 
     # Stacked proportions for first 20 spots (sampled)
 
@@ -1281,25 +1016,14 @@ def _plot_proportions(prop_df, plot_path: str, title: str) -> None:
     plt.close(fig)
 
 
-
-
-
 def deconvolve_spatial_spotlight(
-
     ref_h5ad: str,
-
     st_h5ad: str,
-
     cell_type_key: str,
-
     output_dir: str = "./spotlight_results",
-
     plot_path: str = None,
-
     r_script_path: str = "Rscript",
-
 ) -> str:
-
     """Deconvolve 10x Visium spots into cell-type proportions using SPOTlight.
 
 
@@ -1339,16 +1063,10 @@ def deconvolve_spatial_spotlight(
     """
 
     import subprocess
-
     import tempfile
 
-
-
     if not os.path.exists(ref_h5ad) or not os.path.exists(st_h5ad):
-
         return "Error: ref_h5ad or st_h5ad file not found"
-
-
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -1356,22 +1074,15 @@ def deconvolve_spatial_spotlight(
 
     steps.append(f"SPOTlight deconvolution: ref={ref_h5ad}, st={st_h5ad}")
 
-
-
     # Convert h5ad inputs to 10x format for R (deterministic, no R h5ad reader needed)
 
     import scipy.io as sio
-
-
 
     bridge_dir = os.path.join(output_dir, "_bridge")
 
     os.makedirs(bridge_dir, exist_ok=True)
 
-
-
     def _h5ad_to_10x(h5ad_path, prefix):
-
         """Write an h5ad to 10x mtx/features/barcodes files (genes x cells).
 
 
@@ -1385,17 +1096,14 @@ def deconvolve_spatial_spotlight(
         ad = sc.read_h5ad(h5ad_path)
 
         if ad.raw is not None:
-
             ad = ad.raw.to_adata()
 
         if "counts" in ad.layers:
-
             ad.X = ad.layers["counts"].copy()
 
         # Gene symbols for R-side filters (^Rp[l|s]|Mt etc.)
 
         if "feature_name" in ad.var.columns:
-
             symbols = ad.var["feature_name"].astype(str).values
 
             # Fill missing/empty symbols with var_names
@@ -1403,7 +1111,6 @@ def deconvolve_spatial_spotlight(
             symbols = np.where((symbols == "") | (symbols == "nan"), ad.var_names.astype(str), symbols)
 
         else:
-
             symbols = ad.var_names.astype(str).values
 
         mtx_path = os.path.join(bridge_dir, f"{prefix}_matrix.mtx")
@@ -1415,26 +1122,19 @@ def deconvolve_spatial_spotlight(
         sio.mmwrite(mtx_path, ad.X.T.tocsr())
 
         with open(feat_path, "w") as f:
-
             for g in symbols:
-
                 f.write(f"{g}\t{g}\tGene Expression\n")
 
         with open(bar_path, "w") as f:
-
             for b in ad.obs_names:
-
                 f.write(f"{b}\n")
 
         if cell_type_key in ad.obs:
-
             ct_path = os.path.join(bridge_dir, f"{prefix}_celltypes.tsv")
 
             ad.obs[[cell_type_key]].to_csv(ct_path, header=True, index=False)
 
         return mtx_path, feat_path, bar_path
-
-
 
     steps.append("Converting h5ad to 10x format for R bridge...")
 
@@ -1443,8 +1143,6 @@ def deconvolve_spatial_spotlight(
     st_mtx, st_feat, st_bar = _h5ad_to_10x(st_h5ad, "st")
 
     steps.append("Conversion done")
-
-
 
     # Write the R bridge script
 
@@ -1587,31 +1285,21 @@ cat("SPOTlight done\\n")
 """
 
     with tempfile.NamedTemporaryFile(suffix=".R", mode="w", delete=False, dir=output_dir) as f:
-
         f.write(r_script)
 
         r_script_path_tmp = f.name
 
-
-
     try:
-
         result = subprocess.run(
-
             [r_script_path, r_script_path_tmp],
-
             capture_output=True,
-
             text=True,
-
             timeout=3600,
-
         )
 
         steps.append(f"R output: {result.stdout.strip()[:500]}")
 
         if result.returncode != 0:
-
             steps.append(f"R error: {result.stderr.strip()[:500]}")
 
             return "\n".join(steps)
@@ -1619,7 +1307,6 @@ cat("SPOTlight done\\n")
         out_csv = os.path.join(output_dir, "spotlight_proportions.csv")
 
         if os.path.exists(out_csv):
-
             prop = pd.read_csv(out_csv, index_col=0)
 
             steps.append(f"SPOTlight proportions: {prop.shape[0]} spots x {prop.shape[1]} cell types")
@@ -1627,7 +1314,6 @@ cat("SPOTlight done\\n")
             steps.append(f"Results saved to {out_csv}")
 
             if plot_path is None:
-
                 plot_path = os.path.join(output_dir, "spotlight_proportions.png")
 
             _plot_proportions(prop, plot_path, "SPOTlight deconvolution")
@@ -1635,45 +1321,27 @@ cat("SPOTlight done\\n")
             steps.append(f"Proportions plot saved to {plot_path}")
 
         else:
-
             steps.append("Warning: output CSV not found")
 
     except Exception as e:
-
         steps.append(f"Error running SPOTlight: {e}")
 
     finally:
-
         os.unlink(r_script_path_tmp)
-
-
 
     return "\n".join(steps)
 
 
-
-
-
 def deconvolve_spatial_destvi(
-
     ref_h5ad: str,
-
     st_h5ad: str,
-
     cell_type_key: str,
-
     output_dir: str = "./destvi_results",
-
     plot_path: str = None,
-
     n_latent: int = 30,
-
     max_epochs: int = 400,
-
     destvi_max_epochs: int = 500,
-
 ) -> str:
-
     """Deconvolve 10x Visium spots into cell-type proportions using DestVI.
 
 
@@ -1715,22 +1383,14 @@ def deconvolve_spatial_destvi(
     """
 
     try:
-
         import torch
-
         from scvi.model import CondSCVI, DestVI
 
     except ImportError:
-
         return "Error: scvi-tools required for DestVI deconvolution. Install with: pip install scvi-tools"
 
-
-
     if not os.path.exists(ref_h5ad) or not os.path.exists(st_h5ad):
-
         return "Error: ref_h5ad or st_h5ad file not found"
-
-
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -1738,13 +1398,9 @@ def deconvolve_spatial_destvi(
 
     steps.append(f"DestVI deconvolution: ref={ref_h5ad}, st={st_h5ad}")
 
-
-
     use_gpu = torch.cuda.is_available()
 
     steps.append(f"CUDA available: {use_gpu}")
-
-
 
     # Load reference
 
@@ -1753,18 +1409,12 @@ def deconvolve_spatial_destvi(
     steps.append(f"Reference: {ref.shape[0]} cells x {ref.shape[1]} genes")
 
     if cell_type_key not in ref.obs:
-
         return f"Error: cell_type_key '{cell_type_key}' not found in reference obs"
-
-
 
     # Use raw counts if stored
 
     if "counts" in ref.layers:
-
         ref.X = ref.layers["counts"].copy()
-
-
 
     # Load spatial data first so we can align genes before training CondSCVI
 
@@ -1772,15 +1422,12 @@ def deconvolve_spatial_destvi(
 
     steps.append(f"Spatial: {st.shape[0]} spots x {st.shape[1]} genes")
 
-
-
     # Align genes between reference (Ensembl) and spatial (symbol)
 
     # Reference var_names may be Ensembl IDs with a 'feature_name' column holding symbols
 
     if "feature_name" in ref.var.columns:
-
-        sym2ens = dict(zip(ref.var["feature_name"].astype(str), ref.var_names))
+        sym2ens = dict(zip(ref.var["feature_name"].astype(str), ref.var_names, strict=False))
 
         st_symbols = np.array([str(g) for g in st.var_names])
 
@@ -1793,7 +1440,6 @@ def deconvolve_spatial_destvi(
         steps.append(f"Gene symbol->Ensembl mapped: {n_mapped}/{len(st_symbols)}")
 
         if n_mapped == 0:
-
             return "Error: no genes could be mapped between spatial (symbol) and reference (Ensembl)"
 
         st = st[:, keep].copy()
@@ -1803,14 +1449,10 @@ def deconvolve_spatial_destvi(
         common_genes = [g for g in ref.var_names if g in set(st.var_names)]
 
     else:
-
         common_genes = list(ref.var_names.intersection(st.var_names))
 
     if len(common_genes) == 0:
-
         return "Error: no common genes between reference and spatial data"
-
-
 
     # Align BOTH datasets to the same gene set (required by DestVI.from_rna_model)
 
@@ -1819,8 +1461,6 @@ def deconvolve_spatial_destvi(
     st = st[:, common_genes].copy()
 
     steps.append(f"Aligned on {len(common_genes)} common genes (ref and st)")
-
-
 
     # Ensure counts are integer for scvi
     from scipy.sparse import issparse
@@ -1831,8 +1471,6 @@ def deconvolve_spatial_destvi(
         else:
             ad.X = np.asarray(ad.X).astype(np.int32)
 
-
-
     CondSCVI.setup_anndata(ref, labels_key=cell_type_key)
 
     rna_model = CondSCVI(ref, n_latent=n_latent, prior="mog")
@@ -1840,20 +1478,13 @@ def deconvolve_spatial_destvi(
     steps.append(f"Training CondSCVI reference model ({max_epochs} epochs)...")
 
     rna_model.train(
-
         max_epochs=max_epochs,
-
         accelerator="cuda" if use_gpu else "cpu",
-
         devices=[0] if use_gpu else 1,
-
         batch_size=512,
-
     )
 
     steps.append("CondSCVI reference model trained")
-
-
 
     # Spatial model
 
@@ -1865,11 +1496,11 @@ def deconvolve_spatial_destvi(
 
     steps.append("Training DestVI spatial model...")
 
-    spatial_model.train(max_epochs=destvi_max_epochs, accelerator="cuda" if use_gpu else "cpu", devices=[0] if use_gpu else 1)
+    spatial_model.train(
+        max_epochs=destvi_max_epochs, accelerator="cuda" if use_gpu else "cpu", devices=[0] if use_gpu else 1
+    )
 
     steps.append("DestVI spatial model trained")
-
-
 
     # Extract proportions (returns pd.DataFrame with cell-type columns)
 
@@ -1887,22 +1518,14 @@ def deconvolve_spatial_destvi(
 
     steps.append(f"Results saved to {out_csv}")
 
-
-
     if plot_path is None:
-
         plot_path = os.path.join(output_dir, "destvi_proportions.png")
 
     _plot_proportions(prop_df, plot_path, "DestVI deconvolution")
 
     steps.append(f"Proportions plot saved to {plot_path}")
 
-
-
     return "\n".join(steps)
-
-
-
 
 
 # ============================================================================
@@ -1912,25 +1535,14 @@ def deconvolve_spatial_destvi(
 # ============================================================================
 
 
-
-
-
 def infer_spatial_cell_communication(
-
     st_h5ad: str,
-
     cell_type_key: str,
-
     output_dir: str = "./cellchat_results",
-
     plot_path: str = None,
-
     r_script_path: str = "Rscript",
-
     species: str = "human",
-
 ) -> str:
-
     """Infer spatially proximal cell-cell communication using CellChat v2.
 
 
@@ -1970,16 +1582,10 @@ def infer_spatial_cell_communication(
     """
 
     import subprocess
-
     import tempfile
 
-
-
     if not os.path.exists(st_h5ad):
-
         return "Error: st_h5ad file not found"
-
-
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -1987,34 +1593,23 @@ def infer_spatial_cell_communication(
 
     steps.append(f"CellChat spatial communication inference: {st_h5ad}")
 
-
-
     if plot_path is None:
-
         plot_path = os.path.join(output_dir, "cellchat_network.png")
-
-
 
     # Convert h5ad to 10x format for R (deterministic bridge)
 
     import scipy.io as sio
 
-
-
     bridge_dir = os.path.join(output_dir, "_bridge")
 
     os.makedirs(bridge_dir, exist_ok=True)
 
-
-
     ad = sc.read_h5ad(st_h5ad)
 
     if ad.raw is not None:
-
         ad = ad.raw.to_adata()
 
     if "counts" in ad.layers:
-
         ad.X = ad.layers["counts"].copy()
 
     mtx_path = os.path.join(bridge_dir, "st_matrix.mtx")
@@ -2030,15 +1625,11 @@ def infer_spatial_cell_communication(
     sio.mmwrite(mtx_path, X_sparse.T)
 
     with open(feat_path, "w") as f:
-
         for g in ad.var_names:
-
             f.write(f"{g}\t{g}\tGene Expression\n")
 
     with open(bar_path, "w") as f:
-
         for b in ad.obs_names:
-
             f.write(f"{b}\n")
 
     ct_path = os.path.join(bridge_dir, "st_celltypes.tsv")
@@ -2059,16 +1650,11 @@ def infer_spatial_cell_communication(
     coord_path = os.path.join(bridge_dir, "st_coords.csv")
 
     if "spatial" in ad.obsm:
-
-        pd.DataFrame(ad.obsm["spatial"], index=ad.obs_names,
-
-                     columns=["x", "y"]).to_csv(coord_path)
+        pd.DataFrame(ad.obsm["spatial"], index=ad.obs_names, columns=["x", "y"]).to_csv(coord_path)
 
         steps.append("Converted spatial coordinates for CellChat")
 
     steps.append("Converted h5ad to 10x format for CellChat bridge")
-
-
 
     r_script = f"""
 
@@ -2187,31 +1773,21 @@ cat("CellChat done\\n")
 """
 
     with tempfile.NamedTemporaryFile(suffix=".R", mode="w", delete=False, dir=output_dir) as f:
-
         f.write(r_script)
 
         r_script_path_tmp = f.name
 
-
-
     try:
-
         result = subprocess.run(
-
             [r_script_path, r_script_path_tmp],
-
             capture_output=True,
-
             text=True,
-
             timeout=3600,
-
         )
 
         steps.append(f"R output: {result.stdout.strip()[:500]}")
 
         if result.returncode != 0:
-
             steps.append(f"R error: {result.stderr.strip()[:500]}")
 
             return "\n".join(steps)
@@ -2219,7 +1795,6 @@ cat("CellChat done\\n")
         comm_csv = os.path.join(output_dir, "cellchat_communication.csv")
 
         if os.path.exists(comm_csv):
-
             comm = pd.read_csv(comm_csv)
 
             steps.append(f"CellChat communication pairs: {len(comm)}")
@@ -2227,31 +1802,21 @@ cat("CellChat done\\n")
             steps.append(f"Results saved to {comm_csv}")
 
         else:
-
             steps.append("Warning: output CSV not found")
 
         if os.path.exists(plot_path):
-
             steps.append(f"Network plot saved to {plot_path}")
 
         else:
-
             steps.append("Warning: network plot not found")
 
     except Exception as e:
-
         steps.append(f"Error running CellChat: {e}")
 
     finally:
-
         os.unlink(r_script_path_tmp)
 
-
-
     return "\n".join(steps)
-
-
-
 
 
 # ============================================================================
@@ -2261,23 +1826,13 @@ cat("CellChat done\\n")
 # ============================================================================
 
 
-
-
-
 def spatial_neighborhood_enrichment(
-
     adata_path: str,
-
     cell_type_key: str,
-
     output_path: str = "./neighborhood_enrichment.csv",
-
     plot_path: str = None,
-
     n_neighs: int = 6,
-
 ) -> str:
-
     """Compute cell-type neighborhood enrichment in 10x Visium data.
 
 
@@ -2315,14 +1870,10 @@ def spatial_neighborhood_enrichment(
     """
 
     try:
-
         import squidpy as sq
 
     except ImportError:
-
         return "Error: squidpy is required for neighborhood enrichment. Install with: pip install squidpy"
-
-
 
     steps = []
 
@@ -2330,29 +1881,19 @@ def spatial_neighborhood_enrichment(
 
     steps.append(f"Loaded AnnData: {adata.shape[0]} spots x {adata.shape[1]} genes")
 
-
-
     if cell_type_key not in adata.obs:
-
         return f"Error: cell_type_key '{cell_type_key}' not found in obs"
 
     if "spatial" not in adata.obsm:
-
         return "Error: no spatial coordinates found; run load_visium_data first"
-
-
 
     sq.gr.spatial_neighbors(adata, n_neighs=n_neighs, coord_type="generic")
 
     steps.append(f"Built spatial neighborhood graph with {n_neighs} neighbors per spot")
 
-
-
     sq.gr.nhood_enrichment(adata, cluster_key=cell_type_key)
 
     steps.append("Computed neighborhood enrichment")
-
-
 
     enrich = adata.uns[f"{cell_type_key}_nhood_enrichment"]
 
@@ -2364,31 +1905,28 @@ def spatial_neighborhood_enrichment(
 
     steps.append(f"Neighborhood enrichment z-scores saved to {output_path}")
 
-
-
     # Plot heatmap
 
     _plot_setup(os.path.dirname(output_path) or ".")
 
     import matplotlib.pyplot as plt
 
-
-
     if plot_path is None:
-
         plot_path = os.path.splitext(output_path)[0] + "_heatmap.png"
 
     fig, ax = plt.subplots(1, 1, figsize=(max(6, len(cats) * 0.6), max(5, len(cats) * 0.5)))
 
-    im = ax.imshow(df.values, cmap="RdBu_r", vmin=-max(abs(df.values.max()), abs(df.values.min())),
-
-                   vmax=max(abs(df.values.max()), abs(df.values.min())))
+    im = ax.imshow(
+        df.values,
+        cmap="RdBu_r",
+        vmin=-max(abs(df.values.max()), abs(df.values.min())),
+        vmax=max(abs(df.values.max()), abs(df.values.min())),
+    )
 
     # Readable labels: numeric cluster ids become "Cluster N"; real cell-type
     # names (e.g. "T cell", "Fibroblast") are kept as-is so the heatmap carries
     # biological meaning.
     def _readable(c):
-
         s = str(c)
 
         return f"Cluster {s}" if s.isdigit() else s
@@ -2419,12 +1957,7 @@ def spatial_neighborhood_enrichment(
 
     steps.append(f"Enrichment heatmap saved to {plot_path}")
 
-
-
     return "\n".join(steps)
-
-
-
 
 
 # ============================================================================
@@ -2434,17 +1967,10 @@ def spatial_neighborhood_enrichment(
 # ============================================================================
 
 
-
-
-
 def init_spatial_project(
-
     project_dir: str,
-
     overwrite: bool = False,
-
 ) -> str:
-
     """Create a standardized spatial transcriptomics project directory layout.
 
 
@@ -2502,76 +2028,49 @@ def init_spatial_project(
     """
 
     subdirs = [
-
         "raw_data/visium",
-
         "raw_data/scRNA",
-
         "results/01_loading",
-
         "results/02_qc",
-
         "results/03_normalization",
-
         "results/04_clustering",
-
         "results/05_deconvolution",
-
         "results/06_svg",
-
         "results/07_communication",
-
         "results/08_neighborhood",
-
     ]
 
     if os.path.exists(project_dir) and not overwrite:
-
         return f"Project directory already exists: {project_dir} (use overwrite=True to recreate)"
-
-
 
     os.makedirs(project_dir, exist_ok=True)
 
     created = []
 
     for sub in subdirs:
-
         p = os.path.join(project_dir, sub)
 
         os.makedirs(p, exist_ok=True)
 
         created.append(p)
 
-
-
     readme = os.path.join(project_dir, "README.md")
 
     with open(readme, "w") as f:
-
         f.write("# Spatial transcriptomics project\n\n")
 
         f.write("## Directory layout\n\n")
 
         for sub in subdirs:
-
             f.write(f"- `{sub}/`\n")
-
-
 
     lines = [f"Initialized spatial project at {project_dir}"]
 
     lines.append("Created directories:")
 
     for p in created:
-
         lines.append(f"  {p}")
 
     lines.append(f"README written to {readme}")
 
     return "\n".join(lines)
-
-
-
-
-
