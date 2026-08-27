@@ -222,6 +222,18 @@ class A1:
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
         self.configure()
 
+        # --- Memory subsystem (optional, best-effort, never breaks the agent) ---
+        self.memory = None
+        self._memory_enabled = False
+        try:
+            from memory import MemorySystem
+
+            self.memory = MemorySystem(llm=self.llm)
+            self._memory_enabled = True
+            print("🧠 Memory system enabled")
+        except Exception as e:  # e.g. sqlalchemy/chromadb not installed
+            print(f"Note: Memory system disabled ({e})")
+
     def add_tool(self, api):
         """Add a new tool to the agent's tool registry and make it available for retrieval.
 
@@ -719,7 +731,7 @@ class A1:
 
             traceback.print_exc()
             return False
-
+##################################################################################
     def get_custom_data(self, name):
         """Get a custom data item by name.
 
@@ -1376,7 +1388,7 @@ Each library is listed with its description to help you understand its functiona
             custom_software=custom_software if custom_software else None,
             know_how_docs=know_how_docs if know_how_docs else None,
         )
-
+########################################################################################
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
             # Add OpenAI-specific formatting reminders if using OpenAI models
@@ -1642,7 +1654,7 @@ Each library is listed with its description to help you understand its functiona
         self.checkpointer = MemorySaver()
         self.app.checkpointer = self.checkpointer
         # display(Image(self.app.get_graph().draw_mermaid_png()))
-
+############################################################################################################################
     def _prepare_resources_for_retrieval(self, prompt):
         """Prepare resources for retrieval and return selected resource names.
 
@@ -1755,7 +1767,7 @@ Each library is listed with its description to help you understand its functiona
         print("=" * 60 + "\n")
 
         return selected_resources_names
-
+################################################################################################################################
     def go(self, prompt):
         """Execute the agent with the given prompt.
 
@@ -1991,7 +2003,7 @@ Each library is listed with its description to help you understand its functiona
         """
         custom_functions = getattr(self, "_custom_functions", {})
         inject_custom_functions_to_repl(custom_functions)
-
+############################################################################
     def create_mcp_server(self, tool_modules=None):
         """
         Create an MCP server object that exposes internal Biomni tools.
@@ -2058,6 +2070,47 @@ Each library is listed with its description to help you understand its functiona
         print(f"Created MCP server with {registered_tools} tools")
         return mcp
 
+    def persist_memory(self, user_id="default", task_id=None, blocking=False):
+        """Extract and persist memory from the most recent run.
+
+        Non-blocking by default. Never raises — memory is best-effort and must
+        not break the agent's main flow or the existing PDF-saving path.
+
+        Args:
+            user_id: Owner of the memory (for multi-user isolation).
+            task_id: Optional task identifier; defaults to the last user prompt.
+            blocking: If True, wait for extraction to finish and return the result.
+        """
+        if not getattr(self, "_memory_enabled", False):
+            return None
+        try:
+            from memory import trace_from_log, trace_from_messages
+
+            state = getattr(self, "_conversation_state", None)
+            if state and isinstance(state, dict) and "messages" in state:
+                trace = trace_from_messages(state["messages"])
+            else:
+                trace = trace_from_log(getattr(self, "log", []))
+
+            task_id = task_id or getattr(self, "user_task", None)
+            if blocking:
+                return self.memory.ingest_sync(trace, user_id=user_id, task_id=task_id)
+            return self.memory.ingest_background(trace, user_id=user_id, task_id=task_id)
+        except Exception:
+            return None
+
+    def retrieve_memory(self, query: str) -> str:
+        """Return a memory-context prompt fragment for the given query.
+
+        Returns an empty string if memory is disabled or nothing relevant is found.
+        """
+        if not getattr(self, "_memory_enabled", False):
+            return ""
+        try:
+            return self.memory.retrieve(query)
+        except Exception:
+            return ""
+
     def save_conversation_history(self, filepath: str, include_images: bool = True, save_pdf: bool = True) -> None:
         """Save the complete conversation history as PDF only.
 
@@ -2079,6 +2132,14 @@ Each library is listed with its description to help you understand its functiona
         """
         import os
         import tempfile
+
+        # Persist memory from this run (async, non-blocking, never raises).
+        # Runs in parallel with PDF generation and does not affect it.
+        if getattr(self, "_memory_enabled", False):
+            try:
+                self.persist_memory()
+            except Exception:
+                pass
 
         if not save_pdf:
             print("PDF saving is disabled. No file will be saved.")
@@ -2623,7 +2684,7 @@ Each library is listed with its description to help you understand its functiona
             wrapper.__signature__ = inspect.Signature(new_params, return_annotation=dict)
 
             return wrapper
-
+############################################################################################################################################################
     def launch_gradio_demo(self, thread_id=42, share=False, server_name="0.0.0.0", require_verification=False):
         """Launch a full-featured Gradio UI for the A1 agent (adapted from codeact_copilot).
 
