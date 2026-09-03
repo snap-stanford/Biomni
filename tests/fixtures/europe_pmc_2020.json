@@ -1,0 +1,81 @@
+{
+	"attribution": {
+		"provider": "Europe PMC",
+		"source_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID%3A33180112%20AND%20SRC%3AMED&resultType=core&format=json&pageSize=2",
+		"retrieved_date": "2026-08-30",
+		"note": "Recorded core response reduced only by removing fields outside this capability's contract."
+	},
+	"response": {
+		"version": "6.9",
+		"hitCount": 1,
+		"request": {
+			"queryString": "EXT_ID:33180112 AND SRC:MED",
+			"resultType": "CORE",
+			"pageSize": 2
+		},
+		"resultList": {
+			"result": [
+				{
+					"id": "33180112",
+					"source": "MED",
+					"pmid": "33180112",
+					"pmcid": "PMC7778976",
+					"doi": "10.1093/nar/gkaa994",
+					"title": "Europe PMC in 2020.",
+					"authorList": {
+						"author": [
+							{
+								"fullName": "Ferguson C",
+								"firstName": "Christine",
+								"lastName": "Ferguson",
+								"initials": "C",
+								"authorId": { "type": "ORCID", "value": "0000-0002-9317-6819" },
+								"authorAffiliationDetailsList": {
+									"authorAffiliation": [
+										{
+											"affiliation": "Literature Services, EMBL-EBI, Wellcome Trust Genome Campus, Cambridge, UK."
+										}
+									]
+								}
+							},
+							{
+								"fullName": "Araújo D",
+								"firstName": "Dayane",
+								"lastName": "Araújo",
+								"initials": "D",
+								"authorAffiliationDetailsList": {
+									"authorAffiliation": [
+										{
+											"affiliation": "Literature Services, EMBL-EBI, Wellcome Trust Genome Campus, Cambridge, UK."
+										}
+									]
+								}
+							}
+						]
+					},
+					"journalInfo": {
+						"issue": "D1",
+						"volume": "49",
+						"printPublicationDate": "2021-01-01",
+						"journal": {
+							"title": "Nucleic acids research",
+							"issn": "0305-1048",
+							"essn": "1362-4962",
+							"isoabbreviation": "Nucleic Acids Res"
+						}
+					},
+					"pubYear": "2021",
+					"pageInfo": "D1507-D1514",
+					"abstractText": "Europe PMC (https://europepmc.org) is a database of research articles, including peer reviewed full text articles and abstracts, and preprints - all freely available for use via website, APIs and bulk download. This article outlines new developments since 2017 where work has focussed on three key areas: (i) Europe PMC has added to its core content to include life science preprint abstracts and a special collection of full text of COVID-19-related preprints. Europe PMC is unique as an aggregator of biomedical preprints alongside peer-reviewed articles, with over 180 000 preprints available to search. (ii) Europe PMC has significantly expanded its links to content related to the publications, such as links to Unpaywall, providing wider access to full text, preprint peer-review platforms, all major curated data resources in the life sciences, and experimental protocols. The redesigned Europe PMC website features the PubMed abstract and corresponding PMC full text merged into one article page; there is more evident and user-friendly navigation within articles and to related content, plus a figure browse feature. (iii) The expanded annotations platform offers ∼1.3 billion text mined biological terms and concepts sourced from 10 providers and over 40 global data resources.",
+					"language": "eng",
+					"pubTypeList": { "pubType": ["research-article", "Journal Article"] },
+					"isOpenAccess": "Y",
+					"inEPMC": "Y",
+					"inPMC": "Y",
+					"license": "cc by",
+					"firstPublicationDate": "2021-01-01"
+				}
+			]
+		}
+	}
+}

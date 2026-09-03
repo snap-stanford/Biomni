@@ -1,5 +1,31 @@
 description = [
     {
+        "description": "Query Europe PMC for papers based on the provided search query.",
+        "name": "query_europe_pmc",
+        "optional_parameters": [
+            {
+                "default": 10,
+                "description": "The maximum number of papers to retrieve.",
+                "name": "max_papers",
+                "type": "int",
+            },
+            {
+                "default": 3,
+                "description": "Maximum number of retry attempts with modified queries.",
+                "name": "max_retries",
+                "type": "int",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": 'The search query string. Europe PMC fielded queries such as ABSTRACT:"single cell" are supported.',
+                "name": "query",
+                "type": "str",
+            },
+        ],
+    },
+    {
         "description": "Fetches supplementary information for a paper given its DOI "
         "and saves it to a specified directory.",
         "name": "fetch_supplementary_info_from_doi",

@@ -1,0 +1,60 @@
+{
+	"attribution": {
+		"provider": "Europe PMC",
+		"derived_from": "europe_pmc_2020.json",
+		"source_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID%3A33180112%20AND%20SRC%3AMED&resultType=core&format=json&pageSize=2",
+		"note": "Contract-conformance variants derived from the attributed recording by removing optional fields or duplicating exact-match records. They are not represented as independent upstream observations."
+	},
+	"missing_optional": {
+		"id": "33180112",
+		"source": "MED",
+		"pmid": "33180112",
+		"title": "Europe PMC in 2020.",
+		"authorList": { "author": [{ "fullName": "Ferguson C" }] },
+		"isOpenAccess": null,
+		"inEPMC": "N"
+	},
+	"multiple_affiliations": {
+		"id": "33180112",
+		"source": "MED",
+		"pmid": "33180112",
+		"title": "Europe PMC in 2020.",
+		"authorList": {
+			"author": [
+				{
+					"fullName": "Example E",
+					"authorAffiliationDetailsList": {
+						"authorAffiliation": [
+							{ "affiliation": "Institute One" },
+							{ "affiliation": "Institute Two" }
+						]
+					}
+				}
+			]
+		}
+	},
+	"ambiguous_response": {
+		"version": "6.9",
+		"hitCount": 2,
+		"resultList": {
+			"result": [
+				{
+					"id": "33180112",
+					"source": "MED",
+					"pmid": "33180112",
+					"pmcid": "PMC7778976",
+					"doi": "10.1093/nar/gkaa994",
+					"title": "Europe PMC in 2020."
+				},
+				{
+					"id": "33180112",
+					"source": "MED",
+					"pmid": "33180112",
+					"pmcid": "PMC7778976",
+					"doi": "10.1093/nar/gkaa994",
+					"title": "Europe PMC in 2020."
+				}
+			]
+		}
+	}
+}
