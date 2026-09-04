@@ -183,6 +183,103 @@ def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
         return f"Error querying PubMed: {e}"
 
 
+def _extract_openalex_records(payload: dict) -> list[dict]:
+    results = payload.get("results", [])
+    if isinstance(results, list):
+        return [record for record in results if isinstance(record, dict)]
+    return []
+
+
+def _simplify_openalex_query(query: str, retry_index: int) -> str:
+    parts = query.split()
+    if len(parts) > retry_index:
+        return " ".join(parts[:-retry_index])
+    return query
+
+
+def _extract_openalex_abstract(record: dict) -> str:
+    abstract_index = record.get("abstract_inverted_index")
+    if not isinstance(abstract_index, dict) or not abstract_index:
+        return "No abstract available."
+
+    indexed_terms = []
+    for term, positions in abstract_index.items():
+        if not isinstance(term, str) or not isinstance(positions, list):
+            continue
+        for position in positions:
+            if isinstance(position, int):
+                indexed_terms.append((position, term))
+
+    if not indexed_terms:
+        return "No abstract available."
+
+    indexed_terms.sort(key=lambda item: item[0])
+    return " ".join(term for _, term in indexed_terms)
+
+
+def _format_openalex_record(record: dict) -> str:
+    title = record.get("title") or "N/A"
+    abstract = _extract_openalex_abstract(record)
+    primary_location = record.get("primary_location") or {}
+    source = primary_location.get("source") or {}
+    journal = source.get("display_name") or primary_location.get("raw_source_name") or "N/A"
+    return f"Title: {title}\nAbstract: {abstract}\nJournal: {journal}"
+
+
+def _search_openalex(query: str, page_size: int = 25, session: requests.Session | None = None) -> list[dict]:
+    active_session = session or requests.Session()
+    response = active_session.get(
+        "https://api.openalex.org/works",
+        params={
+            "search": query,
+            "per_page": page_size,
+            "select": "id,title,abstract_inverted_index,primary_location",
+        },
+        timeout=30,
+    )
+    response.raise_for_status()
+    return _extract_openalex_records(response.json())
+
+
+def query_openalex(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
+    """Query OpenAlex for papers based on the provided search query.
+
+    Parameters
+    ----------
+    - query (str): The search query string.
+    - max_papers (int): The maximum number of papers to retrieve (default: 10).
+    - max_retries (int): Maximum number of retry attempts with modified queries (default: 3).
+
+    Returns
+    -------
+    - str: The formatted search results or an error message.
+
+    """
+    try:
+        search_query = query.strip()
+        if not search_query:
+            return "Error querying OpenAlex: Query must not be empty."
+
+        page_size = max(1, min(int(max_papers), 100))
+        retries = max(0, int(max_retries))
+        records = _search_openalex(search_query, page_size=page_size)
+
+        retry_count = 0
+        while not records and retry_count < retries:
+            retry_count += 1
+            search_query = _simplify_openalex_query(search_query, retry_count)
+            time.sleep(1)
+            records = _search_openalex(search_query, page_size=page_size)
+
+        if records:
+            return "\n\n".join(_format_openalex_record(record) for record in records[:page_size])
+        return "No papers found on OpenAlex after multiple query attempts."
+    except requests.RequestException as e:
+        return f"Error querying OpenAlex: {e}"
+    except ValueError as e:
+        return f"Error querying OpenAlex: {e}"
+
+
 def search_google(query: str, num_results: int = 3, language: str = "en") -> list[dict]:
     """Search using Google search.
 
