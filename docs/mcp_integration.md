@@ -145,11 +145,7 @@ The MCP server can be configured with various options:
 
 ```python
 # Create server with specific modules
-mcp = agent.create_mcp_server(tool_modules=[
-    "biomni.tool.genetics",
-    "biomni.tool.database",
-    "biomni.tool.cell_biology"
-])
+mcp = agent.create_mcp_server(tool_modules=["biomni.tool.genetics", "biomni.tool.database", "biomni.tool.cell_biology"])
 
 # The server will expose all tools from these modules
 # Tools are automatically wrapped with proper parameter validation
@@ -304,11 +300,13 @@ from mcp.client.stdio import StdioServerParameters, stdio_client
 TOOL_TO_TEST = "query_uniprot"  # Change this to the tool you want to test
 TEST_ARGS = {"prompt": "Find information about human insulin protein"}
 
+
 async def test_single_tool():
     """Test a single tool in the Biomni MCP server."""
 
     # Set up the server parameters
     import os
+
     current_dir = os.path.dirname(os.path.abspath(__file__))
     server_script = os.path.join(current_dir, "run_mcp_server.py")
     server_params = StdioServerParameters(command="python", args=[server_script])
@@ -336,6 +334,7 @@ async def test_single_tool():
     except Exception as e:
         print(f"❌ Failed to connect to MCP server: {e}")
         return False
+
 
 if __name__ == "__main__":
     success = asyncio.run(test_single_tool())

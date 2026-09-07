@@ -54,21 +54,19 @@ We maintain a curated database of 300+ validated sgRNA sequences from Addgene wi
 import pandas as pd
 
 # Load the database
-df = pd.read_csv('addgene_grna_sequences.csv')
+df = pd.read_csv("addgene_grna_sequences.csv")
 
 # Search for your gene
 gene_name = "TP53"
-results = df[df['Target_Gene'].str.upper() == gene_name.upper()]
+results = df[df["Target_Gene"].str.upper() == gene_name.upper()]
 
 # Filter by species and application
 results_filtered = results[
-    (results['Target_Species'] == 'H. sapiens') &
-    (results['Application'] == 'cut')  # or 'activate', 'RNA targeting'
+    (results["Target_Species"] == "H. sapiens") & (results["Application"] == "cut")  # or 'activate', 'RNA targeting'
 ]
 
 # Display results with references
-print(results_filtered[['Target_Gene', 'Target_Sequence',
-                        'Plasmid_ID', 'PubMed_ID', 'Depositor']])
+print(results_filtered[["Target_Gene", "Target_Sequence", "Plasmid_ID", "PubMed_ID", "Depositor"]])
 ```
 
 **Database columns**:
@@ -245,12 +243,11 @@ The `.txt` file is tab-delimited. Column names differ between knockout and activ
 import pandas as pd
 
 # Load the dataset
-df = pd.read_csv('sgRNA_design_9606_GRCh38_SpyoCas9_CRISPRko_*.txt',
-                 sep='\t', low_memory=False)
+df = pd.read_csv("sgRNA_design_9606_GRCh38_SpyoCas9_CRISPRko_*.txt", sep="\t", low_memory=False)
 
 # Filter for your gene
 gene_name = "TP53"
-gene_sgrnas = df[df['Target Gene Symbol'] == gene_name].copy()
+gene_sgrnas = df[df["Target Gene Symbol"] == gene_name].copy()
 
 print(f"Found {len(gene_sgrnas)} sgRNAs for {gene_name}")
 ```
@@ -260,22 +257,21 @@ print(f"Found {len(gene_sgrnas)} sgRNAs for {gene_name}")
 **Default: Use Combined Rank (balances efficiency and specificity)**
 ```python
 # Sort by Combined Rank (lower is better)
-top_sgrnas = gene_sgrnas.nsmallest(10, 'Combined Rank')
+top_sgrnas = gene_sgrnas.nsmallest(10, "Combined Rank")
 
-print(top_sgrnas[['sgRNA Sequence', 'Combined Rank',
-                   'Exon Number', 'sgRNA Cut Position (1-based)']])
+print(top_sgrnas[["sgRNA Sequence", "Combined Rank", "Exon Number", "sgRNA Cut Position (1-based)"]])
 ```
 
 **Option A: Prioritize On-Target Efficiency**
 ```python
 # Sort by On-Target Rank (for maximum cutting efficiency)
-efficient_sgrnas = gene_sgrnas.nsmallest(10, 'On-Target Rank')
+efficient_sgrnas = gene_sgrnas.nsmallest(10, "On-Target Rank")
 ```
 
 **Option B: Prioritize Off-Target Specificity**
 ```python
 # Sort by Off-Target Rank (for maximum specificity)
-specific_sgrnas = gene_sgrnas.nsmallest(10, 'Off-Target Rank')
+specific_sgrnas = gene_sgrnas.nsmallest(10, "Off-Target Rank")
 ```
 
 #### Step 3: Filter by Custom Criteria (Optional)
@@ -283,44 +279,43 @@ specific_sgrnas = gene_sgrnas.nsmallest(10, 'Off-Target Rank')
 **Filter by Exon Number:**
 ```python
 # Target specific exon (e.g., exon 5)
-exon5_sgrnas = gene_sgrnas[gene_sgrnas['Exon Number'] == 5]
-top_exon5 = exon5_sgrnas.nsmallest(5, 'Combined Rank')
+exon5_sgrnas = gene_sgrnas[gene_sgrnas["Exon Number"] == 5]
+top_exon5 = exon5_sgrnas.nsmallest(5, "Combined Rank")
 ```
 
 **Filter by Genomic Position:**
 ```python
 # Target specific genomic range
 position_filtered = gene_sgrnas[
-    (gene_sgrnas['sgRNA Cut Position (1-based)'] >= 7572000) &
-    (gene_sgrnas['sgRNA Cut Position (1-based)'] <= 7575000)
+    (gene_sgrnas["sgRNA Cut Position (1-based)"] >= 7572000) & (gene_sgrnas["sgRNA Cut Position (1-based)"] <= 7575000)
 ]
 ```
 
 **Target Early Exons for Knockout:**
 ```python
 # Get sgRNAs from first 3 exons
-early_exons = gene_sgrnas[gene_sgrnas['Exon Number'] <= 3]
-top_early = early_exons.nsmallest(10, 'Combined Rank')
+early_exons = gene_sgrnas[gene_sgrnas["Exon Number"] <= 3]
+top_early = early_exons.nsmallest(10, "Combined Rank")
 ```
 
 **Filter by Target Cut Percentage:**
 ```python
 # Target sgRNAs that affect significant portion of protein
-high_impact = gene_sgrnas[gene_sgrnas['Target Cut %'] <= 50]  # Cut in first 50%
-top_high_impact = high_impact.nsmallest(10, 'Combined Rank')
+high_impact = gene_sgrnas[gene_sgrnas["Target Cut %"] <= 50]  # Cut in first 50%
+top_high_impact = high_impact.nsmallest(10, "Combined Rank")
 ```
 
 #### Step 4: Select Multiple sgRNAs for Validation
 
 ```python
 # Get top 4 sgRNAs from different exons for redundancy
-final_selection = gene_sgrnas.sort_values('Combined Rank').groupby('Exon Number').head(1).head(4)
+final_selection = gene_sgrnas.sort_values("Combined Rank").groupby("Exon Number").head(1).head(4)
 
 # Save results
-final_selection.to_csv(f'{gene_name}_selected_sgRNAs.csv', index=False)
+final_selection.to_csv(f"{gene_name}_selected_sgRNAs.csv", index=False)
 
 print("\nSelected sgRNAs:")
-print(final_selection[['sgRNA Sequence', 'Exon Number', 'Combined Rank']])
+print(final_selection[["sgRNA Sequence", "Exon Number", "Combined Rank"]])
 ```
 
 ### 2.6 What to Do with Results
@@ -375,10 +370,8 @@ Proceed to **Option 3: De Novo sgRNA Design**
 
 **Step 1**: Check Addgene
 ```python
-df = pd.read_csv('addgene_grna_sequences.csv')
-tp53_results = df[(df['Target_Gene'] == 'TP53') &
-                  (df['Target_Species'] == 'H. sapiens') &
-                  (df['Application'] == 'cut')]
+df = pd.read_csv("addgene_grna_sequences.csv")
+tp53_results = df[(df["Target_Gene"] == "TP53") & (df["Target_Species"] == "H. sapiens") & (df["Application"] == "cut")]
 # Result: Found 0 entries → Proceed to Option 2
 ```
 
@@ -393,24 +386,24 @@ gunzip sgRNA_design_9606_GRCh38_SpyoCas9_CRISPRko_*.txt.gz
 
 **Step 3**: Extract TP53 sgRNAs
 ```python
-df = pd.read_csv('sgRNA_design_9606_GRCh38_SpyoCas9_CRISPRko_*.txt', sep='\t')
-tp53 = df[df['Gene_Symbol'] == 'TP53']
-top_sgrnas = tp53[
-    (tp53['sgRNA_score'] > 0.6) &
-    (tp53['Off_target_stringency'] > 0.5)
-].sort_values('sgRNA_score', ascending=False).head(4)
+df = pd.read_csv("sgRNA_design_9606_GRCh38_SpyoCas9_CRISPRko_*.txt", sep="\t")
+tp53 = df[df["Gene_Symbol"] == "TP53"]
+top_sgrnas = (
+    tp53[(tp53["sgRNA_score"] > 0.6) & (tp53["Off_target_stringency"] > 0.5)]
+    .sort_values("sgRNA_score", ascending=False)
+    .head(4)
+)
 
-print(top_sgrnas[['sgRNA_sequence', 'sgRNA_score', 'Exon_ID']])
+print(top_sgrnas[["sgRNA_sequence", "sgRNA_score", "Exon_ID"]])
 ```
 
 ### Example 2: Activate OCT4 in Human iPSCs
 
 **Step 1**: Check Addgene
 ```python
-oct4_results = df[(df['Target_Gene'] == 'OCT4') &
-                  (df['Application'] == 'activate')]
+oct4_results = df[(df["Target_Gene"] == "OCT4") & (df["Application"] == "activate")]
 # Found 1 validated sgRNA!
-print(oct4_results['Target_Sequence'].values[0])
+print(oct4_results["Target_Sequence"].values[0])
 # Use this sequence ✅
 ```
 
