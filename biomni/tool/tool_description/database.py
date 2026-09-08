@@ -1,5 +1,25 @@
 description = [
     {
+        "description": "Query public CELLxGENE Discover collections by metadata text.",
+        "name": "query_cellxgene_collections",
+        "optional_parameters": [
+            {
+                "default": 5,
+                "description": "The maximum number of matching collections to return.",
+                "name": "max_results",
+                "type": "int",
+            }
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "The metadata query string, such as a tissue, organism, disease, assay, or collection title.",
+                "name": "query",
+                "type": "str",
+            }
+        ],
+    },
+    {
         "description": "Query the UniProt REST API using either natural language or a direct endpoint.",
         "name": "query_uniprot",
         "optional_parameters": [

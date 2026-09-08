@@ -1,0 +1,71 @@
+{
+  "attribution": {
+    "provider": "CELLxGENE Discover",
+    "source_url": "https://api.cellxgene.cziscience.com/curation/v1/collections",
+    "retrieved_date": "2026-09-08",
+    "note": "Public CELLxGENE collection response reduced to one collection and one dataset."
+  },
+  "response": [
+    {
+      "collection_id": "af893e86-8e9f-41f1-a474-ef05359b1fb7",
+      "collection_url": "https://cellxgene.cziscience.com/collections/af893e86-8e9f-41f1-a474-ef05359b1fb7",
+      "collection_version_id": "c1b538fd-0f01-41c8-a504-6f44626916c2",
+      "consortia": [
+        "CZI Cell Science"
+      ],
+      "contact_email": "ruichen@bcm.edu",
+      "contact_name": "Rui Chen",
+      "created_at": "2026-06-09T23:02:06+00:00",
+      "curator_name": "Jennifer Yu-Sheng Chien",
+      "description": "Single-nuclei RNA-seq were carried out to profile well-characterized healthy human retina from six individual donors using the 10x Genomics technologies.",
+      "doi": "10.1016/j.xgen.2023.100343",
+      "name": "Single-cell transcriptomic atlas for adult human retina",
+      "published_at": "2021-10-29T22:14:24+00:00",
+      "visibility": "PUBLIC",
+      "datasets": [
+        {
+          "assay": [
+            {
+              "label": "10x 3' v3",
+              "ontology_term_id": "EFO:0009922"
+            }
+          ],
+          "dataset_id": "ed419b4e-db9b-40f1-8593-68fdf8dfb076",
+          "dataset_version_id": "c8da6eeb-84d7-4379-a332-1bf6107859d6",
+          "disease": [
+            {
+              "label": "normal",
+              "ontology_term_id": "PATO:0000461"
+            }
+          ],
+          "organism": [
+            {
+              "label": "Homo sapiens",
+              "ontology_term_id": "NCBITaxon:9606"
+            }
+          ],
+          "suspension_type": [
+            "nucleus"
+          ],
+          "tissue": [
+            {
+              "label": "fovea centralis",
+              "ontology_term_id": "UBERON:0001786",
+              "tissue_type": "tissue"
+            },
+            {
+              "label": "macula lutea proper",
+              "ontology_term_id": "UBERON:0002822",
+              "tissue_type": "tissue"
+            },
+            {
+              "label": "peripheral region of retina",
+              "ontology_term_id": "UBERON:0013682",
+              "tissue_type": "tissue"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
