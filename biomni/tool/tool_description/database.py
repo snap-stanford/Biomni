@@ -1,5 +1,25 @@
 description = [
     {
+        "description": "Query public Human Cell Atlas project metadata.",
+        "name": "query_human_cell_atlas_projects",
+        "optional_parameters": [
+            {
+                "default": 5,
+                "description": "The maximum number of matching projects to return.",
+                "name": "max_results",
+                "type": "int",
+            }
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "The metadata query string, such as an organ, species, disease, assay, or project title.",
+                "name": "query",
+                "type": "str",
+            }
+        ],
+    },
+    {
         "description": "Query the UniProt REST API using either natural language or a direct endpoint.",
         "name": "query_uniprot",
         "optional_parameters": [
