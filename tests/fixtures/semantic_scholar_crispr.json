@@ -1,22 +1,22 @@
 {
-  "attribution": {
-    "provider": "Semantic Scholar",
-    "source_url": "https://api.semanticscholar.org/graph/v1/paper/search?query=CRISPR&limit=1&fields=title,abstract,venue,year",
-    "retrieved_date": "2026-09-05",
-    "note": "Recorded response reduced only by removing fields outside this capability's contract."
-  },
-  "response": {
-    "total": 98434,
-    "offset": 0,
-    "next": 1,
-    "data": [
-      {
-        "paperId": "b9e5fa707e804d6008e5011b058244437c656a93",
-        "title": "Optimized sgRNA design to maximize activity and minimize off-target effects of CRISPR-Cas9",
-        "venue": "Nature Biotechnology",
-        "year": 2016,
-        "abstract": "CRISPR-Cas9\\u2013based genetic screens are a powerful new tool in biology. By simply altering the sequence of the single-guide RNA (sgRNA), one can reprogram Cas9 to target different sites in the genome with relative ease, but the on-target activity and off-target effects of individual sgRNAs can vary widely. Here, we use recently devised sgRNA design rules to create human and mouse genome-wide libraries, perform positive and negative selection screens and observe that the use of these rules produced improved results. Additionally, we profile the off-target activity of thousands of sgRNAs and develop a metric to predict off-target sites. We incorporate these findings from large-scale, empirical data to improve our computational design rules and create optimized sgRNA libraries that maximize on-target activity and minimize off-target effects to enable more effective and efficient genetic screens and genome engineering."
-      }
-    ]
-  }
+	"attribution": {
+		"provider": "Semantic Scholar",
+		"source_url": "https://api.semanticscholar.org/graph/v1/paper/search?query=CRISPR&limit=1&fields=title,abstract,venue,year",
+		"retrieved_date": "2026-09-05",
+		"note": "Recorded response reduced only by removing fields outside this capability's contract."
+	},
+	"response": {
+		"total": 98434,
+		"offset": 0,
+		"next": 1,
+		"data": [
+			{
+				"paperId": "b9e5fa707e804d6008e5011b058244437c656a93",
+				"title": "Optimized sgRNA design to maximize activity and minimize off-target effects of CRISPR-Cas9",
+				"venue": "Nature Biotechnology",
+				"year": 2016,
+				"abstract": "CRISPR-Cas9\\u2013based genetic screens are a powerful new tool in biology. By simply altering the sequence of the single-guide RNA (sgRNA), one can reprogram Cas9 to target different sites in the genome with relative ease, but the on-target activity and off-target effects of individual sgRNAs can vary widely. Here, we use recently devised sgRNA design rules to create human and mouse genome-wide libraries, perform positive and negative selection screens and observe that the use of these rules produced improved results. Additionally, we profile the off-target activity of thousands of sgRNAs and develop a metric to predict off-target sites. We incorporate these findings from large-scale, empirical data to improve our computational design rules and create optimized sgRNA libraries that maximize on-target activity and minimize off-target effects to enable more effective and efficient genetic screens and genome engineering."
+			}
+		]
+	}
 }
