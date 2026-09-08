@@ -1,33 +1,33 @@
 {
-  "attribution": {
-    "provider": "Unpaywall",
-    "source_url": "https://raw.githubusercontent.com/ourresearch/unpaywall-website/master/api_responses.md",
-    "retrieved_date": "2026-09-06",
-    "note": "Public Unpaywall API response example reduced only by removing fields outside this capability's contract."
-  },
-  "response": {
-    "doi": "10.1186/gb-2004-5-10-r80",
-    "doi_url": "https://doi.org/10.1186/gb-2004-5-10-r80",
-    "title": "Bioconductor: open software development for computational biology and bioinformatics",
-    "genre": "journal-article",
-    "published_date": "2004-09-15",
-    "year": 2004,
-    "journal_name": "Genome Biology",
-    "publisher": "Springer Science and Business Media LLC",
-    "is_oa": true,
-    "oa_status": "gold",
-    "has_repository_copy": true,
-    "best_oa_location": {
-      "url": "https://genomebiology.biomedcentral.com/counter/pdf/10.1186/gb-2004-5-10-r80",
-      "url_for_pdf": "https://genomebiology.biomedcentral.com/counter/pdf/10.1186/gb-2004-5-10-r80",
-      "url_for_landing_page": "https://doi.org/10.1186/gb-2004-5-10-r80",
-      "evidence": "oa journal (via doaj)",
-      "license": "cc-by",
-      "version": "publishedVersion",
-      "host_type": "publisher",
-      "is_best": true,
-      "oa_date": "2004-09-15"
-    },
-    "data_standard": 2
-  }
+	"attribution": {
+		"provider": "Unpaywall",
+		"source_url": "https://raw.githubusercontent.com/ourresearch/unpaywall-website/master/api_responses.md",
+		"retrieved_date": "2026-09-06",
+		"note": "Public Unpaywall API response example reduced only by removing fields outside this capability's contract."
+	},
+	"response": {
+		"doi": "10.1186/gb-2004-5-10-r80",
+		"doi_url": "https://doi.org/10.1186/gb-2004-5-10-r80",
+		"title": "Bioconductor: open software development for computational biology and bioinformatics",
+		"genre": "journal-article",
+		"published_date": "2004-09-15",
+		"year": 2004,
+		"journal_name": "Genome Biology",
+		"publisher": "Springer Science and Business Media LLC",
+		"is_oa": true,
+		"oa_status": "gold",
+		"has_repository_copy": true,
+		"best_oa_location": {
+			"url": "https://genomebiology.biomedcentral.com/counter/pdf/10.1186/gb-2004-5-10-r80",
+			"url_for_pdf": "https://genomebiology.biomedcentral.com/counter/pdf/10.1186/gb-2004-5-10-r80",
+			"url_for_landing_page": "https://doi.org/10.1186/gb-2004-5-10-r80",
+			"evidence": "oa journal (via doaj)",
+			"license": "cc-by",
+			"version": "publishedVersion",
+			"host_type": "publisher",
+			"is_best": true,
+			"oa_date": "2004-09-15"
+		},
+		"data_standard": 2
+	}
 }
