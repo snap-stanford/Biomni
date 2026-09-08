@@ -1,31 +1,31 @@
 {
-  "attribution": {
-    "provider": "Crossref",
-    "source_url": "https://api.crossref.org/works?query=CRISPR&rows=1&select=DOI,title,abstract,container-title,published-print,published-online",
-    "retrieved_date": "2026-09-05",
-    "note": "Recorded response reduced only by removing fields outside this capability's contract."
-  },
-  "response": {
-    "status": "ok",
-    "message-type": "work-list",
-    "message-version": "1.0.0",
-    "message": {
-      "facets": {},
-      "total-results": 49697,
-      "items": [
-        {
-          "DOI": "10.1089/crispr.2020.29108.kda",
-          "title": ["My CRISPR Book"],
-          "container-title": ["The CRISPR Journal"],
-          "published-print": {"date-parts": [[2020, 10, 1]]},
-          "published-online": {"date-parts": [[2020, 10, 20]]}
-        }
-      ],
-      "items-per-page": 1,
-      "query": {
-        "start-index": 0,
-        "search-terms": "CRISPR"
-      }
-    }
-  }
+	"attribution": {
+		"provider": "Crossref",
+		"source_url": "https://api.crossref.org/works?query=CRISPR&rows=1&select=DOI,title,abstract,container-title,published-print,published-online",
+		"retrieved_date": "2026-09-05",
+		"note": "Recorded response reduced only by removing fields outside this capability's contract."
+	},
+	"response": {
+		"status": "ok",
+		"message-type": "work-list",
+		"message-version": "1.0.0",
+		"message": {
+			"facets": {},
+			"total-results": 49697,
+			"items": [
+				{
+					"DOI": "10.1089/crispr.2020.29108.kda",
+					"title": ["My CRISPR Book"],
+					"container-title": ["The CRISPR Journal"],
+					"published-print": { "date-parts": [[2020, 10, 1]] },
+					"published-online": { "date-parts": [[2020, 10, 20]] }
+				}
+			],
+			"items-per-page": 1,
+			"query": {
+				"start-index": 0,
+				"search-terms": "CRISPR"
+			}
+		}
+	}
 }
