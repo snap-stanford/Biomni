@@ -1,5 +1,25 @@
 description = [
     {
+        "description": "Query PubTator 3 for biomedical entity annotations for a PubMed identifier.",
+        "name": "query_pubtator",
+        "optional_parameters": [
+            {
+                "default": 20,
+                "description": "The maximum number of annotations to return.",
+                "name": "max_annotations",
+                "type": "int",
+            }
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "The PubMed identifier to retrieve annotations for.",
+                "name": "pmid",
+                "type": "str",
+            }
+        ],
+    },
+    {
         "description": "Fetches supplementary information for a paper given its DOI "
         "and saves it to a specified directory.",
         "name": "fetch_supplementary_info_from_doi",
