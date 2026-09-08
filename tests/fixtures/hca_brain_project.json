@@ -1,104 +1,78 @@
 {
-  "attribution": {
-    "provider": "Human Cell Atlas Data Browser",
-    "source_url": "https://service.azul.data.humancellatlas.org/index/projects?size=1",
-    "retrieved_date": "2026-09-08",
-    "note": "Public HCA Azul project response reduced to one project."
-  },
-  "response": {
-    "pagination": {
-      "count": 1,
-      "total": 532,
-      "size": 1
-    },
-    "hits": [
-      {
-        "entryId": "74b6d569-3b11-42ef-b6b1-a0454522b4a0",
-        "projects": [
-          {
-            "projectId": "74b6d569-3b11-42ef-b6b1-a0454522b4a0",
-            "projectTitle": "1.3 Million Brain Cells from E18 Mice",
-            "projectShortname": "1M Neurons",
-            "laboratory": [
-              "Human Cell Atlas Data Coordination Platform"
-            ],
-            "estimatedCellCount": 1330000,
-            "dataUseRestriction": "NRES",
-            "projectDescription": "Cortex, hippocampus, and subventricular zone were profiled with single-cell RNA sequencing.",
-            "publications": [
-              {
-                "publicationTitle": "Massively parallel digital transcriptional profiling of single cells",
-                "publicationUrl": "https://doi.org/10.1038/ncomms14049",
-                "doi": "10.1038/ncomms14049"
-              }
-            ]
-          }
-        ],
-        "samples": [
-          {
-            "organ": [
-              "brain"
-            ],
-            "organPart": [
-              "cortex"
-            ],
-            "disease": [
-              "normal"
-            ]
-          }
-        ],
-        "donorOrganisms": [
-          {
-            "donorCount": 2,
-            "developmentStage": [
-              "mouse embryo stage"
-            ],
-            "genusSpecies": [
-              "Mus musculus"
-            ],
-            "biologicalSex": [
-              "unknown"
-            ],
-            "disease": [
-              "normal"
-            ]
-          }
-        ],
-        "cellSuspensions": [
-          {
-            "organ": [
-              "brain"
-            ],
-            "organPart": [
-              "cortex"
-            ],
-            "selectedCellType": [
-              "neuron"
-            ],
-            "totalCells": 1330000
-          }
-        ],
-        "protocols": [
-          {
-            "libraryConstructionApproach": [
-              "10x 3' v2"
-            ],
-            "nucleicAcidSource": [
-              "single cell"
-            ]
-          }
-        ],
-        "fileTypeSummaries": [
-          {
-            "count": 16377,
-            "format": "fastq"
-          },
-          {
-            "count": 1,
-            "format": "h5"
-          }
-        ]
-      }
-    ]
-  }
+	"attribution": {
+		"provider": "Human Cell Atlas Data Browser",
+		"source_url": "https://service.azul.data.humancellatlas.org/index/projects?size=1",
+		"retrieved_date": "2026-09-08",
+		"note": "Public HCA Azul project response reduced to one project."
+	},
+	"response": {
+		"pagination": {
+			"count": 1,
+			"total": 532,
+			"size": 1
+		},
+		"hits": [
+			{
+				"entryId": "74b6d569-3b11-42ef-b6b1-a0454522b4a0",
+				"projects": [
+					{
+						"projectId": "74b6d569-3b11-42ef-b6b1-a0454522b4a0",
+						"projectTitle": "1.3 Million Brain Cells from E18 Mice",
+						"projectShortname": "1M Neurons",
+						"laboratory": ["Human Cell Atlas Data Coordination Platform"],
+						"estimatedCellCount": 1330000,
+						"dataUseRestriction": "NRES",
+						"projectDescription": "Cortex, hippocampus, and subventricular zone were profiled with single-cell RNA sequencing.",
+						"publications": [
+							{
+								"publicationTitle": "Massively parallel digital transcriptional profiling of single cells",
+								"publicationUrl": "https://doi.org/10.1038/ncomms14049",
+								"doi": "10.1038/ncomms14049"
+							}
+						]
+					}
+				],
+				"samples": [
+					{
+						"organ": ["brain"],
+						"organPart": ["cortex"],
+						"disease": ["normal"]
+					}
+				],
+				"donorOrganisms": [
+					{
+						"donorCount": 2,
+						"developmentStage": ["mouse embryo stage"],
+						"genusSpecies": ["Mus musculus"],
+						"biologicalSex": ["unknown"],
+						"disease": ["normal"]
+					}
+				],
+				"cellSuspensions": [
+					{
+						"organ": ["brain"],
+						"organPart": ["cortex"],
+						"selectedCellType": ["neuron"],
+						"totalCells": 1330000
+					}
+				],
+				"protocols": [
+					{
+						"libraryConstructionApproach": ["10x 3' v2"],
+						"nucleicAcidSource": ["single cell"]
+					}
+				],
+				"fileTypeSummaries": [
+					{
+						"count": 16377,
+						"format": "fastq"
+					},
+					{
+						"count": 1,
+						"format": "h5"
+					}
+				]
+			}
+		]
+	}
 }
