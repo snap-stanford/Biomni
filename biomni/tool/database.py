@@ -445,6 +445,121 @@ def _format_query_results(result, options=None):
     return formatted
 
 
+def _extract_hubmap_dataset_hits(payload: dict) -> list[dict]:
+    hits = payload.get("hits", {}).get("hits", [])
+    if isinstance(hits, list):
+        return [hit.get("_source", hit) for hit in hits if isinstance(hit, dict)]
+    return []
+
+
+def _get_hubmap_values(value) -> list[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value if item]
+    if value:
+        return [str(value)]
+    return []
+
+
+def _hubmap_dataset_matches(dataset: dict, terms: list[str]) -> bool:
+    if not terms:
+        return True
+
+    searchable_parts = [
+        dataset.get("title", ""),
+        dataset.get("hubmap_id", ""),
+        dataset.get("uuid", ""),
+        dataset.get("dataset_type", ""),
+        dataset.get("raw_dataset_type", ""),
+        dataset.get("group_name", ""),
+        dataset.get("status", ""),
+        dataset.get("data_access_level", ""),
+        dataset.get("assay_modality", ""),
+        dataset.get("pipeline", ""),
+    ]
+    searchable_parts.extend(_get_hubmap_values(dataset.get("assay_display_name")))
+    searchable_parts.extend(_get_hubmap_values(dataset.get("origin_samples_unique_mapped_organs")))
+    for sample in dataset.get("origin_samples", []):
+        if isinstance(sample, dict):
+            searchable_parts.extend(_get_hubmap_values(sample.get("mapped_organ")))
+            searchable_parts.extend(_get_hubmap_values(sample.get("organ")))
+            searchable_parts.extend(_get_hubmap_values(sample.get("sample_category")))
+    searchable_text = " ".join(searchable_parts).lower()
+    return all(term in searchable_text for term in terms)
+
+
+def _format_hubmap_dataset(dataset: dict) -> str:
+    title = dataset.get("title") or "N/A"
+    hubmap_id = dataset.get("hubmap_id") or "N/A"
+    uuid = dataset.get("uuid") or "N/A"
+    dataset_type = dataset.get("dataset_type") or dataset.get("raw_dataset_type") or "N/A"
+    assay = ", ".join(_get_hubmap_values(dataset.get("assay_display_name"))) or dataset_type
+    organ = ", ".join(_get_hubmap_values(dataset.get("origin_samples_unique_mapped_organs"))) or "N/A"
+    group_name = dataset.get("group_name") or "N/A"
+    status = dataset.get("status") or dataset.get("mapped_status") or "N/A"
+    access_level = dataset.get("data_access_level") or dataset.get("mapped_data_access_level") or "N/A"
+    is_spatial = dataset.get("is_spatial")
+    spatial_text = "Yes" if is_spatial is True else "No" if is_spatial is False else "N/A"
+    files = dataset.get("files", [])
+    file_count = len(files) if isinstance(files, list) else "N/A"
+    portal_url = f"https://portal.hubmapconsortium.org/browse/dataset/{uuid}" if uuid != "N/A" else "N/A"
+    return (
+        f"Dataset: {title}\n"
+        f"HuBMAP ID: {hubmap_id}\n"
+        f"UUID: {uuid}\n"
+        f"Portal URL: {portal_url}\n"
+        f"Dataset Type: {dataset_type}\n"
+        f"Assay: {assay}\n"
+        f"Organ: {organ}\n"
+        f"Group: {group_name}\n"
+        f"Status: {status}\n"
+        f"Data Access Level: {access_level}\n"
+        f"Spatial: {spatial_text}\n"
+        f"File Count: {file_count}"
+    )
+
+
+def _search_hubmap_datasets(query: str, max_results: int = 5, session: requests.Session | None = None) -> list[dict]:
+    active_session = session or requests.Session()
+    response = active_session.post(
+        "https://search.api.hubmapconsortium.org/v3/portal/search",
+        json={"query": {"bool": {"filter": [{"term": {"entity_type.keyword": "Dataset"}}]}}, "size": 10},
+        timeout=30,
+    )
+    response.raise_for_status()
+    datasets = _extract_hubmap_dataset_hits(response.json())
+    terms = [term.lower() for term in query.split() if term.strip()]
+    return [dataset for dataset in datasets if _hubmap_dataset_matches(dataset, terms)][:max_results]
+
+
+def query_hubmap_datasets(query: str, max_results: int = 5) -> str:
+    """Query public HuBMAP dataset metadata.
+
+    Parameters
+    ----------
+    - query (str): The metadata query string, such as an organ, assay, group, or dataset title.
+    - max_results (int): The maximum number of matching datasets to return (default: 5).
+
+    Returns
+    -------
+    - str: The formatted HuBMAP dataset results or an error message.
+
+    """
+    try:
+        search_query = query.strip()
+        if not search_query:
+            return "Error querying HuBMAP: Query must not be empty."
+
+        result_count = max(1, int(max_results))
+        datasets = _search_hubmap_datasets(search_query, max_results=result_count)
+        if datasets:
+            return "\n\n".join(_format_hubmap_dataset(dataset) for dataset in datasets)
+        return "No HuBMAP datasets found."
+    except requests.RequestException as e:
+        return f"Error querying HuBMAP: {e}"
+    except ValueError as e:
+        return f"Error querying HuBMAP: {e}"
+
+
 def query_uniprot(
     prompt=None,
     endpoint=None,
