@@ -1,5 +1,43 @@
 description = [
     {
+        "description": "Query bioRxiv or medRxiv for recent preprints based on the provided search query.",
+        "name": "query_biorxiv_medrxiv",
+        "optional_parameters": [
+            {
+                "default": 10,
+                "description": "The maximum number of papers to retrieve.",
+                "name": "max_papers",
+                "type": "int",
+            },
+            {
+                "default": "biorxiv",
+                "description": 'The preprint server to query, either "biorxiv" or "medrxiv".',
+                "name": "server",
+                "type": "str",
+            },
+            {
+                "default": 30,
+                "description": "Number of recent days to search.",
+                "name": "days_back",
+                "type": "int",
+            },
+            {
+                "default": "all",
+                "description": 'Optional category filter, or "all".',
+                "name": "category",
+                "type": "str",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "The search query string.",
+                "name": "query",
+                "type": "str",
+            }
+        ],
+    },
+    {
         "description": "Fetches supplementary information for a paper given its DOI "
         "and saves it to a specified directory.",
         "name": "fetch_supplementary_info_from_doi",
