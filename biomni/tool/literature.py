@@ -226,8 +226,7 @@ def _biorxiv_medrxiv_record_matches(record: dict, terms: list[str], category: st
     if not terms:
         return True
     text = " ".join(
-        str(record.get(field) or "")
-        for field in ("title", "abstract", "authors", "category", "doi")
+        str(record.get(field) or "") for field in ("title", "abstract", "authors", "category", "doi")
     ).lower()
     return all(term in text for term in terms)
 

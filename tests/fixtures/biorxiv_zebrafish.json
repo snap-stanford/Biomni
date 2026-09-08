@@ -1,38 +1,38 @@
 {
-  "attribution": {
-    "provider": "bioRxiv",
-    "source_url": "https://api.biorxiv.org/details/biorxiv/2026-09-01/2026-09-08/0/json",
-    "retrieved_date": "2026-09-08",
-    "note": "Public bioRxiv API response example reduced to one record."
-  },
-  "response": {
-    "messages": [
-      {
-        "status": "ok",
-        "category": "all",
-        "interval": "2026-09-01:2026-09-08",
-        "funder": "all",
-        "cursor": 0,
-        "count": 1,
-        "count_new_papers": "1066",
-        "total": "1478"
-      }
-    ],
-    "collection": [
-      {
-        "title": "Zebrafish larval nitrogen excretion is flexible and resilient to loss of rhesus glycoproteins",
-        "authors": "Mes, W.; Haanen, R.; Arshad, A.; Klaren, P. H. M.; Schaaf, M. J. M.; Faught, E.; Nakada, T.; van Kessel, M. A. H. J.; Gorissen, M.",
-        "doi": "10.64898/2026.08.28.747819",
-        "date": "2026-09-01",
-        "version": "1",
-        "type": "new results",
-        "license": "cc_by_nc_nd",
-        "category": "physiology",
-        "jatsxml": "https://www.biorxiv.org/content/early/2026/09/01/2026.08.28.747819.source.xml",
-        "abstract": "Nitrogenous waste excretion is essential for all developmental stages of fish. In zebrafish, ammonia excretion involves rhesus glycoproteins Rhbg and Rhcgb.",
-        "published": "NA",
-        "server": "bioRxiv"
-      }
-    ]
-  }
+	"attribution": {
+		"provider": "bioRxiv",
+		"source_url": "https://api.biorxiv.org/details/biorxiv/2026-09-01/2026-09-08/0/json",
+		"retrieved_date": "2026-09-08",
+		"note": "Public bioRxiv API response example reduced to one record."
+	},
+	"response": {
+		"messages": [
+			{
+				"status": "ok",
+				"category": "all",
+				"interval": "2026-09-01:2026-09-08",
+				"funder": "all",
+				"cursor": 0,
+				"count": 1,
+				"count_new_papers": "1066",
+				"total": "1478"
+			}
+		],
+		"collection": [
+			{
+				"title": "Zebrafish larval nitrogen excretion is flexible and resilient to loss of rhesus glycoproteins",
+				"authors": "Mes, W.; Haanen, R.; Arshad, A.; Klaren, P. H. M.; Schaaf, M. J. M.; Faught, E.; Nakada, T.; van Kessel, M. A. H. J.; Gorissen, M.",
+				"doi": "10.64898/2026.08.28.747819",
+				"date": "2026-09-01",
+				"version": "1",
+				"type": "new results",
+				"license": "cc_by_nc_nd",
+				"category": "physiology",
+				"jatsxml": "https://www.biorxiv.org/content/early/2026/09/01/2026.08.28.747819.source.xml",
+				"abstract": "Nitrogenous waste excretion is essential for all developmental stages of fish. In zebrafish, ammonia excretion involves rhesus glycoproteins Rhbg and Rhcgb.",
+				"published": "NA",
+				"server": "bioRxiv"
+			}
+		]
+	}
 }
