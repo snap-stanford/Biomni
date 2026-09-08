@@ -1,80 +1,80 @@
 {
-  "attribution": {
-    "provider": "PubTator 3",
-    "source_url": "https://www.ncbi.nlm.nih.gov/research/pubtator3-api/publications/export/biocjson?pmids=28483577",
-    "retrieved_date": "2026-09-08",
-    "note": "Public PubTator 3 API response example reduced to fields covered by this tool."
-  },
-  "response": {
-    "PubTator3": [
-      {
-        "_id": "28483577|None",
-        "id": "28483577",
-        "pmid": 28483577,
-        "pmcid": "PMC5424182",
-        "date": "2017-07-01T00:00:00Z",
-        "journal": "Biochim Biophys Acta Mol Basis Dis",
-        "meta": {
-          "year": "2017",
-          "journal": "Biochim Biophys Acta Mol Basis Dis"
-        },
-        "passages": [
-          {
-            "infons": {
-              "type": "title"
-            },
-            "offset": 0,
-            "text": "Formoterol and fluticasone propionate combination improves histone deacetylation and anti-inflammatory activities in bronchial epithelial cells exposed to cigarette smoke.",
-            "annotations": [
-              {
-                "id": "4",
-                "infons": {
-                  "identifier": "MESH:D000068759",
-                  "type": "Chemical",
-                  "database": "ncbi_mesh",
-                  "normalized_id": "D000068759",
-                  "biotype": "chemical",
-                  "name": "Formoterol Fumarate"
-                },
-                "text": "Formoterol"
-              },
-              {
-                "id": "5",
-                "infons": {
-                  "identifier": "MESH:D000068298",
-                  "type": "Chemical",
-                  "database": "ncbi_mesh",
-                  "normalized_id": "D000068298",
-                  "biotype": "chemical",
-                  "name": "Fluticasone"
-                },
-                "text": "fluticasone propionate"
-              }
-            ]
-          },
-          {
-            "infons": {
-              "type": "abstract"
-            },
-            "offset": 171,
-            "text": "BACKGROUND: The addition of long-acting beta2-agonists to corticosteroids improves asthma control.",
-            "annotations": [
-              {
-                "id": "57",
-                "infons": {
-                  "identifier": "MESH:D001249",
-                  "type": "Disease",
-                  "database": "ncbi_mesh",
-                  "normalized_id": "D001249",
-                  "biotype": "disease",
-                  "name": "Asthma"
-                },
-                "text": "asthma"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+	"attribution": {
+		"provider": "PubTator 3",
+		"source_url": "https://www.ncbi.nlm.nih.gov/research/pubtator3-api/publications/export/biocjson?pmids=28483577",
+		"retrieved_date": "2026-09-08",
+		"note": "Public PubTator 3 API response example reduced to fields covered by this tool."
+	},
+	"response": {
+		"PubTator3": [
+			{
+				"_id": "28483577|None",
+				"id": "28483577",
+				"pmid": 28483577,
+				"pmcid": "PMC5424182",
+				"date": "2017-07-01T00:00:00Z",
+				"journal": "Biochim Biophys Acta Mol Basis Dis",
+				"meta": {
+					"year": "2017",
+					"journal": "Biochim Biophys Acta Mol Basis Dis"
+				},
+				"passages": [
+					{
+						"infons": {
+							"type": "title"
+						},
+						"offset": 0,
+						"text": "Formoterol and fluticasone propionate combination improves histone deacetylation and anti-inflammatory activities in bronchial epithelial cells exposed to cigarette smoke.",
+						"annotations": [
+							{
+								"id": "4",
+								"infons": {
+									"identifier": "MESH:D000068759",
+									"type": "Chemical",
+									"database": "ncbi_mesh",
+									"normalized_id": "D000068759",
+									"biotype": "chemical",
+									"name": "Formoterol Fumarate"
+								},
+								"text": "Formoterol"
+							},
+							{
+								"id": "5",
+								"infons": {
+									"identifier": "MESH:D000068298",
+									"type": "Chemical",
+									"database": "ncbi_mesh",
+									"normalized_id": "D000068298",
+									"biotype": "chemical",
+									"name": "Fluticasone"
+								},
+								"text": "fluticasone propionate"
+							}
+						]
+					},
+					{
+						"infons": {
+							"type": "abstract"
+						},
+						"offset": 171,
+						"text": "BACKGROUND: The addition of long-acting beta2-agonists to corticosteroids improves asthma control.",
+						"annotations": [
+							{
+								"id": "57",
+								"infons": {
+									"identifier": "MESH:D001249",
+									"type": "Disease",
+									"database": "ncbi_mesh",
+									"normalized_id": "D001249",
+									"biotype": "disease",
+									"name": "Asthma"
+								},
+								"text": "asthma"
+							}
+						]
+					}
+				]
+			}
+		]
+	}
 }
