@@ -690,6 +690,96 @@ def query_alphafold(
         }
 
 
+def _normalize_alphafold_uniprot_ids(uniprot_ids) -> list[str]:
+    if isinstance(uniprot_ids, str):
+        raw_ids = uniprot_ids.replace("\n", ",").split(",")
+    else:
+        raw_ids = list(uniprot_ids or [])
+    return [str(uniprot_id).strip() for uniprot_id in raw_ids if str(uniprot_id).strip()]
+
+
+def _extract_alphafold_prediction_record(payload) -> dict:
+    if isinstance(payload, list) and payload and isinstance(payload[0], dict):
+        return payload[0]
+    if isinstance(payload, dict):
+        return payload
+    return {}
+
+
+def _format_alphafold_bulk_record(uniprot_id: str, record: dict) -> str:
+    if not record:
+        return f"UniProt ID: {uniprot_id}\nStatus: No AlphaFold prediction found."
+
+    accession = record.get("uniprotAccession") or uniprot_id
+    entry_id = record.get("entryId") or record.get("modelEntityId") or "N/A"
+    gene = record.get("gene") or "N/A"
+    description = record.get("uniprotDescription") or "N/A"
+    organism = record.get("organismScientificName") or "N/A"
+    sequence_range = f"{record.get('sequenceStart', 'N/A')}-{record.get('sequenceEnd', 'N/A')}"
+    latest_version = record.get("latestVersion") or "N/A"
+    model_date = record.get("modelCreatedDate") or "N/A"
+    checksum = record.get("sequenceChecksum") or "N/A"
+    confidence = record.get("globalMetricValue")
+    confidence_text = str(confidence) if confidence is not None else "N/A"
+    return (
+        f"UniProt ID: {accession}\n"
+        f"Entry ID: {entry_id}\n"
+        f"Gene: {gene}\n"
+        f"Description: {description}\n"
+        f"Organism: {organism}\n"
+        f"Sequence Range: {sequence_range}\n"
+        f"Latest Version: {latest_version}\n"
+        f"Model Created: {model_date}\n"
+        f"Sequence Checksum: {checksum}\n"
+        f"Mean pLDDT: {confidence_text}\n"
+        f"PDB URL: {record.get('pdbUrl') or 'N/A'}\n"
+        f"CIF URL: {record.get('cifUrl') or 'N/A'}\n"
+        f"PAE JSON URL: {record.get('paeDocUrl') or 'N/A'}"
+    )
+
+
+def _search_alphafold_bulk_metadata(uniprot_ids, session: requests.Session | None = None) -> list[tuple[str, dict]]:
+    active_session = session or requests.Session()
+    records = []
+    for uniprot_id in _normalize_alphafold_uniprot_ids(uniprot_ids):
+        response = active_session.get(f"https://alphafold.ebi.ac.uk/api/prediction/{uniprot_id}", timeout=30)
+        if response.status_code == 404:
+            records.append((uniprot_id, {}))
+            continue
+        response.raise_for_status()
+        records.append((uniprot_id, _extract_alphafold_prediction_record(response.json())))
+    return records
+
+
+def query_alphafold_bulk_metadata(uniprot_ids, max_results: int = 10) -> str:
+    """Query AlphaFold DB prediction metadata for multiple UniProt accessions.
+
+    Parameters
+    ----------
+    - uniprot_ids: A comma-separated string or list of UniProt accessions.
+    - max_results (int): The maximum number of accessions to query (default: 10).
+
+    Returns
+    -------
+    - str: The formatted AlphaFold metadata results or an error message.
+
+    """
+    try:
+        normalized_ids = _normalize_alphafold_uniprot_ids(uniprot_ids)
+        if not normalized_ids:
+            return "Error querying AlphaFold bulk metadata: UniProt IDs must not be empty."
+
+        result_count = max(1, int(max_results))
+        records = _search_alphafold_bulk_metadata(normalized_ids[:result_count])
+        if records:
+            return "\n\n".join(_format_alphafold_bulk_record(uniprot_id, record) for uniprot_id, record in records)
+        return "No AlphaFold metadata found."
+    except requests.RequestException as e:
+        return f"Error querying AlphaFold bulk metadata: {e}"
+    except ValueError as e:
+        return f"Error querying AlphaFold bulk metadata: {e}"
+
+
 def query_interpro(
     prompt=None,
     endpoint=None,
