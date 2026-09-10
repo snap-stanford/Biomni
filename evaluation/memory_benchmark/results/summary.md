@@ -2,12 +2,12 @@
 
 > 完整三组件最终结果见 [FINAL.md](FINAL.md)。本文件只记录 `run_benchmark.py` 这一组件。
 
-运行方式（版本无关，同一 venv `/home/ytz/.venvs/membench`，同一 SQLite/Chroma/hash embedding，
+运行方式（版本无关，同一 venv `<benchmark-venv>`，同一 SQLite/Chroma/hash embedding，
 每个 benchmark section 用独立的临时 DB + Chroma collection 隔离，避免跨 section 状态污染）：
 
 ```bash
-PYTHONPATH=/home/ytz/Biomni1       venv/bin/python3 run_benchmark.py > results/improved.json
-PYTHONPATH=/tmp/membench/baseline  venv/bin/python3 run_benchmark.py > results/baseline.json
+PYTHONPATH=<repo-root>         venv/bin/python3 run_benchmark.py > results/improved.json
+PYTHONPATH=<baseline-checkout> venv/bin/python3 run_benchmark.py > results/baseline.json
 venv/bin/python3 compare.py results/baseline.json results/improved.json
 ```
 

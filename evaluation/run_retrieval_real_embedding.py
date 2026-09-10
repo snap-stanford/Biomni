@@ -7,11 +7,11 @@ Run once per version (baseline vs improved), pointed at its source tree via
 Usage::
 
     # improved (current tree)
-    PYTHONPATH=/home/ytz/Biomni1      venv/bin/python3 run_retrieval_real_embedding.py \
+    PYTHONPATH=<repo-root>         venv/bin/python3 run_retrieval_real_embedding.py \
         --embedding huggingface > results/retrieval_real_embedding/improved.json
 
     # baseline
-    PYTHONPATH=/tmp/membench/baseline venv/bin/python3 run_retrieval_real_embedding.py \
+    PYTHONPATH=<baseline-checkout> venv/bin/python3 run_retrieval_real_embedding.py \
         --embedding huggingface > results/retrieval_real_embedding/baseline.json
 
     # comparison

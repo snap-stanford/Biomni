@@ -8,9 +8,9 @@ back to ``memory_key`` at run time.
 Run once per version (baseline vs improved) by pointing ``PYTHONPATH`` at the
 source tree to measure::
 
-    PYTHONPATH=/home/ytz/Biomni1         venv/bin/python3 run_retrieval.py \
+    PYTHONPATH=<repo-root>         venv/bin/python3 run_retrieval.py \
         --out results/retrieval_final/improved.json
-    PYTHONPATH=/tmp/membench/baseline    venv/bin/python3 run_retrieval.py \
+    PYTHONPATH=<baseline-checkout> venv/bin/python3 run_retrieval.py \
         --out results/retrieval_final/baseline.json
 
 This does NOT modify production code and uses a throwaway SQLite + Chroma store.

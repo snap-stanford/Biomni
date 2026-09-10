@@ -1,7 +1,7 @@
 # Memory Benchmark — 最终结果（baseline → improved，固定版本）
 
-版本：improved = 当前树 `/home/ytz/Biomni1`；baseline = 4349ab3 `/tmp/membench/baseline`。
-venv：`/home/ytz/.venvs/membench`（Python 3.14.4，chromadb 1.5.9 + ONNX all-MiniLM-L6-v2）。
+版本：improved = 当前树 `<repo-root>`；baseline = 4349ab3 `<baseline-checkout>`。
+venv：`<benchmark-venv>`（Python 3.14.4，chromadb 1.5.9 + ONNX all-MiniLM-L6-v2）。
 本版本已固定，包含：user_id 隔离加固（Phase A）+ Query-aware Fact Reranking（0.7/0.3，无 hard threshold）。
 
 三个 benchmark 组件，全部跑 baseline + improved：

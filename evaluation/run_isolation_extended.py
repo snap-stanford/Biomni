@@ -12,8 +12,8 @@ one.
 
 Run once per version::
 
-    PYTHONPATH=/home/ytz/Biomni1      venv/bin/python3 run_isolation_extended.py
-    PYTHONPATH=/tmp/membench/baseline venv/bin/python3 run_isolation_extended.py
+    PYTHONPATH=<repo-root>         venv/bin/python3 run_isolation_extended.py
+    PYTHONPATH=<baseline-checkout> venv/bin/python3 run_isolation_extended.py
     venv/bin/python3 run_isolation_extended.py --compare baseline.json improved.json
 """
 from __future__ import annotations

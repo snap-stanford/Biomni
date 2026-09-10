@@ -16,9 +16,9 @@ case's ``expected_memory`` structure).
 Run once per version (baseline vs improved) by pointing ``PYTHONPATH`` at the
 source tree to measure::
 
-    PYTHONPATH=/home/ytz/Biomni1         venv/bin/python3 run_continuation.py \
+    PYTHONPATH=<repo-root>         venv/bin/python3 run_continuation.py \
         --out results/continuation/improved.json
-    PYTHONPATH=/tmp/membench/baseline    venv/bin/python3 run_continuation.py \
+    PYTHONPATH=<baseline-checkout> venv/bin/python3 run_continuation.py \
         --out results/continuation/baseline.json
 
 This does NOT modify production code and uses a throwaway SQLite + Chroma store.

@@ -382,12 +382,34 @@ The A1 agent (`biomni/agent/a1.py`) integrates memory at three points:
 
 ### Tests & benchmark
 
-- Unit/integration tests: `tests/test_memory_lifecycle.py`, `tests/test_working_memory.py`, `tests/test_memory_e2e.py`, `tests/test_a1_memory_integration.py`.
-- Differentiated benchmark: `evaluation/memory_benchmark/` (conflict resolution, lifecycle, user isolation, retrieval quality), with baseline-vs-improved results in `evaluation/memory_benchmark/results/FINAL.md`.
+- Unit/integration tests: `tests/test_memory_lifecycle.py`, `tests/test_working_memory.py`, `tests/test_memory_e2e.py`, `tests/test_a1_memory_integration.py` — **81 tests pass**.
 
 ```bash
-python -m pytest tests/test_memory_lifecycle.py tests/test_working_memory.py tests/test_memory_e2e.py
+python -m pytest tests/test_memory_lifecycle.py tests/test_working_memory.py tests/test_memory_e2e.py tests/test_a1_memory_integration.py
 ```
+
+#### Benchmark results
+
+The differentiated benchmark lives under `evaluation/memory_benchmark/`, and its
+baseline-vs-improved results are committed to the repo — see
+[`evaluation/memory_benchmark/results/FINAL.md`](evaluation/memory_benchmark/results/FINAL.md).
+
+The benchmark measures five dimensions:
+
+- **Retrieval Quality** — Recall@K, Precision@K, and MRR (memory-level and fact-level).
+- **Conflict Resolution** — stale / duplicate fact exposure, active-fact accuracy.
+- **Lifecycle** — retraction and TTL-expiry exposure.
+- **User Isolation** — cross-user leakage (vector and SQL).
+- **Continuation** — cross-session recall of prior-task facts.
+
+#### Known environment limitations
+
+- **Tests**: 81 tests pass locally.
+- **Real LLM end-to-end** was *not* executed — it requires LLM credentials and the
+  BIOMNI data lake, neither of which is available in the development environment.
+- **Benchmark**: results are committed, but the benchmark could *not* be rerun in
+  the current environment (the semantic-embedding model and its cache were
+  unavailable), so the committed numbers have not been regenerated here.
 
 
 ## 📚 Know-How Library
