@@ -1,0 +1,78 @@
+{
+	"version": "baseline",
+	"corpus": {
+		"n_memories": 20,
+		"n_queries": 20
+	},
+	"memory_level": {
+		"precision_at_1": 0.5,
+		"precision_at_3": 0.2333,
+		"precision_at_5": 0.16,
+		"recall_at_5": 0.725,
+		"mrr": 0.5808
+	},
+	"fact_level": {
+		"fact_precision": 0.4889,
+		"n_fact_queries": 3
+	},
+	"category_results": {
+		"exact_lexical": {
+			"n": 3,
+			"precision_at_1": 1.0,
+			"precision_at_3": 0.3333,
+			"precision_at_5": 0.2,
+			"recall_at_5": 1.0,
+			"mrr": 1.0
+		},
+		"low_lexical_overlap": {
+			"n": 3,
+			"precision_at_1": 0.3333,
+			"precision_at_3": 0.2222,
+			"precision_at_5": 0.1333,
+			"recall_at_5": 0.6667,
+			"mrr": 0.4444,
+			"hit_rate": 0.6667
+		},
+		"multi_memory": {
+			"n": 3,
+			"precision_at_1": 0.3333,
+			"precision_at_3": 0.2222,
+			"precision_at_5": 0.2,
+			"recall_at_5": 0.5,
+			"mrr": 0.4167
+		},
+		"paraphrase": {
+			"n": 3,
+			"precision_at_1": 0.0,
+			"precision_at_3": 0.0,
+			"precision_at_5": 0.0667,
+			"recall_at_5": 0.3333,
+			"mrr": 0.0667
+		},
+		"previous_task": {
+			"n": 3,
+			"precision_at_1": 0.6667,
+			"precision_at_3": 0.2222,
+			"precision_at_5": 0.1333,
+			"recall_at_5": 0.6667,
+			"mrr": 0.6667
+		},
+		"specific_fact": {
+			"n": 3,
+			"precision_at_1": 0.6667,
+			"precision_at_3": 0.3333,
+			"precision_at_5": 0.2,
+			"recall_at_5": 1.0,
+			"mrr": 0.7778
+		},
+		"user_isolation": {
+			"n": 2,
+			"precision_at_1": 0.5,
+			"precision_at_3": 0.3333,
+			"precision_at_5": 0.2,
+			"recall_at_5": 1.0,
+			"mrr": 0.75,
+			"leak_rate": 1.0
+		}
+	}
+}

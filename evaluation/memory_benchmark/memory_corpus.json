@@ -1,0 +1,119 @@
+{
+	"_meta": {
+		"benchmark": "memory_retrieval",
+		"version": "0.2",
+		"status": "fixture",
+		"ground_truth_status": "pending_human_review",
+		"说明": "共享语料：定义 Retrieval/Continuation Benchmark 需要 ingest 的每条 memory。memory_key 是跨版本稳定的语义标识，trace_ref 指向 extraction/extraction_cases.json 里同 case_id 的 trace。",
+		"memory_key_机制": "Baseline 与 Improved 各自 ingest 同一份语料，产生各自的 memory_id(UUID)。runner 在每个版本运行时记录 memory_key -> memory_id 的映射(见 results/<version>/memory_id_map.json)，Ground Truth 只引用 memory_key，绝不引用 UUID。",
+		"entry_schema": {
+			"memory_key": "稳定的语义标识(snake_case slug)，人类可读、跨版本不变",
+			"user_id": "该 memory 归属的用户(用于 user 隔离验证)",
+			"trace_ref": "指向 extraction_cases.json 的 case_id，其 trace 即 ingest 输入",
+			"trace": "可选：直接内联 trace，与 trace_ref 二选一(本文件统一用 trace_ref 避免重复)"
+		},
+		"user_distribution": "user_alice 11 条，user_bob 9 条；EGFR 主题在两人各有一条(egfr_differential_expression / patient_egfr_mutation_detection)，用于同题跨用户隔离测试。"
+	},
+	"memories": [
+		{
+			"memory_key": "brca1_pathogenic_mutation_analysis",
+			"user_id": "user_alice",
+			"trace_ref": "ext_001"
+		},
+		{
+			"memory_key": "egfr_differential_expression",
+			"user_id": "user_alice",
+			"trace_ref": "ext_002"
+		},
+		{
+			"memory_key": "tp53_sgrna_design",
+			"user_id": "user_alice",
+			"trace_ref": "ext_003"
+		},
+		{
+			"memory_key": "pbmc_single_cell_annotation",
+			"user_id": "user_bob",
+			"trace_ref": "ext_004"
+		},
+		{
+			"memory_key": "aspirin_known_targets",
+			"user_id": "user_alice",
+			"trace_ref": "ext_005"
+		},
+		{
+			"memory_key": "brca2_variant_classification",
+			"user_id": "user_alice",
+			"trace_ref": "ext_006"
+		},
+		{
+			"memory_key": "fastq_quality_control",
+			"user_id": "user_bob",
+			"trace_ref": "ext_007"
+		},
+		{
+			"memory_key": "bam_to_bed_conversion",
+			"user_id": "user_bob",
+			"trace_ref": "ext_008"
+		},
+		{
+			"memory_key": "lung_cancer_dataset_search",
+			"user_id": "user_alice",
+			"trace_ref": "ext_009"
+		},
+		{
+			"memory_key": "deg_kegg_pathway_enrichment",
+			"user_id": "user_alice",
+			"trace_ref": "ext_010"
+		},
+		{
+			"memory_key": "compound_kinase_docking",
+			"user_id": "user_bob",
+			"trace_ref": "ext_011"
+		},
+		{
+			"memory_key": "patient_egfr_mutation_detection",
+			"user_id": "user_bob",
+			"trace_ref": "ext_012"
+		},
+		{
+			"memory_key": "promoter_methylation_analysis",
+			"user_id": "user_alice",
+			"trace_ref": "ext_013"
+		},
+		{
+			"memory_key": "survival_analysis",
+			"user_id": "user_bob",
+			"trace_ref": "ext_014"
+		},
+		{
+			"memory_key": "batch_effect_correction",
+			"user_id": "user_bob",
+			"trace_ref": "ext_015"
+		},
+		{
+			"memory_key": "sgrna_off_target_scan",
+			"user_id": "user_alice",
+			"trace_ref": "ext_016"
+		},
+		{
+			"memory_key": "hela_gene_expression",
+			"user_id": "user_bob",
+			"trace_ref": "ext_017"
+		},
+		{
+			"memory_key": "gut_metagenomics_taxonomy",
+			"user_id": "user_alice",
+			"trace_ref": "ext_018"
+		},
+		{
+			"memory_key": "cnv_detection",
+			"user_id": "user_bob",
+			"trace_ref": "ext_019"
+		},
+		{
+			"memory_key": "cyp2c19_clopidogrel_metabolism",
+			"user_id": "user_alice",
+			"trace_ref": "ext_020"
+		}
+	]
+}
