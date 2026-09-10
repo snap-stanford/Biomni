@@ -31,26 +31,39 @@ class FactValidator:
         # Default: reject facts the model merely guessed.
         self.rejected_sources = rejected_sources if rejected_sources is not None else {"llm"}
 
-    def validate_fact(self, fact: MemoryFact) -> bool:
-        """Return True if the fact should be stored."""
+    def _rejection_reason(self, fact: MemoryFact) -> str | None:
+        """Return why a fact should be rejected, or None if it should be kept."""
         if fact.confidence < self.min_confidence:
-            return False
-        if not fact.entity.strip() or not fact.value.strip():
-            return False
+            return f"confidence {fact.confidence} < min {self.min_confidence}"
+        if not fact.entity.strip():
+            return "empty entity"
+        if not fact.value.strip():
+            return "empty value"
         source = (fact.source or "").strip().lower()
         if self.require_source and not source:
-            return False
+            return "missing source"
         if source in self.rejected_sources:
-            return False
-        return True
+            return f"rejected source '{source}'"
+        return None
+
+    def validate_fact(self, fact: MemoryFact) -> bool:
+        """Return True if the fact should be stored."""
+        return self._rejection_reason(fact) is None
 
     def validate(self, facts: list[MemoryFact]) -> list[MemoryFact]:
         """Filter and de-duplicate facts, preserving order."""
         seen: set[tuple[str, str, str]] = set()
         kept: list[MemoryFact] = []
         for fact in facts:
-            if not self.validate_fact(fact):
-                logger.debug("Rejected fact: %s %s %s", fact.entity, fact.relation, fact.value)
+            reason = self._rejection_reason(fact)
+            if reason is not None:
+                logger.debug(
+                    "Rejected fact: %s %s %s (reason: %s)",
+                    fact.entity,
+                    fact.relation,
+                    fact.value,
+                    reason,
+                )
                 continue
             key = (fact.entity.strip().lower(), fact.relation.strip().lower(), fact.value.strip())
             if key in seen:

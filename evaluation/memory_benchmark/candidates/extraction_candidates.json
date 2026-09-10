@@ -1,0 +1,305 @@
+{
+  "_meta": {
+    "status": "candidate_generated_by_claude__NOT_confirmed",
+    "说明": "本文件是 Claude 依据 trace 生成的『候选 Ground Truth』，仅供人工核对提速。禁止直接当作 Ground Truth 使用。人工逐条核对后，把确认项填入 extraction/extraction_cases.json 的 expected_facts / expected_summary_information，并将 review_status 改为 human_confirmed。",
+    "如何核对": "逐条对照 extraction_cases.json 里同 case_id 的 trace：fact 三元组必须能从 observation/solution 消息精确推出；summary 信息点必须是『缺了就扣分』的硬性要求。数值必须精确。",
+    "source 取值": "tool_result=工具返回的数值；user=用户明确给出；llm=模型推断的结论"
+  },
+  "cases": [
+    {
+      "case_id": "ext_001",
+      "candidate_expected_facts": [
+        {"entity": "BRCA1", "relation": "pathogenic_mutation", "value": "185delAG", "source": "tool_result"},
+        {"entity": "BRCA1", "relation": "pathogenic_mutation", "value": "5382insC", "source": "tool_result"},
+        {"entity": "BRCA1", "relation": "benign_mutation", "value": "rs12345", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "分析 BRCA1 基因的致病突变"},
+        {"category": "tools_params", "content": "parse_vcf(min_quality=20) + annotate_pathogenicity；输入 brca1.vcf"},
+        {"category": "observation_results", "content": "解析到 3 个突变：185delAG、5382insC、rs12345；前两者 pathogenic，rs12345 benign"},
+        {"category": "solution_conclusion", "content": "BRCA1 的致病突变为 185delAG 和 5382insC"},
+        {"category": "status_remaining", "content": "3 个突变均已判定，分析完成"}
+      ]
+    },
+    {
+      "case_id": "ext_002",
+      "candidate_expected_facts": [
+        {"entity": "EGFR", "relation": "log2FC", "value": "2.3", "source": "tool_result"},
+        {"entity": "EGFR", "relation": "padj", "value": "0.001", "source": "tool_result"},
+        {"entity": "EGFR", "relation": "expression_status", "value": "upregulated", "source": "llm"},
+        {"entity": "DEG", "relation": "count", "value": "412", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "找出 EGFR 在肿瘤 vs 正常中的差异表达"},
+        {"category": "tools_params", "content": "DESeq2(counts=counts.tsv, condition=tumor_vs_normal, padj=0.05)"},
+        {"category": "observation_results", "content": "EGFR log2FC=2.3, padj=0.001；共 412 个差异基因"},
+        {"category": "solution_conclusion", "content": "EGFR 在肿瘤中显著上调 (log2FC=2.3)"},
+        {"category": "status_remaining", "content": "分析完成，可继续做通路富集"}
+      ]
+    },
+    {
+      "case_id": "ext_003",
+      "candidate_expected_facts": [
+        {"entity": "sgRNA_1", "relation": "on_target_score", "value": "0.91", "source": "tool_result"},
+        {"entity": "sgRNA_2", "relation": "on_target_score", "value": "0.88", "source": "tool_result"},
+        {"entity": "sgRNA_3", "relation": "on_target_score", "value": "0.85", "source": "tool_result"},
+        {"entity": "TP53", "relation": "recommended_sgrna", "value": "sgRNA_1", "source": "llm"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "为 TP53 基因设计 3 条 sgRNA"},
+        {"category": "tools_params", "content": "design_sgrna(gene=TP53, n=3, pam=NGG)"},
+        {"category": "observation_results", "content": "3 条 sgRNA on-target 分数 0.91/0.88/0.85"},
+        {"category": "solution_conclusion", "content": "推荐 on-target 分数最高的 sgRNA_1 (0.91)"},
+        {"category": "status_remaining", "content": "设计完成，可继续对 sgRNA_1 做脱靶扫描"}
+      ]
+    },
+    {
+      "case_id": "ext_004",
+      "candidate_expected_facts": [
+        {"entity": "cluster_3", "relation": "cell_type", "value": "T cell", "source": "tool_result"},
+        {"entity": "cluster_5", "relation": "cell_type", "value": "B cell", "source": "tool_result"},
+        {"entity": "cluster_3", "relation": "marker_gene", "value": "CD3D/CD3E", "source": "tool_result"},
+        {"entity": "cluster_5", "relation": "marker_gene", "value": "MS4A1", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "对 PBMC 单细胞数据做聚类并注释细胞类型"},
+        {"category": "tools_params", "content": "run_umap(adata, n_clusters=8)"},
+        {"category": "observation_results", "content": "8 个 cluster；cluster 3 高表达 CD3D/CD3E，cluster 5 高表达 MS4A1"},
+        {"category": "solution_conclusion", "content": "cluster 3=T 细胞，cluster 5=B 细胞"},
+        {"category": "status_remaining", "content": "其余 cluster 尚未标注（未完成）"}
+      ]
+    },
+    {
+      "case_id": "ext_005",
+      "candidate_expected_facts": [
+        {"entity": "aspirin", "relation": "target", "value": "PTGS1 (COX-1)", "source": "tool_result"},
+        {"entity": "aspirin", "relation": "target", "value": "PTGS2 (COX-2)", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "查询阿司匹林的已知靶点"},
+        {"category": "tools_params", "content": "query_targets(drug=aspirin)"},
+        {"category": "observation_results", "content": "主要靶点：PTGS1 (COX-1)、PTGS2 (COX-2)"},
+        {"category": "solution_conclusion", "content": "阿司匹林主要靶点为 PTGS1/PTGS2"},
+        {"category": "status_remaining", "content": "查询完成"}
+      ]
+    },
+    {
+      "case_id": "ext_006",
+      "candidate_expected_facts": [
+        {"entity": "BRCA2:c.5946delT", "relation": "variant_classification", "value": "pathogenic", "source": "tool_result"},
+        {"entity": "BRCA2:c.5946delT", "relation": "acmg_evidence", "value": "PVS1+PM2", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "判断 BRCA2 变异 c.5946delT 的临床意义"},
+        {"category": "tools_params", "content": "classify_variant(var=BRCA2:c.5946delT)"},
+        {"category": "observation_results", "content": "ACMG 证据：PVS1+PM2"},
+        {"category": "solution_conclusion", "content": "判定为 pathogenic，依据 PVS1+PM2"},
+        {"category": "status_remaining", "content": "判定完成"}
+      ]
+    },
+    {
+      "case_id": "ext_007",
+      "candidate_expected_facts": [
+        {"entity": "sample", "relation": "qc_status", "value": "pass", "source": "llm"},
+        {"entity": "sample", "relation": "phred30_ratio", "value": "85%", "source": "tool_result"},
+        {"entity": "sample", "relation": "gc_content", "value": "48%", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "检查 fastq 文件质量"},
+        {"category": "tools_params", "content": "fastqc(sample_R1.fastq.gz)"},
+        {"category": "observation_results", "content": "Phred>30 占 85%，GC 含量 48%，无 adapter 污染"},
+        {"category": "solution_conclusion", "content": "数据质量合格，可直接用于下游分析"},
+        {"category": "status_remaining", "content": "质控完成（合格），可进入下游"}
+      ]
+    },
+    {
+      "case_id": "ext_008",
+      "candidate_expected_facts": [
+        {"entity": "alignments.bam", "relation": "converted_to", "value": "alignments.bed", "source": "tool_result"},
+        {"entity": "alignments.bed", "relation": "record_count", "value": "15230", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "把 BAM 转成 BED 格式"},
+        {"category": "tools_params", "content": "bam_to_bed(alignments.bam, out=alignments.bed)"},
+        {"category": "observation_results", "content": "生成 alignments.bed，共 15230 条记录"},
+        {"category": "solution_conclusion", "content": "转换完成，输出 alignments.bed"},
+        {"category": "status_remaining", "content": "完成"}
+      ]
+    },
+    {
+      "case_id": "ext_009",
+      "candidate_expected_facts": [
+        {"entity": "GSE123456", "relation": "cancer_type", "value": "NSCLC", "source": "tool_result"},
+        {"entity": "GSE123456", "relation": "sample_count", "value": "12", "source": "tool_result"},
+        {"entity": "GSE654321", "relation": "cancer_type", "value": "SCLC", "source": "tool_result"},
+        {"entity": "GSE654321", "relation": "sample_count", "value": "8", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "检索公开的肺癌 scRNA-seq 数据集"},
+        {"category": "tools_params", "content": "search_datasets(keyword=lung cancer scRNA-seq, db=GEO)"},
+        {"category": "observation_results", "content": "找到 GSE123456（NSCLC，12 样本）、GSE654321（SCLC，8 样本）"},
+        {"category": "solution_conclusion", "content": "推荐 GSE123456 与 GSE654321 两个数据集"},
+        {"category": "status_remaining", "content": "检索完成"}
+      ]
+    },
+    {
+      "case_id": "ext_010",
+      "candidate_expected_facts": [
+        {"entity": "DEG", "relation": "enriched_pathway", "value": "PI3K-Akt", "source": "tool_result"},
+        {"entity": "DEG", "relation": "enriched_pathway", "value": "MAPK", "source": "tool_result"},
+        {"entity": "PI3K-Akt", "relation": "p_value", "value": "0.001", "source": "tool_result"},
+        {"entity": "MAPK", "relation": "p_value", "value": "0.02", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "对差异基因做 KEGG 通路富集"},
+        {"category": "tools_params", "content": "enrich_kegg(genes=differentially_expressed.txt)"},
+        {"category": "observation_results", "content": "显著富集：PI3K-Akt(p=0.001)、MAPK(p=0.02)"},
+        {"category": "solution_conclusion", "content": "差异基因主要富集在 PI3K-Akt 与 MAPK 通路"},
+        {"category": "status_remaining", "content": "富集完成，可继续通路内关键基因筛选"}
+      ]
+    },
+    {
+      "case_id": "ext_011",
+      "candidate_expected_facts": [
+        {"entity": "compound_X", "relation": "binding_energy", "value": "-8.4 kcal/mol", "source": "tool_result"},
+        {"entity": "compound_X", "relation": "binding_site", "value": "ATP pocket", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "将化合物 X 与激酶 Y 做分子对接"},
+        {"category": "tools_params", "content": "molecular_docking(ligand=X.sdf, receptor=Y.pdb)"},
+        {"category": "observation_results", "content": "对接结合能 -8.4 kcal/mol，结合位点在 ATP 口袋"},
+        {"category": "solution_conclusion", "content": "化合物 X 与 Y 有较强结合 (-8.4 kcal/mol)"},
+        {"category": "status_remaining", "content": "对接完成，可继续筛选结合能更优的类似物"}
+      ]
+    },
+    {
+      "case_id": "ext_012",
+      "candidate_expected_facts": [
+        {"entity": "patient", "relation": "egfr_mutation", "value": "L858R", "source": "tool_result"},
+        {"entity": "L858R", "relation": "vaf", "value": "0.32", "source": "tool_result"},
+        {"entity": "patient", "relation": "egfr_tki_sensitivity", "value": "likely sensitive", "source": "llm"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "从患者测序数据检测与疾病相关的基因突变"},
+        {"category": "tools_params", "content": "detect_mutations(patient.bam, panel=cancer_genes)"},
+        {"category": "observation_results", "content": "检出 EGFR L858R 突变（VAF=0.32）"},
+        {"category": "solution_conclusion", "content": "患者携带 L858R，提示可能对 EGFR-TKI 敏感"},
+        {"category": "status_remaining", "content": "突变已检出；药敏预测尚未做"}
+      ]
+    },
+    {
+      "case_id": "ext_013",
+      "candidate_expected_facts": [
+        {"entity": "gene_Z", "relation": "promoter_methylation", "value": "0.75", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "分析启动子区 CpG 岛甲基化"},
+        {"category": "tools_params", "content": "call_methylation(bismark_output, region=promoter)"},
+        {"category": "observation_results", "content": "基因 Z 启动子区平均甲基化率 0.75（高甲基化）"},
+        {"category": "solution_conclusion", "content": "基因 Z 启动子高甲基化，可能沉默其表达"},
+        {"category": "status_remaining", "content": "分析完成"}
+      ]
+    },
+    {
+      "case_id": "ext_014",
+      "candidate_expected_facts": [
+        {"entity": "high_expr_group", "relation": "median_survival_months", "value": "18", "source": "tool_result"},
+        {"entity": "low_expr_group", "relation": "median_survival_months", "value": "32", "source": "tool_result"},
+        {"entity": "survival", "relation": "logrank_p", "value": "0.003", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "分析高/低表达组的生存差异"},
+        {"category": "tools_params", "content": "kaplan_meier(expr, survival, cutoff=median)"},
+        {"category": "observation_results", "content": "高表达组中位生存 18 个月 vs 低表达组 32 个月，log-rank p=0.003"},
+        {"category": "solution_conclusion", "content": "高表达组生存显著更差 (p=0.003)"},
+        {"category": "status_remaining", "content": "分析完成，可继续 Cox 回归"}
+      ]
+    },
+    {
+      "case_id": "ext_015",
+      "candidate_expected_facts": [
+        {"entity": "batch", "relation": "correction_method", "value": "Harmony", "source": "tool_result"},
+        {"entity": "batch", "relation": "correction_status", "value": "success", "source": "llm"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "合并两个批次并校正批次效应"},
+        {"category": "tools_params", "content": "harmonize_batches([batch1.h5ad, batch2.h5ad], method=harmony)"},
+        {"category": "observation_results", "content": "校正后批次混合良好，细胞类型比例一致"},
+        {"category": "solution_conclusion", "content": "Harmony 成功校正批次效应"},
+        {"category": "status_remaining", "content": "完成"}
+      ]
+    },
+    {
+      "case_id": "ext_016",
+      "candidate_expected_facts": [
+        {"entity": "sgRNA", "relation": "off_target_sites", "value": "2", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "评估 sgRNA 的潜在脱靶位点"},
+        {"category": "tools_params", "content": "off_target_scan(sgrna_seq, genome=hg38, max_mismatch=3)"},
+        {"category": "observation_results", "content": "发现 2 个潜在脱靶位点（3 个错配）"},
+        {"category": "solution_conclusion", "content": "该 sgRNA 有 2 个潜在脱靶，建议重新设计"},
+        {"category": "status_remaining", "content": "评估完成"}
+      ]
+    },
+    {
+      "case_id": "ext_017",
+      "candidate_expected_facts": [
+        {"entity": "GENE_X", "relation": "tpm", "value": "120", "source": "tool_result"},
+        {"entity": "GENE_X", "relation": "cell_line", "value": "HeLa", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "查询 HeLa 细胞系中某基因的表达"},
+        {"category": "tools_params", "content": "query_expression(gene=GENE_X, cell_line=HeLa)"},
+        {"category": "observation_results", "content": "GENE_X 在 HeLa 中 TPM=120，高于其它 3 个细胞系"},
+        {"category": "solution_conclusion", "content": "GENE_X 在 HeLa 中高表达 (TPM=120)"},
+        {"category": "status_remaining", "content": "完成"}
+      ]
+    },
+    {
+      "case_id": "ext_018",
+      "candidate_expected_facts": [
+        {"entity": "gut", "relation": "dominant_phylum", "value": "Bacteroides", "source": "tool_result"},
+        {"entity": "gut", "relation": "dominant_phylum", "value": "Firmicutes", "source": "tool_result"},
+        {"entity": "Bacteroides", "relation": "abundance", "value": "40%", "source": "tool_result"},
+        {"entity": "Firmicutes", "relation": "abundance", "value": "35%", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "对肠道宏基因组样本做物种注释"},
+        {"category": "tools_params", "content": "kraken2_classify(reads, db=standard)"},
+        {"category": "observation_results", "content": "Bacteroides 占 40%，Firmicutes 占 35%，其余 25%"},
+        {"category": "solution_conclusion", "content": "样本以 Bacteroides 和 Firmicutes 为主"},
+        {"category": "status_remaining", "content": "仅注释到门水平，可细化到属水平"}
+      ]
+    },
+    {
+      "case_id": "ext_019",
+      "candidate_expected_facts": [
+        {"entity": "sample", "relation": "cnv", "value": "chr7p 扩增", "source": "tool_result"},
+        {"entity": "chr7p", "relation": "copy_number", "value": "4", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "检测样本中的拷贝数变异"},
+        {"category": "tools_params", "content": "detect_cnv(bam, reference, method=cnvkit)"},
+        {"category": "observation_results", "content": "检测到 chr7p 区段拷贝数扩增（CN=4）"},
+        {"category": "solution_conclusion", "content": "样本存在 chr7p 扩增（CN=4）"},
+        {"category": "status_remaining", "content": "完成"}
+      ]
+    },
+    {
+      "case_id": "ext_020",
+      "candidate_expected_facts": [
+        {"entity": "CYP2C19", "relation": "genotype", "value": "*2/*2", "source": "tool_result"},
+        {"entity": "CYP2C19", "relation": "metabolizer_status", "value": "slow metabolizer", "source": "tool_result"},
+        {"entity": "clopidogrel", "relation": "activation", "value": "reduced", "source": "tool_result"}
+      ],
+      "candidate_expected_summary_information": [
+        {"category": "task_context", "content": "查询 CYP2C19 基因型对氯吡格雷代谢的影响"},
+        {"category": "tools_params", "content": "query_pharmgkb(gene=CYP2C19, drug=clopidogrel)"},
+        {"category": "observation_results", "content": "CYP2C19*2/*2（慢代谢型）会降低氯吡格雷活化"},
+        {"category": "solution_conclusion", "content": "慢代谢型患者可能需要调整用药方案"},
+        {"category": "status_remaining", "content": "完成"}
+      ]
+    }
+  ]
+}

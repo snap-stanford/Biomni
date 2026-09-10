@@ -1,9 +1,15 @@
 """Vector store abstraction with swappable backends and embedding providers.
 
 This module is the seam that lets the episodic memory swap between Chroma,
-FAISS, and Milvus without touching the rest of the system. Only Chroma is
-implemented here; FAISS/Milvus implement the same :class:`VectorStore`
-protocol and are registered in :func:`build_vector_store`.
+FAISS, and Milvus without touching the rest of the system.
+
+Backend status:
+    Chroma   ✅ Supported (default, the only implemented backend)
+    FAISS    🚧 Planned (not implemented; raises NotImplementedError)
+    Milvus   🚧 Planned (not implemented; raises NotImplementedError)
+
+FAISS/Milvus are expected to implement the same :class:`VectorStore`
+protocol and be registered in :func:`build_vector_store`.
 """
 from __future__ import annotations
 
@@ -44,7 +50,12 @@ class VectorStore(Protocol):
         metadatas: list[dict] | None = None,
     ) -> None: ...
 
-    def search(self, query_embedding: list[float], k: int = 5) -> list[SearchResult]: ...
+    def search(
+        self,
+        query_embedding: list[float],
+        k: int = 5,
+        where: dict | None = None,
+    ) -> list[SearchResult]: ...
 
     def get(self, ids: list[str]) -> list[SearchResult]: ...
 
@@ -127,9 +138,14 @@ class ChromaVectorStore:
             metadatas=metadatas or [{}] * len(ids),
         )
 
-    def search(self, query_embedding: list[float], k: int = 5) -> list[SearchResult]:
+    def search(
+        self,
+        query_embedding: list[float],
+        k: int = 5,
+        where: dict | None = None,
+    ) -> list[SearchResult]:
         col = self._ensure()
-        res = col.query(query_embeddings=[query_embedding], n_results=k)
+        res = col.query(query_embeddings=[query_embedding], n_results=k, where=where)
         results: list[SearchResult] = []
         ids = res.get("ids") or [[]]
         distances = res.get("distances") or [[0.0] * len(ids[0])]
@@ -176,23 +192,44 @@ def build_vector_store(config) -> VectorStore:
             persist_dir=config.persist_dir, collection_name=config.collection_name
         )
     if kind == "faiss":
-        # FAISS is an index-only store (no metadata); implement by pairing it
-        # with a sidecar metadata store. Left as an extension point.
         raise NotImplementedError(
-            "FAISS backend not yet implemented; add an index + metadata sidecar."
+            "FAISS backend is not implemented. Current supported backend: Chroma."
         )
     if kind == "milvus":
         raise NotImplementedError(
-            "Milvus backend not yet implemented; implement the VectorStore protocol."
+            "Milvus backend is not implemented. Current supported backend: Chroma."
         )
-    raise ValueError(f"Unknown vector_db: {kind}")
+    raise ValueError(
+        f"Unknown vector_db: {kind}. Current supported backend: Chroma."
+    )
 
 
 def build_embedding_provider(config) -> EmbeddingProvider:
-    """Factory for embedding providers selected by config.embedding_provider."""
-    kind = (config.embedding_provider or "hash").lower()
+    """Factory for embedding providers selected by config.embedding_provider.
+
+    Supported providers:
+      * ``sentence_transformer`` (default) — semantic embeddings via a
+        sentence-transformers model named by ``embedding_model_name``.
+      * ``hash`` — deterministic hashing, for unit tests / CI / offline use.
+      * ``openai`` — OpenAI embeddings API (requires ``langchain-openai`` + key).
+
+    Extend here for future providers (DeepSeek, a custom provider, ...) by adding
+    a branch that returns an :class:`EmbeddingProvider`.
+    """
+    kind = (config.embedding_provider or "sentence_transformer").lower()
     if kind == "hash":
         return HashingEmbedding()
+    if kind == "sentence_transformer":
+        try:
+            from langchain_huggingface import HuggingFaceEmbeddings
+        except ImportError as exc:  # pragma: no cover
+            raise ImportError(
+                "sentence-transformer embeddings require `langchain-huggingface`. "
+                "pip install langchain-huggingface"
+            ) from exc
+        return LangChainEmbeddingProvider(
+            HuggingFaceEmbeddings(model_name=config.embedding_model_name)
+        )
     if kind == "openai":
         try:
             from langchain_openai import OpenAIEmbeddings
@@ -202,10 +239,6 @@ def build_embedding_provider(config) -> EmbeddingProvider:
                 "pip install langchain-openai"
             ) from exc
         return LangChainEmbeddingProvider(
-            OpenAIEmbeddings(model=config.embedding_model)
-        )
-    if kind == "langchain":
-        raise ValueError(
-            "Provide an Embeddings instance directly when embedding_provider='langchain'."
+            OpenAIEmbeddings(model=config.embedding_model_name)
         )
     raise ValueError(f"Unknown embedding_provider: {kind}")

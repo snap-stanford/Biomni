@@ -1,0 +1,433 @@
+{
+  "_meta": {
+    "benchmark": "memory_continuation",
+    "version": "0.2",
+    "status": "template",
+    "ground_truth_status": "pending_human_review",
+    "说明": "success_criteria 必须是可客观判定的具体行为，禁止用『回答看起来不错』这类主观标准。expected_memory 里的断言字段、以及 memory_keys 归属需人工确认。",
+    "scenario_schema": {
+      "scenario_id": "唯一 ID",
+      "category": "continue_previous_analysis | reuse_specific_value | reuse_specific_conclusion | reuse_tool_result | reuse_selected_object | know_last_step | know_completed_work | know_incomplete_work | cross_memory_continuation | user_isolation",
+      "session_a": "第一次任务（会 ingest 成 memory），含 memory_keys 指明对应 corpus 中的 memory",
+      "expected_memory": "该次任务应沉淀的 memory 内容（人工确认）",
+      "session_b": "第二次任务（只引用第一次的某个对象，不重复细节）",
+      "success_criteria": "可判定的成功条件"
+    },
+    "类别说明": {
+      "continue_previous_analysis": "第二次任务延续第一次的分析方向",
+      "reuse_specific_value": "复用第一次得出的具体数值/参数",
+      "reuse_specific_conclusion": "复用第一次的判定结论与依据",
+      "reuse_tool_result": "复用工具产出的分析结果（通路/结合能等）",
+      "reuse_selected_object": "复用第一次选定的对象（如推荐的 sgRNA）",
+      "know_last_step": "准确知道上次做到哪一步",
+      "know_completed_work": "准确知道哪些工作已完成（避免重做）",
+      "know_incomplete_work": "准确知道哪些工作尚未完成（避免遗漏）",
+      "cross_memory_continuation": "第二次任务跨多条 memory 综合延续",
+      "user_isolation": "负例：跨用户不得泄漏"
+    }
+  },
+  "cases": [
+    {
+      "scenario_id": "cont_001",
+      "category": "reuse_specific_value",
+      "name": "延续突变分析：复用具体突变列表",
+      "session_a": {
+        "user_id": "user_alice",
+        "task": "分析 BRCA1 的致病突变",
+        "memory_keys": ["brca1_pathogenic_mutation_analysis"],
+        "trace_snapshot": "工具 parse_vcf + annotate_pathogenicity；得到 185delAG、5382insC 为 pathogenic，rs12345 为 benign"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["BRCA1", "185delAG", "5382insC", "pathogenic"],
+        "facts_must_contain": [
+          {"entity": "BRCA1", "relation": "pathogenic_mutation", "value": "185delAG"},
+          {"entity": "BRCA1", "relation": "pathogenic_mutation", "value": "5382insC"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_alice",
+        "query": "基于上次 BRCA1 的分析结论，继续评估这两个致病突变对应的靶向药"
+      },
+      "success_criteria": [
+        "session_b 检索到的 MemoryContext.previous_tasks 命中 session_a 的 summary",
+        "session_b 的上下文中明确出现 185delAG 和 5382insC 两个具体值（而不是只提 BRCA1 泛泛而谈）",
+        "session_b 结果不包含其它 user 的 memory/fact"
+      ],
+      "notes": "核心：验证第二次任务能否『记起』第一次的明确突变列表"
+    },
+    {
+      "scenario_id": "cont_002",
+      "category": "reuse_specific_value",
+      "name": "延续差异表达：引用具体 log2FC",
+      "session_a": {
+        "user_id": "user_bob",
+        "task": "分析 EGFR 在肿瘤 vs 正常的差异表达",
+        "memory_keys": ["egfr_differential_expression"],
+        "trace_snapshot": "DESeq2；EGFR log2FC=2.3, padj=0.001；412 个差异基因"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["EGFR", "log2FC=2.3", "padj=0.001"],
+        "facts_must_contain": [
+          {"entity": "EGFR", "relation": "log2FC", "value": "2.3"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_bob",
+        "query": "继续上次的表达分析，把上调最显著的那些基因拿去做通路富集"
+      },
+      "success_criteria": [
+        "session_b 能引用 EGFR log2FC=2.3 这个具体数值",
+        "session_b 能引用 412 个差异基因这一规模信息",
+        "session_b 结果不含 user_alice 的 memory"
+      ],
+      "notes": "核心：验证第二次任务能否复用第一次的具体数值，而不是重新分析"
+    },
+    {
+      "scenario_id": "cont_003",
+      "category": "reuse_selected_object",
+      "name": "延续 sgRNA 设计：使用已选出的序列",
+      "session_a": {
+        "user_id": "user_alice",
+        "task": "为 TP53 设计 3 条 sgRNA",
+        "memory_keys": ["tp53_sgrna_design"],
+        "trace_snapshot": "design_sgrna；3 条 sgRNA，on-target 0.91/0.88/0.85；推荐 sgRNA_1"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["TP53", "sgRNA_1", "0.91"],
+        "facts_must_contain": [
+          {"entity": "TP53", "relation": "recommended_sgrna", "value": "sgRNA_1"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_alice",
+        "query": "用上次选定的那条第 1 条 sgRNA 去做脱靶扫描"
+      },
+      "success_criteria": [
+        "session_b 明确指向 sgRNA_1（on-target 0.91），而不是重新选一条或问用户",
+        "session_b 结果包含脱靶扫描是在针对 sgRNA_1 进行"
+      ],
+      "notes": "核心：验证第二次任务能否复用第一次『选定』的决策结果"
+    },
+    {
+      "scenario_id": "cont_004",
+      "category": "know_incomplete_work",
+      "name": "延续单细胞：知道哪些 cluster 还没注释",
+      "session_a": {
+        "user_id": "user_bob",
+        "task": "PBMC 单细胞聚类并注释",
+        "memory_keys": ["pbmc_single_cell_annotation"],
+        "trace_snapshot": "8 个 cluster；cluster 3=T 细胞(CD3D/CD3E)，cluster 5=B 细胞(MS4A1)，其余未标注"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["cluster 3", "T 细胞", "cluster 5", "B 细胞"],
+        "facts_must_contain": [
+          {"entity": "cluster_3", "relation": "cell_type", "value": "T cell"},
+          {"entity": "cluster_5", "relation": "cell_type", "value": "B cell"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_bob",
+        "query": "继续上次的单细胞分析，把还没注释的那几个 cluster 也注释掉"
+      },
+      "success_criteria": [
+        "session_b 明确知道 cluster 3、5 已经注释过，只处理剩余 cluster",
+        "session_b 不重复把 cluster 3 重新注释为别的类型",
+        "session_b 结果不含 user_alice 的 memory"
+      ],
+      "notes": "核心：验证第二次任务能否准确知道『上次做到哪一步、还差什么』"
+    },
+    {
+      "scenario_id": "cont_005",
+      "category": "reuse_specific_conclusion",
+      "name": "延续变异解读：复用 ACMG 证据",
+      "session_a": {
+        "user_id": "user_alice",
+        "task": "判断 BRCA2 c.5946delT 临床意义",
+        "memory_keys": ["brca2_variant_classification"],
+        "trace_snapshot": "classify_variant；ACMG 证据 PVS1+PM2，判定 pathogenic"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["BRCA2", "c.5946delT", "PVS1", "PM2", "pathogenic"],
+        "facts_must_contain": [
+          {"entity": "BRCA2", "relation": "variant_classification", "value": "pathogenic"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_alice",
+        "query": "基于上次 c.5946delT 的判定结果，写一份遗传咨询报告"
+      },
+      "success_criteria": [
+        "session_b 引用了 pathogenic 判定及其 ACMG 证据（PVS1+PM2）",
+        "session_b 不把该变异写成 benign 或 VUS"
+      ],
+      "notes": "核心：验证第二次任务能否复用第一次的判定结论与依据"
+    },
+    {
+      "scenario_id": "cont_006",
+      "category": "user_isolation",
+      "name": "跨用户隔离：user_bob 不能继承 user_alice 的结果",
+      "session_a": {
+        "user_id": "user_alice",
+        "task": "分析 BRCA1 致病突变（得到 185delAG、5382insC）",
+        "memory_keys": ["brca1_pathogenic_mutation_analysis"],
+        "trace_snapshot": "同 cont_001，属于 user_alice"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["BRCA1", "185delAG"],
+        "facts_must_contain": [
+          {"entity": "BRCA1", "relation": "pathogenic_mutation", "value": "185delAG"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_bob",
+        "query": "继续上次的 BRCA1 分析（user_bob 从未做过该分析）"
+      },
+      "success_criteria": [
+        "session_b（user_bob）检索不到 user_alice 的 BRCA1 memory/fact",
+        "session_b 的 MemoryContext 为空或只含 user_bob 自己的相关 memory",
+        "不出现 185delAG / 5382insC 这些只属于 user_alice 的事实"
+      ],
+      "notes": "核心：负例——验证 user 隔离在连续任务场景下不泄漏"
+    },
+    {
+      "scenario_id": "cont_007",
+      "category": "reuse_tool_result",
+      "name": "延续通路富集：复用显著通路结果",
+      "session_a": {
+        "user_id": "user_alice",
+        "task": "对差异基因做 KEGG 通路富集",
+        "memory_keys": ["deg_kegg_pathway_enrichment"],
+        "trace_snapshot": "enrich_kegg；显著富集 PI3K-Akt(p=0.001)、MAPK(p=0.02)"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["PI3K-Akt", "MAPK", "p=0.001", "p=0.02"],
+        "facts_must_contain": [
+          {"entity": "DEG", "relation": "enriched_pathway", "value": "PI3K-Akt"},
+          {"entity": "DEG", "relation": "enriched_pathway", "value": "MAPK"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_alice",
+        "query": "基于上次富集到的通路，继续筛选这些通路内的关键节点基因"
+      },
+      "success_criteria": [
+        "session_b 明确复用 PI3K-Akt 与 MAPK 两条通路（而非重新富集）",
+        "session_b 不把其它未出现的通路当成上次结果"
+      ],
+      "notes": "核心：验证第二次任务能否复用工具产出的富集结果"
+    },
+    {
+      "scenario_id": "cont_008",
+      "category": "know_completed_work",
+      "name": "延续质控：知道 QC 已完成，直接下游",
+      "session_a": {
+        "user_id": "user_bob",
+        "task": "检查 fastq 文件质量",
+        "memory_keys": ["fastq_quality_control"],
+        "trace_snapshot": "fastqc；Phred>30 占 85%，GC 48%，无 adapter 污染，结论合格"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["fastq", "Phred", "85%", "合格"],
+        "facts_must_contain": [
+          {"entity": "sample", "relation": "qc_status", "value": "pass"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_bob",
+        "query": "上次质控通过了的话就直接跑比对，不要再重新质控"
+      },
+      "success_criteria": [
+        "session_b 明确知道质控已通过，直接进入比对/下游，而不是再次调用 fastqc",
+        "session_b 结果不含 user_alice 的 memory"
+      ],
+      "notes": "核心：验证第二次任务能否知道哪些工作已完成，避免重做"
+    },
+    {
+      "scenario_id": "cont_009",
+      "category": "continue_previous_analysis",
+      "name": "延续甲基化：复用高甲基化结论",
+      "session_a": {
+        "user_id": "user_alice",
+        "task": "分析启动子区 CpG 岛甲基化",
+        "memory_keys": ["promoter_methylation_analysis"],
+        "trace_snapshot": "call_methylation；基因 Z 启动子平均甲基化率 0.75（高甲基化）"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["基因 Z", "启动子", "0.75", "高甲基化"],
+        "facts_must_contain": [
+          {"entity": "gene_Z", "relation": "promoter_methylation", "value": "0.75"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_alice",
+        "query": "继续上次的甲基化分析，针对那个高甲基化基因做表达验证"
+      },
+      "success_criteria": [
+        "session_b 明确指向『基因 Z』及其高甲基化(0.75)这一结论",
+        "session_b 不重新跑甲基化 call，而是延续到表达验证"
+      ],
+      "notes": "核心：验证第二次任务能否延续第一次的分析方向并复用结论"
+    },
+    {
+      "scenario_id": "cont_010",
+      "category": "reuse_tool_result",
+      "name": "延续分子对接：复用结合能筛选类似物",
+      "session_a": {
+        "user_id": "user_bob",
+        "task": "将化合物 X 与激酶 Y 做分子对接",
+        "memory_keys": ["compound_kinase_docking"],
+        "trace_snapshot": "molecular_docking；结合能 -8.4 kcal/mol，结合位点在 ATP 口袋"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["化合物 X", "激酶 Y", "-8.4", "ATP 口袋"],
+        "facts_must_contain": [
+          {"entity": "compound_X", "relation": "binding_energy", "value": "-8.4 kcal/mol"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_bob",
+        "query": "基于上次对接结果，继续筛选结合能更优的类似化合物"
+      },
+      "success_criteria": [
+        "session_b 引用 -8.4 kcal/mol 作为基准，用于筛选更优类似物",
+        "session_b 复用 ATP 口袋这一结合位点信息"
+      ],
+      "notes": "核心：验证第二次任务能否复用工具产出的结合能数值作为后续筛选基准"
+    },
+    {
+      "scenario_id": "cont_011",
+      "category": "know_last_step",
+      "name": "延续宏基因组：知道只做到门水平",
+      "session_a": {
+        "user_id": "user_alice",
+        "task": "对肠道宏基因组样本做物种注释",
+        "memory_keys": ["gut_metagenomics_taxonomy"],
+        "trace_snapshot": "kraken2_classify；Bacteroides 40%、Firmicutes 35%（门水平）"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["Bacteroides", "40%", "Firmicutes", "35%"],
+        "facts_must_contain": [
+          {"entity": "gut", "relation": "dominant_phylum", "value": "Bacteroides"},
+          {"entity": "gut", "relation": "dominant_phylum", "value": "Firmicutes"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_alice",
+        "query": "继续上次的注释，把门水平的结果细化到属水平"
+      },
+      "success_criteria": [
+        "session_b 明确知道上次只做到门水平（Bacteroides/Firmicutes），本次细化到属水平",
+        "session_b 不复述门水平为最终结论，而是以此为起点继续"
+      ],
+      "notes": "核心：验证第二次任务能否准确知道上次做到哪一层级"
+    },
+    {
+      "scenario_id": "cont_012",
+      "category": "cross_memory_continuation",
+      "name": "跨 memory 综合：BRCA1+BRCA2 写家系报告",
+      "session_a": {
+        "user_id": "user_alice",
+        "task": "分别完成了 BRCA1 突变分析(185delAG/5382insC)与 BRCA2 变异分类(c.5946delT pathogenic)",
+        "memory_keys": ["brca1_pathogenic_mutation_analysis", "brca2_variant_classification"],
+        "trace_snapshot": "两条独立 memory：BRCA1 致病突变 + BRCA2 pathogenic 变异"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["BRCA1", "BRCA2", "185delAG", "c.5946delT"],
+        "facts_must_contain": [
+          {"entity": "BRCA1", "relation": "pathogenic_mutation", "value": "185delAG"},
+          {"entity": "BRCA2", "relation": "variant_classification", "value": "pathogenic"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_alice",
+        "query": "把我之前在 BRCA 基因上的所有分析结果汇总，写一份家系遗传报告"
+      },
+      "success_criteria": [
+        "session_b 同时复用 BRCA1 的 185delAG/5382insC 与 BRCA2 的 c.5946delT 结论",
+        "session_b 的上下文命中两条 memory（≥2 个 previous_tasks）",
+        "session_b 结果不含其它 user 的 memory"
+      ],
+      "notes": "核心：验证第二次任务能否跨多条 memory 综合延续"
+    },
+    {
+      "scenario_id": "cont_013",
+      "category": "reuse_specific_value",
+      "name": "延续生存分析：复用中位生存与 p 值",
+      "session_a": {
+        "user_id": "user_bob",
+        "task": "分析高/低表达组的生存差异",
+        "memory_keys": ["survival_analysis"],
+        "trace_snapshot": "kaplan_meier；高表达 18 月 vs 低表达 32 月，log-rank p=0.003"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["18", "32", "p=0.003"],
+        "facts_must_contain": [
+          {"entity": "high_expr", "relation": "median_survival_months", "value": "18"},
+          {"entity": "low_expr", "relation": "median_survival_months", "value": "32"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_bob",
+        "query": "基于上次的生存差异结论，继续做多因素 Cox 回归"
+      },
+      "success_criteria": [
+        "session_b 引用中位生存 18 vs 32 个月、p=0.003 这些具体数值",
+        "session_b 延续到 Cox 回归，而非重跑 Kaplan-Meier"
+      ],
+      "notes": "核心：验证第二次任务能否复用第一次的统计数值"
+    },
+    {
+      "scenario_id": "cont_014",
+      "category": "know_incomplete_work",
+      "name": "延续患者检测：知道已检出但未做药敏",
+      "session_a": {
+        "user_id": "user_bob",
+        "task": "从患者测序数据检测肿瘤相关突变",
+        "memory_keys": ["patient_egfr_mutation_detection"],
+        "trace_snapshot": "detect_mutations；检出 EGFR L858R（VAF=0.32），提示可能对 EGFR-TKI 敏感"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["EGFR", "L858R", "VAF=0.32", "EGFR-TKI"],
+        "facts_must_contain": [
+          {"entity": "patient", "relation": "egfr_mutation", "value": "L858R"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_bob",
+        "query": "上次检出 L858R 之后，接着做一下该突变的药敏预测"
+      },
+      "success_criteria": [
+        "session_b 明确知道突变已检出(L858R, VAF=0.32)，且药敏预测尚未做",
+        "session_b 延续到药敏预测，而非重新检测突变"
+      ],
+      "notes": "核心：验证第二次任务能否知道哪些已完成、哪些未完成"
+    },
+    {
+      "scenario_id": "cont_015",
+      "category": "user_isolation",
+      "name": "跨用户隔离反向：user_alice 不能继承 user_bob 的患者结果",
+      "session_a": {
+        "user_id": "user_bob",
+        "task": "从患者测序数据检出 EGFR L858R（VAF=0.32）",
+        "memory_keys": ["patient_egfr_mutation_detection"],
+        "trace_snapshot": "同 cont_014，属于 user_bob"
+      },
+      "expected_memory": {
+        "summary_must_contain": ["EGFR", "L858R"],
+        "facts_must_contain": [
+          {"entity": "patient", "relation": "egfr_mutation", "value": "L858R"}
+        ]
+      },
+      "session_b": {
+        "user_id": "user_alice",
+        "query": "继续上次那个患者的 EGFR 突变药敏分析（user_alice 没有该患者数据）"
+      },
+      "success_criteria": [
+        "session_b（user_alice）检索不到 user_bob 的患者 EGFR memory/fact",
+        "session_b 的 MemoryContext 为空或只含 user_alice 自己的相关 memory",
+        "不出现 L858R / VAF=0.32 这些只属于 user_bob 的事实"
+      ],
+      "notes": "核心：负例反向——验证 user 隔离不因方向互换而失效"
+    }
+  ]
+}

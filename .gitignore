@@ -232,3 +232,8 @@ data/ddinter_raw/
 # Sphinx build
 /docs/build/
 /docs/source/api/
+
+# Benchmark scratch / local artifacts (not source; superseded by evaluation/memory_benchmark/)
+/results/
+/evaluation/datasets/
+*.7z

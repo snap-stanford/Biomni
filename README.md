@@ -332,6 +332,64 @@ score = evaluator.evaluate('gwas_causal_gene_opentargets', 0, 'BRCA1')
 ```
 
 
+## Memory System
+
+Biomni ships a **two-track memory system** that gives the A1 agent durable, per-user context across tasks:
+
+- **Long-term memory** — what the agent *has learned*: episodic summaries + validated semantic facts, persisted in SQL + a vector store and retrieved to prime new runs.
+- **Working memory** — what the agent is *doing right now*: transient, per-task state (current step, next action, structured variables) that lives only for the duration of a task.
+
+### Architecture
+
+The memory package (`memory/`) is layered so each stage is independently testable:
+
+```
+Agent trace ──▶ MemoryExtractor ──▶ FactValidator ──▶ EpisodicMemoryStore (vector summaries)
+                                                      SemanticMemoryStore (facts + lifecycle)
+                                                          │
+        retrieval context ◀── MemoryRetriever ◀──────────┘
+```
+
+| Layer | Module | Responsibility |
+|-------|--------|----------------|
+| Storage | `database/` | SQLAlchemy tables (`Memory`, `Fact`, `WorkingMemoryState`) + migrations |
+| Models | `memory/models.py` | `MemoryFact`, `MemoryExtraction`, `WorkingMemoryState`, `MemoryConfig` |
+| Vector / Validate / Extract | `memory/vector.py`, `validator.py`, `extractor.py` | embedding provider + vector store; fact validation; LLM extraction |
+| Stores | `memory/episodic.py`, `semantic.py`, `working.py` | vector summaries; fact lifecycle (active / superseded / retracted / expired); working-memory state |
+| Retrieval / Facade | `memory/retriever.py`, `system.py` | weighted scoring (confidence / usage / recency + query-aware reranking); the `MemorySystem` facade |
+
+`MemorySystem` is the single object the agent holds. It exposes two methods:
+
+- `ingest(trace, user_id, task_id)` — extract → validate → persist (episodic + semantic). Best-effort: never raises into the agent loop.
+- `retrieve(query, user_id)` — search → score → assemble a prompt fragment injected into the next run's system message.
+
+### Working memory
+
+Working memory is keyed by `(user_id, task_id)` and holds `current_step`, `next_action`, and a `variables` JSON blob. It has **two interchangeable backends** behind a single `WorkingMemoryManager` API:
+
+- `SQLWorkingMemoryStore` — SQLAlchemy-backed, with configurable TTL (`working_memory_ttl_days`) and **optimistic locking** via a `version` column (`ConcurrentUpdateError` on a stale write).
+- `LangGraphCheckpointerStore` — used automatically when the agent provides a LangGraph checkpointer, storing current-task state alongside the message graph.
+
+`task_id` / `user_id` are immutable once created; only `current_step` / `next_action` / `variables` may be updated.
+
+### Agent lifecycle
+
+The A1 agent (`biomni/agent/a1.py`) integrates memory at three points:
+
+1. **Recall** — on `go()`, `retrieve(prompt, user_id)` injects prior context into the system message.
+2. **Run** — working memory is loaded and carried through the `generate ⇄ execute` nodes (updating `current_step`).
+3. **Persist + clear** — after the run, the trace is ingested in the background (long-term), and working memory is cleared.
+
+### Tests & benchmark
+
+- Unit/integration tests: `tests/test_memory_lifecycle.py`, `tests/test_working_memory.py`, `tests/test_memory_e2e.py`, `tests/test_a1_memory_integration.py`.
+- Differentiated benchmark: `evaluation/memory_benchmark/` (conflict resolution, lifecycle, user isolation, retrieval quality), with baseline-vs-improved results in `evaluation/memory_benchmark/results/FINAL.md`.
+
+```bash
+python -m pytest tests/test_memory_lifecycle.py tests/test_working_memory.py tests/test_memory_e2e.py
+```
+
+
 ## 📚 Know-How Library
 
 Biomni includes a **Know-How Library** — a curated collection of best practices, protocols, and troubleshooting guides for biomedical techniques. These documents are automatically retrieved by the A1 agent when relevant to provide domain expertise and practical knowledge.

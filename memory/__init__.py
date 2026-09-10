@@ -8,6 +8,7 @@ The :class:`MemorySystem` facade wires everything together for the agent.
 from .episodic import EpisodicMemoryStore
 from .extractor import MemoryExtractor, trace_from_log, trace_from_messages
 from .models import (
+    FactStatus,
     MemoryConfig,
     MemoryContext,
     MemoryExtraction,
@@ -15,6 +16,7 @@ from .models import (
     TraceMessage,
     WorkingMemoryState,
 )
+from .scoring import importance_score, recency_score, usage_score
 from .retriever import MemoryRetriever
 from .semantic import SemanticMemoryStore
 from .system import MemorySystem
@@ -27,15 +29,25 @@ from .vector import (
     SearchResult,
     VectorStore,
 )
-from .working import WorkingMemoryManager, WorkingMemoryStore
+from .working import (
+    ConcurrentUpdateError,
+    LangGraphCheckpointerStore,
+    SQLWorkingMemoryStore,
+    WorkingMemoryManager,
+    WorkingMemoryStore,
+)
 
 __all__ = [
     "MemoryConfig",
     "MemoryContext",
     "MemoryExtraction",
     "MemoryFact",
+    "FactStatus",
     "TraceMessage",
     "WorkingMemoryState",
+    "importance_score",
+    "recency_score",
+    "usage_score",
     "MemoryExtractor",
     "trace_from_log",
     "trace_from_messages",
@@ -46,6 +58,9 @@ __all__ = [
     "MemorySystem",
     "WorkingMemoryManager",
     "WorkingMemoryStore",
+    "SQLWorkingMemoryStore",
+    "LangGraphCheckpointerStore",
+    "ConcurrentUpdateError",
     "VectorStore",
     "EmbeddingProvider",
     "SearchResult",

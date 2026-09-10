@@ -6,11 +6,12 @@ not the LLM. :meth:`create_memory` returns that id after inserting the episode.
 from __future__ import annotations
 
 import logging
+import time
 import uuid
-from dataclasses import asdict
+from datetime import datetime, timedelta, timezone
 from typing import Sequence
 
-from sqlalchemy import select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session, sessionmaker
 
 from database.models import Fact, Memory
@@ -20,6 +21,24 @@ from .validator import FactValidator
 
 logger = logging.getLogger(__name__)
 
+# Valid lifecycle states for a fact. `superseded` means replaced by a newer fact;
+# `retracted` means explicitly withdrawn/invalidated. Neither participates in
+# retrieval, and both count as "inactive" for cleanup purposes.
+_FACT_STATUSES = frozenset({"active", "superseded", "retracted", "expired"})
+
+# Relations that hold a single current value per subject: a new value supersedes
+# the previous active one. Every other relation (including unknown ones) is
+# multi-value, so distinct values coexist as separate active facts. Cardinality
+# is a system config — never decided by the LLM.
+SINGLE_VALUE_RELATIONS = frozenset(
+    {
+        "current_status",
+        "current_model",
+        "current_threshold",
+        "current_version",
+    }
+)
+
 
 class SemanticMemoryStore:
     """Relational store for episodes and their facts."""
@@ -28,9 +47,16 @@ class SemanticMemoryStore:
         self,
         session_factory: sessionmaker[Session],
         validator: FactValidator | None = None,
+        *,
+        feedback_retract_threshold: int = 3,
     ) -> None:
         self.session_factory = session_factory
         self.validator = validator or FactValidator()
+        self.feedback_retract_threshold = feedback_retract_threshold
+        # Detect the dialect so time thresholds can be compared against the
+        # stored `created_at` (SQLite stores naive UTC; PostgreSQL aware).
+        bind = getattr(session_factory, "kw", {}).get("bind")
+        self._dialect_name = getattr(getattr(bind, "dialect", None), "name", "sqlite")
 
     def create_memory(self, user_id: str, summary: str) -> uuid.UUID:
         """Insert an episode and return the database-generated `memory_id`."""
@@ -41,45 +67,189 @@ class SemanticMemoryStore:
             session.refresh(memory)
             return memory.id
 
+    @staticmethod
+    def _to_row(memory_id: uuid.UUID | str, fact: MemoryFact) -> Fact:
+        """Build an unsaved `Fact` ORM row from a validated `MemoryFact`."""
+        return Fact(
+            memory_id=memory_id,
+            entity=fact.entity,
+            relation=fact.relation,
+            value=fact.value,
+            confidence=fact.confidence,
+            source=fact.source or None,
+        )
+
+    @staticmethod
+    def _to_dict(fact: Fact) -> dict:
+        """Convert a ``Fact`` ORM row to a plain dict.
+
+        ``dataclasses.asdict`` raises on SQLAlchemy instances, so map the mapped
+        columns explicitly.
+        """
+        return {column.name: getattr(fact, column.name) for column in Fact.__table__.columns}
+
+    def _upsert_fact(
+        self, session: Session, memory_id: uuid.UUID | str, fact: MemoryFact
+    ) -> Fact:
+        """Resolve conflicts and return the fact row to keep (does not commit).
+
+        Within the same memory (hence the same user), *active* facts sharing
+        ``entity`` + ``relation`` are handled by relation cardinality:
+          * same ``value`` -> reuse it (bump ``confidence`` if different); no
+            duplicate row is created.
+          * single-value relation + different ``value`` -> supersede the previous
+            active fact(s) and insert the new ``active`` row (history preserved).
+          * multi-value relation + different ``value`` -> insert the new fact as
+            ``active`` alongside the old (both stay active).
+        ``superseded``/``retracted``/``expired`` facts never participate, and
+        cardinality comes from :data:`SINGLE_VALUE_RELATIONS` (system config),
+        never from the LLM.
+
+        The old->superseded transition and the new->active insert run in the
+        caller's single session/transaction, so the two sides cannot diverge.
+        """
+        # Flush pending rows so facts added earlier in the same batch are visible
+        # to the conflict lookup (autoflush is disabled on the session factory).
+        session.flush()
+
+        actives = session.scalars(
+            select(Fact).where(
+                Fact.memory_id == uuid.UUID(str(memory_id)),
+                Fact.entity == fact.entity,
+                Fact.relation == fact.relation,
+                Fact.status == "active",
+            )
+        ).all()
+
+        # De-duplicate: an existing active fact with the same value is reused.
+        same = next((a for a in actives if a.value == fact.value), None)
+        if same is not None:
+            if same.confidence != fact.confidence:
+                same.confidence = fact.confidence
+            return same
+
+        if fact.relation in SINGLE_VALUE_RELATIONS:
+            # Single-value: the new value replaces all previous active values.
+            for a in actives:
+                a.status = "superseded"
+            row = self._to_row(memory_id, fact)
+            session.add(row)
+            return row
+
+        # Multi-value (incl. unknown relations): distinct values coexist.
+        row = self._to_row(memory_id, fact)
+        session.add(row)
+        return row
+
     def save_fact(self, memory_id: uuid.UUID | str, fact: MemoryFact) -> Fact | None:
-        """Validate and persist a single fact. Returns the row, or None if rejected."""
+        """Validate and persist a single fact. Returns the row, or None if rejected.
+
+        Applies conflict detection: an existing *active* fact with the same
+        ``entity`` + ``relation`` is reused (same ``value``) or superseded
+        (different ``value``). Non-active facts are ignored for conflict.
+        """
         if not self.validator.validate_fact(fact):
             logger.debug("Rejected fact %s %s", fact.entity, fact.relation)
             return None
         with self.session_factory() as session:
-            row = Fact(
-                memory_id=memory_id,
-                entity=fact.entity,
-                relation=fact.relation,
-                value=fact.value,
-                confidence=fact.confidence,
-                source=fact.source or None,
-            )
-            session.add(row)
+            row = self._upsert_fact(session, memory_id, fact)
             session.commit()
             session.refresh(row)
             return row
 
     def save_facts(
-        self, memory_id: uuid.UUID | str, facts: Sequence[MemoryFact]
+        self,
+        memory_id: uuid.UUID | str,
+        facts: Sequence[MemoryFact],
+        batch_size: int = 1000,
+        max_retries: int = 3,
+        retry_delay: float = 0.1,
     ) -> list[Fact]:
-        """Validate and persist many facts, returning the accepted rows."""
+        """Validate and persist many facts in batches, returning the accepted rows.
+
+        Instead of one commit per fact, facts are flushed in chunks of
+        `batch_size` with a single commit each. If a chunk commit fails (e.g. a
+        transient database lock or connection drop), it is retried with
+        exponential backoff up to `max_retries` times. If it still fails, the
+        chunk is degraded to per-fact commits so a single bad row cannot lose the
+        rest of the batch — durable facts that can be written are, and only the
+        offending rows are skipped (and logged).
+        """
+        accepted = self.validator.validate(list(facts))
         rows: list[Fact] = []
-        for fact in self.validator.validate(list(facts)):
-            with self.session_factory() as session:
-                row = Fact(
-                    memory_id=memory_id,
-                    entity=fact.entity,
-                    relation=fact.relation,
-                    value=fact.value,
-                    confidence=fact.confidence,
-                    source=fact.source or None,
-                )
-                session.add(row)
-                session.commit()
-                session.refresh(row)
-                rows.append(row)
+        failed = 0
+        for start in range(0, len(accepted), batch_size):
+            chunk = accepted[start : start + batch_size]
+            chunk_rows, chunk_failed = self._save_chunk(
+                memory_id, chunk, max_retries=max_retries, retry_delay=retry_delay
+            )
+            rows.extend(chunk_rows)
+            failed += chunk_failed
+        if failed:
+            logger.warning(
+                "save_facts persisted %d/%d facts; %d failed",
+                len(rows),
+                len(accepted),
+                failed,
+            )
         return rows
+
+    def _save_chunk(
+        self,
+        memory_id: uuid.UUID | str,
+        facts: list[MemoryFact],
+        max_retries: int,
+        retry_delay: float,
+    ) -> tuple[list[Fact], int]:
+        """Commit a batch with retries, degrading to per-fact saves on failure."""
+        for attempt in range(max_retries + 1):
+            try:
+                with self.session_factory() as session:
+                    # Keep attributes readable after the session closes.
+                    session.expire_on_commit = False
+                    rows = [self._upsert_fact(session, memory_id, fact) for fact in facts]
+                    session.commit()
+                return rows, 0
+            except Exception as exc:
+                if attempt < max_retries:
+                    delay = retry_delay * (2 ** attempt)
+                    logger.warning(
+                        "save_facts chunk commit failed (attempt %d/%d): %s; "
+                        "retrying in %.2fs",
+                        attempt + 1,
+                        max_retries + 1,
+                        exc,
+                        delay,
+                    )
+                    time.sleep(delay)
+                    continue
+                logger.warning(
+                    "save_facts chunk commit failed after %d retries: %s; "
+                    "falling back to per-fact persist",
+                    max_retries,
+                    exc,
+                )
+
+        # All batch retries exhausted: persist facts one by one so a single bad
+        # row cannot drop the whole chunk.
+        rows: list[Fact] = []
+        failed = 0
+        for fact in facts:
+            try:
+                with self.session_factory() as session:
+                    row = self._upsert_fact(session, memory_id, fact)
+                    session.commit()
+                    session.refresh(row)
+                    rows.append(row)
+            except Exception:
+                failed += 1
+                logger.exception(
+                    "save_facts: could not persist fact %s %s %s",
+                    fact.entity,
+                    fact.relation,
+                    fact.value,
+                )
+        return rows, failed
 
     def query_fact(
         self, entity: str | None = None, relation: str | None = None, limit: int = 50
@@ -93,11 +263,207 @@ class SemanticMemoryStore:
         stmt = stmt.order_by(Fact.confidence.desc()).limit(limit)
         with self.session_factory() as session:
             rows = session.scalars(stmt).all()
-            return [asdict(r) for r in rows]
+            return [self._to_dict(r) for r in rows]
 
     def get_facts_by_memory(self, memory_id: uuid.UUID | str) -> list[dict]:
         """Return all facts produced by a given episode."""
         stmt = select(Fact).where(Fact.memory_id == memory_id)
         with self.session_factory() as session:
             rows = session.scalars(stmt).all()
-            return [asdict(r) for r in rows]
+            return [self._to_dict(r) for r in rows]
+
+    def get_active_facts_by_memory(self, memory_id: uuid.UUID | str) -> list[dict]:
+        """Return the non-expired/superseded/retracted facts of an episode."""
+        stmt = select(Fact).where(
+            Fact.memory_id == uuid.UUID(str(memory_id)), Fact.status == "active"
+        )
+        with self.session_factory() as session:
+            rows = session.scalars(stmt).all()
+            return [self._to_dict(r) for r in rows]
+
+    def get_active_facts_by_memories(
+        self, memory_ids: Sequence[uuid.UUID | str], user_id: str
+    ) -> list[dict]:
+        """Return active facts for many memories in a single query (no N+1).
+
+        ``user_id`` is a second isolation boundary: even if a caller supplies
+        another user's ``memory_id``, only facts whose owning ``Memory.user_id``
+        matches are returned. The vector layer is the first boundary; this is
+        the SQL-side safety net.
+        """
+        ids = [uuid.UUID(str(m)) for m in memory_ids] if memory_ids else []
+        if not ids:
+            return []
+        owned = select(Memory.id).where(Memory.id.in_(ids), Memory.user_id == user_id)
+        stmt = select(Fact).where(Fact.memory_id.in_(owned), Fact.status == "active")
+        with self.session_factory() as session:
+            rows = session.scalars(stmt).all()
+            return [self._to_dict(r) for r in rows]
+
+    def update_fact(self, fact_id: uuid.UUID | str, **changes) -> Fact | None:
+        """Update a fact's content or lifecycle status.
+
+        ``entity``/``relation``/``value``/``confidence``/``source`` and ``status``
+        are mutable. ``status`` must be one of
+        ``active``/``superseded``/``retracted``/``expired`` — this is how a fact
+        is superseded or retracted. ``updated_at`` is bumped (``created_at``
+        preserved); ``access_count`` is never settable here.
+        """
+        allowed = {"entity", "relation", "value", "confidence", "source", "status"}
+        updates = {k: v for k, v in changes.items() if k in allowed}
+        if "status" in updates and updates["status"] not in _FACT_STATUSES:
+            raise ValueError(f"invalid fact status: {updates['status']!r}")
+        if not updates:
+            return None
+        with self.session_factory() as session:
+            row = session.get(Fact, uuid.UUID(str(fact_id)))
+            if row is None:
+                return None
+            for key, value in updates.items():
+                setattr(row, key, value)
+            session.commit()
+            session.refresh(row)
+            return row
+
+    def update_fact_feedback(
+        self, fact_id: uuid.UUID | str, feedback: int, user_id: str
+    ) -> Fact | None:
+        """Record explicit user feedback on a fact and, on enough negatives, retract.
+
+        ``feedback`` must be exactly ``1`` (helpful) or ``-1`` (wrong/useless);
+        anything else raises ``ValueError``. Feedback is kept strictly separate
+        from ``access_count`` (retrieval usage): this is a deliberate user
+        judgement and is never derived from the fact merely being retrieved.
+
+        Ownership is re-verified against ``user_id`` via the owning ``Memory``,
+        so one user can never vote on another's fact (returns ``None`` if the
+        fact does not exist or is not owned by ``user_id``).
+
+        The counters are bumped with a Core ``UPDATE`` (not the ORM). Because
+        ``updated_at`` has an ``onupdate`` that fires whenever it is absent from
+        the SET clause, each statement explicitly pins ``updated_at`` to its
+        current value so feedback stays a pure scoring side-effect. The one
+        exception is crossing ``feedback_retract_threshold``: that flips
+        ``status`` to ``retracted``, a genuine lifecycle transition, so
+        ``updated_at`` is bumped to mark it. A single negative vote is recorded
+        but never retracts/deletes; a fact is never auto-deleted.
+        """
+        if feedback not in (1, -1):
+            raise ValueError(f"feedback must be 1 or -1, got {feedback!r}")
+        fact_id = uuid.UUID(str(fact_id))
+        with self.session_factory() as session:
+            row = session.scalars(
+                select(Fact)
+                .join(Memory, Fact.memory_id == Memory.id)
+                .where(Fact.id == fact_id, Memory.user_id == user_id)
+            ).first()
+            if row is None:
+                return None
+
+            if feedback == 1:
+                session.execute(
+                    update(Fact)
+                    .where(Fact.id == fact_id)
+                    .values(
+                        positive_feedback_count=Fact.positive_feedback_count + 1,
+                        updated_at=Fact.updated_at,  # pin: suppress the onupdate bump
+                    )
+                )
+            else:
+                values: dict = {
+                    "negative_feedback_count": Fact.negative_feedback_count + 1,
+                    "updated_at": Fact.updated_at,  # pin by default
+                }
+                if row.negative_feedback_count + 1 >= self.feedback_retract_threshold:
+                    values["status"] = "retracted"
+                    values["updated_at"] = func.now()  # lifecycle change bumps it
+                session.execute(update(Fact).where(Fact.id == fact_id).values(**values))
+
+            session.commit()
+            # Core UPDATE bypasses the ORM identity map; refresh so the returned
+            # row reflects the new counters/status.
+            session.refresh(row)
+            return row
+
+    def increment_access_counts(self, fact_ids: Sequence[uuid.UUID | str]) -> None:
+        """Increment ``access_count`` for facts the retriever actually used.
+
+        ``updated_at`` is pinned to its current value so the column's
+        ``onupdate`` does NOT fire — an access is a retrieval side-effect, not a
+        content change. (SQLAlchemy applies ``Column.onupdate`` to Core UPDATE
+        statements too, so the pin is required even here.)
+        """
+        ids = [uuid.UUID(str(f)) for f in fact_ids] if fact_ids else []
+        if not ids:
+            return
+        with self.session_factory() as session:
+            session.execute(
+                update(Fact)
+                .where(Fact.id.in_(ids))
+                .values(
+                    access_count=Fact.access_count + 1,
+                    updated_at=Fact.updated_at,  # pin: suppress the onupdate bump
+                )
+            )
+            session.commit()
+
+    def _coerce_threshold(self, threshold: datetime) -> datetime:
+        """Return a threshold comparable to the stored ``created_at`` values."""
+        if self._dialect_name == "sqlite":
+            return threshold.replace(tzinfo=None)
+        return threshold
+
+    def expire_facts(self, now: datetime | None = None, ttl_days: int | None = None) -> int:
+        """Mark active facts older than ``ttl_days`` (by ``created_at``) as expired.
+
+        Returns the number of facts marked expired. Does not touch ``updated_at``:
+        expiry is a lifecycle transition, not a content modification.
+        """
+        now = now or datetime.now(timezone.utc)
+        ttl = ttl_days if ttl_days is not None else 365
+        threshold = self._coerce_threshold(now - timedelta(days=ttl))
+        with self.session_factory() as session:
+            result = session.execute(
+                update(Fact)
+                .where(Fact.created_at < threshold, Fact.status == "active")
+                .values(
+                    status="expired",
+                    updated_at=Fact.updated_at,  # pin: expiry is not a content modification
+                )
+            )
+            session.commit()
+            return result.rowcount or 0
+
+    def list_memories_without_active_facts(self) -> list[uuid.UUID]:
+        """Return ids of memories that have facts but none of them are active.
+
+        A memory is only a cleanup candidate once every one of its facts has been
+        invalidated (expired/superseded/retracted). A partially-active memory is
+        kept, along with its vector summary. Memories with no facts at all are
+        left alone (they may simply not have been populated yet).
+        """
+        with self.session_factory() as session:
+            stmt = (
+                select(Memory.id)
+                .where(Memory.id.in_(select(Fact.memory_id)))
+                .where(
+                    Memory.id.not_in(
+                        select(Fact.memory_id).where(Fact.status == "active")
+                    )
+                )
+            )
+            return list(session.scalars(stmt).all())
+
+    def delete_memory(self, memory_id: uuid.UUID | str) -> bool:
+        """Delete an episode and its facts. Returns True if a row was deleted.
+
+        Facts are removed via the ORM relationship cascade (``delete-orphan``)
+        plus the FK ``ondelete=CASCADE``.
+        """
+        with self.session_factory() as session:
+            memory = session.get(Memory, uuid.UUID(str(memory_id)))
+            if memory is None:
+                return False
+            session.delete(memory)
+            session.commit()
+            return True

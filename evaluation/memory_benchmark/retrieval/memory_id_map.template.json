@@ -1,0 +1,34 @@
+{
+  "_meta": {
+    "说明": "这是 runner 在每个版本运行时『动态生成』的映射表模板，不参与人工标注。跑 Baseline 时写 results/baseline/memory_id_map.json，跑 Improved 时写 results/improved/memory_id_map.json。memory_id 是 ingest 后 create_memory 返回的 UUID，每次运行都不同，因此绝不出现在 Ground Truth 里。",
+    "generated_by": "benchmark runner（未实现，等待运行阶段）",
+    "not_hand_edited": true,
+    "schema": {
+      "version": "baseline | improved",
+      "memory_key_to_id": "memory_key -> 该版本下的 memory_id(UUID)"
+    }
+  },
+  "version": "baseline",
+  "memory_key_to_id": {
+    "brca1_pathogenic_mutation_analysis": "<uuid-from-baseline-run>",
+    "egfr_differential_expression": "<uuid-from-baseline-run>",
+    "tp53_sgrna_design": "<uuid-from-baseline-run>",
+    "pbmc_single_cell_annotation": "<uuid-from-baseline-run>",
+    "aspirin_known_targets": "<uuid-from-baseline-run>",
+    "brca2_variant_classification": "<uuid-from-baseline-run>",
+    "fastq_quality_control": "<uuid-from-baseline-run>",
+    "bam_to_bed_conversion": "<uuid-from-baseline-run>",
+    "lung_cancer_dataset_search": "<uuid-from-baseline-run>",
+    "deg_kegg_pathway_enrichment": "<uuid-from-baseline-run>",
+    "compound_kinase_docking": "<uuid-from-baseline-run>",
+    "patient_egfr_mutation_detection": "<uuid-from-baseline-run>",
+    "promoter_methylation_analysis": "<uuid-from-baseline-run>",
+    "survival_analysis": "<uuid-from-baseline-run>",
+    "batch_effect_correction": "<uuid-from-baseline-run>",
+    "sgrna_off_target_scan": "<uuid-from-baseline-run>",
+    "hela_gene_expression": "<uuid-from-baseline-run>",
+    "gut_metagenomics_taxonomy": "<uuid-from-baseline-run>",
+    "cnv_detection": "<uuid-from-baseline-run>",
+    "cyp2c19_clopidogrel_metabolism": "<uuid-from-baseline-run>"
+  }
+}

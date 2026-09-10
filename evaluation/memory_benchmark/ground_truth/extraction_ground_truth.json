@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "benchmark": "memory_extraction",
+    "status": "human_confirmed_partial",
+    "说明": "人工确认的 Extraction Ground Truth。仅收录已由人工 APPROVE/MODIFY 确认的 case。禁止写入任何未经人工确认的 candidate。",
+    "confirmed_cases": 2
+  },
+  "cases": [
+    {
+      "case_id": "ext_001",
+      "expected_facts": [
+        {"entity": "BRCA1", "relation": "pathogenic_mutation", "value": "185delAG", "source": "tool_result"},
+        {"entity": "BRCA1", "relation": "pathogenic_mutation", "value": "5382insC", "source": "tool_result"},
+        {"entity": "BRCA1", "relation": "benign_mutation", "value": "rs12345", "source": "tool_result"}
+      ],
+      "expected_summary_information": [
+        {"category": "task_context", "content": "分析 BRCA1 基因的致病突变"},
+        {"category": "observation_results", "content": "解析到 3 个突变：185delAG、5382insC、rs12345；前两者 pathogenic，rs12345 benign"},
+        {"category": "solution_conclusion", "content": "BRCA1 的致病突变为 185delAG 和 5382insC"}
+      ]
+    },
+    {
+      "case_id": "ext_002",
+      "expected_facts": [
+        {"entity": "EGFR", "relation": "log2FC", "value": "2.3", "source": "tool_result"},
+        {"entity": "EGFR", "relation": "padj", "value": "0.001", "source": "tool_result"},
+        {"entity": "DEG", "relation": "count", "value": "412", "source": "tool_result"}
+      ],
+      "expected_summary_information": [
+        {"category": "task_context", "content": "找出 EGFR 在肿瘤 vs 正常中的差异表达"},
+        {"category": "observation_results", "content": "EGFR log2FC=2.3，padj=0.001；共412个差异基因"},
+        {"category": "solution_conclusion", "content": "EGFR 在肿瘤中显著上调 (log2FC=2.3)"},
+        {"category": "status_remaining", "content": "差异表达分析完成，得到EGFR log2FC=2.3、padj=0.001以及412个差异基因"}
+      ]
+    }
+  ]
+}

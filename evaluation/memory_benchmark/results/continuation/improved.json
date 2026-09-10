@@ -1,0 +1,229 @@
+{
+  "version": "improved",
+  "n_cases": 15,
+  "passed": 14,
+  "failed": 1,
+  "pass_rate": 0.9333,
+  "category_results": {
+    "continue_previous_analysis": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "cross_memory_continuation": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "know_completed_work": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "know_incomplete_work": {
+      "n": 2,
+      "passed": 2,
+      "pass_rate": 1.0
+    },
+    "know_last_step": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "reuse_selected_object": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "reuse_specific_conclusion": {
+      "n": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "reuse_specific_value": {
+      "n": 3,
+      "passed": 2,
+      "pass_rate": 0.6667
+    },
+    "reuse_tool_result": {
+      "n": 2,
+      "passed": 2,
+      "pass_rate": 1.0
+    },
+    "user_isolation": {
+      "n": 2,
+      "passed": 2,
+      "pass_rate": 1.0
+    }
+  },
+  "cases": [
+    {
+      "scenario_id": "cont_001",
+      "name": "延续突变分析：复用具体突变列表",
+      "category": "reuse_specific_value",
+      "passed": true,
+      "recalled_count": 1,
+      "facts_retained": "2/2",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_002",
+      "name": "延续差异表达：引用具体 log2FC",
+      "category": "reuse_specific_value",
+      "passed": false,
+      "recalled_count": 0,
+      "facts_retained": "0/1",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": [
+        "previous memory not recalled (0/1)",
+        "key facts missing (0/1: EGFR/2.3)"
+      ]
+    },
+    {
+      "scenario_id": "cont_003",
+      "name": "延续 sgRNA 设计：使用已选出的序列",
+      "category": "reuse_selected_object",
+      "passed": true,
+      "recalled_count": 1,
+      "facts_retained": "1/1",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_004",
+      "name": "延续单细胞：知道哪些 cluster 还没注释",
+      "category": "know_incomplete_work",
+      "passed": true,
+      "recalled_count": 1,
+      "facts_retained": "2/2",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_005",
+      "name": "延续变异解读：复用 ACMG 证据",
+      "category": "reuse_specific_conclusion",
+      "passed": true,
+      "recalled_count": 1,
+      "facts_retained": "1/1",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_006",
+      "name": "跨用户隔离：user_bob 不能继承 user_alice 的结果",
+      "category": "user_isolation",
+      "passed": true,
+      "recalled_count": 0,
+      "facts_retained": "0/1",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_007",
+      "name": "延续通路富集：复用显著通路结果",
+      "category": "reuse_tool_result",
+      "passed": true,
+      "recalled_count": 1,
+      "facts_retained": "2/2",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_008",
+      "name": "延续质控：知道 QC 已完成，直接下游",
+      "category": "know_completed_work",
+      "passed": true,
+      "recalled_count": 1,
+      "facts_retained": "1/1",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_009",
+      "name": "延续甲基化：复用高甲基化结论",
+      "category": "continue_previous_analysis",
+      "passed": true,
+      "recalled_count": 1,
+      "facts_retained": "1/1",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_010",
+      "name": "延续分子对接：复用结合能筛选类似物",
+      "category": "reuse_tool_result",
+      "passed": true,
+      "recalled_count": 1,
+      "facts_retained": "1/1",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_011",
+      "name": "延续宏基因组：知道只做到门水平",
+      "category": "know_last_step",
+      "passed": true,
+      "recalled_count": 1,
+      "facts_retained": "2/2",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_012",
+      "name": "跨 memory 综合：BRCA1+BRCA2 写家系报告",
+      "category": "cross_memory_continuation",
+      "passed": true,
+      "recalled_count": 2,
+      "facts_retained": "2/2",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_013",
+      "name": "延续生存分析：复用中位生存与 p 值",
+      "category": "reuse_specific_value",
+      "passed": true,
+      "recalled_count": 1,
+      "facts_retained": "2/2",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_014",
+      "name": "延续患者检测：知道已检出但未做药敏",
+      "category": "know_incomplete_work",
+      "passed": true,
+      "recalled_count": 1,
+      "facts_retained": "1/1",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    },
+    {
+      "scenario_id": "cont_015",
+      "name": "跨用户隔离反向：user_alice 不能继承 user_bob 的患者结果",
+      "category": "user_isolation",
+      "passed": true,
+      "recalled_count": 0,
+      "facts_retained": "0/1",
+      "leaked_facts": 0,
+      "leaked_summaries": 0,
+      "failure_reasons": []
+    }
+  ]
+}

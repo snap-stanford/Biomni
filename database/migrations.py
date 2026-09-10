@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -37,6 +37,53 @@ def get_session_factory(engine: Engine) -> sessionmaker[Session]:
 
 
 def migrate(engine: Engine) -> None:
-    """Create all missing tables. Safe to call repeatedly."""
+    """Create all missing tables, then add any newly-introduced columns.
+
+    ``create_all`` is idempotent but will NOT add columns to tables that already
+    exist, so this also runs a lightweight column migration for the fact
+    lifecycle/scoring columns. Safe to call repeatedly.
+    """
     Base.metadata.create_all(engine)
+    _add_missing_columns(engine)
     logger.info("Memory schema is up to date")
+
+
+def _add_missing_columns(engine: Engine) -> None:
+    """Add fact lifecycle/scoring columns to an existing ``facts`` table.
+
+    Only touches columns that are genuinely missing, so re-running is a no-op.
+    SQLite and PostgreSQL get dialect-appropriate column types/defaults.
+    """
+    inspector = inspect(engine)
+    if "facts" not in inspector.get_table_names():
+        # Fresh database: create_all already produced the full schema.
+        return
+
+    existing = {col["name"] for col in inspector.get_columns("facts")}
+
+    if engine.dialect.name == "sqlite":
+        column_specs = {
+            "created_at": ("DATETIME", "CURRENT_TIMESTAMP"),
+            "updated_at": ("DATETIME", "CURRENT_TIMESTAMP"),
+            "status": ("VARCHAR(255)", "'active'"),
+            "access_count": ("INTEGER", "0"),
+            "positive_feedback_count": ("INTEGER", "0"),
+            "negative_feedback_count": ("INTEGER", "0"),
+        }
+    else:
+        column_specs = {
+            "created_at": ("TIMESTAMP WITH TIME ZONE", "now()"),
+            "updated_at": ("TIMESTAMP WITH TIME ZONE", "now()"),
+            "status": ("VARCHAR(255)", "'active'"),
+            "access_count": ("INTEGER", "0"),
+            "positive_feedback_count": ("INTEGER", "0"),
+            "negative_feedback_count": ("INTEGER", "0"),
+        }
+
+    for column, (col_type, default) in column_specs.items():
+        if column in existing:
+            continue
+        ddl = f"ALTER TABLE facts ADD COLUMN {column} {col_type} NOT NULL DEFAULT {default}"
+        with engine.begin() as conn:
+            conn.execute(text(ddl))
+        logger.info("Migrated facts table: added column %s", column)
