@@ -41,7 +41,12 @@ class _LLM:
 
 def test_retrieval_ignores_negative_and_out_of_range_indices(retriever_module):
     _Response.content = "TOOLS: [-1, 1, 9]\nDATA_LAKE: [-1, 0, 9]\nLIBRARIES: [-2, 1, 9]\nKNOW_HOW: [-3, 0, 9]"
-    resources = {"tools": ["first", "second"], "data_lake": ["lake"], "libraries": ["lib0", "lib1"], "know_how": ["guide"]}
+    resources = {
+        "tools": ["first", "second"],
+        "data_lake": ["lake"],
+        "libraries": ["lib0", "lib1"],
+        "know_how": ["guide"],
+    }
 
     assert retriever_module().prompt_based_retrieval("test", resources, llm=_LLM()) == {
         "tools": ["second"],
