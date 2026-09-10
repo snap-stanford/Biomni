@@ -178,7 +178,7 @@ class KnowHowLoader:
         skip_until_separator = False
         found_first_h1 = False
 
-        for line in lines:
+        for line_index, line in enumerate(lines):
             # Track first H1 (title)
             if line.startswith("# ") and not found_first_h1:
                 result_lines.append(line)
@@ -193,9 +193,13 @@ class KnowHowLoader:
             # Skip separator lines before and after metadata
             if line.strip() == "---":
                 if not in_metadata:
-                    # This might be the separator before metadata
-                    skip_until_separator = True
-                    continue
+                    next_nonempty = next((candidate for candidate in lines[line_index + 1 :] if candidate.strip()), "")
+                    if next_nonempty.startswith("## Metadata"):
+                        # This is the separator before metadata.
+                        while result_lines and not result_lines[-1].strip():
+                            result_lines.pop()
+                        skip_until_separator = True
+                        continue
                 else:
                     # This is the separator after metadata
                     in_metadata = False
