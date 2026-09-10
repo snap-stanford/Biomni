@@ -1,231 +1,237 @@
 {
-  "_meta": {
-    "benchmark": "memory_retrieval",
-    "version": "0.2",
-    "status": "template",
-    "ground_truth_status": "pending_human_review",
-    "说明": "Ground Truth 使用稳定的 expected_memory_keys（语义标识），绝不直接写 UUID。真实 memory_id 由 runner 在每个版本运行时通过 memory_corpus.json 动态映射。expected_memory_keys / excluded_memory_keys 需人工确认后生效。",
-    "memory_key_机制": "runner 先用 memory_corpus.json 逐条 ingest，记录 memory_key -> memory_id 映射；检索时用 episodic.search_memory(query, user_id, k) 拿到 top-k memory_id，反向映射回 memory_key，再与 expected_memory_keys 比对。",
-    "case_schema": {
-      "case_id": "唯一 ID",
-      "category": "exact_lexical | paraphrase | low_lexical_overlap | specific_fact | previous_task | multi_memory | user_isolation",
-      "query": "检索查询",
-      "user_id": "查询所属用户",
-      "expected_memory_keys": "应召回的 memory_key 列表（人工标注）",
-      "excluded_memory_keys": "明确不应召回（尤其 user_isolation 负例，人工标注）",
-      "k": "召回 top-k（默认 5）",
-      "notes": "说明"
-    },
-    "类别说明": {
-      "exact_lexical": "query 与 memory 摘要高度共享词汇",
-      "paraphrase": "改写措辞、同义表达，部分共享词",
-      "low_lexical_overlap": "语义相关但几乎无共享词（设计用于真实 embedding；hash embedding 下预期失败，本身即有效发现）",
-      "specific_fact": "query 指向某个具体事实值",
-      "previous_task": "『继续上次…』风格",
-      "multi_memory": "应召回 2 条及以上同一 user 的 memory",
-      "user_isolation": "同题跨用户：只能命中自己的 memory，不命中他人"
-    }
-  },
-  "cases": [
-    {
-      "case_id": "ret_001",
-      "category": "exact_lexical",
-      "query": "BRCA1 有哪些致病突变？",
-      "user_id": "user_alice",
-      "expected_memory_keys": ["brca1_pathogenic_mutation_analysis"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "直接命中 BRCA1 memory"
-    },
-    {
-      "case_id": "ret_002",
-      "category": "exact_lexical",
-      "query": "阿司匹林的已知靶点是什么？",
-      "user_id": "user_alice",
-      "expected_memory_keys": ["aspirin_known_targets"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "直接命中药物靶点 memory"
-    },
-    {
-      "case_id": "ret_003",
-      "category": "exact_lexical",
-      "query": "检测样本中的拷贝数变异",
-      "user_id": "user_bob",
-      "expected_memory_keys": ["cnv_detection"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "直接命中 CNV memory"
-    },
-    {
-      "case_id": "ret_004",
-      "category": "paraphrase",
-      "query": "之前那个乳腺癌基因的致病位点有哪些？",
-      "user_id": "user_alice",
-      "expected_memory_keys": ["brca1_pathogenic_mutation_analysis"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "『乳腺癌基因』改写自 BRCA1，需语义理解"
-    },
-    {
-      "case_id": "ret_005",
-      "category": "paraphrase",
-      "query": "帮我找找可用的肺癌公开数据集",
-      "user_id": "user_alice",
-      "expected_memory_keys": ["lung_cancer_dataset_search"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "『肺癌』『数据集』与 memory 主题一致，措辞不同"
-    },
-    {
-      "case_id": "ret_006",
-      "category": "paraphrase",
-      "query": "肠道里的微生物主要是什么菌群？",
-      "user_id": "user_alice",
-      "expected_memory_keys": ["gut_metagenomics_taxonomy"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "『菌群』改写自 Bacteroides/Firmicutes"
-    },
-    {
-      "case_id": "ret_007",
-      "category": "low_lexical_overlap",
-      "query": "为什么抗血小板药对一部分人效果不好？",
-      "user_id": "user_alice",
-      "expected_memory_keys": ["cyp2c19_clopidogrel_metabolism"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "query 不含 CYP2C19/氯吡格雷/慢代谢等词，仅语义相关；hash embedding 下预期失败"
-    },
-    {
-      "case_id": "ret_008",
-      "category": "low_lexical_overlap",
-      "query": "编辑基因前怎么确认向导不会误伤别的区域？",
-      "user_id": "user_alice",
-      "expected_memory_keys": ["sgrna_off_target_scan"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "『误伤别的区域』= 脱靶，无共享专有名词；hash embedding 下预期失败"
-    },
-    {
-      "case_id": "ret_009",
-      "category": "low_lexical_overlap",
-      "query": "来自不同批次的样品怎么合并起来比较？",
-      "user_id": "user_bob",
-      "expected_memory_keys": ["batch_effect_correction"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "『不同批次』『合并比较』= 批次效应校正；hash embedding 下预期失败"
-    },
-    {
-      "case_id": "ret_010",
-      "category": "specific_fact",
-      "query": "EGFR 上调的 log2FC 具体是多少？",
-      "user_id": "user_alice",
-      "expected_memory_keys": ["egfr_differential_expression"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "指向具体数值 log2FC=2.3"
-    },
-    {
-      "case_id": "ret_011",
-      "category": "specific_fact",
-      "query": "高表达组的中位生存期是多少个月？",
-      "user_id": "user_bob",
-      "expected_memory_keys": ["survival_analysis"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "指向具体数值 18 个月"
-    },
-    {
-      "case_id": "ret_012",
-      "category": "specific_fact",
-      "query": "患者 EGFR 突变的 VAF 是多少？",
-      "user_id": "user_bob",
-      "expected_memory_keys": ["patient_egfr_mutation_detection"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "指向具体数值 VAF=0.32"
-    },
-    {
-      "case_id": "ret_013",
-      "category": "previous_task",
-      "query": "继续上次 BRCA1 致病突变的分析",
-      "user_id": "user_alice",
-      "expected_memory_keys": ["brca1_pathogenic_mutation_analysis"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "『继续上次…』风格"
-    },
-    {
-      "case_id": "ret_014",
-      "category": "previous_task",
-      "query": "接着上次的单细胞聚类注释",
-      "user_id": "user_bob",
-      "expected_memory_keys": ["pbmc_single_cell_annotation"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "『接着上次…』风格"
-    },
-    {
-      "case_id": "ret_015",
-      "category": "previous_task",
-      "query": "把上次转好的 BED 文件继续用",
-      "user_id": "user_bob",
-      "expected_memory_keys": ["bam_to_bed_conversion"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "『上次…』风格，指向格式转换任务"
-    },
-    {
-      "case_id": "ret_016",
-      "category": "multi_memory",
-      "query": "汇总我在 BRCA 基因上的所有分析",
-      "user_id": "user_alice",
-      "expected_memory_keys": ["brca1_pathogenic_mutation_analysis", "brca2_variant_classification"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "BRCA1 + BRCA2 同属 user_alice，应同时召回"
-    },
-    {
-      "case_id": "ret_017",
-      "category": "multi_memory",
-      "query": "sgRNA 从设计到脱靶评估的完整流程结果",
-      "user_id": "user_alice",
-      "expected_memory_keys": ["tp53_sgrna_design", "sgrna_off_target_scan"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "设计 + 脱靶两条 memory 同属 user_alice"
-    },
-    {
-      "case_id": "ret_018",
-      "category": "multi_memory",
-      "query": "从测序质控到格式转换的预处理结果",
-      "user_id": "user_bob",
-      "expected_memory_keys": ["fastq_quality_control", "bam_to_bed_conversion"],
-      "excluded_memory_keys": [],
-      "k": 5,
-      "notes": "QC + BAM→BED 两条 memory 同属 user_bob"
-    },
-    {
-      "case_id": "ret_019",
-      "category": "user_isolation",
-      "query": "EGFR 相关的分析结果",
-      "user_id": "user_alice",
-      "expected_memory_keys": ["egfr_differential_expression"],
-      "excluded_memory_keys": ["patient_egfr_mutation_detection"],
-      "k": 5,
-      "notes": "同题跨用户：alice 只能命中自己的 egfr_differential_expression，绝不命中 bob 的 patient_egfr_mutation_detection"
-    },
-    {
-      "case_id": "ret_020",
-      "category": "user_isolation",
-      "query": "EGFR 相关的分析结果",
-      "user_id": "user_bob",
-      "expected_memory_keys": ["patient_egfr_mutation_detection"],
-      "excluded_memory_keys": ["egfr_differential_expression"],
-      "k": 5,
-      "notes": "同题跨用户反向：bob 只能命中自己的 patient_egfr_mutation_detection"
-    }
-  ]
+	"_meta": {
+		"benchmark": "memory_retrieval",
+		"version": "0.2",
+		"status": "template",
+		"ground_truth_status": "pending_human_review",
+		"说明": "Ground Truth 使用稳定的 expected_memory_keys（语义标识），绝不直接写 UUID。真实 memory_id 由 runner 在每个版本运行时通过 memory_corpus.json 动态映射。expected_memory_keys / excluded_memory_keys 需人工确认后生效。",
+		"memory_key_机制": "runner 先用 memory_corpus.json 逐条 ingest，记录 memory_key -> memory_id 映射；检索时用 episodic.search_memory(query, user_id, k) 拿到 top-k memory_id，反向映射回 memory_key，再与 expected_memory_keys 比对。",
+		"case_schema": {
+			"case_id": "唯一 ID",
+			"category": "exact_lexical | paraphrase | low_lexical_overlap | specific_fact | previous_task | multi_memory | user_isolation",
+			"query": "检索查询",
+			"user_id": "查询所属用户",
+			"expected_memory_keys": "应召回的 memory_key 列表（人工标注）",
+			"excluded_memory_keys": "明确不应召回（尤其 user_isolation 负例，人工标注）",
+			"k": "召回 top-k（默认 5）",
+			"notes": "说明"
+		},
+		"类别说明": {
+			"exact_lexical": "query 与 memory 摘要高度共享词汇",
+			"paraphrase": "改写措辞、同义表达，部分共享词",
+			"low_lexical_overlap": "语义相关但几乎无共享词（设计用于真实 embedding；hash embedding 下预期失败，本身即有效发现）",
+			"specific_fact": "query 指向某个具体事实值",
+			"previous_task": "『继续上次…』风格",
+			"multi_memory": "应召回 2 条及以上同一 user 的 memory",
+			"user_isolation": "同题跨用户：只能命中自己的 memory，不命中他人"
+		}
+	},
+	"cases": [
+		{
+			"case_id": "ret_001",
+			"category": "exact_lexical",
+			"query": "BRCA1 有哪些致病突变？",
+			"user_id": "user_alice",
+			"expected_memory_keys": ["brca1_pathogenic_mutation_analysis"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "直接命中 BRCA1 memory"
+		},
+		{
+			"case_id": "ret_002",
+			"category": "exact_lexical",
+			"query": "阿司匹林的已知靶点是什么？",
+			"user_id": "user_alice",
+			"expected_memory_keys": ["aspirin_known_targets"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "直接命中药物靶点 memory"
+		},
+		{
+			"case_id": "ret_003",
+			"category": "exact_lexical",
+			"query": "检测样本中的拷贝数变异",
+			"user_id": "user_bob",
+			"expected_memory_keys": ["cnv_detection"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "直接命中 CNV memory"
+		},
+		{
+			"case_id": "ret_004",
+			"category": "paraphrase",
+			"query": "之前那个乳腺癌基因的致病位点有哪些？",
+			"user_id": "user_alice",
+			"expected_memory_keys": ["brca1_pathogenic_mutation_analysis"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "『乳腺癌基因』改写自 BRCA1，需语义理解"
+		},
+		{
+			"case_id": "ret_005",
+			"category": "paraphrase",
+			"query": "帮我找找可用的肺癌公开数据集",
+			"user_id": "user_alice",
+			"expected_memory_keys": ["lung_cancer_dataset_search"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "『肺癌』『数据集』与 memory 主题一致，措辞不同"
+		},
+		{
+			"case_id": "ret_006",
+			"category": "paraphrase",
+			"query": "肠道里的微生物主要是什么菌群？",
+			"user_id": "user_alice",
+			"expected_memory_keys": ["gut_metagenomics_taxonomy"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "『菌群』改写自 Bacteroides/Firmicutes"
+		},
+		{
+			"case_id": "ret_007",
+			"category": "low_lexical_overlap",
+			"query": "为什么抗血小板药对一部分人效果不好？",
+			"user_id": "user_alice",
+			"expected_memory_keys": ["cyp2c19_clopidogrel_metabolism"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "query 不含 CYP2C19/氯吡格雷/慢代谢等词，仅语义相关；hash embedding 下预期失败"
+		},
+		{
+			"case_id": "ret_008",
+			"category": "low_lexical_overlap",
+			"query": "编辑基因前怎么确认向导不会误伤别的区域？",
+			"user_id": "user_alice",
+			"expected_memory_keys": ["sgrna_off_target_scan"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "『误伤别的区域』= 脱靶，无共享专有名词；hash embedding 下预期失败"
+		},
+		{
+			"case_id": "ret_009",
+			"category": "low_lexical_overlap",
+			"query": "来自不同批次的样品怎么合并起来比较？",
+			"user_id": "user_bob",
+			"expected_memory_keys": ["batch_effect_correction"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "『不同批次』『合并比较』= 批次效应校正；hash embedding 下预期失败"
+		},
+		{
+			"case_id": "ret_010",
+			"category": "specific_fact",
+			"query": "EGFR 上调的 log2FC 具体是多少？",
+			"user_id": "user_alice",
+			"expected_memory_keys": ["egfr_differential_expression"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "指向具体数值 log2FC=2.3"
+		},
+		{
+			"case_id": "ret_011",
+			"category": "specific_fact",
+			"query": "高表达组的中位生存期是多少个月？",
+			"user_id": "user_bob",
+			"expected_memory_keys": ["survival_analysis"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "指向具体数值 18 个月"
+		},
+		{
+			"case_id": "ret_012",
+			"category": "specific_fact",
+			"query": "患者 EGFR 突变的 VAF 是多少？",
+			"user_id": "user_bob",
+			"expected_memory_keys": ["patient_egfr_mutation_detection"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "指向具体数值 VAF=0.32"
+		},
+		{
+			"case_id": "ret_013",
+			"category": "previous_task",
+			"query": "继续上次 BRCA1 致病突变的分析",
+			"user_id": "user_alice",
+			"expected_memory_keys": ["brca1_pathogenic_mutation_analysis"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "『继续上次…』风格"
+		},
+		{
+			"case_id": "ret_014",
+			"category": "previous_task",
+			"query": "接着上次的单细胞聚类注释",
+			"user_id": "user_bob",
+			"expected_memory_keys": ["pbmc_single_cell_annotation"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "『接着上次…』风格"
+		},
+		{
+			"case_id": "ret_015",
+			"category": "previous_task",
+			"query": "把上次转好的 BED 文件继续用",
+			"user_id": "user_bob",
+			"expected_memory_keys": ["bam_to_bed_conversion"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "『上次…』风格，指向格式转换任务"
+		},
+		{
+			"case_id": "ret_016",
+			"category": "multi_memory",
+			"query": "汇总我在 BRCA 基因上的所有分析",
+			"user_id": "user_alice",
+			"expected_memory_keys": [
+				"brca1_pathogenic_mutation_analysis",
+				"brca2_variant_classification"
+			],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "BRCA1 + BRCA2 同属 user_alice，应同时召回"
+		},
+		{
+			"case_id": "ret_017",
+			"category": "multi_memory",
+			"query": "sgRNA 从设计到脱靶评估的完整流程结果",
+			"user_id": "user_alice",
+			"expected_memory_keys": ["tp53_sgrna_design", "sgrna_off_target_scan"],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "设计 + 脱靶两条 memory 同属 user_alice"
+		},
+		{
+			"case_id": "ret_018",
+			"category": "multi_memory",
+			"query": "从测序质控到格式转换的预处理结果",
+			"user_id": "user_bob",
+			"expected_memory_keys": [
+				"fastq_quality_control",
+				"bam_to_bed_conversion"
+			],
+			"excluded_memory_keys": [],
+			"k": 5,
+			"notes": "QC + BAM→BED 两条 memory 同属 user_bob"
+		},
+		{
+			"case_id": "ret_019",
+			"category": "user_isolation",
+			"query": "EGFR 相关的分析结果",
+			"user_id": "user_alice",
+			"expected_memory_keys": ["egfr_differential_expression"],
+			"excluded_memory_keys": ["patient_egfr_mutation_detection"],
+			"k": 5,
+			"notes": "同题跨用户：alice 只能命中自己的 egfr_differential_expression，绝不命中 bob 的 patient_egfr_mutation_detection"
+		},
+		{
+			"case_id": "ret_020",
+			"category": "user_isolation",
+			"query": "EGFR 相关的分析结果",
+			"user_id": "user_bob",
+			"expected_memory_keys": ["patient_egfr_mutation_detection"],
+			"excluded_memory_keys": ["egfr_differential_expression"],
+			"k": 5,
+			"notes": "同题跨用户反向：bob 只能命中自己的 patient_egfr_mutation_detection"
+		}
+	]
 }

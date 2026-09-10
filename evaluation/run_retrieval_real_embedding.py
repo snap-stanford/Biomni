@@ -23,6 +23,7 @@ Usage::
 ``all-MiniLM-L6-v2``), or ``openai``. This does NOT modify production ``vector.py``;
 it builds a provider object here and hands it to ``EpisodicMemoryStore``.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -32,23 +33,22 @@ import os
 import sys
 import tempfile
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 # Allow ``import metrics`` regardless of the caller's cwd.
 _EVAL_DIR = os.path.dirname(os.path.abspath(__file__))
 if _EVAL_DIR not in sys.path:
     sys.path.insert(0, _EVAL_DIR)
 
-import metrics as M  # noqa: E402
-
-from database.migrations import get_engine, get_session_factory, migrate  # noqa: E402
-from database.models import Fact  # noqa: E402
-from memory.episodic import EpisodicMemoryStore  # noqa: E402
-from memory.models import MemoryFact  # noqa: E402
-from memory.retriever import MemoryRetriever  # noqa: E402
-from memory.semantic import SemanticMemoryStore  # noqa: E402
-from memory.validator import FactValidator  # noqa: E402
-from memory.vector import ChromaVectorStore, HashingEmbedding  # noqa: E402
+import metrics as M
+from database.migrations import get_engine, get_session_factory, migrate
+from database.models import Fact
+from memory.episodic import EpisodicMemoryStore
+from memory.models import MemoryFact
+from memory.retriever import MemoryRetriever
+from memory.semantic import SemanticMemoryStore
+from memory.validator import FactValidator
+from memory.vector import ChromaVectorStore, HashingEmbedding
 
 CORPUS_PATH = os.path.join(_EVAL_DIR, "datasets", "memory_corpus.json")
 TOP_K = 5  # enough to compute Precision@1/3/5 and Recall@5
@@ -100,8 +100,8 @@ class _GtMiniLMEmbedding:
             import logging
 
             logging.getLogger(__name__).warning(
-                "gt-all-minilm-l6-v2 unavailable (%s); falling back to "
-                "chromadb ONNX backend", exc,
+                "gt-all-minilm-l6-v2 unavailable (%s); falling back to chromadb ONNX backend",
+                exc,
             )
         # Fallback: chromadb ONNX (downloads model on first use).
         from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
@@ -131,10 +131,7 @@ class _OpenAIEmbedding:
         try:
             from langchain_openai import OpenAIEmbeddings
         except ImportError as exc:  # pragma: no cover
-            raise SystemExit(
-                "openai provider requires `pip install langchain-openai` "
-                "and an OPENAI_API_KEY."
-            ) from exc
+            raise SystemExit("openai provider requires `pip install langchain-openai` and an OPENAI_API_KEY.") from exc
         self._emb = OpenAIEmbeddings(model=model)
 
     def embed_documents(self, texts):
@@ -163,13 +160,9 @@ class Env:
         self.engine = get_engine(f"sqlite:///{tmp}/memory.db")
         migrate(self.engine)
         self.sf = get_session_factory(self.engine)
-        self.validator = FactValidator(
-            min_confidence=0.0, require_source=False, rejected_sources=set()
-        )
+        self.validator = FactValidator(min_confidence=0.0, require_source=False, rejected_sources=set())
         if _has_param(SemanticMemoryStore.__init__, "feedback_retract_threshold"):
-            self.semantic = SemanticMemoryStore(
-                self.sf, self.validator, feedback_retract_threshold=3
-            )
+            self.semantic = SemanticMemoryStore(self.sf, self.validator, feedback_retract_threshold=3)
         else:
             self.semantic = SemanticMemoryStore(self.sf, self.validator)
         vs = ChromaVectorStore(
@@ -185,8 +178,7 @@ class Env:
     def save_fact(self, memory_id, entity, relation, value, confidence=0.9):
         return self.semantic.save_fact(
             memory_id,
-            MemoryFact(entity=entity, relation=relation, value=value,
-                       confidence=confidence, source="tool_result"),
+            MemoryFact(entity=entity, relation=relation, value=value, confidence=confidence, source="tool_result"),
         )
 
     def store_summary(self, memory_id, summary, user_id):
@@ -217,9 +209,7 @@ class Env:
         out = []
         with self.sf() as session:
             for mid in memory_ids:
-                rows = session.scalars(
-                    select(Fact).where(Fact.memory_id == uuid.UUID(str(mid)))
-                ).all()
+                rows = session.scalars(select(Fact).where(Fact.memory_id == uuid.UUID(str(mid)))).all()
                 for r in rows:
                     out.append({c.name: getattr(r, c.name) for c in Fact.__table__.columns})
         return out
@@ -242,10 +232,10 @@ class Env:
             session.execute(
                 _upd(Fact)
                 .where(Fact.memory_id == uuid.UUID(str(memory_id)))
-                .values(created_at=datetime.now(timezone.utc) - timedelta(days=400))
+                .values(created_at=datetime.now(UTC) - timedelta(days=400))
             )
             session.commit()
-        self.semantic.expire_facts(now=datetime.now(timezone.utc), ttl_days=365)
+        self.semantic.expire_facts(now=datetime.now(UTC), ttl_days=365)
 
 
 def detect_version() -> str:
@@ -263,9 +253,7 @@ def ingest_corpus(env: Env, corpus: dict) -> dict[str, str]:
         env.store_summary(str(mid), mem["summary"], mem["user_id"])
         fact_rows = []
         for f in mem.get("facts", []):
-            row = env.save_fact(
-                mid, f["entity"], f["relation"], f["value"], f.get("confidence", 0.9)
-            )
+            row = env.save_fact(mid, f["entity"], f["relation"], f["value"], f.get("confidence", 0.9))
             if row is not None:
                 fact_rows.append(row)
         id2key[str(mid)] = mem["memory_key"]
@@ -359,8 +347,7 @@ def compare(baseline_path, improved_path) -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--embedding", default="huggingface",
-                    choices=["hash", "huggingface", "openai"])
+    ap.add_argument("--embedding", default="huggingface", choices=["hash", "huggingface", "openai"])
     ap.add_argument("--model", default=None)
     ap.add_argument("--compare", nargs=2, metavar=("BASELINE", "IMPROVED"), default=None)
     args = ap.parse_args()

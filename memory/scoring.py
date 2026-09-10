@@ -13,14 +13,14 @@ Conceptual separation (see the memory design notes):
 from __future__ import annotations
 
 import math
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def _as_utc(dt: datetime) -> datetime:
     """Normalize a possibly-naive datetime to timezone-aware UTC."""
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(timezone.utc)
+        return dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
 
 
 def recency_score(created_at: datetime, now: datetime, recency_lambda: float) -> float:

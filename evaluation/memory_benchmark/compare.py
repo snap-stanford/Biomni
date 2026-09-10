@@ -1,4 +1,5 @@
 """Flatten two run_benchmark.py JSON outputs into a |metric|baseline|improved|delta| table."""
+
 from __future__ import annotations
 
 import argparse

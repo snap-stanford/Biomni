@@ -11,12 +11,16 @@ Backend status:
 FAISS/Milvus are expected to implement the same :class:`VectorStore`
 protocol and be registered in :func:`build_vector_store`.
 """
+
 from __future__ import annotations
 
 import hashlib
 import logging
 from dataclasses import dataclass, field
-from typing import Protocol, Sequence
+from typing import TYPE_CHECKING, Protocol
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -188,20 +192,12 @@ def build_vector_store(config) -> VectorStore:
     """Factory for vector backends selected by config.vector_db."""
     kind = (config.vector_db or "chroma").lower()
     if kind == "chroma":
-        return ChromaVectorStore(
-            persist_dir=config.persist_dir, collection_name=config.collection_name
-        )
+        return ChromaVectorStore(persist_dir=config.persist_dir, collection_name=config.collection_name)
     if kind == "faiss":
-        raise NotImplementedError(
-            "FAISS backend is not implemented. Current supported backend: Chroma."
-        )
+        raise NotImplementedError("FAISS backend is not implemented. Current supported backend: Chroma.")
     if kind == "milvus":
-        raise NotImplementedError(
-            "Milvus backend is not implemented. Current supported backend: Chroma."
-        )
-    raise ValueError(
-        f"Unknown vector_db: {kind}. Current supported backend: Chroma."
-    )
+        raise NotImplementedError("Milvus backend is not implemented. Current supported backend: Chroma.")
+    raise ValueError(f"Unknown vector_db: {kind}. Current supported backend: Chroma.")
 
 
 def build_embedding_provider(config) -> EmbeddingProvider:
@@ -224,21 +220,15 @@ def build_embedding_provider(config) -> EmbeddingProvider:
             from langchain_huggingface import HuggingFaceEmbeddings
         except ImportError as exc:  # pragma: no cover
             raise ImportError(
-                "sentence-transformer embeddings require `langchain-huggingface`. "
-                "pip install langchain-huggingface"
+                "sentence-transformer embeddings require `langchain-huggingface`. pip install langchain-huggingface"
             ) from exc
-        return LangChainEmbeddingProvider(
-            HuggingFaceEmbeddings(model_name=config.embedding_model_name)
-        )
+        return LangChainEmbeddingProvider(HuggingFaceEmbeddings(model_name=config.embedding_model_name))
     if kind == "openai":
         try:
             from langchain_openai import OpenAIEmbeddings
         except ImportError as exc:  # pragma: no cover
             raise ImportError(
-                "langchain-openai is required for OpenAI embeddings. "
-                "pip install langchain-openai"
+                "langchain-openai is required for OpenAI embeddings. pip install langchain-openai"
             ) from exc
-        return LangChainEmbeddingProvider(
-            OpenAIEmbeddings(model=config.embedding_model_name)
-        )
+        return LangChainEmbeddingProvider(OpenAIEmbeddings(model=config.embedding_model_name))
     raise ValueError(f"Unknown embedding_provider: {kind}")

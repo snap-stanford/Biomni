@@ -15,15 +15,15 @@ invalidate a fact.
 It does NOT touch production code and uses a throwaway SQLite + Chroma store in
 a temp directory for every run.
 """
+
 from __future__ import annotations
 
 import inspect
 import json
 import os
-import sys
 import tempfile
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from database.migrations import get_engine, get_session_factory, migrate
 from database.models import Fact
@@ -47,8 +47,11 @@ def _has_param(func, name: str) -> bool:
 
 def F(entity, relation, value, confidence=0.9, source="tool_result") -> MemoryFact:
     return MemoryFact(
-        entity=entity, relation=relation, value=value,
-        confidence=confidence, source=source,
+        entity=entity,
+        relation=relation,
+        value=value,
+        confidence=confidence,
+        source=source,
     )
 
 
@@ -58,10 +61,7 @@ def _val(rows, entity, relation):
 
 
 def _has(rows, entity, relation, value):
-    return any(
-        r["entity"] == entity and r["relation"] == relation and r["value"] == value
-        for r in rows
-    )
+    return any(r["entity"] == entity and r["relation"] == relation and r["value"] == value for r in rows)
 
 
 class Env:
@@ -79,14 +79,10 @@ class Env:
 
         # Accept everything non-empty so the benchmark isolates storage/retrieval
         # mechanics from validation (both versions share this validator API).
-        self.validator = FactValidator(
-            min_confidence=0.0, require_source=False, rejected_sources=set()
-        )
+        self.validator = FactValidator(min_confidence=0.0, require_source=False, rejected_sources=set())
 
         if _has_param(SemanticMemoryStore.__init__, "feedback_retract_threshold"):
-            self.semantic = SemanticMemoryStore(
-                self.sf, self.validator, feedback_retract_threshold=3
-            )
+            self.semantic = SemanticMemoryStore(self.sf, self.validator, feedback_retract_threshold=3)
         else:
             self.semantic = SemanticMemoryStore(self.sf, self.validator)
 
@@ -141,13 +137,12 @@ class Env:
         # mapped columns explicitly — exactly what a correct get_facts_by_memory
         # should return, without touching production code.
         from sqlalchemy import select
+
         out = []
         with self.sf() as session:
             for mid in memory_ids:
                 mid_uuid = uuid.UUID(str(mid))
-                rows = session.scalars(
-                    select(Fact).where(Fact.memory_id == mid_uuid)
-                ).all()
+                rows = session.scalars(select(Fact).where(Fact.memory_id == mid_uuid)).all()
                 for r in rows:
                     out.append({c.name: getattr(r, c.name) for c in Fact.__table__.columns})
         return out
@@ -174,10 +169,7 @@ def bench_conflict(env: Env) -> dict:
     env.save_fact(mid2, "EGFR", "log2FC", "2.3", 0.90)
     env.save_fact(mid2, "EGFR", "log2FC", "2.3", 0.90)
     exp2 = env.exposed_facts([mid2], "alice")
-    dup = sum(
-        1 for r in exp2
-        if r["entity"] == "EGFR" and r["relation"] == "log2FC" and r["value"] == "2.3"
-    )
+    dup = sum(1 for r in exp2 if r["entity"] == "EGFR" and r["relation"] == "log2FC" and r["value"] == "2.3")
     dup_exposure = (dup - 1) / dup if dup else 0.0  # 0 = fully deduped
 
     return {
@@ -208,9 +200,10 @@ def bench_lifecycle(env: Env) -> dict:
         # age the fact's created_at back 400 days, then expire with ttl=365
         with env.sf() as s:
             from sqlalchemy import update as _upd
-            s.execute(_upd(Fact).values(created_at=datetime.now(timezone.utc) - timedelta(days=400)))
+
+            s.execute(_upd(Fact).values(created_at=datetime.now(UTC) - timedelta(days=400)))
             s.commit()
-        env.semantic.expire_facts(now=datetime.now(timezone.utc), ttl_days=365)
+        env.semantic.expire_facts(now=datetime.now(UTC), ttl_days=365)
         exposed = env.exposed_facts([mid], "alice")
         expire_exposure = 1.0 if _has(exposed, "Sample", "qc_status", "pass") else 0.0
 

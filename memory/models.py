@@ -4,6 +4,7 @@ These models define the data contracts that cross module boundaries:
 the normalized conversation trace, the structured output of the memory
 extractor, the working-memory state, and the assembled retrieval context.
 """
+
 from datetime import datetime
 from typing import Any, Literal
 
@@ -22,9 +23,7 @@ class TraceMessage(BaseModel):
         description="One of: human, ai, tool, observation, system",
     )
     content: str = Field(default="", description="Text content of the message")
-    tool_result: str | None = Field(
-        default=None, description="Result of a tool call, if this entry is a tool"
-    )
+    tool_result: str | None = Field(default=None, description="Result of a tool call, if this entry is a tool")
 
 
 FactStatus = Literal["active", "superseded", "retracted", "expired"]
@@ -63,12 +62,8 @@ class MemoryFact(BaseModel):
 class MemoryExtraction(BaseModel):
     """Structured output of the memory extractor over one trace."""
 
-    summary: str = Field(
-        ..., description="Concise, self-contained summary of what was accomplished"
-    )
-    facts: list[MemoryFact] = Field(
-        default_factory=list, description="Durable facts extracted from the trace"
-    )
+    summary: str = Field(..., description="Concise, self-contained summary of what was accomplished")
+    facts: list[MemoryFact] = Field(default_factory=list, description="Durable facts extracted from the trace")
 
 
 class WorkingMemoryState(BaseModel):
@@ -93,9 +88,7 @@ class WorkingMemoryState(BaseModel):
     next_action: str = Field(default="", description="Planned next action")
     created_at: datetime | None = Field(default=None)
     updated_at: datetime | None = Field(default=None)
-    expires_at: datetime | None = Field(
-        default=None, description="Working-memory TTL expiry (set by the store)"
-    )
+    expires_at: datetime | None = Field(default=None, description="Working-memory TTL expiry (set by the store)")
     version: int = Field(default=0, ge=0, description="Optimistic-lock version")
 
 
@@ -109,17 +102,9 @@ class MemoryContext(BaseModel):
         """Render the context as a prompt fragment for injection."""
         parts: list[str] = []
         if self.previous_tasks:
-            parts.append(
-                "Previous Task(s):\n"
-                + "\n".join(f"- {s}" for s in self.previous_tasks)
-            )
+            parts.append("Previous Task(s):\n" + "\n".join(f"- {s}" for s in self.previous_tasks))
         if self.facts:
-            parts.append(
-                "Important Facts:\n"
-                + "\n".join(
-                    f"- {f.entity} {f.relation} {f.value}" for f in self.facts
-                )
-            )
+            parts.append("Important Facts:\n" + "\n".join(f"- {f.entity} {f.relation} {f.value}" for f in self.facts))
         return "\n\n".join(parts)
 
     def is_empty(self) -> bool:
@@ -168,12 +153,7 @@ class MemoryConfig(BaseModel):
 
     @model_validator(mode="after")
     def _validate_scoring_weights(self) -> "MemoryConfig":
-        total = (
-            self.confidence_weight
-            + self.usage_weight
-            + self.recency_weight
-            + self.feedback_weight
-        )
+        total = self.confidence_weight + self.usage_weight + self.recency_weight + self.feedback_weight
         if abs(total - 1.0) > 1e-9:
             raise ValueError(
                 "confidence_weight + usage_weight + recency_weight + feedback_weight "

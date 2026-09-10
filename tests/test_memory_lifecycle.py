@@ -4,15 +4,14 @@ Covers the 15 behaviours requested in the memory-system enhancement:
 timestamps, status, TTL expiry, access_count accounting, importance/recency
 scoring, two-stage ranking, and cross-store cleanup via ``memory_id``.
 """
+
 from __future__ import annotations
 
 import logging
 import math
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
-from sqlalchemy import inspect, text, update as sa_update
-
 from database.migrations import get_engine, get_session_factory, migrate
 from database.models import Fact, Memory
 from memory.episodic import EpisodicMemoryStore
@@ -23,6 +22,8 @@ from memory.semantic import SemanticMemoryStore
 from memory.system import MemorySystem
 from memory.validator import FactValidator
 from memory.vector import HashingEmbedding, SearchResult, build_embedding_provider, build_vector_store
+from sqlalchemy import inspect, text
+from sqlalchemy import update as sa_update
 
 
 class InMemoryVectorStore:
@@ -44,7 +45,7 @@ class InMemoryVectorStore:
             results.append(
                 SearchResult(
                     id=cid,
-                    score=sum(a * b for a, b in zip(query_embedding, emb)),
+                    score=sum(a * b for a, b in zip(query_embedding, emb, strict=False)),
                     metadata=meta,
                     text=text,
                 )
@@ -54,9 +55,7 @@ class InMemoryVectorStore:
 
     def get(self, ids) -> list[SearchResult]:
         return [
-            SearchResult(
-                id=cid, score=0.0, metadata=self._items[cid][2], text=self._items[cid][0]
-            )
+            SearchResult(id=cid, score=0.0, metadata=self._items[cid][2], text=self._items[cid][0])
             for cid in ids
             if cid in self._items
         ]
@@ -100,6 +99,7 @@ def episodic(vector_store):
 
 # ---- lifecycle -----------------------------------------------------------
 
+
 def test_fact_gets_timestamps(semantic):
     memory_id = semantic.create_memory("u1", "summary")
     row = semantic.save_fact(memory_id, _fact())
@@ -121,9 +121,7 @@ def test_updated_at_changes_on_update(semantic, session_factory):
     row = semantic.save_fact(memory_id, _fact())
     # Force updated_at far into the past so the onupdate bump is observable.
     with session_factory() as session:
-        session.execute(
-            sa_update(Fact).where(Fact.id == row.id).values(updated_at=datetime(2000, 1, 1))
-        )
+        session.execute(sa_update(Fact).where(Fact.id == row.id).values(updated_at=datetime(2000, 1, 1)))
         session.commit()
     updated = semantic.update_fact(row.id, value="changed_again")
     assert updated is not None
@@ -140,11 +138,9 @@ def test_expires_after_ttl(semantic, session_factory):
     memory_id = semantic.create_memory("u1", "summary")
     row = semantic.save_fact(memory_id, _fact())
     with session_factory() as session:
-        session.execute(
-            sa_update(Fact).where(Fact.id == row.id).values(created_at=datetime(2020, 1, 1))
-        )
+        session.execute(sa_update(Fact).where(Fact.id == row.id).values(created_at=datetime(2020, 1, 1)))
         session.commit()
-    count = semantic.expire_facts(now=datetime.now(timezone.utc), ttl_days=365)
+    count = semantic.expire_facts(now=datetime.now(UTC), ttl_days=365)
     assert count >= 1
     facts = semantic.get_facts_by_memory(memory_id)
     assert facts[0]["status"] == "expired"
@@ -153,7 +149,7 @@ def test_expires_after_ttl(semantic, session_factory):
 def test_not_expired_within_ttl(semantic):
     memory_id = semantic.create_memory("u1", "summary")
     semantic.save_fact(memory_id, _fact())
-    semantic.expire_facts(now=datetime.now(timezone.utc), ttl_days=365)
+    semantic.expire_facts(now=datetime.now(UTC), ttl_days=365)
     facts = semantic.get_facts_by_memory(memory_id)
     assert facts[0]["status"] == "active"
 
@@ -165,6 +161,7 @@ def test_access_count_starts_at_zero(semantic):
 
 
 # ---- retrieval accounting -----------------------------------------------
+
 
 def test_access_count_increments_on_retrieval(semantic, episodic):
     retriever = MemoryRetriever(episodic, semantic, top_k=5)
@@ -194,8 +191,9 @@ def test_unselected_candidate_not_incremented(semantic, episodic):
 
 # ---- scoring -------------------------------------------------------------
 
+
 def test_importance_score_bounded():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for conf in (0.0, 0.5, 1.0):
         for ac in (0, 1, 10, 1000):
             score = importance_score(
@@ -213,7 +211,7 @@ def test_importance_score_bounded():
 
 
 def test_recency_and_usage_are_bounded():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     assert 0.0 <= recency_score(now - timedelta(days=400), now, 0.01) <= 1.0
     assert 0.0 <= usage_score(0, 100.0) <= 1.0
     assert 0.0 <= usage_score(100000, 100.0) <= 1.0
@@ -221,7 +219,7 @@ def test_recency_and_usage_are_bounded():
 
 def test_cold_start_ranks_by_confidence():
     retriever = MemoryRetriever(None, None, scoring_threshold=3, max_facts=10)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     rows = [
         {"id": "low", "entity": "low", "confidence": 0.5, "access_count": 1, "created_at": now},
         {"id": "high", "entity": "high", "confidence": 0.9, "access_count": 1, "created_at": now},
@@ -232,20 +230,19 @@ def test_cold_start_ranks_by_confidence():
 
 def test_mature_ranks_by_importance():
     retriever = MemoryRetriever(None, None, scoring_threshold=3, max_facts=10)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     rows = [
         # Higher confidence but stale and rarely used.
-        {"id": "x", "entity": "x", "confidence": 0.95, "access_count": 4,
-         "created_at": now - timedelta(days=400)},
+        {"id": "x", "entity": "x", "confidence": 0.95, "access_count": 4, "created_at": now - timedelta(days=400)},
         # Lower confidence but heavily used and fresh -> higher importance.
-        {"id": "y", "entity": "y", "confidence": 0.7, "access_count": 100,
-         "created_at": now},
+        {"id": "y", "entity": "y", "confidence": 0.7, "access_count": 100, "created_at": now},
     ]
     selected = retriever._rank_and_select(rows)
     assert [r["entity"] for r in selected] == ["y", "x"]
 
 
 # ---- cleanup -------------------------------------------------------------
+
 
 def _make_system(tmp_path):
     config = MemoryConfig(
@@ -259,12 +256,8 @@ def _make_system(tmp_path):
 
 def _age_memory(system, memory_id):
     with system.semantic.session_factory() as session:
-        session.execute(
-            sa_update(Memory).where(Memory.id == memory_id).values(created_at=datetime(2020, 1, 1))
-        )
-        session.execute(
-            sa_update(Fact).where(Fact.memory_id == memory_id).values(created_at=datetime(2020, 1, 1))
-        )
+        session.execute(sa_update(Memory).where(Memory.id == memory_id).values(created_at=datetime(2020, 1, 1)))
+        session.execute(sa_update(Fact).where(Fact.memory_id == memory_id).values(created_at=datetime(2020, 1, 1)))
         session.commit()
 
 
@@ -310,6 +303,7 @@ def test_cleanup_logs_vector_failure(tmp_path, caplog):
 
 # ---- migration -----------------------------------------------------------
 
+
 def test_migration_adds_missing_columns(tmp_path):
     engine = get_engine(f"sqlite:///{tmp_path}/legacy.db")
     with engine.begin() as conn:
@@ -343,6 +337,7 @@ def test_migration_adds_missing_columns(tmp_path):
 
 # ---- lifecycle decoupling ------------------------------------------------
 
+
 def test_cleanup_keeps_memory_with_partial_active_facts(tmp_path):
     system = _make_system(tmp_path)
     vec = InMemoryVectorStore()
@@ -355,9 +350,7 @@ def test_cleanup_keeps_memory_with_partial_active_facts(tmp_path):
 
     # Age only fact A so it expires; fact B stays active.
     with system.semantic.session_factory() as session:
-        session.execute(
-            sa_update(Fact).where(Fact.id == fact_a.id).values(created_at=datetime(2020, 1, 1))
-        )
+        session.execute(sa_update(Fact).where(Fact.id == fact_a.id).values(created_at=datetime(2020, 1, 1)))
         session.commit()
 
     report = system.cleanup()
@@ -382,9 +375,7 @@ def test_cleanup_deletes_when_all_facts_inactive(tmp_path):
 
     # All facts age past TTL.
     with system.semantic.session_factory() as session:
-        session.execute(
-            sa_update(Fact).where(Fact.memory_id == memory_id).values(created_at=datetime(2020, 1, 1))
-        )
+        session.execute(sa_update(Fact).where(Fact.memory_id == memory_id).values(created_at=datetime(2020, 1, 1)))
         session.commit()
 
     report = system.cleanup()
@@ -395,10 +386,11 @@ def test_cleanup_deletes_when_all_facts_inactive(tmp_path):
 
 # ---- retrieval filtering -------------------------------------------------
 
+
 def test_retriever_excludes_non_active_facts(semantic, episodic):
     retriever = MemoryRetriever(episodic, semantic, top_k=5)
     memory_id = semantic.create_memory("alice", "summary")
-    active = semantic.save_fact(memory_id, _fact(entity="active", value="v1"))
+    semantic.save_fact(memory_id, _fact(entity="active", value="v1"))
     expired = semantic.save_fact(memory_id, _fact(entity="expired", value="v2"))
     superseded = semantic.save_fact(memory_id, _fact(entity="superseded", value="v3"))
     retracted = semantic.save_fact(memory_id, _fact(entity="retracted", value="v4"))
@@ -447,6 +439,7 @@ def test_batch_fetch_and_bulk_access_count(semantic, episodic, session_factory):
 
 # ---- user_id isolation ----------------------------------------------------
 
+
 def test_user_isolation_vector_and_sql(semantic, episodic):
     retriever = MemoryRetriever(episodic, semantic, top_k=10)
 
@@ -468,15 +461,11 @@ def test_similar_query_cannot_leak_across_users(semantic, episodic):
     # Two users store near-identical summaries; a shared query must not cross over.
     a_mid = semantic.create_memory("alice", "find EGFR differentially expressed genes")
     semantic.save_fact(a_mid, _fact(entity="EGFR", value="alice result"))
-    episodic.store_summary(
-        str(a_mid), "find EGFR differentially expressed genes", metadata={"user_id": "alice"}
-    )
+    episodic.store_summary(str(a_mid), "find EGFR differentially expressed genes", metadata={"user_id": "alice"})
 
     b_mid = semantic.create_memory("bob", "find EGFR differentially expressed genes")
     semantic.save_fact(b_mid, _fact(entity="EGFR", value="bob result"))
-    episodic.store_summary(
-        str(b_mid), "find EGFR differentially expressed genes", metadata={"user_id": "bob"}
-    )
+    episodic.store_summary(str(b_mid), "find EGFR differentially expressed genes", metadata={"user_id": "bob"})
 
     ctx = retriever.retrieve("EGFR differentially expressed genes", user_id="alice")
     assert {f.value for f in ctx.facts} == {"alice result"}
@@ -532,11 +521,10 @@ def test_vector_metadata_retains_user_id(episodic, vector_store):
 
 # ---- fact conflict detection & update ------------------------------------
 
+
 def test_same_fact_not_duplicated(semantic):
     memory_id = semantic.create_memory("alice", "summary")
-    f1 = semantic.save_fact(
-        memory_id, _fact(entity="BRCA1", relation="has_mutation", value="185delAG", confidence=0.8)
-    )
+    f1 = semantic.save_fact(memory_id, _fact(entity="BRCA1", relation="has_mutation", value="185delAG", confidence=0.8))
     f2 = semantic.save_fact(
         memory_id, _fact(entity="BRCA1", relation="has_mutation", value="185delAG", confidence=0.95)
     )
@@ -607,15 +595,11 @@ def test_same_fact_across_users_isolated(semantic):
 
 def test_same_fact_preserves_created_at(semantic):
     memory_id = semantic.create_memory("alice", "summary")
-    f1 = semantic.save_fact(
-        memory_id, _fact(entity="BRCA1", relation="has_mutation", value="185delAG", confidence=0.8)
-    )
+    f1 = semantic.save_fact(memory_id, _fact(entity="BRCA1", relation="has_mutation", value="185delAG", confidence=0.8))
     original_created = f1.created_at
     assert original_created is not None
 
-    f2 = semantic.save_fact(
-        memory_id, _fact(entity="BRCA1", relation="has_mutation", value="185delAG", confidence=0.9)
-    )
+    f2 = semantic.save_fact(memory_id, _fact(entity="BRCA1", relation="has_mutation", value="185delAG", confidence=0.9))
     assert str(f2.id) == str(f1.id)
     assert f2.created_at == original_created  # created_at never overwritten
 
@@ -626,9 +610,7 @@ def test_supersede_updates_updated_at(semantic, session_factory):
 
     # Force updated_at far into the past so the onupdate bump is observable.
     with session_factory() as session:
-        session.execute(
-            sa_update(Fact).where(Fact.id == old.id).values(updated_at=datetime(2000, 1, 1))
-        )
+        session.execute(sa_update(Fact).where(Fact.id == old.id).values(updated_at=datetime(2000, 1, 1)))
         session.commit()
 
     semantic.save_fact(memory_id, _fact(entity="BRCA1", relation="current_status", value="v2"))
@@ -665,6 +647,7 @@ def test_save_facts_uses_conflict_detection(semantic):
 
 
 # ---- relation cardinality ------------------------------------------------
+
 
 def test_single_value_relation_supersedes(semantic):
     memory_id = semantic.create_memory("alice", "summary")
@@ -705,6 +688,7 @@ def test_unknown_relation_defaults_to_multi(semantic):
 
 # ---- user feedback --------------------------------------------------------
 
+
 def test_positive_feedback_records_count(semantic):
     memory_id = semantic.create_memory("alice", "summary")
     row = semantic.save_fact(memory_id, _fact())
@@ -731,19 +715,19 @@ def test_invalid_feedback_rejected(semantic):
 
 
 def test_feedback_affects_importance_score():
-    now = datetime.now(timezone.utc)
-    kwargs = dict(
-        confidence=0.5,
-        access_count=0,
-        created_at=now,
-        now=now,
-        confidence_weight=0.4,
-        usage_weight=0.2,
-        recency_weight=0.2,
-        feedback_weight=0.2,
-        usage_saturation=100.0,
-        recency_lambda=0.01,
-    )
+    now = datetime.now(UTC)
+    kwargs = {
+        "confidence": 0.5,
+        "access_count": 0,
+        "created_at": now,
+        "now": now,
+        "confidence_weight": 0.4,
+        "usage_weight": 0.2,
+        "recency_weight": 0.2,
+        "feedback_weight": 0.2,
+        "usage_saturation": 100.0,
+        "recency_lambda": 0.01,
+    }
     neutral = importance_score(**kwargs, positive_feedback=0, negative_feedback=0)
     praised = importance_score(**kwargs, positive_feedback=10, negative_feedback=0)
     criticized = importance_score(**kwargs, positive_feedback=0, negative_feedback=10)
@@ -766,9 +750,7 @@ def test_negative_feedback_does_not_delete(semantic):
 
 
 def test_retract_at_configured_threshold(session_factory):
-    semantic = SemanticMemoryStore(
-        session_factory, FactValidator(), feedback_retract_threshold=2
-    )
+    semantic = SemanticMemoryStore(session_factory, FactValidator(), feedback_retract_threshold=2)
     memory_id = semantic.create_memory("alice", "summary")
     row = semantic.save_fact(memory_id, _fact())
 
@@ -797,12 +779,11 @@ def test_cross_user_cannot_feedback(semantic):
 
 # ---- feedback timestamp semantics ----------------------------------------
 
+
 def _pin_updated_at(session_factory, fact_id):
     """Force updated_at far into the past so any bump is observable."""
     with session_factory() as session:
-        session.execute(
-            sa_update(Fact).where(Fact.id == fact_id).values(updated_at=datetime(2000, 1, 1))
-        )
+        session.execute(sa_update(Fact).where(Fact.id == fact_id).values(updated_at=datetime(2000, 1, 1)))
         session.commit()
 
 
@@ -828,9 +809,7 @@ def test_negative_feedback_does_not_bump_updated_at(semantic, session_factory):
 
 
 def test_retract_bumps_updated_at(session_factory):
-    semantic = SemanticMemoryStore(
-        session_factory, FactValidator(), feedback_retract_threshold=2
-    )
+    semantic = SemanticMemoryStore(session_factory, FactValidator(), feedback_retract_threshold=2)
     memory_id = semantic.create_memory("alice", "summary")
     row = semantic.save_fact(memory_id, _fact())
     _pin_updated_at(session_factory, row.id)
@@ -847,6 +826,7 @@ def test_retract_bumps_updated_at(session_factory):
 
 
 # ---- query-aware fact reranking ------------------------------------------
+
 
 class _FakeSemanticEmbedding:
     """Deterministic fake embedding for query-aware reranking (no external API).
@@ -878,21 +858,15 @@ def test_fact_semantic_reranking_ranks_but_does_not_drop(semantic, episodic):
     similarity of ~0 to the query, which is below the old ``fact_similarity_threshold``
     of 0.45; they must still appear in the context (ranked below the relevant fact).
     """
-    retriever = MemoryRetriever(
-        episodic, semantic, top_k=5, embedding=_FakeSemanticEmbedding()
-    )
+    retriever = MemoryRetriever(episodic, semantic, top_k=5, embedding=_FakeSemanticEmbedding())
     memory_id = semantic.create_memory("alice", "BRCA1 analysis")
 
     semantic.save_fact(
         memory_id,
         _fact(entity="BRCA1", relation="pathogenic_mutation", value="185delAG", confidence=0.8),
     )
-    semantic.save_fact(
-        memory_id, _fact(entity="tool", relation="used", value="parse_vcf", confidence=0.95)
-    )
-    semantic.save_fact(
-        memory_id, _fact(entity="user", relation="likes", value="Python", confidence=0.95)
-    )
+    semantic.save_fact(memory_id, _fact(entity="tool", relation="used", value="parse_vcf", confidence=0.95))
+    semantic.save_fact(memory_id, _fact(entity="user", relation="likes", value="Python", confidence=0.95))
     episodic.store_summary(str(memory_id), "BRCA1 analysis", metadata={"user_id": "alice"})
 
     context = retriever.retrieve("BRCA1 mutations", user_id="alice")
@@ -920,12 +894,19 @@ def test_fact_score_formula(semantic, episodic):
             return [[0.2, math.sqrt(0.96)] for _ in texts]
 
     retriever = MemoryRetriever(episodic, semantic, embedding=_FixedVectors())
-    now = datetime.now(timezone.utc)
-    rows = [{
-        "entity": "gene", "relation": "log2fc", "value": "2.3",
-        "confidence": 0.8, "access_count": 0, "created_at": now,
-        "positive_feedback_count": 0, "negative_feedback_count": 0,
-    }]
+    now = datetime.now(UTC)
+    rows = [
+        {
+            "entity": "gene",
+            "relation": "log2fc",
+            "value": "2.3",
+            "confidence": 0.8,
+            "access_count": 0,
+            "created_at": now,
+            "positive_feedback_count": 0,
+            "negative_feedback_count": 0,
+        }
+    ]
     scored = retriever._score_query_aware(rows, "expression analysis", now)
     score, similarity, _row = scored[0]
 
@@ -942,20 +923,14 @@ def test_reranking_still_caps_to_top_n(semantic, episodic):
     (similarity ~0) survives because it ranks 2nd, while ``user`` (also similarity ~0,
     lower confidence) is dropped only because it ranks 3rd.
     """
-    retriever = MemoryRetriever(
-        episodic, semantic, top_k=5, max_facts=2, embedding=_FakeSemanticEmbedding()
-    )
+    retriever = MemoryRetriever(episodic, semantic, top_k=5, max_facts=2, embedding=_FakeSemanticEmbedding())
     memory_id = semantic.create_memory("alice", "BRCA1 analysis")
     semantic.save_fact(
         memory_id,
         _fact(entity="BRCA1", relation="pathogenic_mutation", value="185delAG", confidence=0.8),
     )
-    semantic.save_fact(
-        memory_id, _fact(entity="tool", relation="used", value="parse_vcf", confidence=0.95)
-    )
-    semantic.save_fact(
-        memory_id, _fact(entity="user", relation="likes", value="Python", confidence=0.6)
-    )
+    semantic.save_fact(memory_id, _fact(entity="tool", relation="used", value="parse_vcf", confidence=0.95))
+    semantic.save_fact(memory_id, _fact(entity="user", relation="likes", value="Python", confidence=0.6))
     episodic.store_summary(str(memory_id), "BRCA1 analysis", metadata={"user_id": "alice"})
 
     context = retriever.retrieve("BRCA1 mutations", user_id="alice")
@@ -966,15 +941,11 @@ def test_reranking_still_caps_to_top_n(semantic, episodic):
 def test_query_aware_reranking_preserves_user_isolation(semantic, episodic):
     """Query-aware reranking must not leak facts across users, even when both users
     store the same ``entity relation value`` text (identical semantic similarity)."""
-    retriever = MemoryRetriever(
-        episodic, semantic, top_k=10, embedding=_FakeSemanticEmbedding()
-    )
+    retriever = MemoryRetriever(episodic, semantic, top_k=10, embedding=_FakeSemanticEmbedding())
 
     for user, value in (("alice", "alice result"), ("bob", "bob result")):
         mid = semantic.create_memory(user, "BRCA1 analysis")
-        semantic.save_fact(
-            mid, _fact(entity="BRCA1", relation="pathogenic_mutation", value=value)
-        )
+        semantic.save_fact(mid, _fact(entity="BRCA1", relation="pathogenic_mutation", value=value))
         episodic.store_summary(str(mid), "BRCA1 analysis", metadata={"user_id": user})
 
     ctx_alice = retriever.retrieve("BRCA1 mutations", user_id="alice")
@@ -985,6 +956,7 @@ def test_query_aware_reranking_preserves_user_isolation(semantic, episodic):
 
 
 # ---- embedding provider configuration -------------------------------------
+
 
 def test_default_embedding_provider_is_semantic():
     """The out-of-the-box provider is semantic, not the deterministic hash."""

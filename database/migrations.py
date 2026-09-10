@@ -4,16 +4,20 @@ Uses SQLAlchemy `create_all` which is idempotent and sufficient for this scope.
 For production PostgreSQL deployments, swap this module for Alembic — the ORM
 models in :mod:`database.models` remain the single source of truth.
 """
+
 from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from sqlalchemy import create_engine, inspect, text
-from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from .models import Base
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import Engine
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +35,7 @@ def get_engine(database_url: str, echo: bool = False) -> Engine:
 
 def get_session_factory(engine: Engine) -> sessionmaker[Session]:
     """Build a session factory for dependency injection."""
-    return sessionmaker(
-        bind=engine, autoflush=False, expire_on_commit=False, future=True
-    )
+    return sessionmaker(bind=engine, autoflush=False, expire_on_commit=False, future=True)
 
 
 def migrate(engine: Engine) -> None:

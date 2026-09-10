@@ -8,17 +8,21 @@ Vector similarity ranks *episodes*; once the episode's facts are fetched, they
 are ranked by fact-level signals (confidence in the cold-start phase, the full
 ``importance_score`` once mature). The two notions are deliberately kept apart.
 """
+
 from __future__ import annotations
 
 import logging
 import math
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
-from .episodic import EpisodicMemoryStore
 from .models import MemoryContext, MemoryFact
 from .scoring import importance_score
-from .semantic import SemanticMemoryStore
-from .vector import EmbeddingProvider
+
+if TYPE_CHECKING:
+    from .episodic import EpisodicMemoryStore
+    from .semantic import SemanticMemoryStore
+    from .vector import EmbeddingProvider
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +122,7 @@ class MemoryRetriever:
         """
         if not rows:
             return []
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if query is not None and self.embedding is not None:
             scored = self._score_query_aware(rows, query, now)
             scored.sort(key=lambda item: item[0], reverse=True)
@@ -134,14 +138,12 @@ class MemoryRetriever:
     @staticmethod
     def _cosine_similarity(a: list[float], b: list[float]) -> float:
         """Cosine similarity in [-1, 1]; guards against zero-length vectors."""
-        dot = sum(x * y for x, y in zip(a, b))
+        dot = sum(x * y for x, y in zip(a, b, strict=False))
         norm_a = math.sqrt(sum(x * x for x in a)) or 1.0
         norm_b = math.sqrt(sum(x * x for x in b)) or 1.0
         return dot / (norm_a * norm_b)
 
-    def _score_query_aware(
-        self, rows: list[dict], query: str, now: datetime
-    ) -> list[tuple[float, float, dict]]:
+    def _score_query_aware(self, rows: list[dict], query: str, now: datetime) -> list[tuple[float, float, dict]]:
         """Return ``(score, similarity, row)`` triples for query-aware ranking.
 
         ``score = similarity_weight * similarity + (1 - similarity_weight) *
@@ -152,17 +154,12 @@ class MemoryRetriever:
         and is ordered by this combined score.
         """
         query_vec = self.embedding.embed_query(query)
-        fact_vecs = self.embedding.embed_documents(
-            [self._fact_text(row) for row in rows]
-        )
+        fact_vecs = self.embedding.embed_documents([self._fact_text(row) for row in rows])
         out: list[tuple[float, float, dict]] = []
-        for row, fact_vec in zip(rows, fact_vecs):
+        for row, fact_vec in zip(rows, fact_vecs, strict=False):
             similarity = self._cosine_similarity(query_vec, fact_vec)
             importance = self._ranking_score(row, now)
-            combined = (
-                self.similarity_weight * similarity
-                + (1.0 - self.similarity_weight) * importance
-            )
+            combined = self.similarity_weight * similarity + (1.0 - self.similarity_weight) * importance
             out.append((combined, similarity, row))
         return out
 
@@ -189,7 +186,7 @@ class MemoryRetriever:
 
     def _to_memory_fact(self, row: dict) -> MemoryFact:
         """Build a ``MemoryFact``, always attaching the composite importance score."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         created_at = row.get("created_at") or now
         confidence = float(row.get("confidence", 0.0))
         access_count = int(row.get("access_count", 0))

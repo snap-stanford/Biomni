@@ -4,12 +4,14 @@ Summaries are embedded and stored in a vector backend. Each stored summary is
 tagged with the `memory_id` produced by the relational store so that the two
 layers can be joined during retrieval.
 """
+
 from __future__ import annotations
 
 import logging
-from typing import Sequence
+from typing import TYPE_CHECKING
 
-from .vector import EmbeddingProvider, SearchResult, VectorStore
+if TYPE_CHECKING:
+    from .vector import EmbeddingProvider, SearchResult, VectorStore
 
 logger = logging.getLogger(__name__)
 

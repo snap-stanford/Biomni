@@ -5,9 +5,13 @@ tuples) plus ground truth and return floats in ``[0, 1]`` (higher = better,
 except where noted). They are deliberately version-agnostic and corpus-agnostic
 so both the retrieval and the isolation runners can reuse them.
 """
+
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
 
 def _key_set(keys: Iterable[str]) -> set[str]:
@@ -39,9 +43,7 @@ def mrr(ranked_keys: Sequence[str], expected_keys: Sequence[str]) -> float:
     return 0.0
 
 
-def fact_precision(
-    returned_facts: Sequence[tuple], expected_facts: Sequence[tuple]
-) -> float:
+def fact_precision(returned_facts: Sequence[tuple], expected_facts: Sequence[tuple]) -> float:
     """Fraction of returned ``(entity, relation, value)`` facts that are expected.
 
     ``returned_facts`` / ``expected_facts`` are sequences of hashable tuples

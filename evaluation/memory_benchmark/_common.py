@@ -21,6 +21,7 @@ Two responsibilities:
    crash at runtime, so the baseline's *intended* semantics are reproduced via the
    robust primitives).
 """
+
 from __future__ import annotations
 
 import inspect
@@ -77,10 +78,7 @@ def _facts_from_extraction_gt() -> dict[str, list[tuple[str, str, str]]]:
     """``case_id -> [(entity, relation, value)]`` from human-confirmed extraction GT."""
     out: dict[str, list[tuple[str, str, str]]] = {}
     for case in _load(EXTRACTION_GT).get("cases", []):
-        out[case["case_id"]] = [
-            (f["entity"], f["relation"], f["value"])
-            for f in case.get("expected_facts", [])
-        ]
+        out[case["case_id"]] = [(f["entity"], f["relation"], f["value"]) for f in case.get("expected_facts", [])]
     return out
 
 
@@ -200,13 +198,9 @@ class Env:
         self.engine = get_engine(f"sqlite:///{tmp}/memory.db")
         migrate(self.engine)
         self.sf = get_session_factory(self.engine)
-        self.validator = FactValidator(
-            min_confidence=0.0, require_source=False, rejected_sources=set()
-        )
+        self.validator = FactValidator(min_confidence=0.0, require_source=False, rejected_sources=set())
         if _has_param(SemanticMemoryStore.__init__, "feedback_retract_threshold"):
-            self.semantic = SemanticMemoryStore(
-                self.sf, self.validator, feedback_retract_threshold=3
-            )
+            self.semantic = SemanticMemoryStore(self.sf, self.validator, feedback_retract_threshold=3)
         else:
             self.semantic = SemanticMemoryStore(self.sf, self.validator)
         vs = ChromaVectorStore(
@@ -215,9 +209,7 @@ class Env:
         )
         self.episodic = EpisodicMemoryStore(vs, embedding)
         if _has_param(MemoryRetriever.__init__, "embedding"):
-            self.retriever = MemoryRetriever(
-                self.episodic, self.semantic, top_k=top_k, embedding=embedding
-            )
+            self.retriever = MemoryRetriever(self.episodic, self.semantic, top_k=top_k, embedding=embedding)
         else:
             self.retriever = MemoryRetriever(self.episodic, self.semantic, top_k=top_k)
         self._MemoryFact = MemoryFact
@@ -229,8 +221,11 @@ class Env:
         return self.semantic.save_fact(
             memory_id,
             self._MemoryFact(
-                entity=entity, relation=relation, value=value,
-                confidence=confidence, source="tool_result",
+                entity=entity,
+                relation=relation,
+                value=value,
+                confidence=confidence,
+                source="tool_result",
             ),
         )
 
@@ -261,7 +256,9 @@ class Env:
         ):
             ctx.facts.append(
                 self._MemoryFact(
-                    entity=r["entity"], relation=r["relation"], value=r["value"],
+                    entity=r["entity"],
+                    relation=r["relation"],
+                    value=r["value"],
                     confidence=float(r.get("confidence", 0.0)),
                     source=r.get("source") or "",
                     created_at=r.get("created_at"),
@@ -279,16 +276,13 @@ class Env:
         if hasattr(self.semantic, "get_active_facts_by_memories"):
             return self.semantic.get_active_facts_by_memories(memory_ids, user_id)
         # Baseline: read the stored facts directly (bypass the crashing asdict).
-        from sqlalchemy import select
-
         from database.models import Fact
+        from sqlalchemy import select
 
         out = []
         with self.sf() as session:
             for mid in memory_ids:
-                rows = session.scalars(
-                    select(Fact).where(Fact.memory_id == uuid.UUID(str(mid)))
-                ).all()
+                rows = session.scalars(select(Fact).where(Fact.memory_id == uuid.UUID(str(mid)))).all()
                 for r in rows:
                     out.append({c.name: getattr(r, c.name) for c in Fact.__table__.columns})
         return out

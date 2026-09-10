@@ -3,18 +3,23 @@
 The extractor is LLM-agnostic: it accepts any LangChain `BaseChatModel` and
 falls back to JSON parsing if `with_structured_output` is unavailable.
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 import re
-from typing import Sequence
+from typing import TYPE_CHECKING
 
-from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 
 from .models import MemoryExtraction, TraceMessage
 from .prompts import MEMORY_EXTRACTION_PROMPT
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from langchain_core.language_models.chat_models import BaseChatModel
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +31,7 @@ def trace_from_messages(messages: Sequence[BaseMessage]) -> list[TraceMessage]:
         if isinstance(msg, HumanMessage):
             trace.append(TraceMessage(type="human", content=str(msg.content)))
         elif isinstance(msg, ToolMessage):
-            trace.append(
-                TraceMessage(type="tool", content=str(msg.content), tool_result=str(msg.content))
-            )
+            trace.append(TraceMessage(type="tool", content=str(msg.content), tool_result=str(msg.content)))
         elif isinstance(msg, AIMessage):
             content = str(msg.content)
             if "<observation>" in content:
@@ -89,16 +92,13 @@ class MemoryExtractor:
     def _invoke_json(self, prompt: str) -> MemoryExtraction:
         """Fallback: ask for JSON and parse it ourselves."""
         json_prompt = (
-            prompt
-            + "\n\nRespond with ONLY a JSON object with keys `summary` (string) and "
+            prompt + "\n\nRespond with ONLY a JSON object with keys `summary` (string) and "
             "`facts` (array of {entity, relation, value, confidence, source})."
         )
         raw = self.llm.invoke(json_prompt)
         text = raw.content if hasattr(raw, "content") else str(raw)
         if isinstance(text, list):
-            text = "".join(
-                block.get("text") or "" for block in text if isinstance(block, dict)
-            )
+            text = "".join(block.get("text") or "" for block in text if isinstance(block, dict))
         match = re.search(r"\{.*\}", text, re.DOTALL)
         if match:
             return MemoryExtraction.model_validate_json(match.group(0))

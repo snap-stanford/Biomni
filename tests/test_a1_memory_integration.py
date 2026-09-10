@@ -4,6 +4,7 @@ These require the full Biomni agent environment (langgraph, langchain, ...). The
 are skipped automatically when that environment is not installed, so the memory
 subsystem's own tests can still run in isolation.
 """
+
 from __future__ import annotations
 
 import logging
@@ -154,6 +155,7 @@ def test_persist_failure_does_not_block(caplog):
 
 
 # ---- Working Memory integration -------------------------------------------
+
 
 def test_go_carries_working_memory_into_state():
     mem = _FakeMemory()

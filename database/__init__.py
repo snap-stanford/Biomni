@@ -1,4 +1,5 @@
 """Database layer for the BIOMNI memory system."""
+
 from .migrations import get_engine, get_session_factory, migrate
 from .models import Base, Fact, Memory
 

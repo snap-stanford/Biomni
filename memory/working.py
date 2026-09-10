@@ -15,11 +15,12 @@ Working memory is *not* long-term memory: it holds the current task's state
 (step, variables, next action) for the duration of one task, then is cleared or
 left to expire. Durable facts about past work belong to episodic/semantic memory.
 """
+
 from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Protocol
 
 from sqlalchemy import DateTime, Integer, String, Text, delete, func, text
@@ -42,9 +43,7 @@ class WorkingMemoryRow(_WorkingBase):
     current_step: Mapped[str] = mapped_column(Text, nullable=False, default="")
     variables: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     next_action: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
@@ -78,7 +77,7 @@ class SQLWorkingMemoryStore:
         _WorkingBase.metadata.create_all(self.session_factory.kw["bind"])
 
     def save(self, state: WorkingMemoryState) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         with self.session_factory() as session:
             row = session.get(WorkingMemoryRow, (state.user_id, state.task_id))
             payload = {
@@ -290,5 +289,5 @@ class WorkingMemoryManager:
 
     def cleanup(self, now: datetime | None = None) -> int:
         """Expire working-memory entries past their TTL. Returns the count removed."""
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         return self.store.delete_expired(now)

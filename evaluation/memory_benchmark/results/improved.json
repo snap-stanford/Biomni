@@ -1,25 +1,25 @@
 {
-  "version": "improved",
-  "conflict": {
-    "stale_fact_exposure_rate": 0.0,
-    "active_fact_accuracy": 1.0,
-    "duplicate_fact_exposure_rate": 0.0
-  },
-  "lifecycle": {
-    "retract_exposure_rate": 0.0,
-    "expire_exposure_rate": 0.0
-  },
-  "isolation": {
-    "vector_leakage_rate": 0.0,
-    "sql_leakage_rate": 0.0
-  },
-  "retrieval": {
-    "recall_at_5": 1.0,
-    "mrr": 1.0,
-    "fact_precision": 0.75
-  },
-  "continuation": {
-    "required_fact_hit_rate": 1.0,
-    "specific_value_retention_rate": 1.0
-  }
+	"version": "improved",
+	"conflict": {
+		"stale_fact_exposure_rate": 0.0,
+		"active_fact_accuracy": 1.0,
+		"duplicate_fact_exposure_rate": 0.0
+	},
+	"lifecycle": {
+		"retract_exposure_rate": 0.0,
+		"expire_exposure_rate": 0.0
+	},
+	"isolation": {
+		"vector_leakage_rate": 0.0,
+		"sql_leakage_rate": 0.0
+	},
+	"retrieval": {
+		"recall_at_5": 1.0,
+		"mrr": 1.0,
+		"fact_precision": 0.75
+	},
+	"continuation": {
+		"required_fact_hit_rate": 1.0,
+		"specific_value_retention_rate": 1.0
+	}
 }

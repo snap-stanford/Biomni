@@ -5,14 +5,13 @@ behind two methods:
   * :meth:`ingest`  — trace -> extract -> validate -> persist (episodic + semantic)
   * :meth:`retrieve` — query -> search -> assemble -> prompt fragment
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone
-from typing import Sequence
-
-from langchain_core.language_models.chat_models import BaseChatModel
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from database.migrations import get_engine, get_session_factory, migrate
 
@@ -28,6 +27,11 @@ from .working import (
     SQLWorkingMemoryStore,
     WorkingMemoryManager,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from langchain_core.language_models.chat_models import BaseChatModel
 
 logger = logging.getLogger(__name__)
 
@@ -65,9 +69,7 @@ class MemorySystem:
         if checkpointer is not None:
             working_store = LangGraphCheckpointerStore(checkpointer)
         else:
-            working_store = SQLWorkingMemoryStore(
-                session_factory, ttl_days=self.config.working_memory_ttl_days
-            )
+            working_store = SQLWorkingMemoryStore(session_factory, ttl_days=self.config.working_memory_ttl_days)
         self.working = WorkingMemoryManager(working_store)
         self.retriever = MemoryRetriever(
             self.episodic,
@@ -125,9 +127,7 @@ class MemorySystem:
         except RuntimeError:
             return asyncio.run(self.ingest(trace, user_id, task_id))
         # Already inside an event loop: run without blocking it.
-        return asyncio.run_coroutine_threadsafe(
-            self.ingest(trace, user_id, task_id), loop
-        ).result()
+        return asyncio.run_coroutine_threadsafe(self.ingest(trace, user_id, task_id), loop).result()
 
     def ingest_background(
         self,
@@ -181,7 +181,7 @@ class MemorySystem:
         Because SQL and the vector DB are not one transaction, every failure is
         logged with its ``memory_id`` — nothing is silently swallowed.
         """
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         ttl = self.config.fact_ttl_days
 
         report: dict = {"expired_facts": 0, "deleted": [], "failed": []}
@@ -195,17 +195,13 @@ class MemorySystem:
             try:
                 self.episodic.delete_memory(sid)
             except Exception:
-                logger.error(
-                    "cleanup: vector delete failed for memory_id=%s", sid, exc_info=True
-                )
+                logger.error("cleanup: vector delete failed for memory_id=%s", sid, exc_info=True)
                 report["failed"].append(sid)
                 continue
             try:
                 self.semantic.delete_memory(memory_id)
             except Exception:
-                logger.error(
-                    "cleanup: SQL delete failed for memory_id=%s", sid, exc_info=True
-                )
+                logger.error("cleanup: SQL delete failed for memory_id=%s", sid, exc_info=True)
                 report["failed"].append(sid)
                 continue
             logger.info("cleanup: deleted memory_id=%s", sid)

@@ -4,12 +4,12 @@ TTL cleanup, structured variables, isolation and optimistic locking.
 Working memory is *current-task* state (unlike long-term episodic/semantic
 memory), so these tests exercise the manager + both backends in isolation.
 """
+
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
-
 from database.migrations import get_engine, get_session_factory, migrate
 from memory.models import MemoryConfig, MemoryFact, WorkingMemoryState
 from memory.system import MemorySystem
@@ -57,8 +57,9 @@ def _make_system(tmp_path, checkpointer=None):
 
 # ---- 1. CRUD -------------------------------------------------------------
 
+
 def test_working_memory_crud(manager):
-    state = manager.create_state("u1", "t1", current_step="start", next_action="run", variables={"x": 1})
+    manager.create_state("u1", "t1", current_step="start", next_action="run", variables={"x": 1})
     loaded = manager.load_state("u1", "t1")
     assert loaded is not None
     assert loaded.task_id == "t1"
@@ -67,7 +68,7 @@ def test_working_memory_crud(manager):
     assert loaded.next_action == "run"
     assert loaded.variables == {"x": 1}
 
-    updated = manager.update_state("u1", "t1", current_step="mid")
+    manager.update_state("u1", "t1", current_step="mid")
     assert manager.load_state("u1", "t1").current_step == "mid"
 
     manager.clear("u1", "t1")
@@ -75,6 +76,7 @@ def test_working_memory_crud(manager):
 
 
 # ---- 2. task_id / user_id immutability ------------------------------------
+
 
 def test_update_state_cannot_change_identity(manager):
     manager.create_state("u1", "t1", current_step="old")
@@ -104,12 +106,16 @@ def test_update_whitelist_only_mutates_content(manager):
 
 # ---- 4. persistence round-trip -------------------------------------------
 
+
 def test_working_memory_persistence_roundtrip(session_factory):
     store = SQLWorkingMemoryStore(session_factory)
     store.save(
         WorkingMemoryState(
-            task_id="t1", user_id="u1", current_step="step",
-            variables={"a": 1, "b": "x"}, next_action="go",
+            task_id="t1",
+            user_id="u1",
+            current_step="step",
+            variables={"a": 1, "b": "x"},
+            next_action="go",
         )
     )
     loaded = store.load("u1", "t1")
@@ -120,6 +126,7 @@ def test_working_memory_persistence_roundtrip(session_factory):
 
 
 # ---- 5. checkpointer backend wiring ---------------------------------------
+
 
 def test_memory_system_uses_checkpointer_store_when_provided(tmp_path):
     system = _make_system(tmp_path, checkpointer=_FakeCheckpointer())
@@ -133,9 +140,7 @@ def test_memory_system_defaults_to_sql_store_without_checkpointer(tmp_path):
 
 def test_checkpointer_store_roundtrip():
     store = LangGraphCheckpointerStore(_FakeCheckpointer())
-    store.save(
-        WorkingMemoryState(task_id="t1", user_id="u1", current_step="running", variables={"g": "EGFR"})
-    )
+    store.save(WorkingMemoryState(task_id="t1", user_id="u1", current_step="running", variables={"g": "EGFR"}))
     loaded = store.load("u1", "t1")
     assert loaded is not None
     assert loaded.current_step == "running"
@@ -153,14 +158,18 @@ def test_checkpointer_store_delete_is_explicitly_unsupported():
 
 # ---- 6. cleanup does not touch long-term memory ---------------------------
 
+
 def test_working_memory_cleanup_does_not_touch_longterm(tmp_path):
     system = _make_system(tmp_path)
     mid = system.semantic.create_memory("u1", "summary")
     system.semantic.save_fact(
         mid,
         MemoryFact(
-            entity="BRCA1", relation="has_mutation", value="185delAG",
-            confidence=0.9, source="tool_result",
+            entity="BRCA1",
+            relation="has_mutation",
+            value="185delAG",
+            confidence=0.9,
+            source="tool_result",
         ),
     )
     system.working.create_state("u1", "t1", current_step="x")
@@ -174,6 +183,7 @@ def test_working_memory_cleanup_does_not_touch_longterm(tmp_path):
 
 # ---- 7. TTL cleanup --------------------------------------------------------
 
+
 def test_working_memory_ttl_cleanup(session_factory):
     store = SQLWorkingMemoryStore(session_factory, ttl_days=7)
     store.save(WorkingMemoryState(task_id="t1", user_id="u1"))
@@ -181,9 +191,9 @@ def test_working_memory_ttl_cleanup(session_factory):
     assert loaded is not None and loaded.expires_at is not None
 
     # Not yet expired.
-    assert store.delete_expired(datetime.now(timezone.utc)) == 0
+    assert store.delete_expired(datetime.now(UTC)) == 0
     # 8 days later the entry has lapsed and is removed.
-    future = datetime.now(timezone.utc) + timedelta(days=8)
+    future = datetime.now(UTC) + timedelta(days=8)
     assert store.delete_expired(future) == 1
     assert store.load("u1", "t1") is None
 
@@ -192,11 +202,12 @@ def test_manager_cleanup_returns_count(session_factory):
     manager = WorkingMemoryManager(SQLWorkingMemoryStore(session_factory, ttl_days=7))
     manager.create_state("u1", "t1")
     manager.create_state("u1", "t2")
-    future = datetime.now(timezone.utc) + timedelta(days=8)
+    future = datetime.now(UTC) + timedelta(days=8)
     assert manager.cleanup(future) == 2
 
 
 # ---- 8. structured variables API ------------------------------------------
+
 
 def test_working_memory_variables_api(manager):
     manager.set_variable("u1", "t1", "current_gene", "EGFR")
@@ -211,6 +222,7 @@ def test_working_memory_variables_api(manager):
 
 
 # ---- 9. user / task isolation ---------------------------------------------
+
 
 def test_working_memory_user_task_isolation(manager):
     manager.set_variable("uA", "tA", "k", "A")
@@ -230,6 +242,7 @@ def test_working_memory_user_task_isolation(manager):
 
 
 # ---- 10. optimistic locking ------------------------------------------------
+
 
 def test_optimistic_lock_detects_stale_version(session_factory):
     store = SQLWorkingMemoryStore(session_factory)

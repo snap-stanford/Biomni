@@ -7,11 +7,14 @@ A fact extracted by the LLM is only persisted if it passes these rules:
 
 This keeps low-value and hallucinated "facts" out of the durable store.
 """
+
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
-from .models import MemoryFact
+if TYPE_CHECKING:
+    from .models import MemoryFact
 
 logger = logging.getLogger(__name__)
 

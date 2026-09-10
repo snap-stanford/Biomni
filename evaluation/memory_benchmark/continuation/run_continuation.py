@@ -23,6 +23,7 @@ source tree to measure::
 
 This does NOT modify production code and uses a throwaway SQLite + Chroma store.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -37,7 +38,7 @@ for _p in (_BENCH, os.path.dirname(_BENCH)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from _common import (  # noqa: E402
+from _common import (
     CONTINUATION_CASES,
     Env,
     build_corpus_content,
@@ -54,7 +55,7 @@ def ingest_corpus(env: Env, content: dict) -> dict[str, str]:
     for key, mem in content.items():
         mid = env.create_memory(mem["user_id"], mem["summary"])
         env.store_summary(str(mid), mem["summary"], mem["user_id"])
-        for (e, r, v) in mem["facts"]:
+        for e, r, v in mem["facts"]:
             env.save_fact(mid, e, r, v, confidence=0.9)
         id2key[str(mid)] = key
     return id2key
@@ -68,8 +69,7 @@ def evaluate_case(env: Env, case: dict, content: dict) -> dict:
 
     sa_summaries = [content[k]["summary"] for k in keys]
     must_facts = [
-        (f["entity"], f["relation"], f["value"])
-        for f in case["expected_memory"].get("facts_must_contain", [])
+        (f["entity"], f["relation"], f["value"]) for f in case["expected_memory"].get("facts_must_contain", [])
     ]
 
     ctx = env.retrieve(sb["query"], sb["user_id"])
@@ -86,7 +86,7 @@ def evaluate_case(env: Env, case: dict, content: dict) -> dict:
     # 3. no cross-user leak (foreign facts + foreign summaries)
     foreign_facts = set()
     foreign_summaries = []
-    for k, mem in content.items():
+    for _k, mem in content.items():
         if mem["user_id"] != sb["user_id"]:
             foreign_facts.update(mem["facts"])
             if mem["summary"]:
@@ -139,8 +139,7 @@ def evaluate_case(env: Env, case: dict, content: dict) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=None, help="write JSON result to this path")
-    ap.add_argument("--embedding", default="sentence_transformer",
-                    choices=["sentence_transformer", "hash"])
+    ap.add_argument("--embedding", default="sentence_transformer", choices=["sentence_transformer", "hash"])
     ap.add_argument("--top-k", type=int, default=TOP_K)
     args = ap.parse_args()
 

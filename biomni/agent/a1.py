@@ -739,7 +739,8 @@ class A1:
 
             traceback.print_exc()
             return False
-##################################################################################
+
+    ##################################################################################
     def get_custom_data(self, name):
         """Get a custom data item by name.
 
@@ -1396,7 +1397,8 @@ Each library is listed with its description to help you understand its functiona
             custom_software=custom_software if custom_software else None,
             know_how_docs=know_how_docs if know_how_docs else None,
         )
-########################################################################################
+
+        ########################################################################################
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
             # Add OpenAI-specific formatting reminders if using OpenAI models
@@ -1668,7 +1670,8 @@ Each library is listed with its description to help you understand its functiona
         self.checkpointer = MemorySaver()
         self.app.checkpointer = self.checkpointer
         # display(Image(self.app.get_graph().draw_mermaid_png()))
-############################################################################################################################
+
+    ############################################################################################################################
     def _prepare_resources_for_retrieval(self, prompt):
         """Prepare resources for retrieval and return selected resource names.
 
@@ -1781,7 +1784,8 @@ Each library is listed with its description to help you understand its functiona
         print("=" * 60 + "\n")
 
         return selected_resources_names
-################################################################################################################################
+
+    ################################################################################################################################
     def go(self, prompt, task_id=None):
         """Execute the agent with the given prompt.
 
@@ -2043,7 +2047,8 @@ Each library is listed with its description to help you understand its functiona
         """
         custom_functions = getattr(self, "_custom_functions", {})
         inject_custom_functions_to_repl(custom_functions)
-############################################################################
+
+    ############################################################################
     def create_mcp_server(self, tool_modules=None):
         """
         Create an MCP server object that exposes internal Biomni tools.
@@ -2193,9 +2198,7 @@ Each library is listed with its description to help you understand its functiona
 
             return json.loads(state.model_dump_json())
         except Exception as exc:
-            logger.warning(
-                "Working memory load failed for user %r task %r: %s", self.user_id, task_id, exc
-            )
+            logger.warning("Working memory load failed for user %r task %r: %s", self.user_id, task_id, exc)
             return None
 
     def _clear_working_memory(self, task_id: str) -> None:
@@ -2777,7 +2780,8 @@ Each library is listed with its description to help you understand its functiona
             wrapper.__signature__ = inspect.Signature(new_params, return_annotation=dict)
 
             return wrapper
-############################################################################################################################################################
+
+    ############################################################################################################################################################
     def launch_gradio_demo(self, thread_id=42, share=False, server_name="0.0.0.0", require_verification=False):
         """Launch a full-featured Gradio UI for the A1 agent (adapted from codeact_copilot).
 

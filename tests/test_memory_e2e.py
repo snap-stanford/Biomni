@@ -4,10 +4,10 @@ Runs against a throwaway SQLite DB + Chroma directory with the deterministic
 hashing embedding, so it needs no network access and no real LLM. This locks the
 full ``ingest -> retrieve`` round-trip and the user-isolation boundary.
 """
+
 from __future__ import annotations
 
 import pytest
-
 from memory.models import MemoryConfig, MemoryExtraction, MemoryFact, TraceMessage
 from memory.system import MemorySystem
 
@@ -75,9 +75,7 @@ def test_ingest_then_retrieve_roundtrip(memory):
 
 
 def test_retrieve_is_user_isolated(memory):
-    memory.ingest_sync(
-        [TraceMessage(type="human", content="Analyze BRCA1")], user_id="alice"
-    )
+    memory.ingest_sync([TraceMessage(type="human", content="Analyze BRCA1")], user_id="alice")
 
     # bob has no episodes, so the scoped vector search must return nothing.
     assert memory.retrieve("BRCA1 mutations", user_id="bob") == ""

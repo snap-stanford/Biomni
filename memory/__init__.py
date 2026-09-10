@@ -5,6 +5,7 @@ Pipeline: Agent Trace -> MemoryExtractor -> (FactValidator) -> EpisodicMemorySto
 
 The :class:`MemorySystem` facade wires everything together for the agent.
 """
+
 from .episodic import EpisodicMemoryStore
 from .extractor import MemoryExtractor, trace_from_log, trace_from_messages
 from .models import (
@@ -16,8 +17,8 @@ from .models import (
     TraceMessage,
     WorkingMemoryState,
 )
-from .scoring import importance_score, recency_score, usage_score
 from .retriever import MemoryRetriever
+from .scoring import importance_score, recency_score, usage_score
 from .semantic import SemanticMemoryStore
 from .system import MemorySystem
 from .validator import FactValidator

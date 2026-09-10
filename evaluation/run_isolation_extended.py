@@ -16,6 +16,7 @@ Run once per version::
     PYTHONPATH=<baseline-checkout> venv/bin/python3 run_isolation_extended.py
     venv/bin/python3 run_isolation_extended.py --compare baseline.json improved.json
 """
+
 from __future__ import annotations
 
 import argparse
@@ -31,13 +32,13 @@ _EVAL_DIR = os.path.dirname(os.path.abspath(__file__))
 if _EVAL_DIR not in sys.path:
     sys.path.insert(0, _EVAL_DIR)
 
-from database.migrations import get_engine, get_session_factory, migrate  # noqa: E402
-from database.models import Fact  # noqa: E402
-from memory.episodic import EpisodicMemoryStore  # noqa: E402
-from memory.models import MemoryFact  # noqa: E402
-from memory.semantic import SemanticMemoryStore  # noqa: E402
-from memory.validator import FactValidator  # noqa: E402
-from memory.vector import ChromaVectorStore, HashingEmbedding  # noqa: E402
+from database.migrations import get_engine, get_session_factory, migrate
+from database.models import Fact
+from memory.episodic import EpisodicMemoryStore
+from memory.models import MemoryFact
+from memory.semantic import SemanticMemoryStore
+from memory.validator import FactValidator
+from memory.vector import ChromaVectorStore, HashingEmbedding
 
 N_USERS = 10
 MEMORIES_PER_USER = 20
@@ -110,18 +111,18 @@ def ingest(semantic, episodic) -> None:
             semantic.save_fact(
                 mid,
                 MemoryFact(
-                    entity=user_id, relation="report", value=f"report_{j}",
-                    confidence=0.9, source="tool_result",
+                    entity=user_id,
+                    relation="report",
+                    value=f"report_{j}",
+                    confidence=0.9,
+                    source="tool_result",
                 ),
             )
 
 
 def run(semantic, episodic) -> dict:
     rng = random.Random(SEED)
-    queries = [
-        (f"user_{rng.randrange(N_USERS)}", rng.randrange(len(TEMPLATES)))
-        for _ in range(N_QUERIES)
-    ]
+    queries = [(f"user_{rng.randrange(N_USERS)}", rng.randrange(len(TEMPLATES))) for _ in range(N_QUERIES)]
 
     leakage_count = 0
     affected_users: set[str] = set()
