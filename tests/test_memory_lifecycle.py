@@ -39,7 +39,7 @@ class InMemoryVectorStore:
 
     def search(self, query_embedding, k: int = 5, where: dict | None = None) -> list[SearchResult]:
         results = []
-        for cid, (text, emb, meta) in self._items.items():
+        for cid, (doc_text, emb, meta) in self._items.items():
             if where and any(meta.get(kk) != vv for kk, vv in where.items()):
                 continue
             results.append(
@@ -47,7 +47,7 @@ class InMemoryVectorStore:
                     id=cid,
                     score=sum(a * b for a, b in zip(query_embedding, emb, strict=False)),
                     metadata=meta,
-                    text=text,
+                    text=doc_text,
                 )
             )
         results.sort(key=lambda r: r.score, reverse=True)
