@@ -140,10 +140,8 @@ class BiomniEval1:
                     predicted_genes = [predicted_genes]
 
                 # Get ground truth genes (stored as comma-separated or single)
-                if "," in ground_truth:
-                    true_genes = [g.strip() for g in ground_truth.split(",")]
-                else:
-                    true_genes = [ground_truth]
+                true_genes = [gene.strip().upper() for gene in ground_truth.split(",")]
+                predicted_genes = [str(gene).strip().upper() for gene in predicted_genes]
 
                 # Check for intersection
                 if predicted_genes and set(true_genes) & set(predicted_genes):
