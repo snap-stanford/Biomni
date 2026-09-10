@@ -1,0 +1,31 @@
+{
+  "attribution": {
+    "provider": "AlphaFold Protein Structure Database",
+    "source_url": "https://alphafold.ebi.ac.uk/api/prediction/P69905",
+    "retrieved_date": "2026-09-10",
+    "note": "Public AlphaFold DB prediction response reduced to fields covered by this tool."
+  },
+  "response": [
+    {
+      "toolUsed": "AlphaFold Monomer v2.0 pipeline",
+      "providerId": "GDM",
+      "entityType": "protein",
+      "modelEntityId": "AF-P69905-F1",
+      "modelCreatedDate": "2025-08-01T00:00:00Z",
+      "globalMetricValue": 98.06,
+      "latestVersion": 6,
+      "sequenceStart": 1,
+      "sequenceEnd": 142,
+      "sequenceChecksum": "6077c452d1dc6151040b2b179e2294c7",
+      "gene": "HBA1",
+      "uniprotAccession": "P69905",
+      "uniprotId": "HBA_HUMAN",
+      "uniprotDescription": "Hemoglobin subunit alpha",
+      "organismScientificName": "Homo sapiens",
+      "entryId": "AF-P69905-F1",
+      "pdbUrl": "https://alphafold.ebi.ac.uk/files/AF-P69905-F1-model_v6.pdb",
+      "cifUrl": "https://alphafold.ebi.ac.uk/files/AF-P69905-F1-model_v6.cif",
+      "paeDocUrl": "https://alphafold.ebi.ac.uk/files/AF-P69905-F1-predicted_aligned_error_v6.json"
+    }
+  ]
+}

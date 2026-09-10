@@ -52,6 +52,26 @@ description = [
         ],
     },
     {
+        "description": "Query AlphaFold DB prediction metadata for multiple UniProt accessions.",
+        "name": "query_alphafold_bulk_metadata",
+        "optional_parameters": [
+            {
+                "default": 10,
+                "description": "The maximum number of accessions to query.",
+                "name": "max_results",
+                "type": "int",
+            }
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "A comma-separated string or list of UniProt accessions.",
+                "name": "uniprot_ids",
+                "type": "str",
+            }
+        ],
+    },
+    {
         "description": "Query the InterPro REST API using natural language or a direct endpoint.",
         "name": "query_interpro",
         "optional_parameters": [
