@@ -52,6 +52,25 @@ description = [
         ],
     },
     {
+        "description": "Query public Broad Single Cell Portal metadata for the Cortical Organoids Atlas study.",
+        "name": "query_cortical_organoids_atlas",
+        "optional_parameters": [
+            {
+                "default": "",
+                "description": "Terms used to filter public cluster labels, such as scRNA-seq, scATAC-seq, SHARE-seq, pseudotime, or fetal",
+                "name": "query",
+                "type": "str",
+            },
+            {
+                "default": False,
+                "description": "Whether to summarize annotations for the first matching public cluster",
+                "name": "include_cluster_annotations",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [],
+    },
+    {
         "description": "Query the InterPro REST API using natural language or a direct endpoint.",
         "name": "query_interpro",
         "optional_parameters": [
