@@ -1,0 +1,112 @@
+{
+	"pagination": {
+		"count": 2,
+		"next": null,
+		"order": "asc",
+		"pages": 1,
+		"previous": null,
+		"size": 2,
+		"sort": "projectTitle",
+		"total": 36
+	},
+	"hits": [
+		{
+			"entryId": "2fe3c60b-ac1a-4c61-9b59-f6556c0fce63",
+			"projects": [
+				{
+					"projectId": "2fe3c60b-ac1a-4c61-9b59-f6556c0fce63",
+					"projectTitle": "A human fetal lung cell atlas uncovers proximal-distal gradients of differentiation and key regulators of epithelial fates",
+					"projectShortname": "Human Fetal Lung",
+					"estimatedCellCount": null,
+					"tissueAtlas": [
+						{
+							"atlas": "Development",
+							"version": "v1.0"
+						},
+						{
+							"atlas": "Organoid-Endoderm",
+							"version": "v1.0"
+						}
+					],
+					"bionetworkName": ["Development", "Organoid"],
+					"dataUseRestriction": "NRES",
+					"projectDescription": "Human fetal lung and lung organoid data with single-cell and image files."
+				}
+			],
+			"samples": [
+				{
+					"sampleEntityType": ["organoids"],
+					"effectiveOrgan": ["lung"],
+					"modelOrgan": ["lung"],
+					"modelOrganPart": ["epithelial cell of lung"],
+					"disease": ["normal"]
+				}
+			],
+			"organoids": [
+				{
+					"modelOrgan": ["lung"],
+					"modelOrganPart": ["epithelial cell of lung"]
+				}
+			],
+			"donorOrganisms": [
+				{
+					"genusSpecies": ["Homo sapiens"]
+				}
+			],
+			"fileTypeSummaries": [
+				{
+					"count": 15,
+					"format": "h5ad",
+					"contentDescription": ["gene expression matrix"]
+				},
+				{
+					"count": 402,
+					"format": "fastq.gz",
+					"contentDescription": ["DNA sequence"]
+				}
+			]
+		},
+		{
+			"entryId": "8ab8726d-81b9-4bd2-acc2-4d50bee786b4",
+			"projects": [
+				{
+					"projectId": "8ab8726d-81b9-4bd2-acc2-4d50bee786b4",
+					"projectTitle": "An organoid and multi-organ developmental cell atlas reveals multilineage fate specification in the human intestine",
+					"projectShortname": "Gut Organoid Atlas",
+					"estimatedCellCount": null,
+					"tissueAtlas": [],
+					"bionetworkName": [null],
+					"dataUseRestriction": null,
+					"projectDescription": "Intestinal organoid and multi-organ developmental cell atlas data."
+				}
+			],
+			"samples": [
+				{
+					"sampleEntityType": ["organoids"],
+					"effectiveOrgan": ["intestine"],
+					"modelOrgan": ["intestine"],
+					"modelOrganPart": ["intestinal epithelium", "intestine"],
+					"disease": [null]
+				}
+			],
+			"organoids": [
+				{
+					"modelOrgan": ["intestine"],
+					"modelOrganPart": ["intestinal epithelium", "intestine"]
+				}
+			],
+			"donorOrganisms": [
+				{
+					"genusSpecies": ["Homo sapiens"]
+				}
+			],
+			"fileTypeSummaries": [
+				{
+					"count": 395,
+					"format": "fastq",
+					"contentDescription": ["DNA sequence"]
+				}
+			]
+		}
+	]
+}

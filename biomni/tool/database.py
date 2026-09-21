@@ -690,6 +690,149 @@ def query_alphafold(
         }
 
 
+def _organoid_cell_atlas_values(records, field):
+    values = []
+    for record in records or []:
+        value = record.get(field)
+        if isinstance(value, list):
+            values.extend(item for item in value if item is not None)
+        elif value is not None:
+            values.append(value)
+    return sorted({str(value) for value in values if str(value).strip()})
+
+
+def _organoid_cell_atlas_project_text(hit):
+    project = (hit.get("projects") or [{}])[0]
+    parts = [
+        project.get("projectTitle"),
+        project.get("projectShortname"),
+        project.get("projectDescription"),
+    ]
+    for field in ["samples", "organoids", "donorOrganisms", "cellSuspensions", "fileTypeSummaries"]:
+        parts.append(json.dumps(hit.get(field, []), sort_keys=True))
+    return " ".join(str(part).lower() for part in parts if part)
+
+
+def _organoid_cell_atlas_project_matches(hit, query):
+    terms = [term.lower() for term in str(query or "").split() if term.strip()]
+    if not terms:
+        return True
+    text = _organoid_cell_atlas_project_text(hit)
+    return all(term in text for term in terms)
+
+
+def _format_organoid_cell_atlas_project(hit):
+    project = (hit.get("projects") or [{}])[0]
+    project_id = project.get("projectId") or hit.get("entryId")
+    title = project.get("projectTitle") or "Unknown title"
+    shortname = project.get("projectShortname")
+    portal_url = f"https://data.humancellatlas.org/explore/projects/{project_id}" if project_id else None
+
+    tissue_atlases = []
+    for atlas in project.get("tissueAtlas") or []:
+        if isinstance(atlas, dict):
+            name = atlas.get("atlas")
+            version = atlas.get("version")
+            tissue_atlases.append(f"{name} ({version})" if version else str(name))
+
+    file_types = []
+    for summary in hit.get("fileTypeSummaries") or []:
+        file_format = summary.get("format")
+        count = summary.get("count")
+        if file_format:
+            file_types.append(f"{file_format} ({count})" if count is not None else str(file_format))
+
+    lines = [
+        f"Project: {title}",
+        f"Project ID: {project_id or 'Not available'}",
+    ]
+    if shortname:
+        lines.append(f"Short Name: {shortname}")
+    if portal_url:
+        lines.append(f"HCA Data Portal URL: {portal_url}")
+    if project.get("bionetworkName"):
+        lines.append("Bionetwork: " + ", ".join(str(value) for value in project.get("bionetworkName") if value))
+    if tissue_atlases:
+        lines.append("Tissue Atlas: " + ", ".join(tissue_atlases))
+
+    lines.extend(
+        [
+            "Organoid Model Organs: "
+            + ", ".join(_organoid_cell_atlas_values(hit.get("organoids"), "modelOrgan") or ["Not available"]),
+            "Organoid Model Organ Parts: "
+            + ", ".join(_organoid_cell_atlas_values(hit.get("organoids"), "modelOrganPart") or ["Not available"]),
+            "Sample Entity Types: "
+            + ", ".join(_organoid_cell_atlas_values(hit.get("samples"), "sampleEntityType") or ["Not available"]),
+            "Species: "
+            + ", ".join(_organoid_cell_atlas_values(hit.get("donorOrganisms"), "genusSpecies") or ["Not available"]),
+            "Diseases: " + ", ".join(_organoid_cell_atlas_values(hit.get("samples"), "disease") or ["Not available"]),
+        ]
+    )
+    if project.get("estimatedCellCount") is not None:
+        lines.append(f"Estimated Cell Count: {project.get('estimatedCellCount')}")
+    if file_types:
+        lines.append("File Types: " + ", ".join(file_types))
+    if project.get("dataUseRestriction"):
+        lines.append(f"Data Use Restriction: {project.get('dataUseRestriction')}")
+    if project.get("projectDescription"):
+        description = " ".join(project.get("projectDescription").split())
+        lines.append(f"Description: {description[:500]}")
+
+    return "\n".join(lines)
+
+
+def _search_organoid_cell_atlas_projects(query, max_results=5, session=None):
+    result_count = int(max_results)
+    if result_count < 1:
+        raise ValueError("max_results must be at least 1")
+
+    active_session = session or requests.Session()
+    url = "https://service.azul.data.humancellatlas.org/index/projects"
+    params = {
+        "filters": json.dumps({"sampleEntityType": {"is": ["organoids"]}}),
+        "size": result_count,
+        "sort": "projectTitle",
+        "order": "asc",
+    }
+    matches = []
+
+    while url and len(matches) < result_count:
+        response = active_session.get(url, params=params, timeout=30)
+        response.raise_for_status()
+        payload = response.json()
+        for hit in payload.get("hits", []):
+            if _organoid_cell_atlas_project_matches(hit, query):
+                matches.append(hit)
+                if len(matches) >= result_count:
+                    break
+        url = (payload.get("pagination") or {}).get("next")
+        params = None
+
+    return matches
+
+
+def query_organoid_cell_atlas_projects(query="organoid", max_results=5):
+    """Query HCA Data Portal organoid project metadata.
+
+    Parameters
+    ----------
+    query (str): Search terms to match within organoid project metadata.
+    max_results (int): Maximum number of matching projects to return.
+
+    Returns
+    -------
+    str: Formatted HCA Organoid Cell Atlas project metadata or an error string.
+
+    """
+    try:
+        projects = _search_organoid_cell_atlas_projects(query=query, max_results=max_results)
+        if not projects:
+            return f"No HCA organoid projects found for query: {query}"
+        return "\n\n".join(_format_organoid_cell_atlas_project(project) for project in projects)
+    except Exception as e:
+        return f"Error querying HCA Organoid Cell Atlas projects: {str(e)}"
+
+
 def query_interpro(
     prompt=None,
     endpoint=None,
