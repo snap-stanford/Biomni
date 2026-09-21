@@ -1,3 +1,5 @@
+import csv
+import io
 import json
 import os
 import pickle
@@ -688,6 +690,140 @@ def query_alphafold(
                 "residue_range": residue_range,
             },
         }
+
+
+TRANSOMICS_CHEN_MANIFEST_URL = (
+    "https://raw.githubusercontent.com/PYangLab/TransOmicsData/main/inst/extdata/manifest.txt"
+)
+TRANSOMICS_CHEN_METADATA_URL = (
+    "https://raw.githubusercontent.com/PYangLab/TransOmicsData/main/inst/extdata/0.99.0/metadata-chen-organoid.csv"
+)
+
+
+def _parse_transomics_table(text, delimiter=","):
+    reader = csv.reader(io.StringIO(text), delimiter=delimiter)
+    rows = list(reader)
+    if not rows:
+        return []
+    header = rows[0]
+    parsed_rows = []
+    for row in rows[1:]:
+        if len(row) == len(header) + 1:
+            row = row[1:]
+        parsed_rows.append(dict(zip(header, row, strict=False)))
+    return parsed_rows
+
+
+def _fetch_transomicsdata_chen_organoid_metadata(session=None):
+    active_session = session or requests.Session()
+
+    manifest_response = active_session.get(TRANSOMICS_CHEN_MANIFEST_URL, timeout=30)
+    manifest_response.raise_for_status()
+    manifest_rows = _parse_transomics_table(manifest_response.text, delimiter="\t")
+    dataset = next((row for row in manifest_rows if row.get("Title") == "chen-organoid"), {})
+
+    metadata_response = active_session.get(TRANSOMICS_CHEN_METADATA_URL, timeout=30)
+    metadata_response.raise_for_status()
+    assays = _parse_transomics_table(metadata_response.text)
+
+    return dataset, assays
+
+
+def _normalize_transomics_assay_name(assay):
+    return str(assay or "all").strip().lower().replace("_", "-")
+
+
+def _filter_transomics_chen_assays(assays, assay="all"):
+    assay_name = _normalize_transomics_assay_name(assay)
+    if assay_name in ["all", ""]:
+        return assays
+    aliases = {
+        "phospho": "phosphoproteome",
+        "phosphoproteome": "phosphoproteome",
+        "protein": "proteome",
+        "proteome": "proteome",
+        "rna": "transcriptome",
+        "transcriptome": "transcriptome",
+        "scrna": "sctranscriptome",
+        "single-cell": "sctranscriptome",
+        "single-cell-transcriptome": "sctranscriptome",
+        "sctranscriptome": "sctranscriptome",
+    }
+    target = aliases.get(assay_name, assay_name)
+    return [
+        row for row in assays if target in row.get("Title", "").lower() or target in row.get("RDataPath", "").lower()
+    ]
+
+
+def _format_transomics_load_code(rdata_path):
+    return "\n".join(
+        [
+            "library(ExperimentHub)",
+            "ehub <- ExperimentHub()",
+            'records <- query(ehub, "TransOmicsData")',
+            f'matches <- records[records$rdatapath == "{rdata_path}"]',
+            "se <- matches[[1]]",
+        ]
+    )
+
+
+def _format_transomicsdata_chen_organoid(dataset, assays, include_load_code=True):
+    lines = [
+        "Dataset: chen-organoid",
+        f"Description: {dataset.get('Description', 'neural organoid differentiation')}",
+        f"Omics: {dataset.get('Omics', 'phosphoproteome, proteome, transcriptome, single-cell transcriptome')}",
+        f"Species: {dataset.get('Species', 'human')}",
+        f"Dataset RDataPath: {dataset.get('RDataPath', 'TransOmicsData/0.99.0/chen-organoid')}",
+        "Package: TransOmicsData",
+        "Package URL: https://github.com/PYangLab/TransOmicsData",
+        "Bioconductor DOI: 10.18129/B9.bioc.TransOmicsData",
+        "Primary Citation: Chen et al., Cell Reports, 2024, doi:10.1016/j.celrep.2024.114219",
+    ]
+
+    if not assays:
+        lines.append("No matching chen-organoid assays found.")
+        return "\n".join(lines)
+
+    lines.append("")
+    lines.append("Assays:")
+    for row in assays:
+        lines.extend(
+            [
+                f"- Title: {row.get('Title', 'Not available')}",
+                f"  Description: {row.get('Description', 'Not available')}",
+                f"  Genome: {row.get('Genome', 'Not available')}",
+                f"  Source: {row.get('DataProvider', 'Not available')} ({row.get('SourceUrl', 'Not available')})",
+                f"  RDataClass: {row.get('RDataClass', 'Not available')}",
+                f"  RDataPath: {row.get('RDataPath', 'Not available')}",
+            ]
+        )
+        if include_load_code and row.get("RDataPath"):
+            lines.append("  ExperimentHub load code:")
+            for code_line in _format_transomics_load_code(row["RDataPath"]).splitlines():
+                lines.append(f"    {code_line}")
+
+    return "\n".join(lines)
+
+
+def query_transomicsdata_chen_organoid(assay="all", include_load_code=True):
+    """Query TransOmicsData chen-organoid assay metadata and ExperimentHub paths.
+
+    Parameters
+    ----------
+    assay (str): Assay to return: all, phosphoproteome, proteome, transcriptome, or sctranscriptome.
+    include_load_code (bool): Include R ExperimentHub code for loading each matching SummarizedExperiment.
+
+    Returns
+    -------
+    str: Formatted chen-organoid metadata and ExperimentHub loading instructions, or an error string.
+
+    """
+    try:
+        dataset, assays = _fetch_transomicsdata_chen_organoid_metadata()
+        matching_assays = _filter_transomics_chen_assays(assays, assay=assay)
+        return _format_transomicsdata_chen_organoid(dataset, matching_assays, include_load_code=include_load_code)
+    except Exception as e:
+        return f"Error querying TransOmicsData chen-organoid metadata: {str(e)}"
 
 
 def query_interpro(
