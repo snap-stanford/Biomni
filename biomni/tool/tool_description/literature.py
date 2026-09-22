@@ -158,4 +158,62 @@ description = [
             }
         ],
     },
+    {
+        "description": "Search the web with the Firecrawl Search API and return formatted results "
+        "(title, URL, description). Set scrape_content=True to also return each result page as "
+        "markdown, including JavaScript-rendered pages and PDFs. Works without an API key on a "
+        "capped free tier; set FIRECRAWL_API_KEY for higher limits.",
+        "name": "firecrawl_search",
+        "optional_parameters": [
+            {
+                "default": 5,
+                "description": "Number of results to return (max 20)",
+                "name": "num_results",
+                "type": "int",
+            },
+            {
+                "default": False,
+                "description": "Also fetch each result page as markdown",
+                "name": "scrape_content",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": 'The search query (e.g., "protocol text or search question")',
+                "name": "query",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Extract the content of a webpage or PDF as markdown using the Firecrawl Scrape API. "
+        "Renders JavaScript before extraction, so it works on dynamic database frontends, preprint "
+        "servers and supplementary data portals where extract_url_content returns little or nothing. "
+        "Works without an API key on a capped free tier; set FIRECRAWL_API_KEY for higher limits.",
+        "name": "firecrawl_scrape",
+        "optional_parameters": [
+            {
+                "default": True,
+                "description": "Drop navigation, headers, footers and sidebars",
+                "name": "only_main_content",
+                "type": "bool",
+            },
+            {
+                "default": 20000,
+                "description": "Truncate the returned markdown to this many characters (0 disables truncation)",
+                "name": "max_chars",
+                "type": "int",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "Webpage or PDF URL to extract content from",
+                "name": "url",
+                "type": "str",
+            }
+        ],
+    },
 ]

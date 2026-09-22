@@ -401,3 +401,143 @@ def extract_pdf_content(url: str) -> str:
         return f"Error downloading PDF: {str(e)}"
     except Exception as e:
         return f"Error extracting text from PDF: {str(e)}"
+
+
+_FIRECRAWL_API_URL = "https://api.firecrawl.dev/v2"
+
+
+def _firecrawl_request(endpoint: str, payload: dict, timeout: int = 120) -> dict | str:
+    """POST to the Firecrawl API and return the parsed body, or an error string.
+
+    Works without an API key on Firecrawl's keyless tier (free, capped per IP per day). If
+    FIRECRAWL_API_KEY is set it is sent as a Bearer token, which lifts the cap and bills that account.
+    Firecrawl reports failures in the body as {"success": false, "error": ...}, sometimes with HTTP 200
+    (for example DNS failures on scrape), so the body is read before the status code is checked.
+    """
+    headers = {"Content-Type": "application/json"}
+    api_key = os.getenv("FIRECRAWL_API_KEY")
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    try:
+        response = requests.post(f"{_FIRECRAWL_API_URL}/{endpoint}", headers=headers, json=payload, timeout=timeout)
+    except requests.exceptions.RequestException as e:
+        return f"Error reaching the Firecrawl API: {str(e)}"
+
+    try:
+        body = response.json()
+    except ValueError:
+        body = {}
+
+    if response.status_code == 429 and not api_key:
+        retry = body.get("retry_after_seconds")
+        wait = f" Retry in about {retry // 60} minutes, or" if isinstance(retry, int) else " Or"
+        return (
+            "Firecrawl keyless daily limit reached for this IP address."
+            f"{wait} set FIRECRAWL_API_KEY (free key at https://www.firecrawl.dev) for higher limits."
+        )
+    if response.status_code == 401:
+        return "Firecrawl rejected FIRECRAWL_API_KEY (401 Unauthorized). Check the key or unset it to use the keyless tier."
+    if not body.get("success", False):
+        error = body.get("error") or response.text[:300] or "no error message"
+        status = "" if response.status_code == 200 else f" (HTTP {response.status_code})"
+        return f"Firecrawl API error{status}: {error}"
+    return body
+
+
+def firecrawl_search(query: str, num_results: int = 5, scrape_content: bool = False) -> str:
+    """Search the web with the Firecrawl Search API and return formatted results.
+
+    Uses the Firecrawl Search API (https://docs.firecrawl.dev/features/search). Results come from a
+    hosted search backend rather than scraping Google result pages, so it keeps working when Google
+    changes its markup or rate-limits the client. With scrape_content=True, each result also includes
+    the page content as markdown, rendered in a headless browser, so JavaScript-heavy pages and PDFs
+    come back with their actual text.
+
+    Works without an API key (Firecrawl's free keyless tier, capped per IP per day). Set the
+    FIRECRAWL_API_KEY environment variable for higher limits.
+
+    Args:
+        query (str): The search query (e.g., "protocol text or search question")
+        num_results (int): Number of results to return (default: 5, max: 20)
+        scrape_content (bool): Also fetch each result page as markdown (default: False)
+
+    Returns:
+        str: Results formatted as "Title / URL / Description" blocks, plus "Content" when
+        scrape_content is True, or an error message
+
+    """
+    max_content_chars = 4000  # per result, keeps the observation readable for the agent
+
+    payload = {
+        "query": query,
+        "limit": max(1, min(int(num_results), 20)),
+        "sources": ["web"],
+        "highlights": False,  # plain snippets, same shape as search_google
+    }
+    if scrape_content:
+        payload["scrapeOptions"] = {"formats": ["markdown"], "onlyMainContent": True}
+
+    body = _firecrawl_request("search", payload)
+    if isinstance(body, str):
+        return body
+
+    results = (body.get("data") or {}).get("web") or []
+    if not results:
+        return "No results found on Firecrawl search."
+
+    results_string = ""
+    for res in results:
+        metadata = res.get("metadata") or {}
+        title = res.get("title") or metadata.get("title") or ""
+        url = res.get("url") or metadata.get("sourceURL") or ""
+        description = res.get("description") or metadata.get("description") or ""
+
+        results_string += f"Title: {title}\nURL: {url}\nDescription: {description}\n"
+
+        markdown = (res.get("markdown") or "").strip()
+        if scrape_content and markdown:
+            if len(markdown) > max_content_chars:
+                markdown = markdown[:max_content_chars] + "\n[... truncated ...]"
+            results_string += f"Content:\n{markdown}\n"
+
+        results_string += "\n"
+
+    return results_string
+
+
+def firecrawl_scrape(url: str, only_main_content: bool = True, max_chars: int = 20000) -> str:
+    """Extract the content of a webpage or PDF as markdown using the Firecrawl Scrape API.
+
+    Uses the Firecrawl Scrape API (https://docs.firecrawl.dev/features/scrape). Pages are rendered
+    in a headless browser before extraction, so JavaScript-heavy sites (database frontends, preprint
+    servers, supplementary data portals) return their actual content. PDF URLs are parsed to text
+    automatically. extract_url_content remains the lighter choice for simple static HTML pages.
+
+    Works without an API key (Firecrawl's free keyless tier, capped per IP per day). Set the
+    FIRECRAWL_API_KEY environment variable for higher limits.
+
+    Args:
+        url (str): Webpage or PDF URL to extract content from
+        only_main_content (bool): Drop navigation, headers, footers and sidebars (default: True)
+        max_chars (int): Truncate the returned markdown to this many characters. 0 disables truncation
+            (default: 20000)
+
+    Returns:
+        str: Page content as markdown, or an error message
+
+    """
+    payload = {"url": url, "formats": ["markdown"], "onlyMainContent": only_main_content}
+
+    body = _firecrawl_request("scrape", payload)
+    if isinstance(body, str):
+        return f"Error scraping {url}: {body}"
+
+    markdown = ((body.get("data") or {}).get("markdown") or "").strip()
+    if not markdown:
+        return f"Firecrawl returned no text content for {url}."
+
+    if max_chars and len(markdown) > max_chars:
+        markdown = markdown[:max_chars] + "\n[... truncated ...]"
+
+    return markdown
