@@ -161,8 +161,7 @@ description = [
     {
         "description": "Search the web with the Firecrawl Search API and return formatted results "
         "(title, URL, description). Set scrape_content=True to also return each result page as "
-        "markdown, including JavaScript-rendered pages and PDFs. Works without an API key on a "
-        "capped free tier; set FIRECRAWL_API_KEY for higher limits.",
+        "markdown, including JavaScript-rendered pages and PDFs.",
         "name": "firecrawl_search",
         "optional_parameters": [
             {
@@ -189,9 +188,8 @@ description = [
     },
     {
         "description": "Extract the content of a webpage or PDF as markdown using the Firecrawl Scrape API. "
-        "Renders JavaScript before extraction, so it works on dynamic database frontends, preprint "
-        "servers and supplementary data portals where extract_url_content returns little or nothing. "
-        "Works without an API key on a capped free tier; set FIRECRAWL_API_KEY for higher limits.",
+        "Handles JavaScript-rendered pages, so use it when extract_url_content returns little or "
+        "nothing (dynamic database frontends, preprint servers, supplementary data portals).",
         "name": "firecrawl_scrape",
         "optional_parameters": [
             {
