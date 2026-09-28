@@ -1233,8 +1233,9 @@ def analyze_copy_number_purity_ploidy_and_focal_events(
                     r_end = r["end"]
                     r_start = r["start"]
                     overlaps["ov_len"] = overlaps.apply(
-                        lambda row, r_end=r_end, r_start=r_start: min(row[end_col], r_end)
-                        - max(row[start_col], r_start),
+                        lambda row, r_end=r_end, r_start=r_start: (
+                            min(row[end_col], r_end) - max(row[start_col], r_start)
+                        ),
                         axis=1,
                     )
                     best = overlaps.sort_values("ov_len", ascending=False).iloc[0]
