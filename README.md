@@ -140,10 +140,12 @@ Once inside the environment, you can start using Biomni:
 from biomni.agent import A1
 
 # Initialize the agent with data path, Data lake will be automatically downloaded on first run (~11GB)
-agent = A1(path='./data', llm='claude-sonnet-4-20250514')
+agent = A1(path="./data", llm="claude-sonnet-4-20250514")
 
 # Execute biomedical tasks using natural language
-agent.go("Plan a CRISPR screen to identify genes that regulate T cell exhaustion, generate 32 genes that maximize the perturbation effect.")
+agent.go(
+    "Plan a CRISPR screen to identify genes that regulate T cell exhaustion, generate 32 genes that maximize the perturbation effect."
+)
 agent.go("Perform scRNA-seq annotation at [PATH] and generate meaningful hypothesis")
 agent.go("Predict ADMET properties for this compound: CC(C)CC1=CC=C(C=C1)C(C)C(=O)O")
 ```
@@ -154,7 +156,7 @@ By default, Biomni automatically downloads the datalake files (~11GB) when you c
 
 ```python
 # Skip automatic datalake download (faster initialization)
-agent = A1(path='./data', llm='claude-sonnet-4-20250514', expected_data_lake_files = [])
+agent = A1(path="./data", llm="claude-sonnet-4-20250514", expected_data_lake_files=[])
 ```
 
 This is useful for:
@@ -170,7 +172,7 @@ Launch an interactive web UI for Biomni:
 ```python
 from biomni.agent import A1
 
-agent = A1(path='./data', llm='claude-sonnet-4-20250514')
+agent = A1(path="./data", llm="claude-sonnet-4-20250514")
 agent.launch_gradio_demo()
 ```
 
@@ -216,7 +218,7 @@ Generate PDF reports of execution traces:
 from biomni.agent import A1
 
 # Initialize agent
-agent = A1(path='./data', llm='claude-sonnet-4-20250514')
+agent = A1(path="./data", llm="claude-sonnet-4-20250514")
 
 # Run your task
 agent.go("Your biomedical task here")
@@ -328,7 +330,7 @@ agent.go("Plan a CRISPR screen to identify genes regulating T cell exhaustion")
 from biomni.eval import BiomniEval1
 
 evaluator = BiomniEval1()
-score = evaluator.evaluate('gwas_causal_gene_opentargets', 0, 'BRCA1')
+score = evaluator.evaluate("gwas_causal_gene_opentargets", 0, "BRCA1")
 ```
 
 

@@ -27,7 +27,7 @@ Tools are implemented as Python functions in `biomni/tool/XXX.py`, organized by 
    from biomni.utils import function_to_api_schema
    from biomni.llm import get_llm
 
-   llm = get_llm('claude-sonnet-4-20250514')
+   llm = get_llm("claude-sonnet-4-20250514")
    desc = function_to_api_schema(function_code, llm)
    ```
 4. **Create a test prompt** that uses your tool and verify the agent works correctly
