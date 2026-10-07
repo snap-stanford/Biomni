@@ -33,6 +33,19 @@ mcp_servers:
 
 **Note**: The exact command format depends on the MCP server. Check the server's documentation for the correct command to use.
 
+#### Remote servers (Streamable HTTP)
+
+Instead of `command`, a server can be given by `url`. Use this for a server that is already running, for example one on a GPU machine reached through an SSH tunnel:
+
+```yaml
+mcp_servers:
+  remote_server:
+    url: "http://127.0.0.1:8765/mcp"
+    headers:                       # Optional, e.g. for servers that require a token
+      Authorization: "Bearer ${MY_SERVER_TOKEN}"
+    timeout: 600                   # Optional, seconds per call (default 600)
+```
+
 ### Example Configuration
 
 ```yaml
@@ -86,9 +99,10 @@ result = agent.go("Please list all repositories in the github account of the use
 ### How It Works
 
 1. **Tool Discovery**: Biomni automatically discovers available tools from each MCP server
-2. **Async-to-Sync Wrapping**: MCP tools are wrapped to work with Biomni's synchronous execution model
-3. **Integration**: Tools are registered in Biomni's tool registry and made available for retrieval
-4. **Module Organization**: Each MCP server gets its own module namespace (e.g., `mcp_servers.github`)
+2. **Persistent Sessions**: Each server is started (or connected to) once and its session stays open for the rest of the process, so servers that load models or run background jobs keep their state between calls. If a server exits, Biomni reconnects on the next call.
+3. **Async-to-Sync Wrapping**: MCP tools are exposed as ordinary synchronous functions that return the tool's text output. They work the same in scripts, in Jupyter notebooks and inside the agent's code execution. If a tool reports an error, the wrapper raises an exception with the server's message.
+4. **Integration**: Tools are registered in Biomni's tool registry and made available for retrieval
+5. **Module Organization**: Each MCP server gets its own module namespace (e.g., `mcp_servers.github`)
 
 ### Tool Registration Process
 
