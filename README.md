@@ -351,7 +351,7 @@ We're actively seeking community contributions to expand our Know-How Library! S
 - **Experimental design guidelines** (sample size, controls, validation)
 - **Domain-specific knowledge** (drug formulation, animal models, clinical trials, etc.)
 
-Know-how documents should be practical, succinct, and include proper attribution. Use [this know-how](know_how/single_cell_annotation.md) as an example.
+Know-how documents should be practical, succinct, and include proper attribution. Use [this know-how](biomni/know_how/single_cell_annotation.md) as an example.
 
 **To contribute:** Create a markdown file following our template and submit a pull request.
 
