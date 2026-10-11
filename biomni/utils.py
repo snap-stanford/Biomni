@@ -277,6 +277,7 @@ def function_to_api_schema(function_string, llm):
     llm = llm.with_structured_output(api_schema)
 
     for _ in range(7):
+        api = None
         try:
             api = llm.invoke(prompt.format(code=function_string)).dict()["api_schema"]
             return ast.literal_eval(api)  # -> prefer "default": None
