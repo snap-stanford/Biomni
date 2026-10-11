@@ -130,6 +130,8 @@ class A1:
                 if key == "commercial_mode":
                     mode_text = "Commercial (licensed datasets only)" if value else "Academic (all datasets)"
                     print(f"  {key.replace('_', ' ').title()}: {mode_text}")
+                elif key == "api_key":
+                    print(f"  {key.replace('_', ' ').title()}: {'*' * 8 + value[-4:] if len(value) > 8 else '***'}")
                 else:
                     print(f"  {key.replace('_', ' ').title()}: {value}")
 
