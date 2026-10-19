@@ -63,20 +63,20 @@ Transfer labels from annotated reference datasets to your query data.
 import scanpy as sc
 
 # Calculate marker genes for clusters
-sc.tl.rank_genes_groups(adata, 'leiden', method='wilcoxon')
+sc.tl.rank_genes_groups(adata, "leiden", method="wilcoxon")
 
 # Visualize top markers
 sc.pl.rank_genes_groups(adata, n_genes=25, sharey=False)
 
 # Plot known markers
 markers = {
-    'T cells': ['CD3D', 'CD3E', 'CD4', 'CD8A'],
-    'B cells': ['CD19', 'MS4A1', 'CD79A'],
-    'Monocytes': ['CD14', 'FCGR3A', 'LYZ'],
-    'NK cells': ['NCAM1', 'NKG7', 'GNLY']
+    "T cells": ["CD3D", "CD3E", "CD4", "CD8A"],
+    "B cells": ["CD19", "MS4A1", "CD79A"],
+    "Monocytes": ["CD14", "FCGR3A", "LYZ"],
+    "NK cells": ["NCAM1", "NKG7", "GNLY"],
 }
 
-sc.pl.dotplot(adata, markers, groupby='leiden')
+sc.pl.dotplot(adata, markers, groupby="leiden")
 ```
 
 ### Step 3: Use Automated Tools for Validation
@@ -87,7 +87,7 @@ import celltypist
 from celltypist import models
 
 # Download immune cell model
-model = models.Model.load(model='Immune_All_Low.pkl')
+model = models.Model.load(model="Immune_All_Low.pkl")
 
 # Predict cell types
 predictions = celltypist.annotate(adata, model=model, majority_voting=True)
@@ -103,12 +103,12 @@ import scarches as sca
 # Load pre-trained reference model
 model = sca.models.SCANVI.load_query_data(
     adata=adata,  # Your query data
-    reference_model="path/to/reference_model"
+    reference_model="path/to/reference_model",
 )
 
 # Transfer labels
 model.train(max_epochs=100)
-adata.obs['transferred_labels'] = model.predict()
+adata.obs["transferred_labels"] = model.predict()
 ```
 
 ## Best Practices
