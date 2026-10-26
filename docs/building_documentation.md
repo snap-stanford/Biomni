@@ -1,4 +1,3 @@
-
 # Building Project Documentation
 
 To build the project's documentation locally, use the `Makefile` located in the `docs` directory.

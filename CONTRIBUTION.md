@@ -22,12 +22,13 @@ Tools are implemented as Python functions in `biomni/tool/XXX.py`, organized by 
 
 3. **Create a tool description** in `biomni/tool/tool_description/XXX.py` following the existing format
 
-   *Tip: Use this helper to auto-generate descriptions:*
+   _Tip: Use this helper to auto-generate descriptions:_
+
    ```python
    from biomni.utils import function_to_api_schema
    from biomni.llm import get_llm
 
-   llm = get_llm('claude-sonnet-4-20250514')
+   llm = get_llm("claude-sonnet-4-20250514")
    desc = function_to_api_schema(function_code, llm)
    ```
 4. **Create a test prompt** that uses your tool and verify the agent works correctly
@@ -126,4 +127,4 @@ If you have questions about contributing, please open an issue or reach out to t
 
 ---
 
-*Together, let's build the future of biomedical AI agents!*
+_Together, let's build the future of biomedical AI agents!_
