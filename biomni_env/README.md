@@ -3,12 +3,14 @@
 This directory contains scripts and configuration files to set up a comprehensive bioinformatics environment with various tools and packages.
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/snap-stanford/Biomni.git
    cd Biomni/biomni_env
    ```
 
 2. Setting up the environment:
+
 - (a) If you want to use or try out the basic agent without the full E1 or install your own softwares, run the following script:
 
 ```bash

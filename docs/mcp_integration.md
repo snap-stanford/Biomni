@@ -18,16 +18,16 @@ MCP servers are configured using a YAML file that defines server connections and
 ```yaml
 mcp_servers:
   server_name:
-    enabled: true  # Optional, defaults to true
-    command: ["docker", "run", "-i", "--rm", "-e", "ENV_VAR", "image:tag"]  # Docker-based server
+    enabled: true # Optional, defaults to true
+    command: ["docker", "run", "-i", "--rm", "-e", "ENV_VAR", "image:tag"] # Docker-based server
     # OR
-    command: ["npx", "-y", "@modelcontextprotocol/server-name"]  # NPM-based server
+    command: ["npx", "-y", "@modelcontextprotocol/server-name"] # NPM-based server
     # OR
-    command: ["python", "-m", "my_mcp_server"]  # Python-based server
+    command: ["python", "-m", "my_mcp_server"] # Python-based server
     # OR
-    command: ["./my-mcp-server", "--config", "config.json"]  # Binary server
+    command: ["./my-mcp-server", "--config", "config.json"] # Binary server
     env:
-      API_KEY: "${OPENAI_API_KEY}"  # Environment variable substitution
+      API_KEY: "${OPENAI_API_KEY}" # Environment variable substitution
       CUSTOM_VAR: "static_value"
 ```
 
@@ -39,7 +39,16 @@ mcp_servers:
 mcp_servers:
   # GitHub MCP Server (Docker approach - recommended)
   github:
-    command: ["docker", "run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server"]
+    command:
+      [
+        "docker",
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server",
+      ]
     enabled: true
     description: "Official GitHub MCP server for repository and issue management"
     env:
@@ -53,13 +62,19 @@ mcp_servers:
       - biomni_name: search_pubmed
         description: "Search PubMed"
         parameters:
-          query: {type: str, required: true,  description: "PubMed search term"}
-          max_results:  {type: int, required: false, default: 10, description: "Maximum number of hits"}
+          query:
+            { type: str, required: true, description: "PubMed search term" }
+          max_results:
+            {
+              type: int,
+              required: false,
+              default: 10,
+              description: "Maximum number of hits",
+            }
       - biomni_name: get_article_abstract
         description: "Fetch PubMed abstract"
         parameters:
-          pmid: {type: str, required: true, description: "PubMed ID"}
-
+          pmid: { type: str, required: true, description: "PubMed ID" }
 ```
 
 You can also create custom MCP servers and define your own tools by implementing the MCP protocol and adding them to your configuration file.
@@ -112,8 +127,8 @@ mcp_servers:
   my_server:
     command: ["my-server"]
     env:
-      API_KEY: "${MY_API_KEY}"  # Will be replaced with os.getenv("MY_API_KEY")
-      DEBUG: "true"              # Static value
+      API_KEY: "${MY_API_KEY}" # Will be replaced with os.getenv("MY_API_KEY")
+      DEBUG: "true" # Static value
 ```
 
 You will need to properly set your environment variables (e.g., `GITHUB_TOKEN`) using a `.env` file or shell exports before running the agent.
@@ -145,11 +160,7 @@ The MCP server can be configured with various options:
 
 ```python
 # Create server with specific modules
-mcp = agent.create_mcp_server(tool_modules=[
-    "biomni.tool.genetics",
-    "biomni.tool.database",
-    "biomni.tool.cell_biology"
-])
+mcp = agent.create_mcp_server(tool_modules=["biomni.tool.genetics", "biomni.tool.database", "biomni.tool.cell_biology"])
 
 # The server will expose all tools from these modules
 # Tools are automatically wrapped with proper parameter validation
@@ -257,12 +268,14 @@ if __name__ == "__main__":
 The Biomni repository includes complete examples in the `tutorials/examples/` directory:
 
 #### Adding MCP Servers
+
 - **Location**: `tutorials/examples/add_mcp_server/`
 - **Files**:
   - `mcp_config.yaml` - Example configuration file
   - `mcp_example.ipynb` - Jupyter notebook demonstrating usage
 
 #### Exposing Biomni as MCP Server
+
 - **Location**: `tutorials/examples/expose_biomni_server/`
 - **Files**:
   - `run_mcp_server.py` - Script to run Biomni MCP server
@@ -304,11 +317,13 @@ from mcp.client.stdio import StdioServerParameters, stdio_client
 TOOL_TO_TEST = "query_uniprot"  # Change this to the tool you want to test
 TEST_ARGS = {"prompt": "Find information about human insulin protein"}
 
+
 async def test_single_tool():
     """Test a single tool in the Biomni MCP server."""
 
     # Set up the server parameters
     import os
+
     current_dir = os.path.dirname(os.path.abspath(__file__))
     server_script = os.path.join(current_dir, "run_mcp_server.py")
     server_params = StdioServerParameters(command="python", args=[server_script])
@@ -336,6 +351,7 @@ async def test_single_tool():
     except Exception as e:
         print(f"❌ Failed to connect to MCP server: {e}")
         return False
+
 
 if __name__ == "__main__":
     success = asyncio.run(test_single_tool())
