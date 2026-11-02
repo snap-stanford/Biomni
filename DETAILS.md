@@ -2,8 +2,6 @@
 
 🔍 **Powered by [Detailer](https://detailer.ginylil.com)** - Context-aware codebase analysis
 
-
-
 ---
 
 ## 1. Project Overview

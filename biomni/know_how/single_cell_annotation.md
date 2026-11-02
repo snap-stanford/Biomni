@@ -31,18 +31,21 @@ Cell type annotation is the process of assigning cell type labels to clusters or
 ## Three Annotation Approaches
 
 ### 1. Manual Marker-Based Annotation
+
 Identify cell types by examining expression of known marker genes in each cluster.
 
 **Tools**: Scanpy, Seurat
 **Best for**: Small datasets, novel cell types, high confidence needs
 
 ### 2. Automated Annotation
+
 Use pre-trained classifiers to automatically assign cell type labels.
 
 **Tools**: CellTypist, scAnnotate
 **Best for**: Standard tissues, quick preliminary annotation, large datasets
 
 ### 3. Reference-Based Label Transfer
+
 Transfer labels from annotated reference datasets to your query data.
 
 **Tools**: scArches, scANVI, Azimuth, SingleR
@@ -51,6 +54,7 @@ Transfer labels from annotated reference datasets to your query data.
 ## Recommended Workflow
 
 ### Step 1: Quality Control First
+
 - **Remove low-quality cells before annotation**
 - Filter doublets (expected doublet rate: 0.8% per 1000 cells)
 - Check for ambient RNA contamination
@@ -63,20 +67,20 @@ Transfer labels from annotated reference datasets to your query data.
 import scanpy as sc
 
 # Calculate marker genes for clusters
-sc.tl.rank_genes_groups(adata, 'leiden', method='wilcoxon')
+sc.tl.rank_genes_groups(adata, "leiden", method="wilcoxon")
 
 # Visualize top markers
 sc.pl.rank_genes_groups(adata, n_genes=25, sharey=False)
 
 # Plot known markers
 markers = {
-    'T cells': ['CD3D', 'CD3E', 'CD4', 'CD8A'],
-    'B cells': ['CD19', 'MS4A1', 'CD79A'],
-    'Monocytes': ['CD14', 'FCGR3A', 'LYZ'],
-    'NK cells': ['NCAM1', 'NKG7', 'GNLY']
+    "T cells": ["CD3D", "CD3E", "CD4", "CD8A"],
+    "B cells": ["CD19", "MS4A1", "CD79A"],
+    "Monocytes": ["CD14", "FCGR3A", "LYZ"],
+    "NK cells": ["NCAM1", "NKG7", "GNLY"],
 }
 
-sc.pl.dotplot(adata, markers, groupby='leiden')
+sc.pl.dotplot(adata, markers, groupby="leiden")
 ```
 
 ### Step 3: Use Automated Tools for Validation
@@ -87,7 +91,7 @@ import celltypist
 from celltypist import models
 
 # Download immune cell model
-model = models.Model.load(model='Immune_All_Low.pkl')
+model = models.Model.load(model="Immune_All_Low.pkl")
 
 # Predict cell types
 predictions = celltypist.annotate(adata, model=model, majority_voting=True)
@@ -103,17 +107,18 @@ import scarches as sca
 # Load pre-trained reference model
 model = sca.models.SCANVI.load_query_data(
     adata=adata,  # Your query data
-    reference_model="path/to/reference_model"
+    reference_model="path/to/reference_model",
 )
 
 # Transfer labels
 model.train(max_epochs=100)
-adata.obs['transferred_labels'] = model.predict()
+adata.obs["transferred_labels"] = model.predict()
 ```
 
 ## Best Practices
 
 ### Do's:
+
 1. **Always combine multiple approaches** - Use marker-based validation even with automated tools
 2. **Check cluster purity** - Ensure clusters represent single cell types
 3. **Validate with multiple marker sets** - Don't rely on single markers
@@ -122,6 +127,7 @@ adata.obs['transferred_labels'] = model.predict()
 6. **Use hierarchical annotation** - Broad categories first, then subtypes
 
 ### Don'ts:
+
 1. **Don't over-cluster** - Too fine resolution creates artificial distinctions
 2. **Don't ignore batch effects** - Correct before annotation
 3. **Don't trust automation blindly** - Always validate predictions
@@ -131,35 +137,40 @@ adata.obs['transferred_labels'] = model.predict()
 ## Common Pitfalls
 
 ### 1. Doublet Clusters
+
 **Problem**: Clusters with markers from multiple cell types
 **Solution**: Use doublet detection tools (Scrublet, DoubletFinder) before annotation
 
 ### 2. Ambient RNA
+
 **Problem**: Background markers in all cells
 **Solution**: Use SoupX or CellBender for decontamination
 
 ### 3. Over-interpretation of Small Clusters
+
 **Problem**: Rare clusters may be technical artifacts
 **Solution**: Require minimum cell count (e.g., >25 cells), validate with independent data
 
 ### 4. Reference Mismatch
+
 **Problem**: Reference from different tissue/species/condition
 **Solution**: Use tissue-matched references, check marker overlap before transfer
 
 ## Tool Selection Guide
 
-| Scenario | Recommended Tool | Why |
-|----------|------------------|-----|
-| Immune cells (human) | CellTypist | Pre-trained on large immune atlases |
-| Mouse tissues | scArches + Mouse Cell Atlas | Comprehensive mouse reference |
-| Novel cell types | Manual + Scanpy/Seurat | Need domain expertise |
-| Large datasets (>100k cells) | CellTypist | Fast, scalable |
-| Cross-species | Manual markers | Limited reference transfer |
-| Developmental data | scArches | Handles continuous states |
+| Scenario                     | Recommended Tool            | Why                                 |
+| ---------------------------- | --------------------------- | ----------------------------------- |
+| Immune cells (human)         | CellTypist                  | Pre-trained on large immune atlases |
+| Mouse tissues                | scArches + Mouse Cell Atlas | Comprehensive mouse reference       |
+| Novel cell types             | Manual + Scanpy/Seurat      | Need domain expertise               |
+| Large datasets (>100k cells) | CellTypist                  | Fast, scalable                      |
+| Cross-species                | Manual markers              | Limited reference transfer          |
+| Developmental data           | scArches                    | Handles continuous states           |
 
 ## Key Marker Genes by Cell Type
 
 ### Blood/Immune:
+
 - **T cells**: CD3D, CD3E (all T cells); CD4, CD8A (subtypes)
 - **B cells**: CD19, MS4A1 (CD20), CD79A
 - **Monocytes/Macrophages**: CD14, CD68, LYZ
@@ -167,12 +178,14 @@ adata.obs['transferred_labels'] = model.predict()
 - **Dendritic cells**: FCER1A, CD1C
 
 ### Epithelial:
+
 - **General epithelial**: EPCAM, KRT18, KRT19
 - **Lung AT1**: AGER, PDPN
 - **Lung AT2**: SFTPC, SFTPA1
 - **Intestinal**: VIL1, MUC2
 
 ### Stromal:
+
 - **Fibroblasts**: COL1A1, DCN, LUM
 - **Endothelial**: PECAM1 (CD31), VWF, CDH5
 - **Smooth muscle**: ACTA2, MYH11, TAGLN
@@ -190,17 +203,20 @@ adata.obs['transferred_labels'] = model.predict()
 ## Resources
 
 ### Tools:
+
 - **Scanpy**: https://scanpy.readthedocs.io/
 - **CellTypist**: https://www.celltypist.org/
 - **scArches**: https://scarches.readthedocs.io/
 - **Seurat**: https://satijalab.org/seurat/
 
 ### References:
+
 - **PanglaoDB**: Database of marker genes
 - **CellMarker**: Curated cell marker database
 - **Human Cell Atlas**: Reference datasets
 
 ### Pre-trained Models:
+
 - **CellTypist models**: 30+ tissue-specific models
 - **Azimuth references**: PBMC, lung, kidney, etc.
 - **scArches models**: Multiple tissue references
