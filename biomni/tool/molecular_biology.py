@@ -1894,7 +1894,7 @@ def golden_gate_assembly(
     offset_rev = enzyme_props["offset_rev"]
     overhang_len = offset_rev - offset_fwd
     # Prepare reverse complement function
-            def reverse_complement(seq):
+        def reverse_complement(seq):
                 """Get the reverse complement of a DNA sequence."""
                 complement = {"A": "T", "T": "A", "G": "C", "C": "G"}
                 return "".join(complement.get(base, "N") for base in reversed(seq))
