@@ -1892,9 +1892,9 @@ def golden_gate_assembly(
     recognition_site = enzyme_props["recognition_site"]
     offset_fwd = enzyme_props["offset_fwd"]
     offset_rev = enzyme_props["offset_rev"]
-overhang_len = offset_rev - offset_fwd
+    overhang_len = offset_rev - offset_fwd
     # Prepare reverse complement function
-    def reverse_complement(seq):
+        def  reverse_complement(seq):
         """Get the reverse complement of a DNA sequence."""
         complement = {"A": "T", "T": "A", "G": "C", "C": "G"}
         return "".join(complement.get(base, "N") for base in reversed(seq))
@@ -1951,11 +1951,9 @@ overhang_len = offset_rev - offset_fwd
                     "assembled_sequence": None,
                 }
 
-            fwd_oh_start = fwd_cut - overhang_len
-          core_end = rev_cut - overhang_len
-          insert_seq = ds_sequence[fwd_cut:core_end]
-          fwd_overhang = ds_sequence[fwd_oh_start:fwd_cut]
-        rev_overhang_rc = ds_sequence[core_end:rev_cut]
+        fwd_overhang = ds_sequence[fwd_cut - overhang_len : fwd_cut]
+         rev_overhang_rc = ds_sequence[rev_cut - overhang_len : rev_cut]
+        insert_seq = ds_sequence[fwd_cut : rev_cut - overhang_len]
 # Create equivalent oligos for assembly
             fwd_oligo = fwd_overhang + insert_seq
             rev_oligo = rev_overhang + reverse_complement(insert_seq)
