@@ -1892,7 +1892,8 @@ def golden_gate_assembly(
     recognition_site = enzyme_props["recognition_site"]
     offset_fwd = enzyme_props["offset_fwd"]
     offset_rev = enzyme_props["offset_rev"]
-   # Prepare reverse complement function
+
+    # Prepare reverse complement function
     def reverse_complement(seq):
         """Get the reverse complement of a DNA sequence."""
         complement = {"A": "T", "T": "A", "G": "C", "C": "G"}
