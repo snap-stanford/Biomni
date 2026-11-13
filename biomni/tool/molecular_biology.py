@@ -1892,8 +1892,7 @@ def golden_gate_assembly(
     recognition_site = enzyme_props["recognition_site"]
     offset_fwd = enzyme_props["offset_fwd"]
     offset_rev = enzyme_props["offset_rev"]
-
-    # Prepare reverse complement function
+   # Prepare reverse complement function
     def reverse_complement(seq):
         """Get the reverse complement of a DNA sequence."""
         complement = {"A": "T", "T": "A", "G": "C", "C": "G"}
@@ -1952,12 +1951,12 @@ def golden_gate_assembly(
                 }
 
             # Extract the insert sequence (between the cuts)
-            insert_seq = ds_sequence[fwd_cut:rev_cut]
+            insert_seq = ds_sequence[fwd_cut : rev_cut - (offset_rev - offset_fwd)]
             print(insert_seq)
 
             # Extract the overhangs (4 bases for most Type IIS enzymes)
-            fwd_overhang = ds_sequence[fwd_cut - 4 : fwd_cut]
-            rev_overhang_rc = ds_sequence[rev_cut : rev_cut + 4]
+            fwd_overhang = ds_sequence[fwd_cut - (offset_rev - offset_fwd) : fwd_cut]
+            rev_overhang_rc = ds_sequence[rev_cut - (offset_rev - offset_fwd) : rev_cut]
             rev_overhang = reverse_complement(rev_overhang_rc)
 
             # Create equivalent oligos for assembly
