@@ -4972,3 +4972,162 @@ def query_encode(
         api_result["result"] = _format_query_results(api_result["result"])
 
     return api_result
+
+
+def query_mcsa(
+    prompt=None,
+    ec_number=None,
+    uniprot_id=None,
+    mcsa_id=None,
+    endpoint=None,
+    max_results=5,
+    verbose=True,
+):
+    """Query EMBL-EBI M-CSA REST API for enzyme active-site residues and mechanisms.
+
+    Parameters
+    ----------
+    prompt : str, optional
+        Free-text search query (e.g., 'tyrosine phenol-lyase' or 'PLP lyase').
+    ec_number : str, optional
+        Enzyme Commission number filter (e.g., '4.1.99.2' or '1.1.1.1').
+    uniprot_id : str, optional
+        UniProt accession filter (e.g., 'P31013').
+    mcsa_id : int or str, optional
+        Specific M-CSA entry identifier (e.g., 1 or '1').
+    endpoint : str, optional
+        Direct M-CSA API URL override. If provided, structured filters are bypassed.
+    max_results : int, optional
+        Maximum number of enzyme entries to return (default: 5).
+    verbose : bool, optional
+        Whether to include detailed mechanism step descriptions and residue roles.
+
+    Returns
+    -------
+    dict
+        Dictionary with 'success', 'query_info', 'total_returned', and parsed 'results'
+        containing curated catalytic residues, cofactors, EC reactions, and mechanisms.
+    """
+    import requests
+
+    base_url = "https://www.ebi.ac.uk/thornton-srv/m-csa/api/entries/"
+    params = {"format": "json", "page_size": max(1, int(max_results))}
+
+    if endpoint:
+        request_url = endpoint
+        request_params = None
+    else:
+        request_url = base_url
+        if ec_number:
+            params["entries.reactions.ecs.codes"] = str(ec_number).strip()
+        if uniprot_id:
+            params["entries.proteins.sequences.uniprot_ids"] = str(uniprot_id).strip()
+        if mcsa_id is not None:
+            params["entries.mcsa_ids"] = str(mcsa_id).strip()
+        if prompt and not (ec_number or uniprot_id or mcsa_id is not None):
+            params["search"] = str(prompt).strip()
+        request_params = params
+
+    try:
+        response = requests.get(request_url, params=request_params, timeout=30)
+        response.raise_for_status()
+        payload = response.json()
+    except (requests.RequestException, ValueError) as exc:
+        return {
+            "success": False,
+            "error": f"M-CSA API request failed: {exc}",
+            "query_info": {"url": request_url, "params": request_params},
+            "results": [],
+        }
+
+    raw_entries = payload.get("results", payload) if isinstance(payload, dict) else payload
+    if isinstance(raw_entries, dict):
+        raw_entries = [raw_entries]
+
+    parsed_entries = []
+    for entry in raw_entries[: int(max_results)]:
+        rxn_block = entry.get("reaction") or {}
+        ecs = rxn_block.get("ecs") or []
+        ec_codes = [ec.get("code") if isinstance(ec, dict) else str(ec) for ec in ecs]
+
+        cofactors = []
+        for comp in rxn_block.get("compounds") or []:
+            if isinstance(comp, dict) and str(comp.get("type", "")).lower() == "cofactor":
+                cofactors.append(
+                    {
+                        "name": comp.get("name"),
+                        "chebi_id": comp.get("chebi_id"),
+                    }
+                )
+
+        catalytic_residues = []
+        for res in entry.get("residues") or []:
+            chains = res.get("residue_chains") or []
+            ref_chain = chains[0] if chains else {}
+            roles_summary = [
+                r.get("group_function") or r.get("function") or r.get("emo")
+                for r in (res.get("roles") or [])
+                if isinstance(r, dict)
+            ]
+            fn_loc = ref_chain.get("function_location_abrev") or res.get("function_location_abrev")
+            catalytic_residues.append(
+                {
+                    "code": ref_chain.get("code") or res.get("code"),
+                    "resid": ref_chain.get("resid") or res.get("resid"),
+                    "chain": ref_chain.get("chain_name"),
+                    "pdb_id": ref_chain.get("pdb_id"),
+                    "function_location": fn_loc,
+                    "roles": [r for r in roles_summary if r] if verbose else roles_summary[:2],
+                    "roles_summary": res.get("roles_summary", ""),
+                }
+            )
+
+        mechanisms = []
+        if verbose:
+            for mech in rxn_block.get("mechanisms") or []:
+                if not isinstance(mech, dict):
+                    continue
+                steps = [
+                    {
+                        "step_id": s.get("step_id"),
+                        "description": s.get("description"),
+                    }
+                    for s in (mech.get("steps") or [])
+                    if isinstance(s, dict)
+                ]
+                mechanisms.append(
+                    {
+                        "mechanism_id": mech.get("mechanism_id"),
+                        "rating": mech.get("rating"),
+                        "mechanism_text": mech.get("mechanism_text"),
+                        "steps": steps,
+                    }
+                )
+
+        proteins = ((entry.get("proteins") or {}).get("sequences")) or []
+        uniprot_ids = [p.get("uniprot_id") for p in proteins if isinstance(p, dict) and p.get("uniprot_id")]
+        ref_up = entry.get("reference_uniprot_id") or (uniprot_ids[0] if uniprot_ids else None)
+
+        parsed_entries.append(
+            {
+                "mcsa_id": entry.get("mcsa_id"),
+                "enzyme_name": entry.get("enzyme_name"),
+                "description": entry.get("description"),
+                "reference_uniprot_id": ref_up,
+                "ec_numbers": ec_codes,
+                "cofactors": cofactors,
+                "catalytic_residues": catalytic_residues,
+                "mechanisms": mechanisms,
+            }
+        )
+
+    total_avail = payload.get("count", len(parsed_entries)) if isinstance(payload, dict) else len(parsed_entries)
+    return {
+        "success": True,
+        "query_info": {
+            "url": response.url,
+            "total_available": total_avail,
+        },
+        "total_returned": len(parsed_entries),
+        "results": parsed_entries,
+    }

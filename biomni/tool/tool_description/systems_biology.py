@@ -232,4 +232,71 @@ description = [
             {"default": "A", "description": "DNA sequence with potential functions", "name": "sequence", "type": "str"},
         ],
     },
+    {
+        "name": "predict_metabolic_engineering_targets",
+        "description": (
+            "Predict genetic overexpression (amplification), competing-pathway knockout/downregulation, "
+            "and kinetically bottlenecked enzyme targets for metabolic engineering using Flux Scanning "
+            "based on Enforced Objective Flux (FSEOF), parsimonious FBA (pFBA), Flux Variability Analysis "
+            "(FVA), and optional sMOMENT/GECKO-style global enzyme mass-pool constraints."
+        ),
+        "required_parameters": [
+            {
+                "name": "model_file",
+                "type": "str",
+                "description": "Path to the genome-scale metabolic model file (.xml/.sbml, .json, or .mat).",
+                "default": None,
+            },
+            {
+                "name": "target_reaction",
+                "type": "str",
+                "description": "Reaction ID of the target product synthesis or secretion reaction.",
+                "default": None,
+            },
+        ],
+        "optional_parameters": [
+            {
+                "name": "biomass_reaction",
+                "type": "str",
+                "description": "Biomass objective reaction ID. Inferred from model objective if None.",
+                "default": None,
+            },
+            {
+                "name": "n_steps",
+                "type": "int",
+                "description": "Number of enforced product flux steps scanned between WT and 90% max yield.",
+                "default": 10,
+            },
+            {
+                "name": "min_growth_fraction",
+                "type": "float",
+                "description": "Minimum fraction of WT growth required for viable knockout candidates.",
+                "default": 0.2,
+            },
+            {
+                "name": "fva_fraction",
+                "type": "float",
+                "description": "Fraction of optimal growth maintained during FVA robustness checks.",
+                "default": 0.9,
+            },
+            {
+                "name": "enzyme_kcat_mw",
+                "type": "dict",
+                "description": "Optional dict mapping reaction_id -> {'kcat_per_s': float, 'mw_kda': float}.",
+                "default": None,
+            },
+            {
+                "name": "total_enzyme_pool",
+                "type": "float",
+                "description": "Available metabolic enzyme mass budget in g_enzyme/gDW.",
+                "default": None,
+            },
+            {
+                "name": "output_file",
+                "type": "str",
+                "description": "Output CSV file path for the ranked metabolic engineering targets.",
+                "default": "metabolic_engineering_targets.csv",
+            },
+        ],
+    },
 ]

@@ -924,3 +924,284 @@ def simulate_renin_angiotensin_system_dynamics(
 """
 
     return log
+
+
+def predict_metabolic_engineering_targets(
+    model_file,
+    target_reaction,
+    biomass_reaction=None,
+    n_steps=10,
+    min_growth_fraction=0.2,
+    fva_fraction=0.9,
+    enzyme_kcat_mw=None,
+    total_enzyme_pool=None,
+    output_file="metabolic_engineering_targets.csv",
+):
+    """Predict metabolic engineering overexpression, attenuation, and kinetic targets.
+
+    Implements Flux Scanning based on Enforced Objective Flux (FSEOF) coupled with
+    parsimonious FBA (pFBA), Flux Variability Analysis (FVA), single-reaction knockout
+    viability checks, and optional sMOMENT/GECKO-style proteome allocation constraints.
+    """
+    import os
+
+    import cobra
+    import numpy as np
+    import pandas as pd
+    from cobra.flux_analysis import flux_variability_analysis, pfba
+
+    log = "# Metabolic Engineering Strain Design & Enzyme-Constrained Target Analysis\n\n"
+
+    if not os.path.exists(model_file):
+        return f"Error: Metabolic model file not found at '{model_file}'."
+
+    ext = os.path.splitext(model_file)[1].lower()
+    if ext == ".json":
+        model = cobra.io.load_json_model(model_file)
+    elif ext == ".mat":
+        model = cobra.io.load_matlab_model(model_file)
+    else:
+        model = cobra.io.read_sbml_model(model_file)
+
+    model_label = model.id or os.path.basename(model_file)
+    log += (
+        f"- Loaded model `{model_label}`: {len(model.reactions)} reactions, "
+        f"{len(model.metabolites)} metabolites, {len(model.genes)} genes.\n"
+    )
+
+    if target_reaction not in model.reactions:
+        return f"Error: Target reaction '{target_reaction}' not found in model."
+
+    if biomass_reaction is None:
+        linear_coeffs = cobra.util.solver.linear_reaction_coefficients(model)
+        if not linear_coeffs:
+            return "Error: Could not infer biomass reaction from model objective."
+        biomass_reaction = next(iter(linear_coeffs.keys())).id
+    elif biomass_reaction not in model.reactions:
+        return f"Error: Biomass reaction '{biomass_reaction}' not found in model."
+
+    enzyme_cost_coeffs = {}
+    if enzyme_kcat_mw and total_enzyme_pool is not None and total_enzyme_pool > 0:
+        expr_terms = []
+        for rxn_id, kin in enzyme_kcat_mw.items():
+            if rxn_id not in model.reactions:
+                continue
+            kcat_s = float(kin.get("kcat_per_s", 0.0))
+            mw_kda = float(kin.get("mw_kda", 0.0))
+            if kcat_s <= 0 or mw_kda <= 0:
+                continue
+            cost_g_per_flux = mw_kda / (3600.0 * kcat_s)
+            rxn = model.reactions.get_by_id(rxn_id)
+            enzyme_cost_coeffs[rxn_id] = cost_g_per_flux
+            expr_terms.append(cost_g_per_flux * (rxn.forward_variable + rxn.reverse_variable))
+
+        if expr_terms:
+            pool_constraint = model.problem.Constraint(
+                sum(expr_terms),
+                lb=0.0,
+                ub=float(total_enzyme_pool),
+                name="global_enzyme_mass_pool",
+            )
+            model.add_cons_vars(pool_constraint)
+            log += (
+                f"- Applied proteome enzyme pool constraint across {len(expr_terms)} "
+                f"reactions (budget = {total_enzyme_pool:.4f} g_enzyme/gDW).\n"
+            )
+
+    model.objective = biomass_reaction
+    wt_sol = model.optimize()
+    if wt_sol.status != "optimal" or wt_sol.objective_value <= 1e-9:
+        return f"Error: Wild-type biomass optimization infeasible (status={wt_sol.status})."
+
+    wt_growth = float(wt_sol.objective_value)
+    try:
+        wt_fluxes = pfba(model).fluxes
+    except Exception:
+        wt_fluxes = wt_sol.fluxes
+    wt_product_flux = float(wt_fluxes[target_reaction])
+
+    with model:
+        bio_rxn = model.reactions.get_by_id(biomass_reaction)
+        bio_rxn.lower_bound = min_growth_fraction * wt_growth
+        model.objective = target_reaction
+        max_prod_sol = model.optimize()
+        if max_prod_sol.status != "optimal":
+            return f"Error: Target optimization infeasible at {min_growth_fraction:.0%} WT growth."
+        max_product_flux = float(max_prod_sol.objective_value)
+
+    log += (
+        f"- Wild-type growth (`{biomass_reaction}`): {wt_growth:.4f} 1/h | "
+        f"Baseline `{target_reaction}`: {wt_product_flux:.4f} mmol/(gDW*h)\n"
+        f"- Max `{target_reaction}` at >= {min_growth_fraction:.0%} WT growth: "
+        f"{max_product_flux:.4f} mmol/(gDW*h)\n\n"
+    )
+
+    if max_product_flux <= wt_product_flux + 1e-7:
+        return log + "Notice: Target product is already at theoretical maximum under WT growth."
+
+    n_steps = max(int(n_steps), 3)
+    scan_targets = np.linspace(wt_product_flux, 0.90 * max_product_flux, n_steps)
+    rxn_ids = [r.id for r in model.reactions]
+    flux_matrix = []
+    valid_targets = []
+
+    for enforced_v in scan_targets:
+        with model:
+            target_rxn = model.reactions.get_by_id(target_reaction)
+            target_rxn.bounds = (float(enforced_v), float(enforced_v))
+            model.objective = biomass_reaction
+            step_sol = model.optimize()
+            if step_sol.status != "optimal":
+                continue
+            try:
+                step_flux = pfba(model).fluxes.reindex(rxn_ids).to_numpy(dtype=float)
+            except Exception:
+                step_flux = step_sol.fluxes.reindex(rxn_ids).to_numpy(dtype=float)
+            flux_matrix.append(step_flux)
+            valid_targets.append(float(enforced_v))
+
+    if len(valid_targets) < 3:
+        return log + "Error: Fewer than 3 feasible FSEOF scan points obtained."
+
+    flux_arr = np.vstack(flux_matrix)
+    x = np.asarray(valid_targets, dtype=float)
+    x_centered = x - x.mean()
+    x_var = float(np.dot(x_centered, x_centered))
+
+    with model:
+        target_rxn = model.reactions.get_by_id(target_reaction)
+        target_rxn.lower_bound = float(valid_targets[-1])
+        model.objective = biomass_reaction
+        fva_df = flux_variability_analysis(model, fraction_of_optimum=fva_fraction)
+
+    records = []
+    skip_ids = {biomass_reaction, target_reaction}
+
+    for idx, rxn_id in enumerate(rxn_ids):
+        if rxn_id in skip_ids:
+            continue
+        rxn = model.reactions.get_by_id(rxn_id)
+        if rxn.boundary:
+            continue
+
+        v_series = flux_arr[:, idx]
+        abs_series = np.abs(v_series)
+        if np.max(abs_series) < 1e-6:
+            continue
+
+        nonzero = v_series[np.abs(v_series) > 1e-7]
+        if len(nonzero) > 0 and not (np.all(nonzero >= 0) or np.all(nonzero <= 0)):
+            continue
+
+        y_centered = abs_series - abs_series.mean()
+        slope = float(np.dot(x_centered, y_centered) / x_var) if x_var > 0 else 0.0
+        denom = float(np.sqrt(x_var * np.dot(y_centered, y_centered)))
+        corr = float(np.dot(x_centered, y_centered) / denom) if denom > 1e-12 else 0.0
+
+        wt_abs = float(abs_series[0])
+        hi_abs = float(abs_series[-1])
+        delta_abs = hi_abs - wt_abs
+
+        strategy = None
+        ko_growth_ratio = np.nan
+
+        if corr >= 0.90 and slope > 1e-4 and delta_abs > 1e-4:
+            strategy = "Overexpression (Amplification)"
+        elif corr <= -0.90 and slope < -1e-4 and wt_abs > 1e-4 and rxn.genes:
+            with model:
+                model.reactions.get_by_id(rxn_id).knock_out()
+                model.objective = biomass_reaction
+                ko_sol = model.optimize()
+                ko_val = float(ko_sol.objective_value) if ko_sol.status == "optimal" else 0.0
+                ko_growth_ratio = ko_val / wt_growth
+            if ko_growth_ratio >= min_growth_fraction:
+                strategy = "Knockout / Downregulation"
+
+        enzyme_usage_pct = np.nan
+        if rxn_id in enzyme_cost_coeffs and total_enzyme_pool:
+            cost_val = enzyme_cost_coeffs[rxn_id] * hi_abs
+            enzyme_usage_pct = 100.0 * cost_val / float(total_enzyme_pool)
+            if strategy is None and enzyme_usage_pct >= 5.0:
+                strategy = "Kinetic Bottleneck (kcat Engineering)"
+
+        if strategy is None:
+            continue
+
+        fva_min = float(fva_df.loc[rxn_id, "minimum"]) if rxn_id in fva_df.index else np.nan
+        fva_max = float(fva_df.loc[rxn_id, "maximum"]) if rxn_id in fva_df.index else np.nan
+        ko_rounded = round(ko_growth_ratio, 4) if not np.isnan(ko_growth_ratio) else np.nan
+        usage_rounded = round(enzyme_usage_pct, 2) if not np.isnan(enzyme_usage_pct) else np.nan
+
+        records.append(
+            {
+                "reaction_id": rxn_id,
+                "reaction_name": rxn.name,
+                "strategy": strategy,
+                "genes": rxn.gene_reaction_rule or "",
+                "fseof_slope": round(slope, 6),
+                "pearson_r": round(corr, 4),
+                "wt_abs_flux": round(wt_abs, 6),
+                "high_prod_abs_flux": round(hi_abs, 6),
+                "fva_min": round(fva_min, 6),
+                "fva_max": round(fva_max, 6),
+                "ko_growth_fraction": ko_rounded,
+                "enzyme_pool_usage_pct": usage_rounded,
+                "reaction_equation": rxn.build_reaction_string(),
+            }
+        )
+
+    results_df = pd.DataFrame(records)
+    if not results_df.empty:
+        results_df = results_df.sort_values(by=["strategy", "fseof_slope"], ascending=[True, False]).reset_index(
+            drop=True
+        )
+    results_df.to_csv(output_file, index=False)
+
+    if not results_df.empty:
+        amp_df = results_df[results_df["strategy"] == "Overexpression (Amplification)"]
+        ko_df = results_df[results_df["strategy"] == "Knockout / Downregulation"]
+    else:
+        amp_df = pd.DataFrame()
+        ko_df = pd.DataFrame()
+
+    log += f"## Summary of Identified Targets (saved to `{output_file}`)\n"
+    log += f"- Overexpression / amplification targets: {len(amp_df)}\n"
+    log += f"- Viable competing-pathway attenuation / knockout targets: {len(ko_df)}\n"
+
+    if not amp_df.empty:
+        log += "\n### Top Overexpression (Amplification) Targets\n"
+        for _, row in amp_df.head(8).iterrows():
+            usage_note = (
+                f", enzyme pool usage={row['enzyme_pool_usage_pct']:.1f}%"
+                if pd.notna(row["enzyme_pool_usage_pct"])
+                else ""
+            )
+            log += (
+                f"- `{row['reaction_id']}` ({row['reaction_name'] or 'unnamed'}): "
+                f"slope={row['fseof_slope']:.4f}, r={row['pearson_r']:.3f}, "
+                f"|v| {row['wt_abs_flux']:.3f} -> {row['high_prod_abs_flux']:.3f}, "
+                f"GPR=[{row['genes'] or 'spontaneous'}]{usage_note}\n"
+            )
+
+    if not ko_df.empty:
+        log += "\n### Top Competing-Pathway Knockout / Downregulation Candidates\n"
+        for _, row in ko_df.head(8).iterrows():
+            log += (
+                f"- `{row['reaction_id']}` ({row['reaction_name'] or 'unnamed'}): "
+                f"slope={row['fseof_slope']:.4f}, KO growth={row['ko_growth_fraction']:.1%} WT, "
+                f"GPR=[{row['genes']}]\n"
+            )
+
+    has_usage = not results_df.empty and results_df["enzyme_pool_usage_pct"].notna().any()
+    if enzyme_cost_coeffs and has_usage:
+        kin_df = results_df.dropna(subset=["enzyme_pool_usage_pct"]).sort_values(
+            by="enzyme_pool_usage_pct", ascending=False
+        )
+        log += "\n### Top Enzyme-Constrained Kinetic Bottlenecks (Directed Evolution)\n"
+        for _, row in kin_df.head(5).iterrows():
+            log += (
+                f"- `{row['reaction_id']}`: {row['enzyme_pool_usage_pct']:.2f}% of enzyme pool "
+                f"at high production (GPR=[{row['genes'] or 'N/A'}])\n"
+            )
+
+    return log
