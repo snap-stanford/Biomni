@@ -5105,11 +5105,7 @@ def query_mcsa(
                 )
 
         proteins = ((entry.get("proteins") or {}).get("sequences")) or []
-        uniprot_ids = [
-            p.get("uniprot_id")
-            for p in proteins
-            if isinstance(p, dict) and p.get("uniprot_id")
-        ]
+        uniprot_ids = [p.get("uniprot_id") for p in proteins if isinstance(p, dict) and p.get("uniprot_id")]
         ref_up = entry.get("reference_uniprot_id") or (uniprot_ids[0] if uniprot_ids else None)
 
         parsed_entries.append(
@@ -5125,9 +5121,7 @@ def query_mcsa(
             }
         )
 
-    total_avail = (
-        payload.get("count", len(parsed_entries)) if isinstance(payload, dict) else len(parsed_entries)
-    )
+    total_avail = payload.get("count", len(parsed_entries)) if isinstance(payload, dict) else len(parsed_entries)
     return {
         "success": True,
         "query_info": {
@@ -5137,4 +5131,3 @@ def query_mcsa(
         "total_returned": len(parsed_entries),
         "results": parsed_entries,
     }
-    

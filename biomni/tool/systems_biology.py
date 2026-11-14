@@ -924,6 +924,8 @@ def simulate_renin_angiotensin_system_dynamics(
 """
 
     return log
+
+
 def predict_metabolic_engineering_targets(
     model_file,
     target_reaction,
@@ -1150,9 +1152,9 @@ def predict_metabolic_engineering_targets(
 
     results_df = pd.DataFrame(records)
     if not results_df.empty:
-        results_df = results_df.sort_values(
-            by=["strategy", "fseof_slope"], ascending=[True, False]
-        ).reset_index(drop=True)
+        results_df = results_df.sort_values(by=["strategy", "fseof_slope"], ascending=[True, False]).reset_index(
+            drop=True
+        )
     results_df.to_csv(output_file, index=False)
 
     if not results_df.empty:
