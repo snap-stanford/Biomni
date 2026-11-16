@@ -3840,13 +3840,13 @@ def _generate_fda_statistics(response_data: dict) -> dict:
             reaction_counts[outcome_name] = reaction_counts.get(outcome_name, 0) + 1
 
         # Count deaths and other serious outcomes
-        if result.get("patient", {}).get("patientdeath"):
+        if result.get("seriousnessdeath") == "1":
             stats["death_reports"] += 1
 
-        if result.get("patient", {}).get("patientlifethreatening"):
+        if result.get("seriousnesslifethreatening") == "1":
             stats["life_threatening_reports"] += 1
 
-        if result.get("patient", {}).get("patienthospitalization"):
+        if result.get("seriousnesshospitalization") == "1":
             stats["hospitalization_reports"] += 1
 
     # Top reactions
