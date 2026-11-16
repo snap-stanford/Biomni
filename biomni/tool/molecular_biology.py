@@ -1952,12 +1952,12 @@ def golden_gate_assembly(
                 }
 
             # Extract the insert sequence (between the cuts)
-            insert_seq = ds_sequence[fwd_cut:rev_cut]
+            insert_seq = ds_sequence[fwd_cut : rev_cut - (offset_rev - offset_fwd)]
             print(insert_seq)
 
             # Extract the overhangs (4 bases for most Type IIS enzymes)
-            fwd_overhang = ds_sequence[fwd_cut - 4 : fwd_cut]
-            rev_overhang_rc = ds_sequence[rev_cut : rev_cut + 4]
+            fwd_overhang = ds_sequence[fwd_cut - (offset_rev - offset_fwd) : fwd_cut]
+            rev_overhang_rc = ds_sequence[rev_cut - (offset_rev - offset_fwd) : rev_cut]
             rev_overhang = reverse_complement(rev_overhang_rc)
 
             # Create equivalent oligos for assembly
