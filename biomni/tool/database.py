@@ -63,7 +63,11 @@ def _query_llm_for_api(prompt, schema, system_template):
         # Format the system prompt with schema if provided
         if schema is not None:
             schema_json = json.dumps(schema, indent=2)
-            system_prompt = system_template.format(schema=schema_json)
+            escaped_left_brace = "\0BIOMNI_ESCAPED_LEFT_BRACE\0"
+            escaped_right_brace = "\0BIOMNI_ESCAPED_RIGHT_BRACE\0"
+            system_prompt = system_template.replace("{{", escaped_left_brace).replace("}}", escaped_right_brace)
+            system_prompt = system_prompt.replace("{schema}", schema_json)
+            system_prompt = system_prompt.replace(escaped_left_brace, "{").replace(escaped_right_brace, "}")
         else:
             system_prompt = system_template
 
