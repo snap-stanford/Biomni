@@ -5,7 +5,7 @@ import re
 from collections.abc import Generator
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, NotRequired, TypedDict
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -14,6 +14,13 @@ from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
+from biomni.agent.execution_guard import (
+    ExecutionFailureState,
+    blocked_execution_message,
+    record_execution_result,
+    repeated_failure_guidance,
+    should_block_execution,
+)
 from biomni.config import default_config
 from biomni.know_how import KnowHowLoader
 from biomni.llm import SourceType, get_llm
@@ -51,6 +58,7 @@ if os.path.exists(".env"):
 class AgentState(TypedDict):
     messages: list[BaseMessage]
     next_step: str | None
+    execution_failure: NotRequired[ExecutionFailureState | None]
 
 
 class A1:
@@ -1478,6 +1486,12 @@ Each library is listed with its description to help you understand its functiona
             if execute_match:
                 code = execute_match.group(1)
 
+                if should_block_execution(state.get("execution_failure"), code):
+                    observation = f"\n<observation>{blocked_execution_message()}</observation>"
+                    state["messages"].append(AIMessage(content=observation.strip()))
+                    state["next_step"] = "generate"
+                    return state
+
                 # Set timeout duration (10 minutes = 600 seconds)
                 timeout = self.timeout_seconds
 
@@ -1517,6 +1531,14 @@ Each library is listed with its description to help you understand its functiona
                     result = run_with_timeout(run_python_repl, [code], timeout=timeout)
 
                     # Plots are now captured directly in the execution entry above
+
+                state["execution_failure"] = record_execution_result(
+                    state.get("execution_failure"),
+                    code,
+                    result,
+                )
+                if state["execution_failure"] is not None and state["execution_failure"]["count"] >= 2:
+                    result += "\n\n" + repeated_failure_guidance(state["execution_failure"]["count"])
 
                 if len(result) > 10000:
                     result = (
@@ -1770,7 +1792,11 @@ Each library is listed with its description to help you understand its functiona
             selected_resources_names = self._prepare_resources_for_retrieval(prompt)
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
-        inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
+        inputs = {
+            "messages": [HumanMessage(content=prompt)],
+            "next_step": None,
+            "execution_failure": None,
+        }
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
         self.log = []
 
@@ -1807,7 +1833,11 @@ Each library is listed with its description to help you understand its functiona
             selected_resources_names = self._prepare_resources_for_retrieval(prompt)
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
-        inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
+        inputs = {
+            "messages": [HumanMessage(content=prompt)],
+            "next_step": None,
+            "execution_failure": None,
+        }
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
         self.log = []
 
@@ -2696,7 +2726,11 @@ Each library is listed with its description to help you understand its functiona
             agent_messages.append(HumanMessage(content=text_input))
 
             # Prepare inputs for the agent
-            inputs = {"messages": agent_messages, "next_step": None}
+            inputs = {
+                "messages": agent_messages,
+                "next_step": None,
+                "execution_failure": None,
+            }
             config = {"recursion_limit": 500, "configurable": {"thread_id": thread_id}}
 
             # Stream the agent's responses
