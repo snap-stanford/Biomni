@@ -235,6 +235,57 @@ description = [
         ],
     },
     {
+        "description": "Retrieve curated cancer-variant evidence from CIViC by gene symbol and variant name or alias. "
+        "Returns source-linked evidence with curation status, level, rating, direction, and significance.",
+        "name": "query_civic",
+        "optional_parameters": [
+            {
+                "name": "disease",
+                "type": "str",
+                "description": "Optional disease-name filter, such as 'pancreatic'",
+                "default": None,
+            },
+            {
+                "name": "evidence_type",
+                "type": "str",
+                "description": "CIViC evidence type: DIAGNOSTIC, PROGNOSTIC, PREDICTIVE, PREDISPOSING, FUNCTIONAL, or ONCOGENIC",
+                "default": None,
+            },
+            {
+                "name": "evidence_status",
+                "type": "str",
+                "description": "CIViC curation status; ACCEPTED is the reviewed default",
+                "default": "ACCEPTED",
+            },
+            {
+                "name": "max_results",
+                "type": "int",
+                "description": "Maximum evidence items to return across matched variants (1-100)",
+                "default": 25,
+            },
+            {
+                "name": "max_variants",
+                "type": "int",
+                "description": "Maximum variants to query when an alias matches multiple CIViC variants (1-20)",
+                "default": 5,
+            },
+        ],
+        "required_parameters": [
+            {
+                "name": "gene",
+                "type": "str",
+                "description": "HGNC gene symbol, such as KRAS or TP53",
+                "default": None,
+            },
+            {
+                "name": "variant",
+                "type": "str",
+                "description": "CIViC variant name or alias, such as G12D, p.G12D, or GLY12ASP",
+                "default": None,
+            },
+        ],
+    },
+    {
         "description": "Query the NCBI GEO database (GDS/GEOPROFILES) using natural language or direct search term.",
         "name": "query_geo",
         "optional_parameters": [

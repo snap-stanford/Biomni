@@ -1904,6 +1904,298 @@ def query_clinvar(
     )
 
 
+def query_civic(
+    gene,
+    variant,
+    disease=None,
+    evidence_type=None,
+    evidence_status="ACCEPTED",
+    max_results=25,
+    max_variants=5,
+):
+    """Retrieve curated cancer-variant evidence from the public CIViC GraphQL API.
+
+    Parameters
+    ----------
+    gene : str
+        HGNC gene symbol, such as ``KRAS`` or ``TP53``.
+    variant : str
+        CIViC variant name or alias, such as ``G12D``, ``p.G12D``, or
+        ``GLY12ASP``. A leading gene symbol is removed automatically.
+    disease : str, optional
+        Disease-name filter, such as ``pancreatic``.
+    evidence_type : str, optional
+        CIViC evidence type: DIAGNOSTIC, PROGNOSTIC, PREDICTIVE,
+        PREDISPOSING, FUNCTIONAL, or ONCOGENIC.
+    evidence_status : str, optional
+        CIViC curation status. Defaults to ACCEPTED. Other supported values are
+        SUBMITTED, REJECTED, NON_REJECTED, and ALL.
+    max_results : int, optional
+        Maximum number of evidence items to return across matched variants.
+    max_variants : int, optional
+        Maximum number of variants to follow when an alias matches more than
+        one CIViC variant.
+
+    Returns
+    -------
+    dict
+        Matched variants and structured CIViC evidence with source citations,
+        curation status, evidence level, rating, direction, and significance.
+
+    """
+    api_url = "https://civicdb.org/api/graphql"
+    civic_url = "https://civicdb.org"
+    allowed_evidence_types = {
+        "DIAGNOSTIC",
+        "FUNCTIONAL",
+        "ONCOGENIC",
+        "PREDICTIVE",
+        "PREDISPOSING",
+        "PROGNOSTIC",
+    }
+    allowed_statuses = {"ACCEPTED", "ALL", "NON_REJECTED", "REJECTED", "SUBMITTED"}
+
+    if not isinstance(gene, str) or not gene.strip():
+        return {"error": "gene must be a non-empty HGNC symbol"}
+    if not isinstance(variant, str) or not variant.strip():
+        return {"error": "variant must be a non-empty CIViC variant name or alias"}
+    if disease is not None and (not isinstance(disease, str) or not disease.strip()):
+        return {"error": "disease must be a non-empty string when provided"}
+    if isinstance(max_results, bool) or not isinstance(max_results, int) or not 1 <= max_results <= 100:
+        return {"error": "max_results must be an integer between 1 and 100"}
+    if isinstance(max_variants, bool) or not isinstance(max_variants, int) or not 1 <= max_variants <= 20:
+        return {"error": "max_variants must be an integer between 1 and 20"}
+
+    normalized_gene = gene.strip().upper()
+    normalized_variant = variant.strip()
+    if normalized_variant.upper().startswith(f"{normalized_gene} "):
+        normalized_variant = normalized_variant[len(normalized_gene) :].strip()
+    if normalized_variant.lower().startswith("p."):
+        normalized_variant = normalized_variant[2:].strip()
+    if not normalized_variant:
+        return {"error": "variant must contain a value after removing the gene symbol or p. prefix"}
+
+    normalized_evidence_type = None
+    if evidence_type is not None:
+        if not isinstance(evidence_type, str):
+            return {"error": "evidence_type must be a string when provided"}
+        normalized_evidence_type = evidence_type.strip().upper().replace("-", "_").replace(" ", "_")
+        if normalized_evidence_type not in allowed_evidence_types:
+            allowed = ", ".join(sorted(allowed_evidence_types))
+            return {"error": f"Unsupported evidence_type. Choose one of: {allowed}"}
+
+    if not isinstance(evidence_status, str):
+        return {"error": "evidence_status must be a string"}
+    normalized_status = evidence_status.strip().upper().replace("-", "_").replace(" ", "_")
+    if normalized_status not in allowed_statuses:
+        allowed = ", ".join(sorted(allowed_statuses))
+        return {"error": f"Unsupported evidence_status. Choose one of: {allowed}"}
+
+    def run_graphql(query, variables, description):
+        response = _query_rest_api(
+            endpoint=api_url,
+            method="POST",
+            headers={"Accept": "application/json", "Content-Type": "application/json"},
+            json_data={"query": query, "variables": variables},
+            description=description,
+        )
+        if not response.get("success", False):
+            return response
+
+        payload = response.get("result")
+        if not isinstance(payload, dict):
+            return {"success": False, "error": "CIViC returned a non-object GraphQL response"}
+        if payload.get("errors"):
+            messages = [
+                str(error.get("message", error) if isinstance(error, dict) else error) for error in payload["errors"]
+            ]
+            return {"success": False, "error": f"CIViC GraphQL error: {'; '.join(messages)}"}
+        if not isinstance(payload.get("data"), dict):
+            return {"success": False, "error": "CIViC GraphQL response did not contain data"}
+        return {"success": True, "data": payload["data"]}
+
+    variant_query = """
+    query CivicVariants($gene: String!, $variant: String!, $first: Int!) {
+      gene(entrezSymbol: $gene) {
+        id
+        name
+        entrezId
+        link
+        variants(name: $variant, first: $first) {
+          totalCount
+          nodes { id name link variantAliases }
+        }
+      }
+    }
+    """
+    variant_response = run_graphql(
+        variant_query,
+        {"gene": normalized_gene, "variant": normalized_variant, "first": max_variants},
+        f"Find CIViC variants for {normalized_gene} {normalized_variant}",
+    )
+    if not variant_response.get("success", False):
+        return variant_response
+
+    gene_record = variant_response["data"].get("gene")
+    if gene_record is None:
+        return {
+            "database": "CIViC",
+            "query": {"gene": normalized_gene, "variant": normalized_variant},
+            "error": f"Gene {normalized_gene!r} was not found in CIViC",
+            "matched_variants": [],
+            "evidence_items": [],
+        }
+
+    variant_connection = gene_record.get("variants") or {}
+    matched_variants = variant_connection.get("nodes") or []
+    total_matching_variants = variant_connection.get("totalCount", len(matched_variants))
+    gene_result = {
+        "id": gene_record.get("id"),
+        "name": gene_record.get("name"),
+        "entrez_id": gene_record.get("entrezId"),
+        "url": f"{civic_url}{gene_record.get('link', '')}",
+    }
+    if not matched_variants:
+        return {
+            "database": "CIViC",
+            "query": {"gene": normalized_gene, "variant": normalized_variant},
+            "gene": gene_result,
+            "total_matching_variants": 0,
+            "matched_variants": [],
+            "total_evidence_for_returned_variants": 0,
+            "returned_evidence": 0,
+            "evidence_items": [],
+            "note": "No CIViC variant name or alias matched the normalized query.",
+        }
+
+    optional_declarations = ""
+    optional_arguments = ""
+    if disease is not None:
+        optional_declarations += "      $disease: String\n"
+        optional_arguments += "        diseaseName: $disease\n"
+    if normalized_evidence_type is not None:
+        optional_declarations += "      $evidenceType: EvidenceType\n"
+        optional_arguments += "        evidenceType: $evidenceType\n"
+
+    evidence_query = (
+        """
+    query CivicEvidence(
+      $variantId: Int!
+"""
+        + optional_declarations
+        + """      $status: EvidenceStatusFilter!
+      $first: Int!
+    ) {
+      evidenceItems(
+        variantId: $variantId
+"""
+        + optional_arguments
+        + """        status: $status
+        sortBy: {column: EVIDENCE_RATING, direction: DESC}
+        first: $first
+      ) {
+        totalCount
+        nodes {
+          id name link status description evidenceType evidenceLevel
+          evidenceRating evidenceDirection significance variantOrigin
+          disease { id doid name displayName }
+          therapies { id name ncitId }
+          source { sourceType citationId pmcId title }
+        }
+      }
+    }
+    """
+    )
+
+    evidence_items = []
+    total_evidence = 0
+    returned_variants = []
+    for matched_variant in matched_variants:
+        remaining = max_results - len(evidence_items)
+        if remaining <= 0:
+            break
+        evidence_variables = {
+            "variantId": matched_variant["id"],
+            "status": normalized_status,
+            "first": remaining,
+        }
+        if disease is not None:
+            evidence_variables["disease"] = disease.strip()
+        if normalized_evidence_type is not None:
+            evidence_variables["evidenceType"] = normalized_evidence_type
+        evidence_response = run_graphql(
+            evidence_query,
+            evidence_variables,
+            f"Retrieve CIViC evidence for variant {matched_variant['id']}",
+        )
+        if not evidence_response.get("success", False):
+            return evidence_response
+
+        evidence_connection = evidence_response["data"].get("evidenceItems") or {}
+        variant_total = evidence_connection.get("totalCount", 0)
+        total_evidence += variant_total
+        returned_variant = {
+            "id": matched_variant.get("id"),
+            "name": matched_variant.get("name"),
+            "aliases": matched_variant.get("variantAliases") or [],
+            "url": f"{civic_url}{matched_variant.get('link', '')}",
+            "matching_evidence": variant_total,
+        }
+        returned_variants.append(returned_variant)
+
+        for item in evidence_connection.get("nodes") or []:
+            source = item.get("source") or {}
+            citation_id = source.get("citationId")
+            pmc_id = source.get("pmcId")
+            item["url"] = f"{civic_url}{item.pop('link', '')}"
+            item["variant"] = {
+                "id": returned_variant["id"],
+                "name": returned_variant["name"],
+                "url": returned_variant["url"],
+            }
+            if citation_id:
+                source["pubmed_url"] = f"https://pubmed.ncbi.nlm.nih.gov/{citation_id}/"
+            if pmc_id:
+                source["pmc_url"] = f"https://www.ncbi.nlm.nih.gov/pmc/articles/{pmc_id}/"
+            evidence_items.append(item)
+
+    notes = [
+        "CIViC evidence is community curated and should be interpreted with its status, level, rating, and source.",
+        "Results are educational evidence records, not clinical recommendations.",
+    ]
+    if normalized_status != "ACCEPTED":
+        notes.append(
+            f"The query requested {normalized_status} evidence; non-accepted records may be unreviewed or rejected."
+        )
+    if total_matching_variants > len(returned_variants):
+        notes.append(
+            f"The alias matched {total_matching_variants} variants; only the first {len(returned_variants)} were queried."
+        )
+    if total_evidence > len(evidence_items):
+        notes.append(
+            f"The filters matched {total_evidence} evidence items; max_results returned {len(evidence_items)}."
+        )
+
+    return {
+        "database": "CIViC",
+        "api_url": api_url,
+        "query": {
+            "gene": normalized_gene,
+            "variant": normalized_variant,
+            "disease": disease.strip() if disease is not None else None,
+            "evidence_type": normalized_evidence_type,
+            "evidence_status": normalized_status,
+        },
+        "gene": gene_result,
+        "total_matching_variants": total_matching_variants,
+        "matched_variants": returned_variants,
+        "total_evidence_for_returned_variants": total_evidence,
+        "returned_evidence": len(evidence_items),
+        "evidence_items": evidence_items,
+        "notes": notes,
+    }
+
+
 def query_geo(
     prompt=None,
     search_term=None,
