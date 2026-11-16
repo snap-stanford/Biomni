@@ -4092,6 +4092,8 @@ def query_fda_adverse_events(
 
         # Query adverse events
         response = client.query_adverse_events(standardized_name, limit=limit)
+        if response.get("error"):
+            return f"Error querying FDA adverse events for {drug_name}: {response['error']}"
 
         # Apply filters if specified
         if severity_filter or outcome_filter:
