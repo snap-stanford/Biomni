@@ -144,15 +144,22 @@ def query_scholar(query: str) -> str:
 def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
     """Query PubMed for papers based on the provided search query.
 
+    If the query returns no papers, it is retried up to ``max_retries`` times, each time with one more
+    trailing word removed. Each retry broadens the search, so results found by a retry match a less
+    specific query than the one requested. When that happens the output starts with a note naming the
+    query that actually produced the results. Set ``max_retries=0`` to search the exact query only.
+
     Parameters
     ----------
     - query (str): The search query string.
     - max_papers (int): The maximum number of papers to retrieve (default: 10).
-    - max_retries (int): Maximum number of retry attempts with modified queries (default: 3).
+    - max_retries (int): Maximum number of retries if no papers are found. Each retry drops one more
+      trailing word from the query (default: 3). Use 0 to disable query broadening.
 
     Returns
     -------
-    - str: The formatted search results or an error message.
+    - str: The formatted search results or an error message. Results found by a broadened query are
+      preceded by a note stating the original query and the query that was used.
 
     """
     from pymed import PubMed
@@ -160,25 +167,38 @@ def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
     try:
         pubmed = PubMed(tool="MyTool", email="your-email@example.com")  # Update with a valid email address
 
+        words = query.split()
+        used_query = query
+        queries_tried = [query]
+
         # Initial attempt
         papers = list(pubmed.query(query, max_results=max_papers))
 
-        # Retry with modified queries if no results
+        # Retry with broadened queries if no results: each retry drops one more trailing word.
+        # Stop once a single word is left rather than re-sending a query that was already tried.
         retries = 0
-        while not papers and retries < max_retries:
+        while not papers and retries < max_retries and len(words) - retries > 1:
             retries += 1
-            # Simplify query with each retry by removing the last word
-            simplified_query = " ".join(query.split()[:-retries]) if len(query.split()) > retries else query
+            used_query = " ".join(words[:-retries])
+            queries_tried.append(used_query)
             time.sleep(1)  # Add delay between requests
-            papers = list(pubmed.query(simplified_query, max_results=max_papers))
+            papers = list(pubmed.query(used_query, max_results=max_papers))
 
-        if papers:
-            results = "\n\n".join(
-                [f"Title: {paper.title}\nAbstract: {paper.abstract}\nJournal: {paper.journal}" for paper in papers]
+        if not papers:
+            tried = ", ".join(repr(q) for q in queries_tried)
+            return f"No papers found on PubMed. Queries tried: {tried}."
+
+        results = "\n\n".join(
+            [f"Title: {paper.title}\nAbstract: {paper.abstract}\nJournal: {paper.journal}" for paper in papers]
+        )
+        if used_query != query:
+            note = (
+                f"Note: no papers matched the original query {query!r}. The results below are for the broadened "
+                f"query {used_query!r} ({retries} trailing word(s) removed), so they may be less specific than "
+                "requested."
             )
-            return results
-        else:
-            return "No papers found on PubMed after multiple query attempts."
+            return f"{note}\n\n{results}"
+        return results
     except Exception as e:
         return f"Error querying PubMed: {e}"
 
