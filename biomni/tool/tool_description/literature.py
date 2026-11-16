@@ -66,7 +66,9 @@ description = [
             },
             {
                 "default": 3,
-                "description": "Maximum number of retry attempts with modified queries.",
+                "description": "Maximum number of retries if no papers are found. Each retry drops one more "
+                "trailing word, broadening the query, and results from a broadened query are labelled with "
+                "the query used. Use 0 to search the exact query only.",
                 "name": "max_retries",
                 "type": "int",
             },
