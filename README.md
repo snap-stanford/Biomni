@@ -26,7 +26,6 @@
 
 ## Overview
 
-
 Biomni is a general-purpose biomedical AI agent designed to autonomously execute a wide range of research tasks across diverse biomedical subfields. By integrating cutting-edge large language model (LLM) reasoning with retrieval-augmented planning and code-based execution, Biomni helps scientists dramatically enhance research productivity and generate testable hypotheses.
 
 
@@ -140,10 +139,12 @@ Once inside the environment, you can start using Biomni:
 from biomni.agent import A1
 
 # Initialize the agent with data path, Data lake will be automatically downloaded on first run (~11GB)
-agent = A1(path='./data', llm='claude-sonnet-4-20250514')
+agent = A1(path="./data", llm="claude-sonnet-4-20250514")
 
 # Execute biomedical tasks using natural language
-agent.go("Plan a CRISPR screen to identify genes that regulate T cell exhaustion, generate 32 genes that maximize the perturbation effect.")
+agent.go(
+    "Plan a CRISPR screen to identify genes that regulate T cell exhaustion, generate 32 genes that maximize the perturbation effect."
+)
 agent.go("Perform scRNA-seq annotation at [PATH] and generate meaningful hypothesis")
 agent.go("Predict ADMET properties for this compound: CC(C)CC1=CC=C(C=C1)C(C)C(=O)O")
 ```
@@ -154,14 +155,14 @@ By default, Biomni automatically downloads the datalake files (~11GB) when you c
 
 ```python
 # Skip automatic datalake download (faster initialization)
-agent = A1(path='./data', llm='claude-sonnet-4-20250514', expected_data_lake_files = [])
+agent = A1(path="./data", llm="claude-sonnet-4-20250514", expected_data_lake_files=[])
 ```
 
 This is useful for:
 - Faster testing and development
 - Environments with limited storage or bandwidth
 - Cases where you only need specific tools that don't require datalake files
-If you plan on using Azure for your model, always prefix the model name with azure- (e.g. llm='azure-gpt-4o').
+  If you plan on using Azure for your model, always prefix the model name with azure- (e.g. llm='azure-gpt-4o').
 
 ### Gradio Interface
 
@@ -170,7 +171,7 @@ Launch an interactive web UI for Biomni:
 ```python
 from biomni.agent import A1
 
-agent = A1(path='./data', llm='claude-sonnet-4-20250514')
+agent = A1(path="./data", llm="claude-sonnet-4-20250514")
 agent.launch_gradio_demo()
 ```
 
@@ -216,7 +217,7 @@ Generate PDF reports of execution traces:
 from biomni.agent import A1
 
 # Initialize agent
-agent = A1(path='./data', llm='claude-sonnet-4-20250514')
+agent = A1(path="./data", llm="claude-sonnet-4-20250514")
 
 # Run your task
 agent.go("Your biomedical task here")
@@ -281,13 +282,13 @@ For usage and implementation details, see the [MCP Integration Documentation](do
 
 To use Biomni-R0 for agent reasoning while keeping database queries on your usual provider (recommended), run a local SGLang server and pass the model to `A1()` directly.
 
-1) Launch SGLang with Biomni-R0:
+1. Launch SGLang with Biomni-R0:
 
 ```bash
 python -m sglang.launch_server --model-path RyanLi0802/Biomni-R0-Preview --port 30000 --host 0.0.0.0 --mem-fraction-static 0.8 --tp 2 --trust-remote-code --json-model-override-args '{"rope_scaling":{"rope_type":"yarn","factor":1.0,"original_max_position_embeddings":32768}, "max_position_embeddings": 131072}'
 ```
 
-2) Point the agent to your SGLang endpoint for reasoning:
+2. Point the agent to your SGLang endpoint for reasoning:
 
 ```python
 from biomni.config import default_config
@@ -328,7 +329,7 @@ agent.go("Plan a CRISPR screen to identify genes regulating T cell exhaustion")
 from biomni.eval import BiomniEval1
 
 evaluator = BiomniEval1()
-score = evaluator.evaluate('gwas_causal_gene_opentargets', 0, 'BRCA1')
+score = evaluator.evaluate("gwas_causal_gene_opentargets", 0, "BRCA1")
 ```
 
 
@@ -402,6 +403,7 @@ Experience Biomni through our no-code web interface at **[biomni.stanford.edu](h
 
 
 ## Important Note
+
 - Security warning: Currently, Biomni executes LLM-generated code with full system privileges. If you want to use it in production, please use in isolated/sandboxed environments. The agent can access files, network, and system commands. Be careful with sensitive data or credentials.
 - This release was frozen as of April 15 2025, so it differs from the current web platform.
 - Biomni itself is Apache 2.0-licensed, but certain integrated tools, databases, or software may carry more restrictive commercial licenses. Review each component carefully before any commercial use.
