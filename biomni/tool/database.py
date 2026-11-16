@@ -2640,7 +2640,25 @@ def query_openfda(
     if prompt:
         description = f"OpenFDA API query for: {prompt}"
 
-    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+    # Pass direct query options to requests so values are URL encoded consistently.
+    params = {}
+    if search_params:
+        search_terms = []
+        for field, terms in search_params.items():
+            if isinstance(terms, list):
+                alternatives = " OR ".join(json.dumps(term) for term in terms)
+                search_terms.append(f"{field}:({alternatives})")
+            else:
+                search_terms.append(f"{field}:{json.dumps(terms)}")
+        params["search"] = " AND ".join(search_terms)
+    if sort_params:
+        params["sort"] = ",".join(f"{field}:{direction}" for field, direction in sort_params.items())
+    if count_params:
+        params["count"] = count_params
+    if skip_results:
+        params["skip"] = skip_results
+
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", params=params, description=description)
 
     # Format results based on verbose setting
     if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
