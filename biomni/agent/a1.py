@@ -1121,7 +1121,7 @@ Always show the updated plan after each step so the user can track progress.
 At each turn, you should first provide your thinking and reasoning given the conversation history.
 After that, you have two options:
 
-1) Interact with a programming environment and receive the corresponding output within <observe></observe>. Your code should be enclosed using "<execute>" tag, for example: <execute> print("Hello World!") </execute>. IMPORTANT: You must end the code block with </execute> tag.
+1) Interact with a programming environment and receive the corresponding output within <observation></observation>. Your code should be enclosed using "<execute>" tag, for example: <execute> print("Hello World!") </execute>. IMPORTANT: You must end the code block with </execute> tag.
    - For Python code (default): <execute> print("Hello World!") </execute>
    - For R code: <execute> #!R\nlibrary(ggplot2)\nprint("Hello from R") </execute>
    - For Bash scripts and commands: <execute> #!BASH\necho "Hello from Bash"\nls -la </execute>
