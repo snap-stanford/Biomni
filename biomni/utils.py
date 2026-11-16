@@ -1,6 +1,8 @@
 import ast
 import enum
+import functools
 import importlib
+import inspect
 import json
 import os
 import pickle
@@ -520,6 +522,7 @@ class CustomBaseModel(BaseModel):
 
 
 def safe_execute_decorator(func):
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -544,18 +547,34 @@ def api_schema_to_langchain_tool(api_schema, mode="generated_tool", module_name=
         "integer": int,
         "boolean": bool,
         "pandas": pd.DataFrame,  # Use the imported pandas.DataFrame directly
+        "pd.DataFrame": Any,
+        "numpy.ndarray": Any,
         "str": str,
         "int": int,
+        "float": float,
         "bool": bool,
+        "list": list,
+        "list[str]": list[str],
+        "tuple": tuple,
+        "tuple or None": tuple | None,
+        "Tuple[str, str]": tuple[str, str],
         "List[str]": list[str],
         "List[int]": list[int],
         "Dict": dict,
         "Any": Any,
+        "callable": Any,
+        "int|str": int | str,
+        "str or dict": str | dict,
+        "str|list[str]": str | list[str],
+        "list or numpy.ndarray": Any,
+        "Optional[List[Dict[str, str]]]": list[dict[str, str]] | None,
     }
 
     # Create the fields and annotations
+    required_parameters = api_schema["required_parameters"]
+    optional_parameters = api_schema.get("optional_parameters", [])
     annotations = {}
-    for param in api_schema["required_parameters"]:
+    for param in required_parameters + optional_parameters:
         param_type = param["type"]
         if param_type in type_mapping:
             annotations[param["name"]] = type_mapping[param_type]
@@ -567,7 +586,22 @@ def api_schema_to_langchain_tool(api_schema, mode="generated_tool", module_name=
                 # Default to Any for unknown types
                 annotations[param["name"]] = Any
 
-    fields = {param["name"]: Field(description=param["description"]) for param in api_schema["required_parameters"]}
+    fields = {param["name"]: Field(description=param["description"]) for param in required_parameters}
+    function_parameters = inspect.signature(api_function).parameters
+    fields.update(
+        {
+            param["name"]: Field(
+                default=(
+                    function_parameters[param["name"]].default
+                    if param["name"] in function_parameters
+                    and function_parameters[param["name"]].default is not inspect.Parameter.empty
+                    else param.get("default")
+                ),
+                description=param["description"],
+            )
+            for param in optional_parameters
+        }
+    )
 
     # Create the ApiInput class dynamically
     ApiInput = type("Input", (CustomBaseModel,), {"__annotations__": annotations, **fields})
