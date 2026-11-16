@@ -3641,7 +3641,10 @@ class OpenFDAClient:
         endpoint = "drug/enforcement"
         params = {"drug_name": drug_name, "limit": 100}
 
-        return self._make_request(endpoint, params)
+        response = self._make_request(endpoint, params)
+        if classification:
+            response = _apply_fda_filters(response, {"classification": classification})
+        return response
 
 
 # Helper Functions for OpenFDA Data Processing
