@@ -728,4 +728,56 @@ description = [
             },
         ],
     },
+    {
+        "name": "query_mcsa",
+        "description": (
+            "Query the EMBL-EBI Mechanism and Catalytic Site Atlas (M-CSA) REST API to retrieve curated "
+            "enzyme active-site catalytic residues, cofactors, EC numbers, and step-by-step mechanisms."
+        ),
+        "required_parameters": [],
+        "optional_parameters": [
+            {
+                "name": "prompt",
+                "type": "str",
+                "description": "Free-text enzyme or mechanism search query (e.g., 'tyrosine phenol-lyase').",
+                "default": None,
+            },
+            {
+                "name": "ec_number",
+                "type": "str",
+                "description": "Enzyme Commission (EC) number filter (e.g., '4.1.99.2').",
+                "default": None,
+            },
+            {
+                "name": "uniprot_id",
+                "type": "str",
+                "description": "UniProt accession ID filter (e.g., 'P31013').",
+                "default": None,
+            },
+            {
+                "name": "mcsa_id",
+                "type": "int",
+                "description": "Specific M-CSA entry ID.",
+                "default": None,
+            },
+            {
+                "name": "endpoint",
+                "type": "str",
+                "description": "Direct M-CSA API URL override.",
+                "default": None,
+            },
+            {
+                "name": "max_results",
+                "type": "int",
+                "description": "Maximum number of enzyme entries to return.",
+                "default": 5,
+            },
+            {
+                "name": "verbose",
+                "type": "bool",
+                "description": "Include full catalytic mechanism steps and residue role annotations.",
+                "default": True,
+            },
+        ],
+    },
 ]
