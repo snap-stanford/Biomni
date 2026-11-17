@@ -21,6 +21,7 @@ Repository = "https://github.com/snap-stanford/biomni"
 
 [project.optional-dependencies]
 gradio = ["gradio>=5.0,<6.0"]
+geo = ["GEOparse>=2.0"]
 
 [tool.setuptools]
 include-package-data = true

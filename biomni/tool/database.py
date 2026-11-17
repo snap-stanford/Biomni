@@ -2,15 +2,30 @@ import json
 import os
 import pickle
 import time
-from typing import Any
+from typing import Any, Literal
 
 import requests
 from Bio.Blast import NCBIWWW, NCBIXML
 from Bio.Seq import Seq
 from langchain_core.messages import HumanMessage, SystemMessage
+from pydantic import BaseModel, Field
 
 from biomni.llm import get_llm
 from biomni.utils import parse_hpo_obo
+
+
+# Pydantic models for structured LLM output
+class GEOQueryResponse(BaseModel):
+    """Structured response for GEO database queries."""
+
+    search_term: str = Field(description="The GEO search query string")
+    database: Literal["gds", "geoprofiles"] = Field(default="gds", description="GEO database to search")
+
+
+class DBSNPQueryResponse(BaseModel):
+    """Structured response for dbSNP database queries."""
+
+    search_term: str = Field(description="The dbSNP search query string")
 
 
 # Function to map HPO terms to names
@@ -33,7 +48,7 @@ def get_hpo_names(hpo_terms: list[str], data_lake_path: str) -> list[str]:
     return hpo_names
 
 
-def _query_llm_for_api(prompt, schema, system_template):
+def _query_llm_for_api(prompt, schema, system_template, response_model=None):
     """Helper function to query LLMs for generating API calls based on natural language prompts.
 
     Supports multiple model providers including Claude, Gemini, GPT, and others via the unified get_llm interface.
@@ -43,6 +58,8 @@ def _query_llm_for_api(prompt, schema, system_template):
     prompt (str): Natural language query to process
     schema (dict): API schema to include in the system prompt
     system_template (str): Template string for the system prompt (should have {schema} placeholder)
+    response_model (BaseModel, optional): Pydantic model for structured output. If provided, uses
+        LangChain's with_structured_output() for reliable JSON responses.
 
     Returns
     -------
@@ -50,13 +67,17 @@ def _query_llm_for_api(prompt, schema, system_template):
 
     """
     # Use global config for model and api_key
+    # This is a simple parsing task, so use the lite model
     try:
         from biomni.config import default_config
 
-        model = default_config.llm
+        model = default_config.llm_lite  # Use lightweight model for parsing
         api_key = default_config.api_key
     except ImportError:
-        model = "claude-3-5-haiku-20241022"
+        # Fallback: use smart default based on available API keys
+        from biomni.llm import _get_default_model_lite
+
+        model = _get_default_model_lite()
         api_key = None
 
     try:
@@ -75,6 +96,22 @@ def _query_llm_for_api(prompt, schema, system_template):
         except ImportError:
             llm = get_llm(model=model, temperature=0.0, api_key=api_key or "EMPTY")
 
+        # Use structured output if a response model is provided
+        if response_model is not None:
+            try:
+                structured_llm = llm.with_structured_output(response_model)
+                result = structured_llm.invoke(system_prompt + "\n\nUser query: " + prompt)
+                # Convert Pydantic model to dict
+                if hasattr(result, "model_dump"):
+                    return {"success": True, "data": result.model_dump()}
+                elif hasattr(result, "dict"):
+                    return {"success": True, "data": result.dict()}
+                else:
+                    return {"success": True, "data": dict(result)}
+            except Exception:
+                # Fall back to manual parsing if structured output fails
+                pass  # Continue to manual parsing below
+
         # Compose messages
         messages = [
             SystemMessage(content=system_prompt),
@@ -83,7 +120,10 @@ def _query_llm_for_api(prompt, schema, system_template):
 
         # Query the LLM
         response = llm.invoke(messages)
-        llm_text = response.content.strip()
+        # Normalize content (handles string, list of blocks, etc.)
+        from biomni.utils import normalize_llm_content
+
+        llm_text = normalize_llm_content(response.content)
 
         # Find JSON boundaries (in case LLM adds explanations)
         json_start = llm_text.find("{")
@@ -218,15 +258,24 @@ def _query_ncbi_database(
     dict: Dictionary containing both the structured query and the results
 
     """
+    # NCBI rate limit: max 3 requests/second without API key, 10 with API key
+    # Limit max_results to avoid overwhelming the API
+    max_results = min(max_results, 20)  # Cap at 20 to avoid rate limits
+
     # Query NCBI API using the structured search term
     esearch_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
     esearch_params = {
         "db": database,
         "term": search_term,
         "retmode": "json",
-        "retmax": 100,
+        "retmax": max_results,  # Only fetch as many as we need
         "usehistory": "y",  # Use history server to store results
     }
+
+    # Add NCBI API key if available (increases rate limit from 3 to 10 requests/sec)
+    ncbi_api_key = os.getenv("NCBI_API_KEY")
+    if ncbi_api_key:
+        esearch_params["api_key"] = ncbi_api_key
 
     # Get IDs of matching entries
     search_response = _query_rest_api(
@@ -243,6 +292,9 @@ def _query_ncbi_database(
 
     # If we have results, fetch the details
     if "esearchresult" in search_data and int(search_data["esearchresult"]["count"]) > 0:
+        # Small delay to respect NCBI rate limits
+        time.sleep(0.4)
+
         # Extract WebEnv and query_key from the search results
         webenv = search_data["esearchresult"].get("webenv", "")
         query_key = search_data["esearchresult"].get("querykey", "")
@@ -258,6 +310,8 @@ def _query_ncbi_database(
                 "retmode": "json",
                 "retmax": max_results,
             }
+            if ncbi_api_key:
+                esummary_params["api_key"] = ncbi_api_key
 
             details_response = _query_rest_api(
                 endpoint=esummary_url,
@@ -282,6 +336,8 @@ def _query_ncbi_database(
                 "id": ",".join(id_list),
                 "retmode": "json",
             }
+            if ncbi_api_key:
+                esummary_params["api_key"] = ncbi_api_key
 
             details_response = _query_rest_api(
                 endpoint=esummary_url,
@@ -1966,16 +2022,17 @@ def query_geo(
         If database isn't clearly specified, default to "gds" as it contains most common experiment metadata.
 
         EXAMPLES OF CORRECT OUTPUTS:
-        - For "RNA-seq data in breast cancer": {"search_term": "RNA-seq AND breast cancer AND gse[ETYP]", "database": "gds"}
-        - For "Mouse microarray data from 2020": {"search_term": "Mus musculus[ORGN] AND 2020[PDAT] AND microarray AND gse[ETYP]", "database": "gds"}
-        - For "Expression profiles of TP53 in lung cancer": {"search_term": "TP53[Gene Symbol] AND lung cancer", "database": "geoprofiles"}
+        - For "RNA-seq data in breast cancer": {{"search_term": "RNA-seq AND breast cancer AND gse[ETYP]", "database": "gds"}}
+        - For "Mouse microarray data from 2020": {{"search_term": "Mus musculus[ORGN] AND 2020[PDAT] AND microarray AND gse[ETYP]", "database": "gds"}}
+        - For "Expression profiles of TP53 in lung cancer": {{"search_term": "TP53[Gene Symbol] AND lung cancer", "database": "geoprofiles"}}
         """
 
-        # Query Claude to generate the API call
+        # Query LLM to generate the API call (use structured output for reliability)
         llm_result = _query_llm_for_api(
             prompt=prompt,
             schema=geo_schema,
             system_template=system_template,
+            response_model=GEOQueryResponse,
         )
 
         if not llm_result["success"]:
@@ -1998,6 +2055,495 @@ def query_geo(
         search_term=search_term,
         max_results=max_results,
     )
+
+    # Format GEO results into a cleaner structure
+    if result.get("formatted_results") and isinstance(result["formatted_results"], dict):
+        raw_results = result["formatted_results"].get("result", {})
+        datasets = []
+        for uid, data in raw_results.items():
+            if uid == "uids":
+                continue
+            if isinstance(data, dict):
+                datasets.append(
+                    {
+                        "accession": data.get("accession", f"GDS{uid}"),
+                        "title": data.get("title", ""),
+                        "summary": data.get("summary", ""),
+                        "organism": data.get("taxon", ""),
+                        "platform": data.get("gpl", ""),
+                        "samples": data.get("n_samples", data.get("samplecount", "")),
+                        "type": data.get("gdstype", data.get("entrytype", "")),
+                    }
+                )
+        result["datasets"] = datasets
+
+    return result
+
+
+def download_geo(
+    accession: str,
+    output_dir: str | None = None,
+    return_expression_matrix: bool = True,
+    return_metadata: bool = True,
+):
+    """Download and parse data from a GEO accession (GSE series or GSM sample).
+
+    Parameters
+    ----------
+    accession : str
+        GEO accession ID (e.g., 'GSE123456' for series, 'GSM123456' for sample)
+    output_dir : str, optional
+        Directory to save downloaded files. Defaults to workspace/geo_data from config
+    return_expression_matrix : bool
+        Whether to return the expression matrix as a pandas DataFrame. Defaults to True
+    return_metadata : bool
+        Whether to return sample metadata. Defaults to True
+
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - 'accession': The GEO accession ID
+        - 'files': List of downloaded file paths
+        - 'expression_matrix': pandas DataFrame of expression values (if requested and available)
+        - 'metadata': Sample metadata DataFrame (if requested)
+        - 'error': Error message if download failed
+
+    Examples
+    --------
+    >>> result = download_geo("GSE161650")
+    >>> df = result["expression_matrix"]
+    >>> metadata = result["metadata"]
+
+    Notes
+    -----
+    This function uses the GEOparse library to download and parse GEO data.
+    For GSE accessions, it downloads the series matrix file.
+    For GSM accessions, it downloads the individual sample data.
+    """
+    try:
+        import GEOparse
+    except ImportError:
+        return {
+            "error": "GEOparse library not installed. Install with: pip install GEOparse",
+            "accession": accession,
+        }
+
+    # Use workspace from config if output_dir not specified
+    if output_dir is None:
+        from biomni.config import default_config
+
+        output_dir = os.path.join(default_config.workspace, "geo_data")
+
+    # Create output directory
+    os.makedirs(output_dir, exist_ok=True)
+
+    result = {
+        "accession": accession,
+        "files": [],
+        "expression_matrix": None,
+        "metadata": None,
+        "error": None,
+    }
+
+    try:
+        # Download via HTTPS (more reliable than FTP)
+        accession = accession.upper()
+
+        if accession.startswith("GSE"):
+            # Construct HTTPS URL for SOFT file
+            # URL pattern: https://ftp.ncbi.nlm.nih.gov/geo/series/GSEnnn/GSE12345/soft/GSE12345_family.soft.gz
+            series_num = accession[3:]  # Remove 'GSE' prefix
+            series_dir = f"GSE{series_num[:-3]}nnn" if len(series_num) > 3 else "GSEnnn"
+            soft_url = (
+                f"https://ftp.ncbi.nlm.nih.gov/geo/series/{series_dir}/{accession}/soft/{accession}_family.soft.gz"
+            )
+
+            soft_path = os.path.join(output_dir, f"{accession}_family.soft.gz")
+
+            # Download the file via HTTPS
+            if not os.path.exists(soft_path):
+                response = requests.get(soft_url, stream=True)
+                response.raise_for_status()
+                with open(soft_path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+
+            result["files"].append(soft_path)
+
+            # Parse with GEOparse using the downloaded file
+            gse = GEOparse.get_GEO(filepath=soft_path, silent=True)
+
+            # Get downloaded files
+            series_matrix_path = soft_path
+            if os.path.exists(series_matrix_path):
+                result["files"].append(series_matrix_path)
+
+            # Extract expression matrix
+            if return_expression_matrix and hasattr(gse, "gpls") and len(gse.gpls) > 0:
+                try:
+                    # Try to get pivoted expression data
+                    pivot_samples = gse.pivot_samples("VALUE")
+                    if pivot_samples is not None and not pivot_samples.empty:
+                        result["expression_matrix"] = pivot_samples
+                        # Save to CSV
+                        expr_path = os.path.join(output_dir, f"{accession}_expression.csv")
+                        pivot_samples.to_csv(expr_path)
+                        result["files"].append(expr_path)
+                except Exception:
+                    # Expression matrix not available in expected format
+                    pass
+
+            # Extract metadata
+            if return_metadata:
+                try:
+                    import pandas as pd
+
+                    metadata_rows = []
+                    for gsm_name, gsm in gse.gsms.items():
+                        row = {"sample_id": gsm_name}
+                        row.update(gsm.metadata)
+                        # Flatten lists in metadata
+                        for k, v in row.items():
+                            if isinstance(v, list) and len(v) == 1:
+                                row[k] = v[0]
+                            elif isinstance(v, list):
+                                row[k] = "; ".join(str(x) for x in v)
+                        metadata_rows.append(row)
+
+                    if metadata_rows:
+                        metadata_df = pd.DataFrame(metadata_rows)
+                        result["metadata"] = metadata_df
+                        # Save to CSV
+                        meta_path = os.path.join(output_dir, f"{accession}_metadata.csv")
+                        metadata_df.to_csv(meta_path, index=False)
+                        result["files"].append(meta_path)
+                except Exception as e:
+                    result["metadata_error"] = str(e)
+
+            # Summary info
+            result["n_samples"] = len(gse.gsms)
+            result["n_platforms"] = len(gse.gpls)
+            result["title"] = gse.metadata.get("title", ["Unknown"])[0] if gse.metadata.get("title") else "Unknown"
+
+        elif accession.startswith("GSM"):
+            # Construct HTTPS URL for GSM SOFT file
+            # URL pattern: https://ftp.ncbi.nlm.nih.gov/geo/samples/GSMnnn/GSM12345/soft/GSM12345.soft.gz
+            sample_num = accession[3:]  # Remove 'GSM' prefix
+            sample_dir = f"GSM{sample_num[:-3]}nnn" if len(sample_num) > 3 else "GSMnnn"
+            soft_url = f"https://ftp.ncbi.nlm.nih.gov/geo/samples/{sample_dir}/{accession}/soft/{accession}.soft.gz"
+
+            sample_path = os.path.join(output_dir, f"{accession}.soft.gz")
+
+            # Download the file via HTTPS
+            if not os.path.exists(sample_path):
+                response = requests.get(soft_url, stream=True)
+                response.raise_for_status()
+                with open(sample_path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+
+            result["files"].append(sample_path)
+
+            # Parse with GEOparse using the downloaded file
+            gsm = GEOparse.get_GEO(filepath=sample_path, silent=True)
+
+            # Extract table data as expression
+            if return_expression_matrix and hasattr(gsm, "table") and gsm.table is not None:
+                result["expression_matrix"] = gsm.table
+                expr_path = os.path.join(output_dir, f"{accession}_data.csv")
+                gsm.table.to_csv(expr_path)
+                result["files"].append(expr_path)
+
+            # Extract metadata
+            if return_metadata:
+                result["metadata"] = gsm.metadata
+                result["title"] = gsm.metadata.get("title", ["Unknown"])[0] if gsm.metadata.get("title") else "Unknown"
+
+        else:
+            result["error"] = f"Unsupported accession type: {accession}. Use GSE (series) or GSM (sample) accessions."
+
+    except Exception as e:
+        result["error"] = f"Failed to download {accession}: {str(e)}"
+
+    return result
+
+
+def download_gpl_annotation(
+    gpl_id: str,
+    output_dir: str | None = None,
+    gene_symbol_column: str | None = None,
+):
+    """Download and parse GPL platform annotation file with probe-to-gene mappings.
+
+    Parameters
+    ----------
+    gpl_id : str
+        GPL platform ID (e.g., 'GPL571', 'GPL17586')
+    output_dir : str, optional
+        Directory to save downloaded files. Defaults to workspace/geo_data from config
+    gene_symbol_column : str, optional
+        Column name containing gene symbols. If None, auto-detects from common column names.
+
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - 'gpl_id': The GPL platform ID
+        - 'annotation_table': pandas DataFrame with full annotation table
+        - 'probe_to_gene': dict mapping probe IDs to gene symbols
+        - 'gene_columns': list of detected gene-related columns
+        - 'files': List of downloaded file paths
+        - 'error': Error message if download failed
+
+    Examples
+    --------
+    >>> result = download_gpl_annotation("GPL571")
+    >>> probe_to_gene = result["probe_to_gene"]
+    >>> gene_symbol = probe_to_gene.get("1007_s_at")  # 'DDR1'
+
+    Notes
+    -----
+    This function uses GEOparse to download annotated GPL files which contain
+    probe-to-gene mappings necessary for cross-platform meta-analysis.
+    """
+    try:
+        import GEOparse
+        import pandas as pd
+    except ImportError:
+        return {
+            "error": "GEOparse library not installed. Install with: pip install GEOparse",
+            "gpl_id": gpl_id,
+        }
+
+    # Use workspace from config if output_dir not specified
+    if output_dir is None:
+        from biomni.config import default_config
+
+        output_dir = os.path.join(default_config.workspace, "geo_data", "gpl_annotations")
+
+    # Create output directory
+    os.makedirs(output_dir, exist_ok=True)
+
+    result = {
+        "gpl_id": gpl_id,
+        "annotation_table": None,
+        "probe_to_gene": {},
+        "gene_columns": [],
+        "files": [],
+        "error": None,
+    }
+
+    try:
+        gpl_id = gpl_id.upper()
+        if not gpl_id.startswith("GPL"):
+            gpl_id = f"GPL{gpl_id}"
+
+        # Download GPL with annotations (annotate_gpl=True gets the curated annotation file)
+        gpl = GEOparse.get_GEO(geo=gpl_id, destdir=output_dir, annotate_gpl=True, silent=True)
+
+        if not hasattr(gpl, "table") or gpl.table is None or gpl.table.empty:
+            result["error"] = f"No annotation table found for {gpl_id}"
+            return result
+
+        annotation_df = gpl.table
+        result["annotation_table"] = annotation_df
+
+        # Find gene-related columns
+        gene_col_patterns = ["gene symbol", "gene_symbol", "symbol", "gene_assignment", "gene name"]
+        entrez_col_patterns = ["gene id", "gene_id", "entrez", "entrez_gene_id"]
+
+        # Auto-detect gene symbol column
+        detected_gene_col = None
+        for col in annotation_df.columns:
+            col_lower = col.lower()
+            if gene_symbol_column and col_lower == gene_symbol_column.lower():
+                detected_gene_col = col
+                break
+            for pattern in gene_col_patterns:
+                if pattern in col_lower:
+                    detected_gene_col = col
+                    break
+            if detected_gene_col:
+                break
+
+        # Collect all gene-related columns for reference
+        all_gene_cols = []
+        for col in annotation_df.columns:
+            col_lower = col.lower()
+            if any(p in col_lower for p in gene_col_patterns + entrez_col_patterns + ["refseq", "ensembl", "unigene"]):
+                all_gene_cols.append(col)
+        result["gene_columns"] = all_gene_cols
+
+        # Build probe-to-gene mapping
+        if detected_gene_col and "ID" in annotation_df.columns:
+            probe_to_gene = {}
+            for _, row in annotation_df.iterrows():
+                probe_id = str(row["ID"])
+                gene_symbol = row.get(detected_gene_col, "")
+
+                # Handle complex gene symbol formats (e.g., "DDR1 /// MIR4640")
+                if pd.notna(gene_symbol) and gene_symbol:
+                    gene_str = str(gene_symbol).strip()
+                    # Take the first gene if multiple are listed
+                    if "///" in gene_str:
+                        gene_str = gene_str.split("///")[0].strip()
+                    elif "//" in gene_str:
+                        gene_str = gene_str.split("//")[0].strip()
+                    if gene_str and gene_str != "---" and gene_str.lower() != "nan":
+                        probe_to_gene[probe_id] = gene_str
+
+            result["probe_to_gene"] = probe_to_gene
+            result["gene_symbol_column"] = detected_gene_col
+            result["n_mapped_probes"] = len(probe_to_gene)
+            result["n_total_probes"] = len(annotation_df)
+
+        # Save annotation to CSV
+        annot_path = os.path.join(output_dir, f"{gpl_id}_annotation.csv")
+        annotation_df.to_csv(annot_path, index=False)
+        result["files"].append(annot_path)
+
+        # Save probe-to-gene mapping
+        if result["probe_to_gene"]:
+            mapping_path = os.path.join(output_dir, f"{gpl_id}_probe_to_gene.csv")
+            mapping_df = pd.DataFrame([{"probe_id": k, "gene_symbol": v} for k, v in result["probe_to_gene"].items()])
+            mapping_df.to_csv(mapping_path, index=False)
+            result["files"].append(mapping_path)
+
+        # Add platform info
+        if hasattr(gpl, "metadata"):
+            result["platform_title"] = (
+                gpl.metadata.get("title", ["Unknown"])[0] if gpl.metadata.get("title") else "Unknown"
+            )
+            result["platform_organism"] = (
+                gpl.metadata.get("organism", ["Unknown"])[0] if gpl.metadata.get("organism") else "Unknown"
+            )
+
+    except Exception as e:
+        result["error"] = f"Failed to download {gpl_id}: {str(e)}"
+
+    return result
+
+
+def map_expression_to_genes(
+    expression_matrix,
+    gpl_id: str | None = None,
+    probe_to_gene: dict | None = None,
+    aggregation: str = "mean",
+):
+    """Map probe-level expression data to gene-level using GPL annotations.
+
+    Parameters
+    ----------
+    expression_matrix : pandas.DataFrame
+        Expression matrix with probe IDs as index and samples as columns
+    gpl_id : str, optional
+        GPL platform ID to download annotations from (if probe_to_gene not provided)
+    probe_to_gene : dict, optional
+        Pre-computed probe-to-gene mapping dict. If not provided, will download from gpl_id
+    aggregation : str
+        Method to aggregate multiple probes per gene: 'mean', 'median', 'max', 'sum'
+        Default is 'mean'
+
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - 'gene_expression': pandas DataFrame with genes as index
+        - 'n_genes': Number of unique genes in output
+        - 'n_probes_mapped': Number of probes successfully mapped
+        - 'n_probes_unmapped': Number of probes without gene mapping
+        - 'unmapped_probes': List of probe IDs that couldn't be mapped
+        - 'error': Error message if mapping failed
+
+    Examples
+    --------
+    >>> result = map_expression_to_genes(expr_df, gpl_id="GPL571")
+    >>> gene_expr = result["gene_expression"]
+
+    Notes
+    -----
+    For cross-platform meta-analysis, this function allows mapping probe-level
+    data from different platforms to a common gene-level representation.
+    """
+
+    result = {
+        "gene_expression": None,
+        "n_genes": 0,
+        "n_probes_mapped": 0,
+        "n_probes_unmapped": 0,
+        "unmapped_probes": [],
+        "error": None,
+    }
+
+    try:
+        # Get probe-to-gene mapping
+        if probe_to_gene is None:
+            if gpl_id is None:
+                result["error"] = "Either gpl_id or probe_to_gene mapping must be provided"
+                return result
+
+            gpl_result = download_gpl_annotation(gpl_id)
+            if gpl_result.get("error"):
+                result["error"] = f"Failed to get GPL annotation: {gpl_result['error']}"
+                return result
+
+            probe_to_gene = gpl_result.get("probe_to_gene", {})
+
+        if not probe_to_gene:
+            result["error"] = "No probe-to-gene mapping available"
+            return result
+
+        # Map probes to genes
+        expr_df = expression_matrix.copy()
+
+        # Handle index types
+        expr_df.index = expr_df.index.astype(str)
+
+        # Map probe IDs to gene symbols
+        gene_symbols = []
+        mapped_probes = []
+        unmapped_probes = []
+
+        for probe_id in expr_df.index:
+            gene = probe_to_gene.get(str(probe_id))
+            if gene:
+                gene_symbols.append(gene)
+                mapped_probes.append(probe_id)
+            else:
+                unmapped_probes.append(probe_id)
+
+        result["n_probes_mapped"] = len(mapped_probes)
+        result["n_probes_unmapped"] = len(unmapped_probes)
+        result["unmapped_probes"] = unmapped_probes[:100]  # Limit to first 100
+
+        if not mapped_probes:
+            result["error"] = "No probes could be mapped to genes"
+            return result
+
+        # Filter to mapped probes and add gene column
+        expr_mapped = expr_df.loc[mapped_probes].copy()
+        expr_mapped["gene_symbol"] = gene_symbols
+
+        # Aggregate by gene symbol
+        agg_funcs = {
+            "mean": "mean",
+            "median": "median",
+            "max": "max",
+            "sum": "sum",
+        }
+        agg_func = agg_funcs.get(aggregation, "mean")
+
+        # Group by gene and aggregate
+        numeric_cols = expr_mapped.select_dtypes(include=["number"]).columns.tolist()
+        gene_expr = expr_mapped.groupby("gene_symbol")[numeric_cols].agg(agg_func)
+
+        result["gene_expression"] = gene_expr
+        result["n_genes"] = len(gene_expr)
+        result["aggregation_method"] = aggregation
+
+    except Exception as e:
+        result["error"] = f"Failed to map expression to genes: {str(e)}"
 
     return result
 

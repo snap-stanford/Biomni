@@ -133,7 +133,33 @@ description = [
         ],
     },
     {
-        "description": "Initiate an advanced web search by launching a specialized agent to collect relevant information and citations through multiple rounds of web searches for a given query.",
+        "description": "Perform an advanced web search using Google search and content extraction. Works with any LLM provider.",
+        "name": "advanced_web_search",
+        "optional_parameters": [
+            {
+                "default": 5,
+                "description": "Number of search results to retrieve",
+                "name": "num_results",
+                "type": "int",
+            },
+            {
+                "default": 3,
+                "description": "Maximum number of retry attempts.",
+                "name": "max_retries",
+                "type": "int",
+            },
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "The search query string.",
+                "name": "query",
+                "type": "str",
+            }
+        ],
+    },
+    {
+        "description": "Initiate an advanced web search using Claude's web search capabilities. Falls back to advanced_web_search if Claude is not available.",
         "name": "advanced_web_search_claude",
         "optional_parameters": [
             {

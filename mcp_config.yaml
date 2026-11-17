@@ -1,0 +1,18 @@
+# MCP Server Config for Biomni — OKN-WOBD
+# Usage: agent.add_mcp(config_path="./mcp_config.yaml")
+
+mcp_servers:
+  okn-wobd:
+    url: "https://okn-wobd.sulab.org/mcp-wobd/mcp"
+    enabled: true
+    description: >
+      Biomedical analysis tools for gene-disease path finding, gene neighborhood
+      queries, drug-disease opposing expression patterns, and differential
+      expression analysis via ARCHS4.
+
+  proto-okn:
+    url: "https://frink.apps.renci.org/mcp/proto-okn/mcp"
+    enabled: true
+    description: >
+      Proto-OKN knowledge graph tools for querying 27 federated SPARQL
+      endpoints, ontology lookup, schema exploration, and cross-graph queries.

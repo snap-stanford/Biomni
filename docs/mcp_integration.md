@@ -13,7 +13,11 @@ MCP (Model Context Protocol) is a standard protocol for AI applications to commu
 
 ### Configuration File Format
 
-MCP servers are configured using a YAML file that defines server connections and their tools. The `command` field specifies how to start the MCP server, which varies depending on how the server is packaged and distributed.
+MCP servers are configured using a YAML file that defines server connections and their tools. Biomni supports three transports:
+
+#### Local servers (stdio transport)
+
+Use the `command` field to launch a local process:
 
 ```yaml
 mcp_servers:
@@ -32,6 +36,35 @@ mcp_servers:
 ```
 
 **Note**: The exact command format depends on the MCP server. Check the server's documentation for the correct command to use.
+
+#### Remote servers (HTTP transport)
+
+Use the `url` field to connect to a remote MCP server over HTTP. Two HTTP transports are supported:
+
+- **Streamable HTTP** (default when `url` is set): The modern MCP transport protocol.
+- **SSE**: The legacy Server-Sent Events transport. Set `transport: sse` explicitly.
+
+```yaml
+mcp_servers:
+  # Streamable HTTP (default for url-based servers)
+  my-remote-server:
+    url: "https://example.com/mcp"
+    enabled: true
+    description: "Remote MCP server"
+    headers:
+      Authorization: "Bearer ${MY_API_TOKEN}"  # Environment variable substitution
+
+  # SSE transport (legacy)
+  my-sse-server:
+    url: "https://example.com/sse"
+    transport: sse
+    enabled: true
+    description: "Remote SSE-based MCP server"
+    headers:
+      Authorization: "Bearer ${MY_API_TOKEN}"
+```
+
+The `headers` mapping supports `${ENV_VAR}` substitution, the same as `env` for stdio servers.
 
 ### Example Configuration
 
