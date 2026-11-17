@@ -1,7 +1,10 @@
 import json
 import os
 import pickle
+import random
 import time
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from typing import Any
 
 import requests
@@ -108,6 +111,52 @@ def _query_llm_for_api(prompt, schema, system_template):
         return {"success": False, "error": f"Error querying LLM: {str(e)}"}
 
 
+_HTTP_TIMEOUT = (5, 30)  # (connect, read) seconds without data; not a total wall-clock limit
+_GET_ATTEMPTS = 3
+_RETRY_STATUS = {429, 500, 502, 503, 504}
+_MAX_RETRY_DELAY = 10.0
+
+
+def _retry_after_seconds(response):
+    """Return the Retry-After delay in seconds, or None if absent or invalid."""
+    value = response.headers.get("Retry-After", "").strip()
+    if value.isascii() and value.isdigit():
+        return float(value)
+    try:
+        date = parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+    if date.tzinfo is None:
+        date = date.replace(tzinfo=UTC)
+    return max(0.0, (date - datetime.now(UTC)).total_seconds())
+
+
+def _get_with_retry(endpoint, **kwargs):
+    """GET with a timeout, retrying connection errors, timeouts and HTTP 429/5xx up to three attempts.
+
+    Retry-After is honored; if it asks for more than ten seconds the failed response is returned
+    instead. Other retries wait 0.5-1 s, then 1-2 s.
+    """
+    for attempt in range(_GET_ATTEMPTS):
+        last = attempt == _GET_ATTEMPTS - 1
+        try:
+            response = requests.get(endpoint, timeout=_HTTP_TIMEOUT, **kwargs)
+        except (requests.exceptions.SSLError, requests.exceptions.ProxyError):
+            raise
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            if last:
+                raise
+            delay = None
+        else:
+            if response.status_code not in _RETRY_STATUS or last:
+                return response
+            delay = _retry_after_seconds(response)
+            if delay is not None and delay > _MAX_RETRY_DELAY:
+                return response
+            response.close()
+        time.sleep(delay if delay is not None else random.uniform(0.5, 1.0) * 2**attempt)
+
+
 def _query_rest_api(endpoint, method="GET", params=None, headers=None, json_data=None, description=None):
     """General helper function to query REST APIs with consistent error handling.
 
@@ -138,9 +187,9 @@ def _query_rest_api(endpoint, method="GET", params=None, headers=None, json_data
     try:
         # Make the API request
         if method.upper() == "GET":
-            response = requests.get(endpoint, params=params, headers=headers)
+            response = _get_with_retry(endpoint, params=params, headers=headers)
         elif method.upper() == "POST":
-            response = requests.post(endpoint, params=params, headers=headers, json=json_data)
+            response = requests.post(endpoint, params=params, headers=headers, json=json_data, timeout=_HTTP_TIMEOUT)
         else:
             return {"error": f"Unsupported HTTP method: {method}"}
 
