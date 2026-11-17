@@ -6,6 +6,13 @@ recursive-include biomni *.py
 # Include the .pkl database files
 recursive-include biomni/tool/schema_db *.pkl
 
+# Include bundled know-how documents and supporting resources
+recursive-include biomni/know_how *.md
+recursive-include biomni/know_how/resource *.csv *.txt
+
+# Include local protocol texts
+recursive-include biomni/tool/protocols *.txt
+
 # Include specific files from biomni_env, but not the biomni_tools subdirectory
 recursive-include biomni_env *.py *.sh *.yml *.yaml *.txt *.md *.json *.R
 
