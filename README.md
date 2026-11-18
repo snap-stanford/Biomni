@@ -90,17 +90,17 @@ GEMINI_API_KEY=your_gemini_api_key_here
 # Optional: groq API Key (if using groq as model provider)
 GROQ_API_KEY=your_groq_api_key_here
 
-# Optional: Set the source of your LLM for example:
-#"OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Groq", "Custom"
-LLM_SOURCE=your_LLM_source_here
+# Optional: Set the source of your LLM, for example:
+# "OpenAI", "AzureOpenAI", "Anthropic", "Ollama", "Gemini", "Bedrock", "Groq", "Custom"
+BIOMNI_SOURCE=your_LLM_source_here
 
 # Optional: AWS Bedrock Configuration (if using AWS Bedrock models)
 AWS_BEARER_TOKEN_BEDROCK=your_bedrock_api_key_here
 AWS_REGION=us-east-1
 
 # Optional: Custom model serving configuration
-# CUSTOM_MODEL_BASE_URL=http://localhost:8000/v1
-# CUSTOM_MODEL_API_KEY=your_custom_api_key_here
+# BIOMNI_CUSTOM_BASE_URL=http://localhost:8000/v1
+# BIOMNI_CUSTOM_API_KEY=your_custom_api_key_here
 
 # Optional: Biomni data path (defaults to ./data)
 # BIOMNI_DATA_PATH=/path/to/your/data
@@ -121,7 +121,7 @@ export AWS_BEARER_TOKEN_BEDROCK="YOUR_BEDROCK_API_KEY" # optional for AWS Bedroc
 export AWS_REGION="us-east-1" # optional, defaults to us-east-1 for Bedrock
 export GEMINI_API_KEY="YOUR_GEMINI_API_KEY" #optional if you want to use a gemini model
 export GROQ_API_KEY="YOUR_GROQ_API_KEY" # Optional: set this to use models served by Groq
-export LLM_SOURCE="Groq" # Optional: set this to use models served by Groq
+export BIOMNI_SOURCE="Groq" # Optional: set this to use models served by Groq
 
 
 ```
