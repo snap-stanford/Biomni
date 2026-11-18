@@ -107,17 +107,19 @@ IMPORTANT GUIDELINES:
         # Get the selected resources
         selected_resources = {
             "tools": [
-                resources["tools"][i] for i in selected_indices.get("tools", []) if i < len(resources.get("tools", []))
+                resources["tools"][i]
+                for i in selected_indices.get("tools", [])
+                if 0 <= i < len(resources.get("tools", []))
             ],
             "data_lake": [
                 resources["data_lake"][i]
                 for i in selected_indices.get("data_lake", [])
-                if i < len(resources.get("data_lake", []))
+                if 0 <= i < len(resources.get("data_lake", []))
             ],
             "libraries": [
                 resources["libraries"][i]
                 for i in selected_indices.get("libraries", [])
-                if i < len(resources.get("libraries", []))
+                if 0 <= i < len(resources.get("libraries", []))
             ],
         }
 
@@ -126,7 +128,7 @@ IMPORTANT GUIDELINES:
             selected_resources["know_how"] = [
                 resources["know_how"][i]
                 for i in selected_indices.get("know_how", [])
-                if i < len(resources.get("know_how", []))
+                if 0 <= i < len(resources.get("know_how", []))
             ]
 
         return selected_resources
@@ -172,32 +174,28 @@ IMPORTANT GUIDELINES:
             response = str(response)
         selected_indices = {"tools": [], "data_lake": [], "libraries": [], "know_how": []}
 
+        def parse_indices(match):
+            """Return valid integer tokens without discarding adjacent selections."""
+            indices = []
+            if not match or not match.group(1).strip():
+                return indices
+            for token in match.group(1).split(","):
+                with contextlib.suppress(ValueError):
+                    indices.append(int(token.strip()))
+            return indices
+
         # Extract indices for each category
         tools_match = re.search(r"TOOLS:\s*\[(.*?)\]", response, re.IGNORECASE)
-        if tools_match and tools_match.group(1).strip():
-            with contextlib.suppress(ValueError):
-                selected_indices["tools"] = [int(idx.strip()) for idx in tools_match.group(1).split(",") if idx.strip()]
+        selected_indices["tools"] = parse_indices(tools_match)
 
         data_lake_match = re.search(r"DATA_LAKE:\s*\[(.*?)\]", response, re.IGNORECASE)
-        if data_lake_match and data_lake_match.group(1).strip():
-            with contextlib.suppress(ValueError):
-                selected_indices["data_lake"] = [
-                    int(idx.strip()) for idx in data_lake_match.group(1).split(",") if idx.strip()
-                ]
+        selected_indices["data_lake"] = parse_indices(data_lake_match)
 
         libraries_match = re.search(r"LIBRARIES:\s*\[(.*?)\]", response, re.IGNORECASE)
-        if libraries_match and libraries_match.group(1).strip():
-            with contextlib.suppress(ValueError):
-                selected_indices["libraries"] = [
-                    int(idx.strip()) for idx in libraries_match.group(1).split(",") if idx.strip()
-                ]
+        selected_indices["libraries"] = parse_indices(libraries_match)
 
         # Extract know-how indices
         know_how_match = re.search(r"KNOW[-_]HOW:\s*\[(.*?)\]", response, re.IGNORECASE)
-        if know_how_match and know_how_match.group(1).strip():
-            with contextlib.suppress(ValueError):
-                selected_indices["know_how"] = [
-                    int(idx.strip()) for idx in know_how_match.group(1).split(",") if idx.strip()
-                ]
+        selected_indices["know_how"] = parse_indices(know_how_match)
 
         return selected_indices
