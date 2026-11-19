@@ -1,7 +1,9 @@
 import glob
 import inspect
+import logging
 import os
 import re
+import uuid
 from collections.abc import Generator
 from datetime import datetime
 from pathlib import Path
@@ -43,6 +45,8 @@ from biomni.utils import (
     textify_api_dict,
 )
 
+logger = logging.getLogger(__name__)
+
 if os.path.exists(".env"):
     load_dotenv(".env", override=False)
     print("Loaded environment variables from .env")
@@ -51,6 +55,7 @@ if os.path.exists(".env"):
 class AgentState(TypedDict):
     messages: list[BaseMessage]
     next_step: str | None
+    working: dict | None
 
 
 class A1:
@@ -65,6 +70,7 @@ class A1:
         api_key: str | None = None,
         commercial_mode: bool | None = None,
         expected_data_lake_files: list | None = None,
+        user_id: str = "default",
     ):
         """Initialize the biomni agent.
 
@@ -77,6 +83,7 @@ class A1:
             base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
             api_key: API key for the custom LLM
             commercial_mode: If True, excludes datasets that require commercial licenses or are non-commercial only
+            user_id: Owner for memory isolation. Defaults to "default" (single-user).
 
         """
         # Use default_config values for unspecified parameters
@@ -147,6 +154,7 @@ class A1:
         print("=" * 50 + "\n")
 
         self.path = path
+        self.user_id = user_id
 
         if not os.path.exists(path):
             os.makedirs(path)
@@ -221,6 +229,18 @@ class A1:
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
         self.configure()
+
+        # --- Memory subsystem (optional, best-effort, never breaks the agent) ---
+        self.memory = None
+        self._memory_enabled = False
+        try:
+            from memory import MemorySystem
+
+            self.memory = MemorySystem(llm=self.llm)
+            self._memory_enabled = True
+            print("🧠 Memory system enabled")
+        except Exception as e:  # e.g. sqlalchemy/chromadb not installed
+            print(f"Note: Memory system disabled ({e})")
 
     def add_tool(self, api):
         """Add a new tool to the agent's tool registry and make it available for retrieval.
@@ -720,6 +740,7 @@ class A1:
             traceback.print_exc()
             return False
 
+    ##################################################################################
     def get_custom_data(self, name):
         """Get a custom data item by name.
 
@@ -1377,6 +1398,7 @@ Each library is listed with its description to help you understand its functiona
             know_how_docs=know_how_docs if know_how_docs else None,
         )
 
+        ########################################################################################
         # Define the nodes
         def generate(state: AgentState) -> AgentState:
             # Add OpenAI-specific formatting reminders if using OpenAI models
@@ -1466,6 +1488,9 @@ Each library is listed with its description to help you understand its functiona
                         )
                     )
                     state["next_step"] = "generate"
+            # Carry working memory through and record the routing decision.
+            if isinstance(state.get("working"), dict):
+                state["working"]["current_step"] = state.get("next_step") or "generate"
             return state
 
         def execute(state: AgentState) -> AgentState:
@@ -1550,6 +1575,9 @@ Each library is listed with its description to help you understand its functiona
                 observation = f"\n<observation>{result}</observation>"
                 state["messages"].append(AIMessage(content=observation.strip()))
 
+            # Carry working memory through and mark the execution step.
+            if isinstance(state.get("working"), dict):
+                state["working"]["current_step"] = "executed"
             return state
 
         def routing_function(
@@ -1643,6 +1671,7 @@ Each library is listed with its description to help you understand its functiona
         self.app.checkpointer = self.checkpointer
         # display(Image(self.app.get_graph().draw_mermaid_png()))
 
+    ############################################################################################################################
     def _prepare_resources_for_retrieval(self, prompt):
         """Prepare resources for retrieval and return selected resource names.
 
@@ -1756,21 +1785,30 @@ Each library is listed with its description to help you understand its functiona
 
         return selected_resources_names
 
-    def go(self, prompt):
+    ################################################################################################################################
+    def go(self, prompt, task_id=None):
         """Execute the agent with the given prompt.
 
         Args:
             prompt: The user's query
+            task_id: Optional working-memory task identity. Defaults to a fresh id per run.
 
         """
         self.critic_count = 0
         self.user_task = prompt
+        if task_id is None:
+            task_id = uuid.uuid4().hex
+        self._current_task_id = task_id
 
         if self.use_tool_retriever:
             selected_resources_names = self._prepare_resources_for_retrieval(prompt)
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
-        inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
+        inputs = {
+            "messages": self._build_initial_messages(prompt),
+            "next_step": None,
+            "working": self._load_working_memory(task_id),
+        }
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
         self.log = []
 
@@ -1786,9 +1824,14 @@ Each library is listed with its description to help you understand its functiona
         # Store the conversation state for markdown generation
         self._conversation_state = final_state
 
+        # Persist this run's long-term memory (Episodic + Semantic), then clean up
+        # working memory for this task. Both are best-effort and never block or raise.
+        self.persist_memory(user_id=self.user_id, task_id=task_id)
+        self._clear_working_memory(task_id)
+
         return self.log, message.content
 
-    def go_stream(self, prompt) -> Generator[dict, None, None]:
+    def go_stream(self, prompt, task_id=None) -> Generator[dict, None, None]:
         """Execute the agent with the given prompt and return a generator that yields each step.
 
         This function returns a generator that yields each step of the agent's execution,
@@ -1796,18 +1839,26 @@ Each library is listed with its description to help you understand its functiona
 
         Args:
             prompt: The user's query
+            task_id: Optional working-memory task identity. Defaults to a fresh id per run.
 
         Yields:
             dict: Each step of the agent's execution containing the current message and state
         """
         self.critic_count = 0
         self.user_task = prompt
+        if task_id is None:
+            task_id = uuid.uuid4().hex
+        self._current_task_id = task_id
 
         if self.use_tool_retriever:
             selected_resources_names = self._prepare_resources_for_retrieval(prompt)
             self.update_system_prompt_with_selected_resources(selected_resources_names)
 
-        inputs = {"messages": [HumanMessage(content=prompt)], "next_step": None}
+        inputs = {
+            "messages": self._build_initial_messages(prompt),
+            "next_step": None,
+            "working": self._load_working_memory(task_id),
+        }
         config = {"recursion_limit": 500, "configurable": {"thread_id": 42}}
         self.log = []
 
@@ -1825,6 +1876,11 @@ Each library is listed with its description to help you understand its functiona
 
         # Store the conversation state for markdown generation
         self._conversation_state = final_state
+
+        # Persist this run's long-term memory (Episodic + Semantic), then clean up
+        # working memory for this task. Both are best-effort and never block or raise.
+        self.persist_memory(user_id=self.user_id, task_id=task_id)
+        self._clear_working_memory(task_id)
 
     def update_system_prompt_with_selected_resources(self, selected_resources):
         """Update the system prompt with the selected resources."""
@@ -1992,6 +2048,7 @@ Each library is listed with its description to help you understand its functiona
         custom_functions = getattr(self, "_custom_functions", {})
         inject_custom_functions_to_repl(custom_functions)
 
+    ############################################################################
     def create_mcp_server(self, tool_modules=None):
         """
         Create an MCP server object that exposes internal Biomni tools.
@@ -2057,6 +2114,106 @@ Each library is listed with its description to help you understand its functiona
 
         print(f"Created MCP server with {registered_tools} tools")
         return mcp
+
+    def persist_memory(self, user_id="default", task_id=None, blocking=False):
+        """Extract and persist memory from the most recent run.
+
+        Non-blocking by default. Never raises — memory is best-effort and must
+        not break the agent's main flow or the existing PDF-saving path.
+
+        Args:
+            user_id: Owner of the memory (for multi-user isolation).
+            task_id: Optional task identifier; defaults to the last user prompt.
+            blocking: If True, wait for extraction to finish and return the result.
+        """
+        if not getattr(self, "_memory_enabled", False):
+            return None
+        try:
+            from memory import trace_from_log, trace_from_messages
+
+            state = getattr(self, "_conversation_state", None)
+            if state and isinstance(state, dict) and "messages" in state:
+                trace = trace_from_messages(state["messages"])
+            else:
+                trace = trace_from_log(getattr(self, "log", []))
+
+            task_id = task_id or getattr(self, "user_task", None)
+            if blocking:
+                return self.memory.ingest_sync(trace, user_id=user_id, task_id=task_id)
+            return self.memory.ingest_background(trace, user_id=user_id, task_id=task_id)
+        except Exception as exc:
+            logger.warning("Memory persistence failed for user %r: %s", user_id, exc)
+            return None
+
+    def retrieve_memory(self, query: str, user_id: str = "default") -> str:
+        """Return a memory-context prompt fragment for the given query.
+
+        Returns an empty string if memory is disabled or nothing relevant is found.
+
+        Args:
+            query: The search query.
+            user_id: Owner whose memories may be retrieved (for multi-user isolation).
+        """
+        if not getattr(self, "_memory_enabled", False):
+            return ""
+        try:
+            return self.memory.retrieve(query, user_id)
+        except Exception as exc:
+            logger.warning("Memory retrieval failed for user %r: %s", user_id, exc)
+            return ""
+
+    def _build_initial_messages(self, prompt: str) -> list:
+        """Build the initial message list, prepending recalled memory as a system message.
+
+        Memory recall is best-effort and scoped to the agent's user; an empty result
+        (or a disabled memory subsystem) yields the bare user prompt.
+        """
+        messages = []
+        memory_context = self.retrieve_memory(prompt, user_id=self.user_id)
+        if memory_context:
+            messages.append(
+                SystemMessage(
+                    content=(
+                        "Relevant context from your previous tasks (use it if helpful, "
+                        "ignore anything irrelevant):\n" + memory_context
+                    )
+                )
+            )
+        messages.append(HumanMessage(content=prompt))
+        return messages
+
+    def _load_working_memory(self, task_id: str) -> dict | None:
+        """Load this task's working-memory state, or None (best-effort, never raises).
+
+        Returns a JSON-safe dict so it can travel through the LangGraph state without
+        a Pydantic model or datetime objects tripping the checkpointer serializer.
+        """
+        if not getattr(self, "_memory_enabled", False):
+            return None
+        try:
+            state = self.memory.working.load_state(self.user_id, task_id)
+            if state is None:
+                return None
+            import json
+
+            return json.loads(state.model_dump_json())
+        except Exception as exc:
+            logger.warning("Working memory load failed for user %r task %r: %s", self.user_id, task_id, exc)
+            return None
+
+    def _clear_working_memory(self, task_id: str) -> None:
+        """Delete this task's working-memory entry after the run (best-effort)."""
+        if not getattr(self, "_memory_enabled", False):
+            return
+        try:
+            self.memory.working.clear(self.user_id, task_id)
+        except Exception as exc:
+            logger.warning(
+                "Working memory cleanup failed for user %r task %r: %s",
+                self.user_id,
+                task_id,
+                exc,
+            )
 
     def save_conversation_history(self, filepath: str, include_images: bool = True, save_pdf: bool = True) -> None:
         """Save the complete conversation history as PDF only.
@@ -2624,6 +2781,7 @@ Each library is listed with its description to help you understand its functiona
 
             return wrapper
 
+    ############################################################################################################################################################
     def launch_gradio_demo(self, thread_id=42, share=False, server_name="0.0.0.0", require_verification=False):
         """Launch a full-featured Gradio UI for the A1 agent (adapted from codeact_copilot).
 
