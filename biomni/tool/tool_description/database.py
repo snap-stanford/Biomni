@@ -728,4 +728,38 @@ description = [
             },
         ],
     },
+    {
+        "description": "Query the DISGENET biomedical knowledge graph and database using natural language. This tool provides comprehensive access to gene–disease, variant–disease, and disease–disease associations, enabling both evidence-based and mechanistic insights into genetic and disease relationships. It automatically handles entity normalization (disease → UMLS CUI, gene → NCBI Gene ID) and dynamically selects the appropriate DISGENET API endpoint based on the query intent. Typical use cases include identifying disease-associated genes, variants or diseases, exploring genetic pleiotropy and disease specificity, filter by parameters and scores to assess the consequences of a variant-disease association, assessing the mechanistic links between genes, variants, and disease phenotypes. The API supports ordering and filtering by multiple evidence and relevance metrics."
+        "capabilities"
+        "Gene–Disease Associations (GDA)"
+        "Variant–Disease Associations (VDA)"
+        "Disease–Disease Associations (DDA)"
+        "Entity and metadata information queries (gene, variant, or disease)"
+        "Mechanistic and causal inference support between genes and diseases"
+        "Evidence-based ranking and prioritization of associations"
+        "key_metrics (among others)"
+        "DISGENET Score: 0–1, overall evidence strength of an association"
+        "Disease Specificity Index (DSI): 0–1, indicates how specific a gene/variant is to a single disease"
+        "Disease Pleiotropy Index (DPI): 0–1, indicates how many diverse diseases a gene/variant is involved in"
+        "Evidence Index (EI): 0–1, consensus level across publications (1 = full agreement)"
+        "pLI (Loss-of-function Intolerance): 0–1, gene intolerance to LoF mutations, relevant for drug safety"
+        "data_outputs: Structured association tables containing gene, disease, and variant identifiers; evidence scores; PubMed references; and both DISGENET andliterature-derived metrics."
+        "query_guidelines: Use a single, detailed, natural language query per call. Supports ordering results by score, DSI, DPI, pLI, or publication year (pmYear). Supports disease class queries. Supports filtering by a vast number of parameters to assess the strength, relevance, and confidence of GDAs, VDAs and DDAs.",
+        "name": "query_disgenet_api",
+        "optional_parameters": [
+            {
+                "name": "verbose",
+                "type": "bool",
+                "default": False,
+                "description": "If true, returns detailed results including normalization steps, resolved API endpoint, and full metadata.",
+            }
+        ],
+        "required_parameters": [
+            {
+                "name": "prompt",
+                "type": "str",
+                "description": "Natural language query about genes, variants, or diseases (e.g., 'genes linked to Parkinson’s disease', 'Musculoskeletal Diseases (disease class) associated with TP53', 'mechanistic insights between APOE and Alzheimer’s','List high-confidence gene–disease pairs ordered by evidence index', 'Show variants implicated in Alzheimer’s disease').",
+            }
+        ],
+    },
 ]

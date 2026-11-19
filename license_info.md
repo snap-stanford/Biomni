@@ -12,7 +12,6 @@ A significant portion of the data used in Biomni requires a commercial license f
 | **BindingDB** | `BindingDB_All_202409.tsv` | Custom, non-commercial use granted. Commercial use requires a license. | Yes, with a commercial license. | [BindingDB](https://www.bindingdb.org) |
 | **Broad Repurposing Hub** | `broad_repurposing_hub_*.parquet` | CC BY 4.0 | Yes | [Broad Institute](https://www.broadinstitute.org/drug-repurposing-hub) |
 | **DDInter** | `ddinter_*.csv` | CC BY-NC-SA 4.0 | No, non-commercial use only. | [DDInter](http://ddinter.scbdd.com/) |
-| **DisGeNET** | `DisGeNET.parquet` | CC BY-NC-SA 4.0 | No, non-commercial use only. | [DisGeNET](https://www.disgenet.org/) |
 | **Enamine** | `enamine_cloud_library_smiles.pkl` | Proprietary. Requires license for screening. | Yes, with a valid license. | [Enamine](https://enamine.net/) |
 | **EveBio** | `evebio_*.csv` | Appears to be proprietary data from EveBio. | Requires permission from EveBio. | EveBio |
 | **Gene Ontology (GO)** | `go-plus.json` | CC BY 4.0 | Yes | [Gene Ontology Consortium](http://geneontology.org/) |
