@@ -21,6 +21,7 @@ Repository = "https://github.com/snap-stanford/biomni"
 
 [project.optional-dependencies]
 gradio = ["gradio>=5.0,<6.0"]
+onekgpd = ["dnaerys>=0.2.1,<0.3.0"]
 
 [tool.setuptools]
 include-package-data = true

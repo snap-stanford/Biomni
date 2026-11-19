@@ -188,6 +188,14 @@ pip install "gradio>=5.0,<6.0"
 
 The interface will be available at `http://localhost:7860`
 
+### 1000 Genomes Project (OneKGPd) tools
+
+The individual-level 1000 Genomes Project tools (`query_1000_genomes_*` in `biomni/tool/database.py`) require `dnaerys` client, which is imported lazily and is not installed by default. Install it if you use these tools:
+
+```bash
+pip install "dnaerys>=0.2.1,<0.3.0"
+```
+
 ### Configuration Management
 
 Biomni includes a centralized configuration system that provides flexible ways to manage settings. You can configure Biomni through environment variables, runtime modifications, or direct parameters.

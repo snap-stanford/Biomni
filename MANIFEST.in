@@ -6,6 +6,9 @@ recursive-include biomni *.py
 # Include the .pkl database files
 recursive-include biomni/tool/schema_db *.pkl
 
+# Include the bundled 1000 Genomes pedigree/population data
+recursive-include biomni/tool/1000G_data *.json.gz
+
 # Include specific files from biomni_env, but not the biomni_tools subdirectory
 recursive-include biomni_env *.py *.sh *.yml *.yaml *.txt *.md *.json *.R
 
