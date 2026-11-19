@@ -16,3 +16,7 @@ pip install nnunet nibabel nilearn
 pip install mi-googlesearch-python
 pip install git+https://github.com/pylabrobot/pylabrobot.git
 conda install weasyprint
+# Optional: DeepSpot-M, used by predict_spatial_gene_expression_from_histology.
+# The weights are gated: request access at https://huggingface.co/ratschlab/DeepSpotM
+# and run `huggingface-cli login`. Non-commercial research use only.
+pip install deepspotm || echo "Optional dependency deepspotm was not installed; predict_spatial_gene_expression_from_histology will be unavailable"
