@@ -183,6 +183,109 @@ def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
         return f"Error querying PubMed: {e}"
 
 
+def _extract_pubtator_documents(payload: dict) -> list[dict]:
+    documents = payload.get("PubTator3", [])
+    if isinstance(documents, list):
+        return [document for document in documents if isinstance(document, dict)]
+    return []
+
+
+def _get_pubtator_passage_text(document: dict, passage_type: str) -> str:
+    for passage in document.get("passages", []):
+        if passage.get("infons", {}).get("type") == passage_type:
+            return passage.get("text") or ""
+    return ""
+
+
+def _extract_pubtator_annotations(document: dict) -> list[dict]:
+    annotations = []
+    for passage in document.get("passages", []):
+        passage_type = passage.get("infons", {}).get("type") or "passage"
+        for annotation in passage.get("annotations", []):
+            if isinstance(annotation, dict):
+                annotations.append({**annotation, "passage_type": passage_type})
+    return annotations
+
+
+def _format_pubtator_annotation(annotation: dict) -> str:
+    infons = annotation.get("infons", {})
+    text = annotation.get("text") or "N/A"
+    annotation_type = infons.get("type") or infons.get("biotype") or "N/A"
+    normalized_name = infons.get("name") or text
+    normalized_id = infons.get("identifier") or infons.get("normalized_id") or "N/A"
+    database = infons.get("database") or "N/A"
+    passage_type = annotation.get("passage_type") or "N/A"
+    return (
+        f"- {text} ({annotation_type})"
+        f" | Normalized: {normalized_name}"
+        f" | ID: {normalized_id}"
+        f" | Database: {database}"
+        f" | Passage: {passage_type}"
+    )
+
+
+def _format_pubtator_document(document: dict, max_annotations: int = 20) -> str:
+    pmid = document.get("pmid") or document.get("id") or "N/A"
+    pmcid = document.get("pmcid") or "N/A"
+    title = _get_pubtator_passage_text(document, "title") or "N/A"
+    journal = document.get("journal") or document.get("meta", {}).get("journal") or "N/A"
+    year = document.get("meta", {}).get("year") or document.get("date", "")[:4] or "N/A"
+    annotations = _extract_pubtator_annotations(document)
+    formatted_annotations = [_format_pubtator_annotation(annotation) for annotation in annotations[:max_annotations]]
+    annotation_text = "\n".join(formatted_annotations) if formatted_annotations else "No annotations found."
+    return (
+        f"PMID: {pmid}\n"
+        f"PMCID: {pmcid}\n"
+        f"Title: {title}\n"
+        f"Journal: {journal}\n"
+        f"Year: {year}\n"
+        f"Annotations Returned: {len(formatted_annotations)} of {len(annotations)}\n"
+        f"Annotations:\n{annotation_text}"
+    )
+
+
+def _search_pubtator(pmid: str, session: requests.Session | None = None) -> list[dict]:
+    active_session = session or requests.Session()
+    response = active_session.get(
+        "https://www.ncbi.nlm.nih.gov/research/pubtator3-api/publications/export/biocjson",
+        params={"pmids": pmid},
+        timeout=30,
+    )
+    response.raise_for_status()
+    return _extract_pubtator_documents(response.json())
+
+
+def query_pubtator(pmid: str, max_annotations: int = 20) -> str:
+    """Query PubTator 3 for biomedical entity annotations for a PubMed identifier.
+
+    Parameters
+    ----------
+    - pmid (str): The PubMed identifier to retrieve annotations for.
+    - max_annotations (int): The maximum number of annotations to return (default: 20).
+
+    Returns
+    -------
+    - str: The formatted PubTator annotations or an error message.
+
+    """
+    try:
+        search_pmid = pmid.strip()
+        if not search_pmid:
+            return "Error querying PubTator: PMID must not be empty."
+        if not search_pmid.isdigit():
+            return "Error querying PubTator: PMID must contain only digits."
+
+        annotation_count = max(1, int(max_annotations))
+        documents = _search_pubtator(search_pmid)
+        if documents:
+            return "\n\n".join(_format_pubtator_document(document, annotation_count) for document in documents)
+        return "No PubTator annotations found."
+    except requests.RequestException as e:
+        return f"Error querying PubTator: {e}"
+    except ValueError as e:
+        return f"Error querying PubTator: {e}"
+
+
 def search_google(query: str, num_results: int = 3, language: str = "en") -> list[dict]:
     """Search using Google search.
 
