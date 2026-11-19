@@ -183,6 +183,73 @@ def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
         return f"Error querying PubMed: {e}"
 
 
+def _format_unpaywall_record(record: dict) -> str:
+    title = record.get("title") or "N/A"
+    doi = record.get("doi") or "N/A"
+    journal = record.get("journal_name") or "N/A"
+    is_oa = record.get("is_oa")
+    open_access = "Yes" if is_oa is True else "No" if is_oa is False else "N/A"
+    oa_status = record.get("oa_status") or "N/A"
+    best_location = record.get("best_oa_location") or {}
+    best_oa_url = best_location.get("url_for_pdf") or best_location.get("url_for_landing_page") or "N/A"
+    license_name = best_location.get("license") or "N/A"
+    return (
+        f"Title: {title}\n"
+        f"DOI: {doi}\n"
+        f"Journal: {journal}\n"
+        f"Open Access: {open_access}\n"
+        f"OA Status: {oa_status}\n"
+        f"Best OA URL: {best_oa_url}\n"
+        f"License: {license_name}"
+    )
+
+
+def _search_unpaywall(doi: str, email: str, session: requests.Session | None = None) -> dict:
+    active_session = session or requests.Session()
+    response = active_session.get(
+        f"https://api.unpaywall.org/v2/{doi}",
+        params={"email": email},
+        timeout=30,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if isinstance(payload, dict):
+        return payload
+    return {}
+
+
+def query_unpaywall(doi: str, email: str | None = None) -> str:
+    """Query Unpaywall for open-access status and full-text locations for a DOI.
+
+    Parameters
+    ----------
+    - doi (str): The paper DOI.
+    - email (str): Contact email required by the Unpaywall API. Uses UNPAYWALL_EMAIL if omitted.
+
+    Returns
+    -------
+    - str: The formatted open-access result or an error message.
+
+    """
+    try:
+        search_doi = doi.strip()
+        if not search_doi:
+            return "Error querying Unpaywall: DOI must not be empty."
+
+        contact_email = email or os.getenv("UNPAYWALL_EMAIL")
+        if not contact_email:
+            return "Error querying Unpaywall: Set UNPAYWALL_EMAIL or pass email."
+
+        record = _search_unpaywall(search_doi, contact_email)
+        if record:
+            return _format_unpaywall_record(record)
+        return "No record found on Unpaywall."
+    except requests.RequestException as e:
+        return f"Error querying Unpaywall: {e}"
+    except ValueError as e:
+        return f"Error querying Unpaywall: {e}"
+
+
 def search_google(query: str, num_results: int = 3, language: str = "en") -> list[dict]:
     """Search using Google search.
 

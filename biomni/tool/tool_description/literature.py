@@ -1,5 +1,25 @@
 description = [
     {
+        "description": "Query Unpaywall for open-access status and full-text locations for a DOI.",
+        "name": "query_unpaywall",
+        "optional_parameters": [
+            {
+                "default": None,
+                "description": "Contact email required by the Unpaywall API. Uses UNPAYWALL_EMAIL if omitted.",
+                "name": "email",
+                "type": "str",
+            }
+        ],
+        "required_parameters": [
+            {
+                "default": None,
+                "description": "The paper DOI.",
+                "name": "doi",
+                "type": "str",
+            }
+        ],
+    },
+    {
         "description": "Fetches supplementary information for a paper given its DOI "
         "and saves it to a specified directory.",
         "name": "fetch_supplementary_info_from_doi",
