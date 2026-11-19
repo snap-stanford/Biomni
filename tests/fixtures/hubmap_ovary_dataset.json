@@ -1,0 +1,59 @@
+{
+	"attribution": {
+		"provider": "HuBMAP",
+		"source_url": "https://search.api.hubmapconsortium.org/v3/portal/search",
+		"retrieved_date": "2026-09-08",
+		"note": "Public HuBMAP portal search response reduced to one dataset."
+	},
+	"response": {
+		"hits": {
+			"hits": [
+				{
+					"_id": "ba4753cba9dcb01d54185d737df9022c",
+					"_source": {
+						"assay_display_name": ["10X Multiome [Salmon + ArchR + Muon]"],
+						"assay_modality": "multiple",
+						"data_access_level": "public",
+						"dataset_type": "10X Multiome [Salmon + ArchR + Muon]",
+						"entity_type": "Dataset",
+						"files": [
+							{
+								"description": "Normalized gene expression with additional metadata",
+								"rel_path": "hubmap_ui/mudata-zarr/secondary_analysis.zarr/.zattrs",
+								"size": 138,
+								"type": "unknown"
+							},
+							{
+								"description": "RNA matrix data",
+								"rel_path": "hubmap_ui/mudata-zarr/secondary_analysis.zarr/.zgroup",
+								"size": 24,
+								"type": "unknown"
+							}
+						],
+						"group_name": "TMC - University of Pennsylvania",
+						"hubmap_id": "HBM522.GTLH.372",
+						"is_spatial": true,
+						"mapped_data_access_level": "Public",
+						"mapped_status": "Published",
+						"origin_samples": [
+							{
+								"entity_type": "Sample",
+								"hubmap_id": "HBM245.DLGF.454",
+								"mapped_organ": "Ovary (Left)",
+								"organ": "LO",
+								"sample_category": "organ",
+								"uuid": "d9db7bc957aea7da62fd2417b986e1e4"
+							}
+						],
+						"origin_samples_unique_mapped_organs": ["Ovary (Left)"],
+						"pipeline": "Salmon + ArchR + Muon",
+						"raw_dataset_type": "10X Multiome",
+						"status": "Published",
+						"title": "10X Multiome [Salmon + ArchR + Muon] data from the ovary (left) of a 19-year-old white female",
+						"uuid": "ba4753cba9dcb01d54185d737df9022c"
+					}
+				}
+			]
+		}
+	}
+}
