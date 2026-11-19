@@ -52,6 +52,25 @@ description = [
         ],
     },
     {
+        "description": "Query TransOmicsData chen-organoid assay metadata and ExperimentHub loading paths.",
+        "name": "query_transomicsdata_chen_organoid",
+        "optional_parameters": [
+            {
+                "default": "all",
+                "description": "Assay to return: all, phosphoproteome, proteome, transcriptome, or sctranscriptome",
+                "name": "assay",
+                "type": "str",
+            },
+            {
+                "default": True,
+                "description": "Whether to include R ExperimentHub loading code",
+                "name": "include_load_code",
+                "type": "bool",
+            },
+        ],
+        "required_parameters": [],
+    },
+    {
         "description": "Query the InterPro REST API using natural language or a direct endpoint.",
         "name": "query_interpro",
         "optional_parameters": [

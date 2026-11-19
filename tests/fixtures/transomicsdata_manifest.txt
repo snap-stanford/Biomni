@@ -1,0 +1,2 @@
+"Title"	"Description"	"Omics"	"Species"	"RDataPath"	"Reference"
+"1"	"chen-organoid"	"neural organoid differentiation"	"phosphoproteome, proteome, transcriptome, single-cell transcriptome"	"human"	"TransOmicsData/0.99.0/chen-organoid"	"Chen et al. Trans-omic Profiling Uncovers Molecular Controls of the Early Human Cerebral Organoid Formation. 2024"
