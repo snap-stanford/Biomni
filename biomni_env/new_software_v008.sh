@@ -16,3 +16,4 @@ pip install nnunet nibabel nilearn
 pip install mi-googlesearch-python
 pip install git+https://github.com/pylabrobot/pylabrobot.git
 conda install weasyprint
+pip install -U "marsilea>=0.7"
