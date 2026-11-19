@@ -356,6 +356,8 @@ class A1:
         with its tools exposed as synchronous wrapper functions.
 
         Supports both manual tool definitions and automatic tool discovery from MCP servers.
+        A server is either a local `command` (stdio) or a `url` (Streamable HTTP); each
+        server keeps one session open for the life of the process.
 
         Args:
             config_path: Path to the MCP configuration YAML file containing server
@@ -366,78 +368,32 @@ class A1:
             yaml.YAMLError: If the config file is malformed
             RuntimeError: If MCP server initialization fails
         """
-        import asyncio
         import os
         import sys
         import types
         from pathlib import Path
 
-        import nest_asyncio
         import yaml
-        from mcp import ClientSession
-        from mcp.client.stdio import StdioServerParameters, stdio_client
 
-        nest_asyncio.apply()
+        from biomni.mcp_client import DEFAULT_TIMEOUT_S, MCPServerConfig, get_manager
 
-        def discover_mcp_tools_sync(server_params: StdioServerParameters) -> list[dict]:
-            """Discover available tools from MCP server synchronously."""
-            try:
+        manager = get_manager()
 
-                async def _discover_async():
-                    async with stdio_client(server_params) as (reader, writer):
-                        async with ClientSession(reader, writer) as session:
-                            await session.initialize()
+        def expand_env(values: dict) -> dict:
+            """Replace "${VAR}" values with os.getenv("VAR", "")."""
+            expanded = {}
+            for key, value in (values or {}).items():
+                if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+                    expanded[key] = os.getenv(value[2:-1], "")
+                else:
+                    expanded[key] = value
+            return expanded
 
-                            # Get available tools
-                            tools_result = await session.list_tools()
-                            tools = tools_result.tools if hasattr(tools_result, "tools") else tools_result
-
-                            discovered_tools = []
-                            for tool in tools:
-                                if hasattr(tool, "name"):
-                                    discovered_tools.append(
-                                        {
-                                            "name": tool.name,
-                                            "description": tool.description,
-                                            "inputSchema": tool.inputSchema,
-                                        }
-                                    )
-                                else:
-                                    print(f"Warning: Skipping tool with no name attribute: {tool}")
-
-                            return discovered_tools
-
-                return asyncio.run(_discover_async())
-            except Exception as e:
-                print(f"Failed to discover tools: {e}")
-                return []
-
-        def make_mcp_wrapper(cmd: str, args: list[str], tool_name: str, doc: str, env_vars: dict = None):
-            """Create a synchronous wrapper for an async MCP tool call."""
+        def make_mcp_wrapper(server_name: str, tool_name: str, doc: str):
+            """Create a synchronous wrapper that calls the tool over the server's shared session."""
 
             def sync_tool_wrapper(**kwargs):
-                """Synchronous wrapper for MCP tool execution."""
-                try:
-                    server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
-
-                    async def async_tool_call():
-                        async with stdio_client(server_params) as (reader, writer):
-                            async with ClientSession(reader, writer) as session:
-                                await session.initialize()
-                                result = await session.call_tool(tool_name, kwargs)
-                                content = result.content[0]
-                                if hasattr(content, "json"):
-                                    return content.json()
-                                return content.text
-
-                    try:
-                        loop = asyncio.get_running_loop()
-                        return loop.create_task(async_tool_call())
-                    except RuntimeError:
-                        return asyncio.run(async_tool_call())
-
-                except Exception as e:
-                    raise RuntimeError(f"MCP tool execution failed for '{tool_name}': {e}") from e
+                return manager.call_tool(server_name, tool_name, kwargs)
 
             sync_tool_wrapper.__name__ = tool_name
             sync_tool_wrapper.__doc__ = doc
@@ -466,25 +422,25 @@ class A1:
             if not server_meta.get("enabled", True):
                 continue
 
-            # Validate command configuration
-            cmd_list = server_meta.get("command", [])
-            if not cmd_list or not isinstance(cmd_list, list):
+            # A server is either a local command (stdio) or a URL (Streamable HTTP)
+            cmd_list = server_meta.get("command")
+            url = server_meta.get("url")
+            if cmd_list is not None and (not cmd_list or not isinstance(cmd_list, list)):
                 print(f"Warning: Invalid command configuration for server '{server_name}'")
                 continue
-
-            cmd, *args = cmd_list
-
-            # Process environment variables
-            env_vars = server_meta.get("env", {})
-            if env_vars:
-                processed_env = {}
-                for key, value in env_vars.items():
-                    if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
-                        var_name = value[2:-1]
-                        processed_env[key] = os.getenv(var_name, "")
-                    else:
-                        processed_env[key] = value
-                env_vars = processed_env
+            try:
+                server_config = MCPServerConfig(
+                    name=server_name,
+                    command=cmd_list,
+                    env=expand_env(server_meta.get("env", {})),
+                    url=url,
+                    headers=expand_env(server_meta.get("headers", {})),
+                    timeout=float(server_meta.get("timeout", DEFAULT_TIMEOUT_S)),
+                )
+            except ValueError as e:
+                print(f"Warning: {e}")
+                continue
+            manager.register(server_config)
 
             # Create module namespace for this MCP server
             mcp_module_name = f"mcp_servers.{server_name}"
@@ -496,8 +452,7 @@ class A1:
 
             if not tools_config:
                 try:
-                    server_params = StdioServerParameters(command=cmd, args=args, env=env_vars)
-                    tools_config = discover_mcp_tools_sync(server_params)
+                    tools_config = manager.list_tools(server_name)
 
                     if tools_config:
                         print(f"Discovered {len(tools_config)} tools from {server_name} MCP server")
@@ -535,7 +490,7 @@ class A1:
                     continue
 
                 # Create wrapper function
-                wrapper_function = make_mcp_wrapper(cmd, args, tool_name, description, env_vars)
+                wrapper_function = make_mcp_wrapper(server_name, tool_name, description)
 
                 # Add to module namespace
                 setattr(server_module, tool_name, wrapper_function)
