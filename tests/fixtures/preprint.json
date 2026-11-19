@@ -1,0 +1,39 @@
+{
+	"attribution": {
+		"provider": "Europe PMC",
+		"source_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=SRC%3APPR&resultType=core&format=json&pageSize=1",
+		"retrieved_date": "2026-08-30",
+		"note": "Recorded core response reduced only by removing fields outside this capability's contract."
+	},
+	"response": {
+		"version": "6.9",
+		"hitCount": 1,
+		"resultList": {
+			"result": [
+				{
+					"id": "PPR1306089",
+					"source": "PPR",
+					"doi": "10.64898/2026.08.24.746774",
+					"title": "Assay concordance sets exact ceilings on what one biological score can predict",
+					"authorList": {
+						"author": [
+							{
+								"fullName": "Liu Z",
+								"firstName": "Zongmin",
+								"lastName": "Liu",
+								"initials": "Z"
+							}
+						]
+					},
+					"pubYear": "2026",
+					"abstractText": "Computational models of biology are ranked by averaging one prediction against many experimental realizations of a phenotype that are treated as interchangeable. We show this imposes an exact, model-free ceiling fixed by how much those realizations agree with each other, and that the ceiling depends on the evaluation metric through a single support-function identity.",
+					"pubTypeList": { "pubType": ["Preprint"] },
+					"isOpenAccess": "N",
+					"inEPMC": "N",
+					"inPMC": "N",
+					"firstPublicationDate": "2026-08-26"
+				}
+			]
+		}
+	}
+}

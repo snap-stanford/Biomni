@@ -183,6 +183,89 @@ def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
         return f"Error querying PubMed: {e}"
 
 
+def _extract_europe_pmc_records(payload: dict) -> list[dict]:
+    result_list = payload.get("resultList", {}).get("result", [])
+    if isinstance(result_list, list):
+        return [record for record in result_list if isinstance(record, dict)]
+    return []
+
+
+def _simplify_europe_pmc_query(query: str, retry_index: int) -> str:
+    parts = query.split()
+    if len(parts) > retry_index:
+        return " ".join(parts[:-retry_index])
+    return query
+
+
+def _format_europe_pmc_record(record: dict) -> str:
+    title = record.get("title") or "N/A"
+    abstract = record.get("abstractText") or "No abstract available."
+    journal_info = record.get("journalInfo", {})
+    journal = (
+        record.get("journalTitle")
+        or record.get("journalAbbreviation")
+        or journal_info.get("journal", {}).get("title")
+        or journal_info.get("journal", {}).get("isoabbreviation")
+        or "N/A"
+    )
+    return f"Title: {title}\nAbstract: {abstract}\nJournal: {journal}"
+
+
+def _search_europe_pmc(query: str, page_size: int = 25, session: requests.Session | None = None) -> list[dict]:
+    active_session = session or requests.Session()
+    response = active_session.get(
+        "https://www.ebi.ac.uk/europepmc/webservices/rest/search",
+        params={
+            "query": query,
+            "format": "json",
+            "resultType": "core",
+            "pageSize": page_size,
+        },
+        timeout=30,
+    )
+    response.raise_for_status()
+    return _extract_europe_pmc_records(response.json())
+
+
+def query_europe_pmc(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
+    """Query Europe PMC for papers based on the provided search query.
+
+    Parameters
+    ----------
+    - query (str): The search query string.
+    - max_papers (int): The maximum number of papers to retrieve (default: 10).
+    - max_retries (int): Maximum number of retry attempts with modified queries (default: 3).
+
+    Returns
+    -------
+    - str: The formatted search results or an error message.
+
+    """
+    try:
+        search_query = query.strip()
+        if not search_query:
+            return "Error querying Europe PMC: Query must not be empty."
+
+        page_size = max(1, int(max_papers))
+        retries = max(0, int(max_retries))
+        records = _search_europe_pmc(search_query, page_size=page_size)
+
+        retry_count = 0
+        while not records and retry_count < retries:
+            retry_count += 1
+            search_query = _simplify_europe_pmc_query(search_query, retry_count)
+            time.sleep(1)
+            records = _search_europe_pmc(search_query, page_size=page_size)
+
+        if records:
+            return "\n\n".join(_format_europe_pmc_record(record) for record in records[:page_size])
+        return "No papers found on Europe PMC after multiple query attempts."
+    except requests.RequestException as e:
+        return f"Error querying Europe PMC: {e}"
+    except ValueError as e:
+        return f"Error querying Europe PMC: {e}"
+
+
 def search_google(query: str, num_results: int = 3, language: str = "en") -> list[dict]:
     """Search using Google search.
 
