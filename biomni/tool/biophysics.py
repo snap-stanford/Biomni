@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 def predict_protein_disorder_regions(protein_sequence, threshold=0.5, output_file="disorder_prediction_results.csv"):
     """Predicts intrinsically disordered regions (IDRs) in a protein sequence using IUPred2A.
 
@@ -511,3 +514,658 @@ def analyze_tissue_deformation_flow(image_sequence, output_dir="results", pixel_
     log += f"- Summary statistics: {output_dir}/deformation_summary.npy\n"
 
     return log
+
+
+# ---------------------------------------------------------------------------
+# Internal helpers for FRAP condensate analysis
+# ---------------------------------------------------------------------------
+import json
+import os
+from typing import Any
+
+import numpy as np
+
+
+def _circular_mask(shape: tuple[int, int], cx: float, cy: float, r: float) -> np.ndarray:
+    """Boolean mask for a circular ROI centered at (cx, cy) with radius r."""
+    Y, X = np.ogrid[: shape[0], : shape[1]]
+    return (X - cx) ** 2 + (Y - cy) ** 2 <= r**2
+
+
+def _soumpasis_recovery(t, F0, Mf, tau_D):
+    """Soumpasis 1983 model for 2D diffusion in a uniform circular bleach spot.
+
+    F(t) = F0 + Mf * (1 - F0) * gamma(tau_D, t)
+    where gamma(tau_D, t) = exp(-2*tau_D/t) * (I0(2*tau_D/t) + I1(2*tau_D/t))
+
+    `gamma` rises monotonically from 0 at t=0+ to 1 as t -> infinity.
+    `tau_D` is the characteristic diffusion time; D = w^2 / (4 * tau_D)
+    where w is the bleach radius.
+    """
+    from scipy.special import ive  # exponentially scaled modified Bessel
+
+    t = np.asarray(t, dtype=float)
+    safe_t = np.where(t > 0, t, np.finfo(float).eps)
+    arg = 2.0 * tau_D / safe_t
+    # ive(n, x) = iv(n, x) * exp(-|x|), so this directly gives exp(-arg)*(I0+I1)
+    gamma = ive(0, arg) + ive(1, arg)
+    gamma = np.where(t > 0, gamma, 0.0)
+    return F0 + Mf * (1.0 - F0) * gamma
+
+
+def _exponential_recovery(t, F0, Mf, tau):
+    """Single-exponential phenomenological recovery."""
+    t = np.asarray(t, dtype=float)
+    return F0 + Mf * (1.0 - F0) * (1.0 - np.exp(-t / tau))
+
+
+def _double_exponential_recovery(t, F0, A1, tau1, A2, tau2):
+    """Two-component exponential recovery (slow + fast pools).
+
+    A1 + A2 is the effective mobile fraction (A1, A2 each in [0, 1]).
+    """
+    t = np.asarray(t, dtype=float)
+    return F0 + A1 * (1.0 - np.exp(-t / tau1)) + A2 * (1.0 - np.exp(-t / tau2))
+
+
+def _solve_t_half_soumpasis(tau_D: float) -> float:
+    """Numerically solve gamma(tau_D, t) = 0.5 for t."""
+    from scipy.optimize import brentq
+    from scipy.special import ive
+
+    def f(x):
+        arg = 2.0 * tau_D / x
+        return ive(0, arg) + ive(1, arg) - 0.5
+
+    try:
+        return float(brentq(f, 1e-9 * tau_D, 1e6 * tau_D))
+    except Exception:
+        # Closed-form approximation: t_half ~= tau_D for Soumpasis 2D.
+        return float(tau_D)
+
+
+def _initial_guesses(t: np.ndarray, F: np.ndarray) -> dict[str, float]:
+    """Sensible starting parameters from the data."""
+    F0 = float(F[0])
+    plateau = float(np.median(F[-max(3, len(F) // 10) :]))
+    Mf = max(0.01, min(1.2, (plateau - F0) / max(1e-6, 1.0 - F0)))
+    midpoint = (F0 + plateau) / 2.0
+    idx_half = int(np.argmin(np.abs(F - midpoint)))
+    t_half = max(t[idx_half] - t[0], (t[-1] - t[0]) / 10.0)
+    return {"F0": F0, "Mf": Mf, "tau": t_half, "plateau": plateau, "t_half": t_half}
+
+
+def extract_frap_curve_from_image_stack(
+    image_stack_path: str,
+    bleach_roi: list,
+    reference_roi: list = None,
+    background_roi: list = None,
+    bleach_frame_index: int = None,
+    frame_interval_s: float = 1.0,
+    output_folder: str = "./tmp/",
+) -> str:
+    """Extract a normalized FRAP recovery curve from a TIFF time-series.
+
+    Performs background subtraction (if a background ROI is supplied) and
+    reference-ROI photobleaching correction (if a reference ROI is supplied),
+    then double-normalizes against the pre-bleach mean intensity in the
+    bleach ROI. Writes both the full curve and the post-bleach-only curve
+    as CSV.
+
+    Args:
+        image_stack_path: Path to a multi-frame TIFF (T, Y, X) or (T, C, Y, X).
+            For multi-channel stacks, channel 0 is used.
+        bleach_roi: [x_center_px, y_center_px, radius_px] of the bleached spot.
+        reference_roi: Optional [x, y, r] for an unbleached reference region
+            used to correct ongoing acquisition photobleaching.
+        background_roi: Optional [x, y, r] outside any cell, for camera /
+            background subtraction.
+        bleach_frame_index: Index of the first post-bleach frame. If None,
+            auto-detected as the frame with the largest intensity drop.
+        frame_interval_s: Time between successive frames, seconds.
+        output_folder: Directory for CSV outputs (created if missing).
+
+    Returns:
+        Log string describing each step and listing output paths.
+    """
+    log: list[str] = []
+    os.makedirs(output_folder, exist_ok=True)
+    log.append(f"Loading image stack from {image_stack_path}")
+
+    try:
+        import tifffile
+    except ImportError:
+        return "ERROR: tifffile is required. Install with `pip install tifffile`."
+
+    try:
+        stack = tifffile.imread(image_stack_path)
+    except Exception as exc:
+        return f"ERROR: failed to read TIFF stack: {exc}"
+
+    if stack.ndim < 3:
+        return "ERROR: image stack must have at least 3 dimensions (T, Y, X)."
+    if stack.ndim == 4:
+        log.append("Multi-channel stack detected; using channel 0.")
+        stack = stack[:, 0, :, :]
+    if stack.ndim != 3:
+        return f"ERROR: unsupported stack shape {stack.shape}; expected (T, Y, X)."
+
+    n_frames, ny, nx = stack.shape
+    log.append(f"Stack shape: {n_frames} frames x {ny} x {nx}.")
+
+    cx, cy, r = bleach_roi
+    if not (0 <= cx < nx and 0 <= cy < ny and r > 0):
+        return f"ERROR: bleach_roi {bleach_roi} out of image bounds {(nx, ny)}."
+    bleach_mask = _circular_mask((ny, nx), cx, cy, r)
+    log.append(f"Bleach ROI: center=({cx}, {cy}), radius={r} px, area={int(bleach_mask.sum())} px.")
+
+    bleach_intensity = np.array([frame[bleach_mask].mean() for frame in stack], dtype=float)
+    raw_bleach = bleach_intensity.copy()
+
+    bg_intensity = None
+    if background_roi is not None:
+        bg_mask = _circular_mask((ny, nx), background_roi[0], background_roi[1], background_roi[2])
+        bg_intensity = np.array([frame[bg_mask].mean() for frame in stack], dtype=float)
+        bleach_intensity = bleach_intensity - bg_intensity
+        log.append("Applied background subtraction.")
+
+    if reference_roi is not None:
+        ref_mask = _circular_mask((ny, nx), reference_roi[0], reference_roi[1], reference_roi[2])
+        ref_intensity = np.array([frame[ref_mask].mean() for frame in stack], dtype=float)
+        if bg_intensity is not None:
+            ref_intensity = ref_intensity - bg_intensity
+        ref_safe = np.where(ref_intensity > 0, ref_intensity, np.finfo(float).eps)
+        bleach_intensity = bleach_intensity / ref_safe
+        log.append("Applied reference-ROI bleach correction (divided by reference).")
+
+    if bleach_frame_index is None:
+        diffs = np.diff(bleach_intensity)
+        bleach_frame_index = int(np.argmin(diffs)) + 1
+        log.append(f"Auto-detected bleach frame index: {bleach_frame_index}.")
+
+    if not (1 <= bleach_frame_index < n_frames):
+        return f"ERROR: bleach_frame_index={bleach_frame_index} out of range for {n_frames}-frame stack."
+
+    pre_bleach_mean = float(np.mean(bleach_intensity[:bleach_frame_index]))
+    if pre_bleach_mean <= 0:
+        return "ERROR: pre-bleach mean intensity is non-positive; check ROIs and background."
+    log.append(f"Pre-bleach mean intensity: {pre_bleach_mean:.4f}.")
+
+    intensity_norm = bleach_intensity / pre_bleach_mean
+    times = (np.arange(n_frames) - bleach_frame_index) * frame_interval_s
+
+    # Sanity check on the post-bleach drop: should be < 1.0 by a meaningful amount.
+    F0 = float(intensity_norm[bleach_frame_index])
+    if F0 > 0.95:
+        log.append(
+            f"WARNING: post-bleach intensity is {F0:.3f} (≥ 0.95). Bleach event may not have been detected correctly."
+        )
+
+    import pandas as pd
+
+    full_df = pd.DataFrame(
+        {
+            "frame": np.arange(n_frames),
+            "time_s": times,
+            "intensity_raw": raw_bleach,
+            "intensity_norm": intensity_norm,
+        }
+    )
+    full_csv = os.path.join(output_folder, "frap_curve_full.csv")
+    full_df.to_csv(full_csv, index=False)
+
+    post_df = full_df.iloc[bleach_frame_index:].reset_index(drop=True)
+    post_csv = os.path.join(output_folder, "frap_curve_postbleach.csv")
+    post_df[["time_s", "intensity_norm"]].to_csv(post_csv, index=False)
+
+    log.append(f"Wrote full curve ({n_frames} frames) to {full_csv}.")
+    log.append(
+        f"Wrote post-bleach curve ({len(post_df)} frames) to {post_csv}; "
+        f"this is the input expected by `fit_frap_recovery_curve`."
+    )
+    log.append(f"Post-bleach intensity F0 = {F0:.4f} (fraction of pre-bleach).")
+
+    return "\n".join(log)
+
+
+def fit_frap_recovery_curve(
+    curve_csv_path: str,
+    bleach_radius_um: float,
+    fit_model: str = "soumpasis",
+    initial_guess: dict = None,
+    output_folder: str = "./tmp/",
+) -> str:
+    """Fit a normalized FRAP recovery curve and extract biophysical parameters.
+
+    The input CSV must contain columns `time_s` and `intensity_norm`, with
+    t=0 at the first post-bleach frame and intensity normalized to the
+    pre-bleach mean (which is the output of `extract_frap_curve_from_image_stack`).
+
+    Args:
+        curve_csv_path: Path to the post-bleach CSV.
+        bleach_radius_um: Radius of the bleached spot in micrometers, used
+            to convert tau_D to a diffusion coefficient (Soumpasis only).
+        fit_model: One of "soumpasis", "exponential", "double_exponential".
+        initial_guess: Optional dict with starting parameters; otherwise
+            reasonable values are inferred from the data.
+        output_folder: Where to write the fit plot and parameters JSON.
+
+    Returns:
+        Log string with the fitted parameters, R^2, RMSE, and output paths.
+    """
+    log: list[str] = []
+    os.makedirs(output_folder, exist_ok=True)
+
+    try:
+        import matplotlib
+        import pandas as pd
+        from scipy.optimize import curve_fit
+
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except ImportError as exc:
+        return f"ERROR: missing dependency ({exc})."
+
+    log.append(f"Loading FRAP curve from {curve_csv_path}")
+    try:
+        df = pd.read_csv(curve_csv_path)
+    except Exception as exc:
+        return f"ERROR: failed to read CSV: {exc}"
+
+    if not {"time_s", "intensity_norm"}.issubset(df.columns):
+        return "ERROR: CSV must contain columns 'time_s' and 'intensity_norm'."
+
+    t = df["time_s"].to_numpy(dtype=float)
+    F = df["intensity_norm"].to_numpy(dtype=float)
+    if len(t) < 5:
+        return "ERROR: need at least 5 post-bleach data points to fit."
+    if not np.all(np.diff(t) > 0):
+        return "ERROR: time_s must be strictly increasing."
+
+    g = _initial_guesses(t, F)
+    log.append(
+        f"Data F0 ≈ {g['F0']:.3f}, plateau ≈ {g['plateau']:.3f}, "
+        f"empirical t-half ≈ {g['t_half']:.2f} s, initial Mf ≈ {g['Mf']:.3f}."
+    )
+
+    params: dict[str, Any] = {"model": fit_model, "bleach_radius_um": float(bleach_radius_um)}
+
+    try:
+        if fit_model == "soumpasis":
+            p0 = (initial_guess or {}).get("p0") or [g["F0"], g["Mf"], g["t_half"]]
+            bounds = ([0.0, 0.0, 1e-6], [1.0, 1.5, np.inf])
+            popt, pcov = curve_fit(_soumpasis_recovery, t, F, p0=p0, bounds=bounds, maxfev=20000)
+            F0_fit, Mf_fit, tau_D_fit = popt
+            perr = np.sqrt(np.diag(pcov)) * 1.96
+            D_fit = (bleach_radius_um**2) / (4.0 * tau_D_fit)
+            t_half = _solve_t_half_soumpasis(tau_D_fit)
+            params.update(
+                F0=float(F0_fit),
+                F0_ci95=float(perr[0]),
+                mobile_fraction=float(Mf_fit),
+                mobile_fraction_ci95=float(perr[1]),
+                tau_D_s=float(tau_D_fit),
+                tau_D_ci95_s=float(perr[2]),
+                diffusion_coefficient_um2_per_s=float(D_fit),
+                t_half_s=float(t_half),
+            )
+            F_pred = _soumpasis_recovery(t, *popt)
+
+        elif fit_model == "exponential":
+            p0 = (initial_guess or {}).get("p0") or [g["F0"], g["Mf"], g["tau"]]
+            bounds = ([0.0, 0.0, 1e-6], [1.0, 1.5, np.inf])
+            popt, pcov = curve_fit(_exponential_recovery, t, F, p0=p0, bounds=bounds, maxfev=20000)
+            F0_fit, Mf_fit, tau_fit = popt
+            perr = np.sqrt(np.diag(pcov)) * 1.96
+            params.update(
+                F0=float(F0_fit),
+                F0_ci95=float(perr[0]),
+                mobile_fraction=float(Mf_fit),
+                mobile_fraction_ci95=float(perr[1]),
+                tau_s=float(tau_fit),
+                tau_ci95_s=float(perr[2]),
+                t_half_s=float(tau_fit * np.log(2.0)),
+            )
+            F_pred = _exponential_recovery(t, *popt)
+
+        elif fit_model == "double_exponential":
+            # Default split: half the mobile fraction in each pool, tau1 fast, tau2 slow.
+            p0 = (initial_guess or {}).get("p0") or [
+                g["F0"],
+                max(g["Mf"] / 2.0, 0.05),
+                max(g["tau"] / 3.0, 1e-3),
+                max(g["Mf"] / 2.0, 0.05),
+                max(g["tau"] * 3.0, 1e-2),
+            ]
+            bounds = ([0.0, 0.0, 1e-6, 0.0, 1e-6], [1.0, 1.0, np.inf, 1.0, np.inf])
+            popt, pcov = curve_fit(_double_exponential_recovery, t, F, p0=p0, bounds=bounds, maxfev=20000)
+            F0_fit, A1, tau1, A2, tau2 = popt
+            # Enforce tau1 < tau2 for reportability.
+            if tau1 > tau2:
+                A1, A2 = A2, A1
+                tau1, tau2 = tau2, tau1
+            perr = np.sqrt(np.diag(pcov)) * 1.96
+            params.update(
+                F0=float(F0_fit),
+                F0_ci95=float(perr[0]),
+                amplitude_fast=float(A1),
+                tau_fast_s=float(tau1),
+                amplitude_slow=float(A2),
+                tau_slow_s=float(tau2),
+                mobile_fraction=float(A1 + A2),
+            )
+            F_pred = _double_exponential_recovery(t, F0_fit, A1, tau1, A2, tau2)
+
+        else:
+            return (
+                f"ERROR: unknown fit_model '{fit_model}'. Choose 'soumpasis', 'exponential', or 'double_exponential'."
+            )
+
+    except Exception as exc:
+        return f"ERROR: curve_fit failed for model '{fit_model}': {exc}"
+
+    ss_res = float(np.sum((F - F_pred) ** 2))
+    ss_tot = float(np.sum((F - np.mean(F)) ** 2))
+    r_squared = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0
+    rmse = float(np.sqrt(np.mean((F - F_pred) ** 2)))
+    params["r_squared"] = float(r_squared)
+    params["rmse"] = rmse
+
+    if params.get("mobile_fraction", 0.0) > 1.05:
+        log.append(
+            f"WARNING: fitted mobile fraction {params['mobile_fraction']:.3f} > 1; "
+            "indicates over-correction or unaccounted-for background drift."
+        )
+
+    params_path = os.path.join(output_folder, "frap_fit_parameters.json")
+    with open(params_path, "w") as fh:
+        json.dump(params, fh, indent=2)
+
+    plot_path = os.path.join(output_folder, "frap_fit_plot.png")
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.scatter(t, F, label="Data", s=18, color="C0", zorder=2)
+    t_dense = np.linspace(t[0], t[-1], 500)
+    if fit_model == "soumpasis":
+        F_dense = _soumpasis_recovery(t_dense, *popt)
+    elif fit_model == "exponential":
+        F_dense = _exponential_recovery(t_dense, *popt)
+    else:
+        F_dense = _double_exponential_recovery(t_dense, *popt)
+    ax.plot(t_dense, F_dense, label=f"Fit ({fit_model})", color="C1", linewidth=2, zorder=3)
+    title_bits = [
+        f"Mf={params.get('mobile_fraction', float('nan')):.2f}",
+        f"R²={r_squared:.3f}",
+    ]
+    if "t_half_s" in params:
+        title_bits.insert(1, f"t½={params['t_half_s']:.1f}s")
+    if "diffusion_coefficient_um2_per_s" in params:
+        title_bits.append(f"D={params['diffusion_coefficient_um2_per_s']:.3f} µm²/s")
+    ax.set_title("FRAP fit · " + ", ".join(title_bits))
+    ax.set_xlabel("Time post-bleach (s)")
+    ax.set_ylabel("Normalized intensity")
+    ax.legend()
+    ax.grid(alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=120)
+    plt.close(fig)
+
+    log.append(f"Fit model: {fit_model}.")
+    if "mobile_fraction" in params:
+        log.append(
+            f"Mobile fraction: {params['mobile_fraction']:.3f}"
+            + (f" (95% CI ± {params['mobile_fraction_ci95']:.3f})" if "mobile_fraction_ci95" in params else "")
+        )
+    if "t_half_s" in params:
+        log.append(f"t-half: {params['t_half_s']:.2f} s.")
+    if "diffusion_coefficient_um2_per_s" in params:
+        log.append(
+            f"Diffusion coefficient: {params['diffusion_coefficient_um2_per_s']:.4f} µm²/s "
+            f"(from bleach radius {bleach_radius_um} µm and τ_D {params['tau_D_s']:.3f} s)."
+        )
+    if fit_model == "double_exponential":
+        log.append(f"Fast component: A={params['amplitude_fast']:.3f}, τ={params['tau_fast_s']:.2f} s.")
+        log.append(f"Slow component: A={params['amplitude_slow']:.3f}, τ={params['tau_slow_s']:.2f} s.")
+    log.append(f"R² = {r_squared:.4f}, RMSE = {rmse:.4f}.")
+    log.append(f"Wrote fit parameters to {params_path}.")
+    log.append(f"Wrote fit plot to {plot_path}.")
+
+    return "\n".join(log)
+
+
+def classify_condensate_material_state(
+    fit_parameters_json: str,
+    output_folder: str = "./tmp/",
+    use_llm_interpretation: bool = False,
+    llm: str = "claude-sonnet-4-5",
+    context_note: str = "",
+) -> str:
+    """Classify FRAP fit parameters into liquid / gel-like / arrested.
+
+    Heuristic over mobile fraction and recovery half-time. Optionally calls
+    an LLM (via biomni.llm.get_llm) to produce a 1-paragraph biological
+    interpretation grounded in the classification and any user-supplied
+    context (protein name, condition, salt concentration, etc.).
+
+    Args:
+        fit_parameters_json: Path to the JSON written by `fit_frap_recovery_curve`.
+        output_folder: Where to write the interpretation text.
+        use_llm_interpretation: If True, call the configured LLM for a prose
+            explanation; if False, return the heuristic verdict only. Default
+            False to keep the tool deterministic and CI-safe.
+        llm: Model name passed to `biomni.llm.get_llm` when LLM is used.
+        context_note: Free-text context (e.g., "FUS in 50 mM KCl after 30 min")
+            that the LLM should use when generating the interpretation.
+
+    Returns:
+        Log string with classification, the heuristic reasoning, and (if
+        requested) the LLM-generated paragraph.
+    """
+    log: list[str] = []
+    os.makedirs(output_folder, exist_ok=True)
+
+    try:
+        with open(fit_parameters_json) as fh:
+            params = json.load(fh)
+    except Exception as exc:
+        return f"ERROR: failed to read fit parameters JSON: {exc}"
+
+    Mf = params.get("mobile_fraction")
+    t_half = params.get("t_half_s")
+    r_squared = params.get("r_squared", 0.0)
+    if Mf is None:
+        return "ERROR: 'mobile_fraction' missing from fit parameters."
+
+    # Heuristic thresholds (Brangwynne / Hyman lab community conventions).
+    # These are flagged in the docstring as rule-of-thumb, not law.
+    if Mf >= 0.7 and r_squared >= 0.9 and (t_half is None or t_half < 60):
+        verdict = "liquid"
+        reasoning = (
+            f"Mobile fraction {Mf:.2f} ≥ 0.70 with high-quality fit "
+            f"(R²={r_squared:.2f}); recovery is fast and near-complete, "
+            "consistent with a liquid-like condensate."
+        )
+    elif Mf < 0.2:
+        verdict = "arrested"
+        reasoning = (
+            f"Mobile fraction {Mf:.2f} < 0.20; little to no recovery within the "
+            "imaging window indicates a glass-like or solid (arrested) state."
+        )
+    else:
+        verdict = "gel-like"
+        reasoning = (
+            f"Mobile fraction {Mf:.2f} is intermediate"
+            + (f" with t-half {t_half:.1f} s" if t_half is not None else "")
+            + "; partial recovery is consistent with a gel-like or maturing condensate."
+        )
+
+    # If model is double_exponential and the slow component dominates, lean gel-like.
+    if params.get("model") == "double_exponential":
+        a_slow = params.get("amplitude_slow", 0.0)
+        a_fast = params.get("amplitude_fast", 0.0)
+        if a_fast + a_slow > 0 and a_slow / (a_fast + a_slow) > 0.6:
+            verdict = "gel-like" if verdict == "liquid" else verdict
+            reasoning += (
+                " Two-component fit shows the slow-pool amplitude dominates "
+                f"({a_slow:.2f} vs fast {a_fast:.2f}), suggesting a gel-like component."
+            )
+
+    log.append(f"Classification: {verdict}.")
+    log.append(reasoning)
+
+    interpretation = ""
+    if use_llm_interpretation:
+        try:
+            from biomni.llm import get_llm  # type: ignore
+
+            client = get_llm(llm)
+            prompt = (
+                "You are a biophysics expert interpreting a FRAP experiment on a "
+                "biomolecular condensate. Given the fit parameters and classification, "
+                "produce one short paragraph (3-5 sentences) explaining what the "
+                "measurements imply about the condensate's material state, and what "
+                "follow-up experiments could test the interpretation. Do not invent "
+                "data; only use the values provided.\n\n"
+                f"Fit parameters: {json.dumps(params, indent=2)}\n"
+                f"Heuristic verdict: {verdict}\n"
+                f"Heuristic reasoning: {reasoning}\n"
+                f"User context: {context_note or '(none provided)'}\n"
+            )
+            interpretation = str(client.invoke(prompt))
+            log.append("LLM interpretation:")
+            log.append(interpretation.strip())
+        except Exception as exc:
+            log.append(f"WARNING: LLM interpretation skipped ({exc}).")
+
+    out_path = os.path.join(output_folder, "frap_material_state.json")
+    with open(out_path, "w") as fh:
+        json.dump(
+            {
+                "classification": verdict,
+                "reasoning": reasoning,
+                "llm_interpretation": interpretation,
+                "input_parameters": params,
+            },
+            fh,
+            indent=2,
+        )
+    log.append(f"Wrote classification to {out_path}.")
+
+    return "\n".join(log)
+
+
+def run_frap_analysis_pipeline(
+    image_stack_path: str,
+    bleach_roi: list,
+    bleach_radius_um: float,
+    pixel_size_um: float = None,
+    reference_roi: list = None,
+    background_roi: list = None,
+    bleach_frame_index: int = None,
+    frame_interval_s: float = 1.0,
+    fit_model: str = "soumpasis",
+    use_llm_interpretation: bool = False,
+    llm: str = "claude-sonnet-4-5",
+    context_note: str = "",
+    output_folder: str = "./tmp/",
+) -> str:
+    """End-to-end FRAP analysis: image stack → curve → fit → material-state report.
+
+    Convenience wrapper that calls extract → fit → classify in sequence and
+    writes a single Markdown report alongside the intermediate artifacts.
+
+    Args:
+        image_stack_path: Path to TIFF time-series.
+        bleach_roi: [x_center_px, y_center_px, radius_px] for the bleached spot.
+        bleach_radius_um: Bleach radius in micrometers (for diffusion coefficient).
+        pixel_size_um: Optional pixel size; not required if `bleach_radius_um`
+            is supplied directly. Reserved for a future feature that derives
+            the radius from `bleach_roi[2]` * `pixel_size_um`.
+        reference_roi, background_roi, bleach_frame_index, frame_interval_s:
+            Passed through to `extract_frap_curve_from_image_stack`.
+        fit_model: Passed through to `fit_frap_recovery_curve`.
+        use_llm_interpretation, llm, context_note: Passed through to
+            `classify_condensate_material_state`.
+        output_folder: Directory for all outputs.
+
+    Returns:
+        Log string for the full pipeline plus the path to a Markdown summary.
+    """
+    log: list[str] = ["=== FRAP analysis pipeline ==="]
+    os.makedirs(output_folder, exist_ok=True)
+
+    extract_log = extract_frap_curve_from_image_stack(
+        image_stack_path=image_stack_path,
+        bleach_roi=bleach_roi,
+        reference_roi=reference_roi,
+        background_roi=background_roi,
+        bleach_frame_index=bleach_frame_index,
+        frame_interval_s=frame_interval_s,
+        output_folder=output_folder,
+    )
+    log.append("\n[1/3] Curve extraction")
+    log.append(extract_log)
+    if extract_log.startswith("ERROR"):
+        return "\n".join(log)
+
+    post_csv = os.path.join(output_folder, "frap_curve_postbleach.csv")
+    fit_log = fit_frap_recovery_curve(
+        curve_csv_path=post_csv,
+        bleach_radius_um=bleach_radius_um,
+        fit_model=fit_model,
+        output_folder=output_folder,
+    )
+    log.append("\n[2/3] Curve fitting")
+    log.append(fit_log)
+    if fit_log.startswith("ERROR"):
+        return "\n".join(log)
+
+    fit_json = os.path.join(output_folder, "frap_fit_parameters.json")
+    classify_log = classify_condensate_material_state(
+        fit_parameters_json=fit_json,
+        output_folder=output_folder,
+        use_llm_interpretation=use_llm_interpretation,
+        llm=llm,
+        context_note=context_note,
+    )
+    log.append("\n[3/3] Material-state classification")
+    log.append(classify_log)
+    if classify_log.startswith("ERROR"):
+        return "\n".join(log)
+
+    # Markdown summary report.
+    try:
+        with open(fit_json) as fh:
+            params = json.load(fh)
+        with open(os.path.join(output_folder, "frap_material_state.json")) as fh:
+            verdict = json.load(fh)
+    except Exception:
+        params, verdict = {}, {}
+
+    report_lines = [
+        "# FRAP Analysis Report",
+        "",
+        f"- Image stack: `{image_stack_path}`",
+        f"- Bleach ROI (px): {bleach_roi}",
+        f"- Bleach radius (µm): {bleach_radius_um}",
+        f"- Frame interval (s): {frame_interval_s}",
+        f"- Fit model: {fit_model}",
+        "",
+        "## Fit parameters",
+        "```json",
+        json.dumps(params, indent=2),
+        "```",
+        "",
+        "## Material-state classification",
+        f"**Verdict:** {verdict.get('classification', 'n/a')}",
+        "",
+        verdict.get("reasoning", ""),
+        "",
+    ]
+    if verdict.get("llm_interpretation"):
+        report_lines.extend(["## Biological interpretation", verdict["llm_interpretation"]])
+    report_path = os.path.join(output_folder, "frap_report.md")
+    with open(report_path, "w") as fh:
+        fh.write("\n".join(report_lines))
+    log.append(f"\nWrote summary report to {report_path}.")
+
+    return "\n".join(log)
