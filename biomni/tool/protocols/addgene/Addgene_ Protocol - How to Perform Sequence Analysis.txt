@@ -53,7 +53,7 @@ recommends using Addgene's sequencing results as a reference for primer design.
 SEQUENCING RESULTS
 ================================================================================
 
-A good sequencing reaction will produce between 300-900 base pairs of useable
+A good sequencing reaction will produce between 300-900 base pairs of usable
 sequence. You should receive your sequencing results as a trace file (.ab1) which
 graphically depicts the sequence as a series of colored peaks corresponding to
 one of the four nucleotide bases. This is an example of a trace file from a

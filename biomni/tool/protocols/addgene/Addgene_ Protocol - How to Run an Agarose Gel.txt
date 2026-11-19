@@ -46,7 +46,7 @@ Microwave for 1-3 min until the agarose is completely dissolved (but do not over
 Caution
 HOT! Be careful stirring, eruptive boiling can occur.
 Pro-Tip
-It is a good idea to microwave for 30-45 sec, stop and swirl, and then continue towards a boil. Keep an eye on it the solution has a tendancy to boil over. Placing saran wrap over the top of the flask can help with this, but is not necessary if you pay close attention.
+It is a good idea to microwave for 30-45 sec, stop and swirl, and then continue towards a boil. Keep an eye on it the solution has a tendency to boil over. Placing saran wrap over the top of the flask can help with this, but is not necessary if you pay close attention.
 Let agarose solution cool down to about 50 °C (about when you can comfortably keep your hand on the flask), about 5 mins.
 Optional
 : Add ethidium bromide (EtBr) to a final concentration of approximately 0.2-0.5 μg/mL (usually about 2-3 μl of lab stock solution per 100 mL gel). EtBr binds to the DNA and allows you to visualize the DNA under ultraviolet (UV) light.

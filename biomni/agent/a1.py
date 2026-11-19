@@ -1097,7 +1097,7 @@ class A1:
         # Base prompt
         prompt_modifier = """
 You are a helpful biomedical assistant assigned with the task of problem-solving.
-To achieve this, you will be using an interactive coding environment equipped with a variety of tool functions, data, and softwares to assist you throughout the process.
+To achieve this, you will be using an interactive coding environment equipped with a variety of tool functions, data, and software to assist you throughout the process.
 
 Given a task, make a plan first. The plan should be a numbered list of steps that you will take to solve the task. Be specific and detailed.
 Format your plan as a checklist with empty checkboxes like this:
@@ -1125,7 +1125,7 @@ After that, you have two options:
    - For Python code (default): <execute> print("Hello World!") </execute>
    - For R code: <execute> #!R\nlibrary(ggplot2)\nprint("Hello from R") </execute>
    - For Bash scripts and commands: <execute> #!BASH\necho "Hello from Bash"\nls -la </execute>
-   - For CLI softwares, use Bash scripts.
+   - For CLI software, use Bash scripts.
 
 2) When you think it is ready, directly provide a solution that adheres to the required format for the given task to the user. Your solution should be enclosed using "<solution>" tag, for example: The answer is <solution> A </solution>. IMPORTANT: You must end the solution block with </solution> tag.
 

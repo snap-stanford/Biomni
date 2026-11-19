@@ -74,7 +74,7 @@ def unsupervised_celltype_transfer_between_scRNA_datasets(
         prediction_mode="retrain",
     ).adata
 
-    # passing arugments this way decreases chance of LLM generation and parsing errors
+    # passing arguments this way decreases chance of LLM generation and parsing errors
     flags = {
         "CELLTYPIST": CELLTYPIST,
         "KNN_BBKNN": KNN_BBKNN,
@@ -864,7 +864,7 @@ def get_uce_embeddings_scRNA(
     DATA_ROOT="/dfs/project/bioagentos/data/singlecell/",
     custom_args=None,
 ):
-    """The UCE embeddings are usually our default tools to get cell embeddings, we map UCE embeddings to IMA referece dataset and get the cell types for a better understanding.
+    """The UCE embeddings are usually our default tools to get cell embeddings, we map UCE embeddings to IMA reference dataset and get the cell types for a better understanding.
     The custom_args is a list of strings that will be passed as command line arguments to the UCE script,
     like ["--adata_path", adata_file, "--dir", output_dir]. The default value is None.
     """

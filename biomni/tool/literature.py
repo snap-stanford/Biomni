@@ -187,7 +187,7 @@ def search_google(query: str, num_results: int = 3, language: str = "en") -> lis
     """Search using Google search.
 
     Args:
-        query (str): The search query (e.g., "protocol text or seach question")
+        query (str): The search query (e.g., "protocol text or search question")
         num_results (int): Number of results to return (default: 10)
         language (str): Language code for search results (default: 'en')
         pause (float): Pause between searches to avoid rate limiting (default: 2.0 seconds)
