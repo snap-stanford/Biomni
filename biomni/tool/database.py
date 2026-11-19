@@ -445,6 +445,129 @@ def _format_query_results(result, options=None):
     return formatted
 
 
+def _extract_cellxgene_collections(payload) -> list[dict]:
+    if isinstance(payload, list):
+        return [collection for collection in payload if isinstance(collection, dict)]
+    if isinstance(payload, dict):
+        collections = payload.get("collections", [])
+        if isinstance(collections, list):
+            return [collection for collection in collections if isinstance(collection, dict)]
+    return []
+
+
+def _get_cellxgene_labels(values) -> list[str]:
+    labels = []
+    if isinstance(values, list):
+        for value in values:
+            if isinstance(value, dict):
+                label = value.get("label") or value.get("ontology_term_id")
+                if label:
+                    labels.append(str(label))
+            elif isinstance(value, str):
+                labels.append(value)
+    elif isinstance(values, str):
+        labels.append(values)
+    return labels
+
+
+def _get_cellxgene_dataset_labels(collection: dict, field: str) -> list[str]:
+    labels = []
+    for dataset in collection.get("datasets", []):
+        if isinstance(dataset, dict):
+            labels.extend(_get_cellxgene_labels(dataset.get(field)))
+    return sorted(set(labels))
+
+
+def _cellxgene_collection_matches(collection: dict, terms: list[str]) -> bool:
+    if not terms:
+        return True
+
+    searchable_parts = [
+        collection.get("name", ""),
+        collection.get("description", ""),
+        collection.get("doi", ""),
+        " ".join(collection.get("consortia") or []),
+    ]
+    for dataset in collection.get("datasets", []):
+        if isinstance(dataset, dict):
+            for field in ("assay", "disease", "organism", "tissue", "suspension_type"):
+                searchable_parts.extend(_get_cellxgene_labels(dataset.get(field)))
+
+    searchable_text = " ".join(str(part) for part in searchable_parts if part).lower()
+    return all(term in searchable_text for term in terms)
+
+
+def _format_cellxgene_collection(collection: dict) -> str:
+    name = collection.get("name") or "N/A"
+    collection_id = collection.get("collection_id") or collection.get("id") or "N/A"
+    collection_url = collection.get("collection_url") or (
+        f"https://cellxgene.cziscience.com/collections/{collection_id}" if collection_id != "N/A" else "N/A"
+    )
+    doi = collection.get("doi") or "N/A"
+    published_at = collection.get("published_at") or "N/A"
+    consortia = ", ".join(collection.get("consortia") or []) or "N/A"
+    datasets = collection.get("datasets", [])
+    dataset_count = len(datasets) if isinstance(datasets, list) else 0
+    organisms = ", ".join(_get_cellxgene_dataset_labels(collection, "organism")) or "N/A"
+    tissues = ", ".join(_get_cellxgene_dataset_labels(collection, "tissue")[:5]) or "N/A"
+    assays = ", ".join(_get_cellxgene_dataset_labels(collection, "assay")[:5]) or "N/A"
+    diseases = ", ".join(_get_cellxgene_dataset_labels(collection, "disease")[:5]) or "N/A"
+    return (
+        f"Collection: {name}\n"
+        f"Collection ID: {collection_id}\n"
+        f"URL: {collection_url}\n"
+        f"DOI: {doi}\n"
+        f"Published: {published_at}\n"
+        f"Consortia: {consortia}\n"
+        f"Dataset Count: {dataset_count}\n"
+        f"Organisms: {organisms}\n"
+        f"Tissues: {tissues}\n"
+        f"Assays: {assays}\n"
+        f"Diseases: {diseases}"
+    )
+
+
+def _search_cellxgene_collections(query: str, session: requests.Session | None = None) -> list[dict]:
+    active_session = session or requests.Session()
+    response = active_session.get(
+        "https://api.cellxgene.cziscience.com/curation/v1/collections",
+        timeout=30,
+    )
+    response.raise_for_status()
+    collections = _extract_cellxgene_collections(response.json())
+    terms = [term.lower() for term in query.split() if term.strip()]
+    return [collection for collection in collections if _cellxgene_collection_matches(collection, terms)]
+
+
+def query_cellxgene_collections(query: str, max_results: int = 5) -> str:
+    """Query public CELLxGENE Discover collections by metadata text.
+
+    Parameters
+    ----------
+    - query (str): The metadata query string, such as a tissue, organism, disease, assay, or collection title.
+    - max_results (int): The maximum number of matching collections to return (default: 5).
+
+    Returns
+    -------
+    - str: The formatted CELLxGENE collection results or an error message.
+
+    """
+    try:
+        search_query = query.strip()
+        if not search_query:
+            return "Error querying CELLxGENE: Query must not be empty."
+
+        result_count = max(1, int(max_results))
+        collections = _search_cellxgene_collections(search_query)
+        if collections:
+            return "\n\n".join(_format_cellxgene_collection(collection) for collection in collections[:result_count])
+        return "No CELLxGENE collections found."
+    except requests.RequestException as e:
+        return f"Error querying CELLxGENE: {e}"
+    except ValueError as e:
+        return f"Error querying CELLxGENE: {e}"
+
+
 def query_uniprot(
     prompt=None,
     endpoint=None,
