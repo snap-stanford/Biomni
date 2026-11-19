@@ -445,6 +445,132 @@ def _format_query_results(result, options=None):
     return formatted
 
 
+def _extract_hca_projects(payload: dict) -> list[dict]:
+    hits = payload.get("hits", [])
+    if isinstance(hits, list):
+        return [hit for hit in hits if isinstance(hit, dict)]
+    return []
+
+
+def _get_hca_values(records, field: str) -> list[str]:
+    values = []
+    if isinstance(records, list):
+        for record in records:
+            if isinstance(record, dict):
+                value = record.get(field)
+                if isinstance(value, list):
+                    values.extend(str(item) for item in value if item)
+                elif value:
+                    values.append(str(value))
+    return sorted(set(values))
+
+
+def _hca_project_matches(hit: dict, terms: list[str]) -> bool:
+    if not terms:
+        return True
+
+    searchable_parts = []
+    for project in hit.get("projects", []):
+        if isinstance(project, dict):
+            for field in ("projectTitle", "projectShortname", "projectDescription", "dataUseRestriction"):
+                searchable_parts.append(project.get(field) or "")
+            for publication in project.get("publications", []):
+                if isinstance(publication, dict):
+                    searchable_parts.append(publication.get("publicationTitle") or "")
+
+    for record_group in ("samples", "specimens", "donorOrganisms", "cellSuspensions", "protocols"):
+        for record in hit.get(record_group, []):
+            if isinstance(record, dict):
+                for value in record.values():
+                    if isinstance(value, list):
+                        searchable_parts.extend(str(item) for item in value if item)
+                    elif value:
+                        searchable_parts.append(str(value))
+
+    searchable_text = " ".join(searchable_parts).lower()
+    return all(term in searchable_text for term in terms)
+
+
+def _format_hca_project(hit: dict) -> str:
+    project = {}
+    if hit.get("projects") and isinstance(hit["projects"][0], dict):
+        project = hit["projects"][0]
+
+    project_id = project.get("projectId") or hit.get("entryId") or "N/A"
+    title = project.get("projectTitle") or "N/A"
+    shortname = project.get("projectShortname") or "N/A"
+    data_use = project.get("dataUseRestriction") or "N/A"
+    organs = ", ".join(_get_hca_values(hit.get("samples", []), "organ")) or "N/A"
+    organ_parts = ", ".join(_get_hca_values(hit.get("samples", []), "organPart")) or "N/A"
+    species = ", ".join(_get_hca_values(hit.get("donorOrganisms", []), "genusSpecies")) or "N/A"
+    diseases = ", ".join(_get_hca_values(hit.get("samples", []), "disease")) or "N/A"
+    library_methods = ", ".join(_get_hca_values(hit.get("protocols", []), "libraryConstructionApproach")) or "N/A"
+    cell_counts = [record.get("totalCells") for record in hit.get("cellSuspensions", []) if isinstance(record, dict)]
+    total_cells = sum(count for count in cell_counts if isinstance(count, int))
+    file_summaries = []
+    for summary in hit.get("fileTypeSummaries", []):
+        if isinstance(summary, dict) and summary.get("format"):
+            file_summaries.append(f"{summary.get('format')} ({summary.get('count', 'N/A')})")
+    file_summary = ", ".join(file_summaries[:5]) or "N/A"
+    portal_url = f"https://data.humancellatlas.org/explore/projects/{project_id}" if project_id != "N/A" else "N/A"
+    return (
+        f"Project: {title}\n"
+        f"Project ID: {project_id}\n"
+        f"Short Name: {shortname}\n"
+        f"Portal URL: {portal_url}\n"
+        f"Data Use Restriction: {data_use}\n"
+        f"Organs: {organs}\n"
+        f"Organ Parts: {organ_parts}\n"
+        f"Species: {species}\n"
+        f"Diseases: {diseases}\n"
+        f"Library Methods: {library_methods}\n"
+        f"Total Cells: {total_cells if total_cells else 'N/A'}\n"
+        f"File Types: {file_summary}"
+    )
+
+
+def _search_hca_projects(query: str, max_results: int = 5, session: requests.Session | None = None) -> list[dict]:
+    active_session = session or requests.Session()
+    response = active_session.get(
+        "https://service.azul.data.humancellatlas.org/index/projects",
+        params={"size": 10},
+        timeout=30,
+    )
+    response.raise_for_status()
+    hits = _extract_hca_projects(response.json())
+    terms = [term.lower() for term in query.split() if term.strip()]
+    return [hit for hit in hits if _hca_project_matches(hit, terms)][:max_results]
+
+
+def query_human_cell_atlas_projects(query: str, max_results: int = 5) -> str:
+    """Query public Human Cell Atlas project metadata.
+
+    Parameters
+    ----------
+    - query (str): The metadata query string, such as an organ, species, disease, assay, or project title.
+    - max_results (int): The maximum number of matching projects to return (default: 5).
+
+    Returns
+    -------
+    - str: The formatted Human Cell Atlas project results or an error message.
+
+    """
+    try:
+        search_query = query.strip()
+        if not search_query:
+            return "Error querying Human Cell Atlas: Query must not be empty."
+
+        result_count = max(1, int(max_results))
+        projects = _search_hca_projects(search_query, max_results=result_count)
+        if projects:
+            return "\n\n".join(_format_hca_project(project) for project in projects)
+        return "No Human Cell Atlas projects found."
+    except requests.RequestException as e:
+        return f"Error querying Human Cell Atlas: {e}"
+    except ValueError as e:
+        return f"Error querying Human Cell Atlas: {e}"
+
+
 def query_uniprot(
     prompt=None,
     endpoint=None,
