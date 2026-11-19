@@ -1,6 +1,7 @@
 import os
 import re
 import time
+from datetime import date, timedelta
 from io import BytesIO
 from urllib.parse import urljoin
 
@@ -181,6 +182,144 @@ def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
             return "No papers found on PubMed after multiple query attempts."
     except Exception as e:
         return f"Error querying PubMed: {e}"
+
+
+def _extract_biorxiv_medrxiv_records(payload: dict) -> list[dict]:
+    collection = payload.get("collection", [])
+    if isinstance(collection, list):
+        return [record for record in collection if isinstance(record, dict)]
+    return []
+
+
+def _get_biorxiv_medrxiv_total(payload: dict) -> int | None:
+    messages = payload.get("messages", [])
+    if isinstance(messages, list) and messages:
+        try:
+            return int(messages[0].get("total"))
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
+def _format_biorxiv_medrxiv_record(record: dict) -> str:
+    title = record.get("title") or "N/A"
+    abstract = record.get("abstract") or "No abstract available."
+    journal = record.get("server") or record.get("journal") or "N/A"
+    doi = record.get("doi") or "N/A"
+    posted = record.get("date") or "N/A"
+    category = record.get("category") or "N/A"
+    url = record.get("jatsxml") or record.get("link") or (f"https://doi.org/{doi}" if doi != "N/A" else "N/A")
+    return (
+        f"Title: {title}\n"
+        f"Abstract: {abstract}\n"
+        f"Journal: {journal}\n"
+        f"DOI: {doi}\n"
+        f"Posted: {posted}\n"
+        f"Category: {category}\n"
+        f"URL: {url}"
+    )
+
+
+def _biorxiv_medrxiv_record_matches(record: dict, terms: list[str], category: str) -> bool:
+    if category != "all" and (record.get("category") or "").lower() != category:
+        return False
+    if not terms:
+        return True
+    text = " ".join(
+        str(record.get(field) or "") for field in ("title", "abstract", "authors", "category", "doi")
+    ).lower()
+    return all(term in text for term in terms)
+
+
+def _search_biorxiv_medrxiv(
+    query: str,
+    server: str = "biorxiv",
+    max_papers: int = 10,
+    days_back: int = 30,
+    category: str = "all",
+    session: requests.Session | None = None,
+) -> list[dict]:
+    active_session = session or requests.Session()
+    today = date.today()
+    start_date = today - timedelta(days=max(1, int(days_back)))
+    interval = f"{start_date.isoformat()}/{today.isoformat()}"
+    cursor = 0
+    results = []
+    terms = [term.lower() for term in query.split() if term.strip()]
+    normalized_category = category.strip().lower() or "all"
+
+    while len(results) < max_papers:
+        response = active_session.get(
+            f"https://api.biorxiv.org/details/{server}/{interval}/{cursor}/json",
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        records = _extract_biorxiv_medrxiv_records(payload)
+        if not records:
+            break
+        total = _get_biorxiv_medrxiv_total(payload)
+
+        for record in records:
+            if _biorxiv_medrxiv_record_matches(record, terms, normalized_category):
+                results.append(record)
+                if len(results) >= max_papers:
+                    break
+
+        cursor += len(records)
+        if total is not None and cursor >= total:
+            break
+
+    return results
+
+
+def query_biorxiv_medrxiv(
+    query: str,
+    max_papers: int = 10,
+    server: str = "biorxiv",
+    days_back: int = 30,
+    category: str = "all",
+) -> str:
+    """Query bioRxiv or medRxiv for recent preprints based on the provided search query.
+
+    Parameters
+    ----------
+    - query (str): The search query string.
+    - max_papers (int): The maximum number of papers to retrieve (default: 10).
+    - server (str): The preprint server to query, either "biorxiv" or "medrxiv" (default: "biorxiv").
+    - days_back (int): Number of recent days to search (default: 30).
+    - category (str): Optional category filter, or "all" (default: "all").
+
+    Returns
+    -------
+    - str: The formatted search results or an error message.
+
+    """
+    try:
+        search_query = query.strip()
+        if not search_query:
+            return "Error querying bioRxiv/medRxiv: Query must not be empty."
+
+        normalized_server = server.strip().lower()
+        if normalized_server not in {"biorxiv", "medrxiv"}:
+            return 'Error querying bioRxiv/medRxiv: Server must be "biorxiv" or "medrxiv".'
+
+        page_size = max(1, int(max_papers))
+        records = _search_biorxiv_medrxiv(
+            search_query,
+            server=normalized_server,
+            max_papers=page_size,
+            days_back=days_back,
+            category=category,
+        )
+
+        if records:
+            return "\n\n".join(_format_biorxiv_medrxiv_record(record) for record in records[:page_size])
+        return "No preprints found on bioRxiv/medRxiv."
+    except requests.RequestException as e:
+        return f"Error querying bioRxiv/medRxiv: {e}"
+    except ValueError as e:
+        return f"Error querying bioRxiv/medRxiv: {e}"
 
 
 def search_google(query: str, num_results: int = 3, language: str = "en") -> list[dict]:
