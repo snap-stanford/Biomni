@@ -183,6 +183,96 @@ def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
         return f"Error querying PubMed: {e}"
 
 
+def _extract_crossref_records(payload: dict) -> list[dict]:
+    items = payload.get("message", {}).get("items", [])
+    if isinstance(items, list):
+        return [record for record in items if isinstance(record, dict)]
+    return []
+
+
+def _simplify_crossref_query(query: str, retry_index: int) -> str:
+    parts = query.split()
+    if len(parts) > retry_index:
+        return " ".join(parts[:-retry_index])
+    return query
+
+
+def _get_first_crossref_value(value) -> str:
+    if isinstance(value, list) and value:
+        return str(value[0])
+    if isinstance(value, str):
+        return value
+    return "N/A"
+
+
+def _format_crossref_record(record: dict) -> str:
+    title = _get_first_crossref_value(record.get("title"))
+    abstract = record.get("abstract") or "No abstract available."
+    if abstract != "No abstract available.":
+        abstract = BeautifulSoup(abstract, "html.parser").get_text(" ", strip=True)
+    journal = _get_first_crossref_value(record.get("container-title"))
+    return f"Title: {title}\nAbstract: {abstract}\nJournal: {journal}"
+
+
+def _search_crossref(query: str, page_size: int = 25, session: requests.Session | None = None) -> list[dict]:
+    active_session = session or requests.Session()
+    params = {
+        "query": query,
+        "rows": page_size,
+        "select": "DOI,title,abstract,container-title",
+    }
+    mailto = os.getenv("CROSSREF_MAILTO")
+    if mailto:
+        params["mailto"] = mailto
+
+    response = active_session.get(
+        "https://api.crossref.org/works",
+        params=params,
+        timeout=30,
+    )
+    response.raise_for_status()
+    return _extract_crossref_records(response.json())
+
+
+def query_crossref(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
+    """Query Crossref for papers based on the provided search query.
+
+    Parameters
+    ----------
+    - query (str): The search query string.
+    - max_papers (int): The maximum number of papers to retrieve (default: 10).
+    - max_retries (int): Maximum number of retry attempts with modified queries (default: 3).
+
+    Returns
+    -------
+    - str: The formatted search results or an error message.
+
+    """
+    try:
+        search_query = query.strip()
+        if not search_query:
+            return "Error querying Crossref: Query must not be empty."
+
+        page_size = max(1, int(max_papers))
+        retries = max(0, int(max_retries))
+        records = _search_crossref(search_query, page_size=page_size)
+
+        retry_count = 0
+        while not records and retry_count < retries:
+            retry_count += 1
+            search_query = _simplify_crossref_query(search_query, retry_count)
+            time.sleep(1)
+            records = _search_crossref(search_query, page_size=page_size)
+
+        if records:
+            return "\n\n".join(_format_crossref_record(record) for record in records[:page_size])
+        return "No papers found on Crossref after multiple query attempts."
+    except requests.RequestException as e:
+        return f"Error querying Crossref: {e}"
+    except ValueError as e:
+        return f"Error querying Crossref: {e}"
+
+
 def search_google(query: str, num_results: int = 3, language: str = "en") -> list[dict]:
     """Search using Google search.
 
