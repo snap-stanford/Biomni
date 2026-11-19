@@ -183,6 +183,87 @@ def query_pubmed(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
         return f"Error querying PubMed: {e}"
 
 
+def _extract_semantic_scholar_records(payload: dict) -> list[dict]:
+    data = payload.get("data", [])
+    if isinstance(data, list):
+        return [record for record in data if isinstance(record, dict)]
+    return []
+
+
+def _simplify_semantic_scholar_query(query: str, retry_index: int) -> str:
+    parts = query.split()
+    if len(parts) > retry_index:
+        return " ".join(parts[:-retry_index])
+    return query
+
+
+def _format_semantic_scholar_record(record: dict) -> str:
+    title = record.get("title") or "N/A"
+    abstract = record.get("abstract") or "No abstract available."
+    journal = record.get("venue") or "N/A"
+    return f"Title: {title}\nAbstract: {abstract}\nJournal: {journal}"
+
+
+def _search_semantic_scholar(query: str, page_size: int = 25, session: requests.Session | None = None) -> list[dict]:
+    active_session = session or requests.Session()
+    headers = {}
+    api_key = os.getenv("SEMANTIC_SCHOLAR_API_KEY")
+    if api_key:
+        headers["x-api-key"] = api_key
+
+    response = active_session.get(
+        "https://api.semanticscholar.org/graph/v1/paper/search",
+        params={
+            "query": query,
+            "limit": page_size,
+            "fields": "title,abstract,venue",
+        },
+        headers=headers,
+        timeout=30,
+    )
+    response.raise_for_status()
+    return _extract_semantic_scholar_records(response.json())
+
+
+def query_semantic_scholar(query: str, max_papers: int = 10, max_retries: int = 3) -> str:
+    """Query Semantic Scholar for papers based on the provided search query.
+
+    Parameters
+    ----------
+    - query (str): The search query string.
+    - max_papers (int): The maximum number of papers to retrieve (default: 10).
+    - max_retries (int): Maximum number of retry attempts with modified queries (default: 3).
+
+    Returns
+    -------
+    - str: The formatted search results or an error message.
+
+    """
+    try:
+        search_query = query.strip()
+        if not search_query:
+            return "Error querying Semantic Scholar: Query must not be empty."
+
+        page_size = max(1, int(max_papers))
+        retries = max(0, int(max_retries))
+        records = _search_semantic_scholar(search_query, page_size=page_size)
+
+        retry_count = 0
+        while not records and retry_count < retries:
+            retry_count += 1
+            search_query = _simplify_semantic_scholar_query(search_query, retry_count)
+            time.sleep(1)
+            records = _search_semantic_scholar(search_query, page_size=page_size)
+
+        if records:
+            return "\n\n".join(_format_semantic_scholar_record(record) for record in records[:page_size])
+        return "No papers found on Semantic Scholar after multiple query attempts."
+    except requests.RequestException as e:
+        return f"Error querying Semantic Scholar: {e}"
+    except ValueError as e:
+        return f"Error querying Semantic Scholar: {e}"
+
+
 def search_google(query: str, num_results: int = 3, language: str = "en") -> list[dict]:
     """Search using Google search.
 
