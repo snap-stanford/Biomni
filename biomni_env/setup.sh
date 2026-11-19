@@ -168,6 +168,10 @@ main() {
 
     # Step 3: Install core bioinformatics tools (including QIIME2)
     echo -e "\n${YELLOW}Step 3: Installing core bioinformatics tools (including QIIME2)...${NC}"
+    # pystan (installed via pip in bio_env.yml) requires numpy and cython>=0.22 to be
+    # present at build time. Install them up front so its pyproject.toml metadata
+    # generation step does not fail on a fresh environment. See issue #283.
+    pip install "numpy" "cython>=0.22"
     install_env_file "bio_env.yml" "core bioinformatics tools"
 
     # Step 4: Install R packages
