@@ -1,6 +1,9 @@
 import base64
 import io
+import os
 import sys
+import time
+import uuid
 from io import StringIO
 
 # Create a persistent namespace that will be shared across all executions
@@ -8,6 +11,57 @@ _persistent_namespace = {}
 
 # Global list to store captured plots
 _captured_plots = []
+
+# Per-session directory for saving figures to disk
+_figure_dir: str | None = None
+
+# Paths of figures saved to disk this session: list of (png_path, svg_path) tuples
+_saved_figure_paths: list = []
+
+
+def _get_gradio_upload_folder() -> str:
+    """Return the folder Gradio uses for uploads/temp files."""
+    try:
+        from gradio.utils import get_upload_folder
+
+        return get_upload_folder()
+    except Exception:
+        import tempfile
+
+        return os.path.join(tempfile.gettempdir(), "gradio")
+
+
+def get_figure_dir() -> str:
+    """Return the per-session figure directory, creating it on first call.
+
+    Co-locates output with Gradio's own temp folder so files are served by
+    Gradio without requiring ``allowed_paths`` configuration.
+    """
+    global _figure_dir
+    if _figure_dir is None:
+        base = _get_gradio_upload_folder()
+        _figure_dir = os.path.join(base, f"biomni_plots_{uuid.uuid4().hex[:8]}")
+        os.makedirs(_figure_dir, exist_ok=True)
+    return _figure_dir
+
+
+def set_figure_dir(path: str) -> None:
+    """Explicitly set the per-session figure directory (called from A1.__init__)."""
+    global _figure_dir
+    _figure_dir = path
+    os.makedirs(path, exist_ok=True)
+
+
+def get_saved_figure_paths() -> list:
+    """Return a copy of all (png_path, svg_path) tuples saved this session."""
+    global _saved_figure_paths
+    return _saved_figure_paths.copy()
+
+
+def clear_saved_figure_paths() -> None:
+    """Clear the list of saved figure paths."""
+    global _saved_figure_paths
+    _saved_figure_paths = []
 
 
 def run_python_repl(command: str) -> str:
@@ -44,9 +98,16 @@ def run_python_repl(command: str) -> str:
     return execute_in_repl(command)
 
 
-def _capture_matplotlib_plots():
-    """Capture any matplotlib plots that might have been generated during execution."""
-    global _captured_plots
+def _capture_matplotlib_plots(save_to_file: bool = True):
+    """Capture any matplotlib plots that might have been generated during execution.
+
+    Args:
+        save_to_file: When True (default), each figure is also persisted as a PNG
+            and SVG file inside the per-session figure directory returned by
+            ``get_figure_dir()``.  Set to False when the caller has already saved
+            the file (e.g. inside ``savefig_with_capture``) to avoid duplicates.
+    """
+    global _captured_plots, _saved_figure_paths
     try:
         import matplotlib.pyplot as plt
 
@@ -55,7 +116,22 @@ def _capture_matplotlib_plots():
             for fig_num in plt.get_fignums():
                 fig = plt.figure(fig_num)
 
-                # Save figure to base64
+                # Optionally persist the figure as PNG + SVG on disk
+                if save_to_file:
+                    try:
+                        fig_dir = get_figure_dir()
+                        ts = int(time.time() * 1000)
+                        png_path = os.path.join(fig_dir, f"biomni_fig_{fig_num}_{ts}.png")
+                        svg_path = os.path.join(fig_dir, f"biomni_fig_{fig_num}_{ts}.svg")
+                        fig.savefig(png_path, dpi=150, bbox_inches="tight")
+                        fig.savefig(svg_path, format="svg", bbox_inches="tight")
+                        _saved_figure_paths.append((png_path, svg_path))
+                        print(f"Figure saved to: {png_path}")
+                        print(f"Figure also saved as SVG: {svg_path}")
+                    except Exception as _e:
+                        print(f"Warning: Could not save figure to disk: {_e}")
+
+                # Always capture as base64 for in-memory use
                 buffer = io.BytesIO()
                 fig.savefig(buffer, format="png", dpi=150, bbox_inches="tight")
                 buffer.seek(0)
@@ -101,14 +177,40 @@ def _apply_matplotlib_patches():
             return original_show(*args, **kwargs)
 
         def savefig_with_capture(*args, **kwargs):
-            """Enhanced savefig function that captures plots after saving them."""
+            """Enhanced savefig function that captures plots after saving them.
+
+            Relative filenames are redirected to the per-session figure directory
+            so that plots are never written to Gradio's /private/var scratch space.
+            An SVG copy is saved alongside every PNG/raster save.
+            """
             # Get the filename from args if provided
             filename = args[0] if args else kwargs.get("fname", "unknown")
+
+            # Redirect relative paths into the managed figure directory
+            if isinstance(filename, (str, os.PathLike)) and not os.path.isabs(str(filename)):
+                fig_dir = get_figure_dir()
+                filename = os.path.join(fig_dir, os.path.basename(str(filename)))
+                if args:
+                    args = (filename,) + args[1:]
+                else:
+                    kwargs["fname"] = filename
+
             # Call the original savefig function
             result = original_savefig(*args, **kwargs)
-            # Capture the plot after saving
-            _capture_matplotlib_plots()
-            # Print a message to indicate plot was saved
+
+            # Save an SVG copy alongside the original file
+            try:
+                str_filename = str(filename)
+                svg_filename = os.path.splitext(str_filename)[0] + ".svg"
+                if str_filename.lower() != svg_filename.lower():  # skip if already SVG
+                    plt.gcf().savefig(svg_filename, format="svg", bbox_inches="tight")
+                    print(f"Figure also saved as SVG: {svg_filename}")
+                _saved_figure_paths.append((str_filename, svg_filename))
+            except Exception as _e:
+                print(f"Warning: Could not save SVG copy: {_e}")
+
+            # Capture base64 without writing extra files
+            _capture_matplotlib_plots(save_to_file=False)
             print(f"Plot saved to: {filename}")
             return result
 

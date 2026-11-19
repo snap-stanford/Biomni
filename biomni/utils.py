@@ -33,8 +33,48 @@ def run_r_code(code: str) -> str:
 
     """
     try:
+        # Resolve the figure directory and build a preamble that redirects
+        # relative-path saves (ggsave, png, svg) into the managed temp folder.
+        try:
+            from biomni.tool.support_tools import get_figure_dir
+
+            _fig_dir = get_figure_dir()
+        except Exception:
+            _fig_dir = os.path.join(tempfile.gettempdir(), "gradio", "biomni_plots_r")
+            os.makedirs(_fig_dir, exist_ok=True)
+
+        r_preamble = (
+            f'biomni_fig_dir <- "{_fig_dir}"\n'
+            "dir.create(biomni_fig_dir, showWarnings = FALSE, recursive = TRUE)\n"
+            'if (requireNamespace("ggplot2", quietly = TRUE)) {\n'
+            "  .biomni_ggsave_orig <- ggplot2::ggsave\n"
+            '  ggsave <- function(filename = "last_plot.png", plot = ggplot2::last_plot(), ...) {\n'
+            '    if (!grepl("^/", filename)) filename <- file.path(biomni_fig_dir, basename(filename))\n'
+            "    .biomni_ggsave_orig(filename = filename, plot = plot, ...)\n"
+            '    svg_file <- sub("\\\\.[^.]+$", ".svg", filename)\n'
+            "    tryCatch(.biomni_ggsave_orig(filename = svg_file, plot = plot, ...), error = function(e) NULL)\n"
+            '    cat(paste0("Figure saved to: ", filename, "\\n"))\n'
+            "    invisible(NULL)\n"
+            "  }\n"
+            "}\n"
+            ".biomni_png_orig <- grDevices::png\n"
+            ".biomni_svg_orig <- grDevices::svg\n"
+            'png <- function(filename = "Rplot%03d.png", ...) {\n'
+            '  if (!grepl("^/", filename)) filename <- file.path(biomni_fig_dir, basename(filename))\n'
+            '  cat(paste0("Figure will be saved to: ", filename, "\\n"))\n'
+            "  .biomni_png_orig(filename = filename, ...)\n"
+            "}\n"
+            'svg <- function(filename = "Rplot%03d.svg", ...) {\n'
+            '  if (!grepl("^/", filename)) filename <- file.path(biomni_fig_dir, basename(filename))\n'
+            '  cat(paste0("Figure will be saved to: ", filename, "\\n"))\n'
+            "  .biomni_svg_orig(filename = filename, ...)\n"
+            "}\n"
+        )
+
         # Create a temporary file to store the R code
         with tempfile.NamedTemporaryFile(suffix=".R", mode="w", delete=False) as f:
+            f.write(r_preamble)
+            f.write("\n")
             f.write(code)
             temp_file = f.name
 

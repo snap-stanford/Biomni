@@ -1,0 +1,73 @@
+Live:
+  markers:
+    - CD45+
+  children:
+    NK1.1-/B220+:
+      markers:
+        - NK1.1-
+        - B220+
+      children:
+        B cells:
+          markers:
+            - CD11b-
+            - Ly6C-
+        pDCs:
+          markers:
+            - CD11b-
+            - Ly6C+
+    NK1.1-/B220-:
+      markers:
+        - NK1.1-
+        - B220-
+      children:
+        CD3-/CD11b+:
+          markers:
+            - CD3-
+            - CD11b+
+          children:
+            Neutrophils:
+              markers:
+                - Ly6G+
+                - Ly6C low
+            Ly6G- Ly6C+/-:
+              markers:
+                - Ly6G-
+              children:
+                Ly6C low monocytes:
+                  markers:
+                    - Ly6C low
+                    - F4/80+
+                Ly6C high monocytes:
+                  markers:
+                    - Ly6C high
+                    - F4/80+
+                Macrophages:
+                  markers:
+                    - Ly6C-
+                    - F4/80+
+            cDCs:
+              markers:
+                - CD11c+
+                - MHCII-
+        CD3 T-cells:
+          markers:
+            - CD3+
+            - CD11b-
+          children:
+            CD8 T-cells:
+              markers:
+                - CD8+
+                - CD4-
+            CD4 T-cells:
+              markers:
+                - CD4+
+                - CD8-
+              children:
+                T regs:
+                  markers:
+                    - CD127-
+                    - CD25+
+    NK Cells:
+      markers:
+        - NK1.1+
+        - B220-

@@ -45,11 +45,14 @@ cat("\nInstalling system dependencies for Bioconductor packages...\n")
 
 # Install CRAN packages
 cran_packages <- c(
+  "cytoExploreR",
   "ggplot2",
   "lme4",
   "dplyr",
   "tidyr",
   "readr",
+  "Rtsne",
+  "umap",
   "stringr",
   "Matrix",  # Required for Seurat
   "Rcpp",    # Required for many packages
@@ -60,10 +63,21 @@ cran_packages <- c(
 
 # Install Bioconductor packages
 bioc_packages <- c(
+  "CATALYST",
   "DESeq2",
   "dada2",
   "xcms",
+  "flowAI",
+  "flowClust",
+  "flowClean",
   "flowCore",
+  "flowWorkspace",
+  "flowSpecs",
+  "flowStats",
+  "flowSOM",
+  "flowTrans",
+  "flowUnmix",
+  "flowViz",
   "edgeR",
   "limma"
 )
