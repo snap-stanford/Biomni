@@ -866,6 +866,7 @@ def read_module2api():
         "database",
         "lab_automation",
         "protocols",
+        "spatial_transcriptomics",
     ]
 
     module2api = {}
