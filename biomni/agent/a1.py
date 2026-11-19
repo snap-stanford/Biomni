@@ -18,6 +18,7 @@ from biomni.config import default_config
 from biomni.know_how import KnowHowLoader
 from biomni.llm import SourceType, get_llm
 from biomni.model.retriever import ToolRetriever
+from biomni.tool.execution_analytics import ExecutionAnalytics
 from biomni.tool.support_tools import run_python_repl
 from biomni.tool.tool_registry import ToolRegistry
 from biomni.utils import (
@@ -205,8 +206,16 @@ class A1:
         self.module2api = module2api
         self.use_tool_retriever = use_tool_retriever
 
+        # Initialize execution analytics system early (before tool registry)
+        self.execution_analytics = ExecutionAnalytics(
+            enable_caching=True,
+            cache_ttl=3600,
+            max_retries=3,
+            enable_analytics=True,
+        )
+
         if self.use_tool_retriever:
-            self.tool_registry = ToolRegistry(module2api)
+            self.tool_registry = ToolRegistry(module2api, execution_analytics=self.execution_analytics)
             self.retriever = ToolRetriever()
 
         # Initialize know-how loader
@@ -220,6 +229,7 @@ class A1:
 
         # Add timeout parameter
         self.timeout_seconds = timeout_seconds  # 10 minutes default timeout
+
         self.configure()
 
     def add_tool(self, api):
@@ -2057,6 +2067,55 @@ Each library is listed with its description to help you understand its functiona
 
         print(f"Created MCP server with {registered_tools} tools")
         return mcp
+
+    def get_execution_analytics(self, tool_name: str = None):
+        """Get execution analytics for tools.
+
+        Args:
+            tool_name: Optional tool name to get analytics for a specific tool.
+                      If None, returns analytics for all tools.
+
+        Returns:
+            Dictionary mapping tool names to ToolAnalytics objects, or
+            a single ToolAnalytics object if tool_name is specified.
+        """
+        return self.execution_analytics.get_tool_analytics(tool_name)
+
+    def get_analytics_summary(self):
+        """Get a summary of all tool execution analytics as a DataFrame.
+
+        Returns:
+            pandas DataFrame with columns: tool_name, total_executions,
+            success_rate, failure_rate, avg_execution_time, cache_hit_rate,
+            most_common_error, last_execution
+        """
+        return self.execution_analytics.get_analytics_summary()
+
+    def get_error_analysis(self):
+        """Get error analysis across all tools.
+
+        Returns:
+            pandas DataFrame with error statistics by tool and error type
+        """
+        return self.execution_analytics.get_error_analysis()
+
+    def clear_execution_cache(self, tool_name: str = None):
+        """Clear cached execution results.
+
+        Args:
+            tool_name: Optional tool name to clear cache for a specific tool.
+                      If None, clears cache for all tools.
+        """
+        self.execution_analytics.clear_cache(tool_name)
+        if tool_name:
+            print(f"Cleared execution cache for tool: {tool_name}")
+        else:
+            print("Cleared execution cache for all tools")
+
+    def reset_execution_analytics(self):
+        """Reset all execution analytics data."""
+        self.execution_analytics.reset_analytics()
+        print("Reset all execution analytics")
 
     def save_conversation_history(self, filepath: str, include_images: bool = True, save_pdf: bool = True) -> None:
         """Save the complete conversation history as PDF only.
