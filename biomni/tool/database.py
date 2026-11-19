@@ -1,6 +1,7 @@
 import json
 import os
 import pickle
+import re
 import time
 from typing import Any
 
@@ -688,6 +689,132 @@ def query_alphafold(
                 "residue_range": residue_range,
             },
         }
+
+
+CORTICAL_ORGANOIDS_ATLAS_URL = (
+    "https://singlecell.broadinstitute.org/single_cell/study/SCP1756/cortical-organoids-atlas"
+)
+CORTICAL_ORGANOIDS_CLUSTERS_URL = "https://singlecell.broadinstitute.org/single_cell/api/v1/studies/SCP1756/clusters"
+
+
+def _clean_cortical_organoids_text(text):
+    return re.sub(r"\s+", " ", str(text or "").replace("&nbsp;", " ")).strip()
+
+
+def _extract_cortical_organoids_study_metadata(html):
+    title_match = re.search(r"<h1[^>]*>\s*(.*?)\s*</h1>", html, re.S)
+    cell_match = re.search(r'id="cell-count"[^>]*>\s*([^<]+)', html)
+    gene_match = re.search(r'id="gene-count"[^>]*>\s*([^<]+)', html)
+    summary_match = re.search(r'<div[^>]+id="study-summary"[^>]*>(.*?)</div>\s*<div', html, re.S)
+    summary_text = (
+        _clean_cortical_organoids_text(re.sub(r"<[^>]+>", " ", summary_match.group(1))) if summary_match else ""
+    )
+    page_text = _clean_cortical_organoids_text(re.sub(r"<[^>]+>", " ", html))
+    publication_match = re.search(r"Related publications\s+(.*?)\s+(\d{6,})", page_text)
+
+    return {
+        "accession": "SCP1756",
+        "title": _clean_cortical_organoids_text(title_match.group(1)) if title_match else "Cortical Organoids Atlas",
+        "url": CORTICAL_ORGANOIDS_ATLAS_URL,
+        "cell_count": _clean_cortical_organoids_text(cell_match.group(1)) if cell_match else "Not available",
+        "gene_count": _clean_cortical_organoids_text(gene_match.group(1)) if gene_match else "Not available",
+        "summary": summary_text,
+        "publication": _clean_cortical_organoids_text(publication_match.group(1))
+        if publication_match
+        else "Not available",
+        "pmid": publication_match.group(2) if publication_match else "Not available",
+    }
+
+
+def _fetch_cortical_organoids_atlas_metadata(session=None):
+    active_session = session or requests.Session()
+    page_response = active_session.get(CORTICAL_ORGANOIDS_ATLAS_URL, timeout=30)
+    page_response.raise_for_status()
+    metadata = _extract_cortical_organoids_study_metadata(page_response.text)
+
+    cluster_response = active_session.get(CORTICAL_ORGANOIDS_CLUSTERS_URL, timeout=30)
+    cluster_response.raise_for_status()
+    clusters = cluster_response.json()
+    return metadata, clusters
+
+
+def _filter_cortical_organoids_clusters(clusters, query=""):
+    terms = [term.lower() for term in str(query or "").split() if term.strip()]
+    if not terms:
+        return list(clusters)
+    return [cluster for cluster in clusters if all(term in cluster.lower() for term in terms)]
+
+
+def _summarize_cortical_organoids_cluster_annotations(cluster_name, session=None):
+    active_session = session or requests.Session()
+    url = CORTICAL_ORGANOIDS_CLUSTERS_URL + "/" + cluster_name
+    response = active_session.get(url, timeout=30)
+    response.raise_for_status()
+    annotations = response.json().get("data", {}).get("annotations", [])
+    counts = {}
+    for annotation in annotations:
+        counts[annotation] = counts.get(annotation, 0) + 1
+    top_annotations = sorted(counts.items(), key=lambda item: item[1], reverse=True)[:10]
+    return annotations, top_annotations
+
+
+def _format_cortical_organoids_atlas(metadata, clusters, matching_clusters, annotation_summary=None):
+    lines = [
+        f"Study: {metadata.get('title', 'Cortical Organoids Atlas')}",
+        f"Accession: {metadata.get('accession', 'SCP1756')}",
+        f"URL: {metadata.get('url', CORTICAL_ORGANOIDS_ATLAS_URL)}",
+        f"Cells: {metadata.get('cell_count', 'Not available')}",
+        f"Genes: {metadata.get('gene_count', 'Not available')}",
+        f"Publication: {metadata.get('publication', 'Not available')}",
+        f"PMID: {metadata.get('pmid', 'Not available')}",
+        f"Public Cluster Count: {len(clusters)}",
+        "Download Note: Single Cell Portal download tab may require sign-in; public cluster metadata is available through the portal API.",
+    ]
+    if metadata.get("summary"):
+        lines.append(f"Summary: {metadata['summary'][:700]}")
+    if matching_clusters:
+        lines.append("")
+        lines.append("Matching Clusters:")
+        for cluster in matching_clusters:
+            lines.append(f"- {cluster}")
+    else:
+        lines.append("")
+        lines.append("Matching Clusters: None")
+
+    if annotation_summary:
+        cluster_name, annotation_count, top_annotations = annotation_summary
+        lines.append("")
+        lines.append(f"Annotation Summary for Cluster: {cluster_name}")
+        lines.append(f"Annotated Cells: {annotation_count}")
+        for annotation, count in top_annotations:
+            lines.append(f"- {annotation}: {count}")
+
+    return "\n".join(lines)
+
+
+def query_cortical_organoids_atlas(query="", include_cluster_annotations=False):
+    """Query public Broad Single Cell Portal metadata for the Cortical Organoids Atlas.
+
+    Parameters
+    ----------
+    query (str): Optional terms used to filter public cluster labels.
+    include_cluster_annotations (bool): If True, summarize annotations for the first matching cluster.
+
+    Returns
+    -------
+    str: Formatted study metadata, public cluster labels, and optional annotation summary.
+
+    """
+    try:
+        metadata, clusters = _fetch_cortical_organoids_atlas_metadata()
+        matching_clusters = _filter_cortical_organoids_clusters(clusters, query=query)
+        annotation_summary = None
+        if include_cluster_annotations and matching_clusters:
+            annotations, top_annotations = _summarize_cortical_organoids_cluster_annotations(matching_clusters[0])
+            annotation_summary = (matching_clusters[0], len(annotations), top_annotations)
+        return _format_cortical_organoids_atlas(metadata, clusters, matching_clusters, annotation_summary)
+    except Exception as e:
+        return f"Error querying Cortical Organoids Atlas: {str(e)}"
 
 
 def query_interpro(
