@@ -65,6 +65,8 @@ class A1:
         api_key: str | None = None,
         commercial_mode: bool | None = None,
         expected_data_lake_files: list | None = None,
+        sandbox_mode: bool = False,
+        sandbox_path: str | None = None,
     ):
         """Initialize the biomni agent.
 
@@ -77,6 +79,8 @@ class A1:
             base_url: Base URL for custom model serving (e.g., "http://localhost:8000/v1")
             api_key: API key for the custom LLM
             commercial_mode: If True, excludes datasets that require commercial licenses or are non-commercial only
+            sandbox_mode: If True, enables data sandbox mode for file operations
+            sandbox_path: Custom path for sandbox directory. If None and sandbox_mode=True, creates auto-generated session folder
 
         """
         # Use default_config values for unspecified parameters
@@ -112,6 +116,23 @@ class A1:
         self.library_content_dict = library_content_dict
         self.commercial_mode = commercial_mode
 
+        # Setup sandbox mode
+        self.sandbox_mode = sandbox_mode
+        if sandbox_mode:
+            if sandbox_path is None:
+                # Auto-generate session folder name
+                session_id = datetime.now().strftime("session_%Y%m%d_%H%M%S")
+                sandbox_path = os.path.join("sandbox", session_id)
+
+            self.sandbox_path = os.path.abspath(sandbox_path)
+            self.original_cwd = os.getcwd()  # Store original working directory
+            os.makedirs(self.sandbox_path, exist_ok=True)
+
+            print(f"📁 Sandbox mode enabled: {self.sandbox_path}")
+        else:
+            self.sandbox_path = None
+            self.original_cwd = None
+
         # Display configuration in a nice, readable format
         print("\n" + "=" * 50)
         print("🔧 BIOMNI CONFIGURATION")
@@ -144,6 +165,17 @@ class A1:
             if api_key is not None and api_key != "EMPTY":
                 print(f"  API Key: {'*' * 8 + api_key[-4:] if len(api_key) > 8 else '***'}")
 
+        # Show sandbox configuration
+        if self.sandbox_mode:
+            print("\n📁 SANDBOX MODE:")
+            print("  Enabled: True")
+            print(f"  Sandbox Path: {self.sandbox_path}")
+            print(f"  Files will be created in: {self.sandbox_path}")
+            print(f"  Original Project Path: {self.original_cwd}")
+            print("  Data Access:")
+            print("    - Relative paths: ./data/... (via symlinks)")
+            print("    - Helper function: get_project_path('data/...') for absolute paths")
+
         print("=" * 50 + "\n")
 
         self.path = path
@@ -151,6 +183,10 @@ class A1:
         if not os.path.exists(path):
             os.makedirs(path)
             print(f"Created directory: {path}")
+
+        # Setup sandbox data access after path is assigned
+        if self.sandbox_mode:
+            self._setup_sandbox_data_access()
 
         # --- Begin custom folder/file checks ---
         benchmark_dir = os.path.join(path, "biomni_data", "benchmark")
@@ -1514,7 +1550,14 @@ Each library is listed with its description to help you understand its functiona
 
                     # Inject custom functions into the Python execution environment
                     self._inject_custom_functions_to_repl()
-                    result = run_with_timeout(run_python_repl, [code], timeout=timeout)
+
+                    # Pass sandbox path and original directory if sandbox mode is enabled
+                    if self.sandbox_mode and self.sandbox_path:
+                        result = run_with_timeout(
+                            run_python_repl, [code, self.sandbox_path, self.original_cwd], timeout=timeout
+                        )
+                    else:
+                        result = run_with_timeout(run_python_repl, [code], timeout=timeout)
 
                     # Plots are now captured directly in the execution entry above
 
@@ -2057,6 +2100,54 @@ Each library is listed with its description to help you understand its functiona
 
         print(f"Created MCP server with {registered_tools} tools")
         return mcp
+
+    def get_sandbox_path(self) -> str | None:
+        """Get the current sandbox path if sandbox mode is enabled.
+
+        Returns:
+            str: The absolute path to the sandbox directory if sandbox mode is enabled, None otherwise
+        """
+        return self.sandbox_path if self.sandbox_mode else None
+
+    def _setup_sandbox_data_access(self) -> None:
+        """Setup data access for sandbox mode by creating symbolic links to important directories."""
+        if not self.sandbox_mode or not self.sandbox_path:
+            return
+
+        # List of important directories/files to link into sandbox
+        important_paths = [
+            ("data", os.path.join(self.original_cwd, "data")),
+            ("biomni_data", os.path.join(self.original_cwd, "data", "biomni_data")),
+        ]
+
+        # Create symbolic links for data access
+        for link_name, target_path in important_paths:
+            if os.path.exists(target_path):
+                sandbox_link = os.path.join(self.sandbox_path, link_name)
+
+                # Remove existing link if it exists
+                if os.path.islink(sandbox_link):
+                    os.unlink(sandbox_link)
+                elif os.path.exists(sandbox_link):
+                    # Don't overwrite real directories/files
+                    continue
+
+                try:
+                    os.symlink(target_path, sandbox_link)
+                    print(f"🔗 Linked {link_name} -> {target_path}")
+                except OSError as e:
+                    print(f"⚠️  Could not create symlink {link_name}: {e}")
+
+        # Also try to link the main data directory directly if path is provided
+        main_data_path = os.path.join(self.original_cwd, self.path)
+        if os.path.exists(main_data_path) and main_data_path != os.path.join(self.original_cwd, "data"):
+            sandbox_data_link = os.path.join(self.sandbox_path, "main_data")
+            if not os.path.exists(sandbox_data_link):
+                try:
+                    os.symlink(main_data_path, sandbox_data_link)
+                    print(f"🔗 Linked main_data -> {main_data_path}")
+                except OSError as e:
+                    print(f"⚠️  Could not create main_data symlink: {e}")
 
     def save_conversation_history(self, filepath: str, include_images: bool = True, save_pdf: bool = True) -> None:
         """Save the complete conversation history as PDF only.
