@@ -2798,13 +2798,13 @@ def query_gnomad(
     if prompt is None and gene_symbol is None:
         return {"error": "Either a prompt or a gene_symbol must be provided"}
 
+    # Load the gnomAD query template; both paths below use it
+    schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "gnomad.pkl")
+    with open(schema_path, "rb") as f:
+        gnomad_schema = pickle.load(f)
+
     # If using prompt, parse with Claude
     if prompt and not gene_symbol:
-        # Load gnomAD schema
-        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "gnomad.pkl")
-        with open(schema_path, "rb") as f:
-            gnomad_schema = pickle.load(f)
-
         # Create system prompt template
         system_template = """
         You are a genomics expert specialized in using the gnomAD GraphQL API.
@@ -2848,6 +2848,7 @@ def query_gnomad(
                 "error": "Failed to extract a valid query from the prompt",
                 "llm_response": llm_result.get("raw_response", "No response"),
             }
+        description = f"Query gnomAD: {prompt}"
     else:
         description = f"Query gnomAD for variants in {gene_symbol}"
         # replace BRCA1 with gene_symbol
