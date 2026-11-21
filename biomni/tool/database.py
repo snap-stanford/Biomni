@@ -1410,7 +1410,7 @@ def query_paleobiology(
     Examples
     --------
     - Natural language: query_paleobiology("Find fossil records of Tyrannosaurus rex")
-    - Direct endpoint: query_paleobiology(endpoint="data1.2/taxa/list.json?name=Tyrannosaurus")
+    - Direct endpoint: query_paleobiology(endpoint="taxa/list.json?name=Tyrannosaurus")
 
     """
     # Base URL for PBDB API
@@ -1423,7 +1423,7 @@ def query_paleobiology(
     # If using prompt, parse with Claude
     if prompt:
         # Load PBDB schema
-        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "pbdb.pkl")
+        schema_path = os.path.join(os.path.dirname(__file__), "schema_db", "paleobiology.pkl")
         with open(schema_path, "rb") as f:
             pbdb_schema = pickle.load(f)
 
