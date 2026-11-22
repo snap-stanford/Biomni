@@ -339,7 +339,7 @@ description = [
             {"name": "endpoint", "type": "str", "description": "Direct endpoint or full URL", "default": None},
             {"name": "max_results", "type": "int", "description": "Max results (limit)", "default": 100},
             {"name": "verbose", "type": "bool", "description": "Return detailed results", "default": True},
-                       {
+            {
                 "name": "search_params",
                 "type": "dict",
                 "description": 'Search mapping {"field": "term"} or {"field": ["t1", "t2"]}; terms are double-quoted (exact phrase), lists OR-ed, fields AND-ed; requires endpoint',
