@@ -1,4 +1,3 @@
-
 # Building Project Documentation
 
 To build the project's documentation locally, use the `Makefile` located in the `docs` directory.
@@ -10,7 +9,6 @@ First, ensure you have activated the `biomni_e1` conda environment. Then, instal
 ```bash
 pip install sphinx sphinx-rtd-theme
 ```
-
 
 ## Build the Documentation
 
@@ -27,7 +25,6 @@ pip install sphinx sphinx-rtd-theme
     ```
 
     This command will automatically generate the API documentation and build all HTML files.
-
 
 ## View the Documentation
 
