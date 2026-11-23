@@ -134,14 +134,17 @@ default_config.api_key = None  # For custom models
 ## Troubleshooting
 
 **API Key Not Found**:
+
 - Check `.env` file exists in your working directory
 - Verify with: `echo $ANTHROPIC_API_KEY`
 
 **Configuration Not Applied**:
+
 - Changes to `default_config` only affect agents created after the change
 - Direct parameters only affect that specific agent, not database queries
 
 **Model Not Found**:
+
 - Check spelling of model name
 - For Azure, prefix with "azure-" (e.g., "azure-gpt-4o")
 - Ensure you have the right API key for that provider
