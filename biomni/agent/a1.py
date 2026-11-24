@@ -53,6 +53,45 @@ class AgentState(TypedDict):
     next_step: str | None
 
 
+_TOP_LEVEL_TAG_RE = re.compile(r"<(think|execute|solution)>(.*?)</\1>", re.DOTALL | re.IGNORECASE)
+_UNCLOSED_ACTION_OPEN_RE = re.compile(r"<(execute|solution)>", re.IGNORECASE)
+_PROTOCOL_CONFLICT_CORRECTION = (
+    "Protocol conflict: your last response contains multiple action blocks. "
+    "No code from that response was executed. Return exactly one <execute> "
+    "block or one <solution> block, not both. "
+    "Do not report unexecuted code as completed."
+)
+_MAX_PROTOCOL_CONFLICT_CORRECTIONS = 2
+
+
+def _parse_response_tags(msg: str) -> tuple[str, list[str], bool]:
+    """Normalize a single unclosed tag when safe and return top-level action tags."""
+    top_level_matches = list(_TOP_LEVEL_TAG_RE.finditer(msg))
+    closed_actions = [m.group(1).lower() for m in top_level_matches if m.group(1).lower() in ("execute", "solution")]
+    has_think = any(m.group(1).lower() == "think" for m in top_level_matches)
+
+    outside_parts: list[str] = []
+    last_end = 0
+    for match in top_level_matches:
+        outside_parts.append(msg[last_end : match.start()])
+        last_end = match.end()
+    outside_parts.append(msg[last_end:])
+    outside = "".join(outside_parts)
+
+    unclosed_actions = [m.group(1).lower() for m in _UNCLOSED_ACTION_OPEN_RE.finditer(outside)]
+
+    if not closed_actions and len(unclosed_actions) == 1:
+        tag = unclosed_actions[0]
+        return f"{msg}</{tag}>", [tag], has_think
+
+    if not closed_actions and not unclosed_actions and not has_think:
+        if re.search(r"<think>", outside, re.IGNORECASE) and not re.search(r"</think>", outside, re.IGNORECASE):
+            msg = f"{msg}</think>"
+            has_think = True
+
+    return msg, closed_actions + unclosed_actions, has_think
+
+
 class A1:
     def __init__(
         self,
@@ -1411,35 +1450,39 @@ Each library is listed with its description to help you understand its functiona
                 msg = str(content)
 
             # Enhanced parsing for better OpenAI compatibility
-            # Check for incomplete tags and fix them
-            if "<execute>" in msg and "</execute>" not in msg:
-                msg += "</execute>"
-            if "<solution>" in msg and "</solution>" not in msg:
-                msg += "</solution>"
-            if "<think>" in msg and "</think>" not in msg:
-                msg += "</think>"
-
-            # More flexible pattern matching for different LLM styles
-            think_match = re.search(r"<think>(.*?)</think>", msg, re.DOTALL | re.IGNORECASE)
-            execute_match = re.search(r"<execute>(.*?)</execute>", msg, re.DOTALL | re.IGNORECASE)
-            answer_match = re.search(r"<solution>(.*?)</solution>", msg, re.DOTALL | re.IGNORECASE)
-
-            # Alternative patterns for OpenAI models that might use different formatting
-            if not execute_match:
-                # Try to find code blocks that might be intended as execute blocks
-                code_block_match = re.search(r"```(?:python|bash|r)?\s*(.*?)```", msg, re.DOTALL)
-                if code_block_match and not answer_match:
-                    # If we found a code block and no solution, treat it as execute
-                    execute_match = code_block_match
+            msg, actions, has_think = _parse_response_tags(msg)
 
             # Add the message to the state before checking for errors
             state["messages"].append(AIMessage(content=msg.strip()))
+
+            if len(actions) > 1:
+                corrections = sum(
+                    isinstance(message, HumanMessage) and message.content == _PROTOCOL_CONFLICT_CORRECTION
+                    for message in state["messages"]
+                )
+                if corrections >= _MAX_PROTOCOL_CONFLICT_CORRECTIONS:
+                    raise ValueError("Repeated conflicting action blocks after two correction requests")
+                state["messages"].append(HumanMessage(content=_PROTOCOL_CONFLICT_CORRECTION))
+                state["next_step"] = "generate"
+                return state
+
+            answer_match = actions == ["solution"]
+            execute_match = actions == ["execute"]
+
+            # Alternative patterns for OpenAI models that might use different formatting
+            if (
+                not execute_match
+                and not answer_match
+                and re.search(r"```(?:python|bash|r)?\s*(.*?)```", msg, re.DOTALL)
+            ):
+                # If we found a code block and no solution, treat it as execute
+                execute_match = True
 
             if answer_match:
                 state["next_step"] = "end"
             elif execute_match:
                 state["next_step"] = "execute"
-            elif think_match:
+            elif has_think:
                 state["next_step"] = "generate"
             else:
                 print("parsing error...")
