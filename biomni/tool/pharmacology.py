@@ -3666,6 +3666,13 @@ def _standardize_drug_name_fda(drug_name: str) -> str:
     return name
 
 
+_FDA_OUTCOME_FIELDS = {
+    "life_threatening": "seriousnesslifethreatening",
+    "hospitalization": "seriousnesshospitalization",
+    "death": "seriousnessdeath",
+}
+
+
 def _apply_fda_filters(response_data: dict, filters: dict) -> dict:
     """Apply post-query filtering to FDA responses."""
     if not response_data.get("results"):
@@ -3676,33 +3683,24 @@ def _apply_fda_filters(response_data: dict, filters: dict) -> dict:
     for result in response_data["results"]:
         include = True
 
-        # Apply severity filter
+        # Apply severity filter; listing both levels keeps every report
         if filters.get("severity_filter") or filters.get("severity"):
             severity_list = filters.get("severity_filter", filters.get("severity", []))
-            if "serious" in severity_list:
+            if "serious" in severity_list and "non_serious" not in severity_list:
                 # For serious filter, only include if serious == '1'
                 if result.get("serious") != "1":
                     include = False
-            elif "non_serious" in severity_list:
+            elif "non_serious" in severity_list and "serious" not in severity_list:
                 # For non-serious filter, only include if serious != '1'
                 if result.get("serious") == "1":
                     include = False
 
-        # Apply outcome filter
+        # Apply outcome filter; keep the report if it has any of the listed outcomes
         if (filters.get("outcome_filter") or filters.get("outcome")) and include:
             outcome_list = filters.get("outcome_filter", filters.get("outcome", []))
-            if "life_threatening" in outcome_list:
-                # Check if the result has life threatening outcome
-                if result.get("seriousnesslifethreatening") != "1":
-                    include = False
-            elif "hospitalization" in outcome_list:
-                # Check if the result has hospitalization outcome
-                if result.get("seriousnesshospitalization") != "1":
-                    include = False
-            elif "death" in outcome_list:
-                # Check if the result has death outcome
-                if result.get("seriousnessdeath") != "1":
-                    include = False
+            outcome_fields = [field for outcome, field in _FDA_OUTCOME_FIELDS.items() if outcome in outcome_list]
+            if outcome_fields and not any(result.get(field) == "1" for field in outcome_fields):
+                include = False
 
         # Apply classification filter (for recalls)
         if filters.get("classification") and include:
