@@ -2496,6 +2496,7 @@ def query_monarch(
             return llm_result
         query_info = llm_result["data"]
         endpoint = query_info.get("url", "")  # Changed from "full_url" to "url"
+        params = query_info.get("params") or {}
         description = f"Monarch API query: {query_info.get('endpoint', 'unknown endpoint')}"
         if not endpoint:
             return {
@@ -2509,16 +2510,18 @@ def query_monarch(
                 endpoint = f"{base_url}{endpoint}"
             elif not endpoint.startswith("http"):
                 endpoint = f"{base_url}/{endpoint.lstrip('/')}"
+        params = {}
         description = "Direct query to Monarch API"
 
     # Add max_results as a query parameter if not already present
-    if "?" in endpoint:
-        if "rows=" not in endpoint and "limit=" not in endpoint:
-            endpoint += f"&limit={max_results}"
-    else:
-        endpoint += f"?limit={max_results}"
+    if "limit" not in params:
+        if "?" in endpoint:
+            if "rows=" not in endpoint and "limit=" not in endpoint:
+                endpoint += f"&limit={max_results}"
+        else:
+            endpoint += f"?limit={max_results}"
 
-    api_result = _query_rest_api(endpoint=endpoint, method="GET", description=description)
+    api_result = _query_rest_api(endpoint=endpoint, method="GET", params=params, description=description)
 
     if not verbose and "success" in api_result and api_result["success"] and "result" in api_result:
         return _format_query_results(api_result["result"])
