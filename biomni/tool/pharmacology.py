@@ -3532,18 +3532,19 @@ class OpenFDAClient:
         """Build FDA API search parameters from input parameters."""
         fda_params = {}
 
-        # Handle drug name searches
+        # Handle drug name searches. The name is quoted so a multi-word name
+        # ("valproic acid") is matched as a phrase, not as separate words.
         if "drug_name" in params:
             drug_name = params["drug_name"]
             if endpoint == "drug/event":
                 # For adverse events, search in medicinalproduct field
-                fda_params["search"] = f"patient.drug.medicinalproduct:{drug_name}"
+                fda_params["search"] = f'patient.drug.medicinalproduct:"{drug_name}"'
             elif endpoint == "drug/label":
                 # For drug labels, search in brand name
-                fda_params["search"] = f"openfda.brand_name:{drug_name}"
+                fda_params["search"] = f'openfda.brand_name:"{drug_name}"'
             elif endpoint == "drug/enforcement":
                 # For enforcement/recalls, search in brand name
-                fda_params["search"] = f"openfda.brand_name:{drug_name}"
+                fda_params["search"] = f'openfda.brand_name:"{drug_name}"'
 
         # Handle other parameters
         for key, value in params.items():
